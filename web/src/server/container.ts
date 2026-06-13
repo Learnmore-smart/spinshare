@@ -60,6 +60,7 @@ import { StripeGateway } from "./adapters/stripe";
 // adapter and its `validateToken` are pure crypto + an in-memory device store
 // and must construct/validate without OAuth credentials present.
 import { NextAuthDeviceProvider } from "./adapters/auth/nextauth-device-provider";
+import { seedLocalTestData } from "./dev/seed-local-data";
 
 /** The fully-wired set of provider adapters every service depends on. */
 export interface Container {
@@ -152,12 +153,21 @@ function buildDurableRepos(
   // have consistent, deterministic-friendly time and ids.
   const clock: Clock = new SystemClock();
   const ids: IdGenerator = new RandomIdGenerator();
-  return {
-    campaigns: new MemoryCampaignRepository(clock, ids),
-    users: new MemoryUserRepository(ids),
-    ledger: new MemoryLedgerRepository(),
-    paymentEvents: new MemoryPaymentEventStore(),
-  };
+  const campaigns = new MemoryCampaignRepository(clock, ids);
+  const users = new MemoryUserRepository(ids);
+  const ledger = new MemoryLedgerRepository();
+  const paymentEvents = new MemoryPaymentEventStore();
+
+  // In local mode, provision durable data for the local test accounts so the
+  // dashboards show real content immediately after a credential sign-in. Scoped
+  // to the interactive dev server only (`next dev` → NODE_ENV="development"):
+  // never under test (Vitest), e2e (`next start`), build, or production, so it
+  // can't pollute deterministic fixtures or real data.
+  if (mode === "local" && process.env.NODE_ENV === "development") {
+    seedLocalTestData({ users, campaigns, ledger });
+  }
+
+  return { campaigns, users, ledger, paymentEvents };
 }
 
 /** Selects the {@link PaymentGateway} from `STRIPE_MODE`. */

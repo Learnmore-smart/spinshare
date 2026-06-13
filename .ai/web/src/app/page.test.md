@@ -45,7 +45,7 @@ The React import uses a namespace import so it does not depend on `esModuleInter
 
 ## Implemented Test
 
-The test renders `HomePage` to static markup and verifies that the page starts in a live-market loading state, exposes the install CTA and bid market, includes role-specific links, and no longer includes sample campaign names or `$43.44/mo`.
+The test renders `HomePage` to static markup and verifies that the page starts in a live-market loading state, exposes the `Your AI thinks / You get` money-first hero, renders the accessible `🤑` money icon, uses monthly `/mo` copy, includes role-specific links, keeps the sticky header classes, and no longer includes sample campaign names, `$43.44/mo`, `live estimate`, or the abrupt black process band.
 
 ## Revision Plan
 
@@ -59,10 +59,31 @@ Tests should no longer require static sample money like `$43.44/mo`. They should
 
 The test is already red against the current homepage because the implementation still renders static sample bids and `$43.44/mo`. Keep the test intent and update the homepage to satisfy it.
 
+## Planned Regression: Sticky Spacious Homepage
+
+Add static-render assertions before implementation that require:
+
+- The header exposes sticky top positioning and a high z-index.
+- The first viewport includes the new centered before/after wait-state proof copy.
+- The page exposes a lighter market-depth section.
+- The old abrupt black `bg-[#111815]` process band is gone.
+
+## Planned Regression: Money-First Hero
+
+Update the static homepage test before implementation so it requires:
+
+- `Your AI thinks` and `You get` in the headline.
+- A money-icon accessible label in the hero.
+- The product money icon renders as `🤑`.
+- A monthly CTA chip containing `/mo`.
+- No `live estimate` phrasing.
+- The concise revenue line `60% of revenue goes to you.`
+
 ## Verification
 
 - Initial live-market assertion failed while the homepage still rendered sample bids and `$43.44/mo`.
 - After implementation, `vitest run src/app/page.test.tsx src/app/api/market/route.test.ts src/app/signin/page.test.ts` passed.
+- Final focused run: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/page.test.tsx src/app/signin/page.test.ts` passed.
 
 ## Bug Fixes
 
@@ -80,3 +101,7 @@ The test is already red against the current homepage because the implementation 
 | 2026-06-13 | Documented revised test direction for live market homepage | Codex |
 | 2026-06-13 | Documented failing live-market homepage test before implementation fix | Codex |
 | 2026-06-13 | Synced homepage test docs with final live-market assertions | Codex |
+| 2026-06-13 | Documented sticky/spacious homepage regression assertions before editing tests | Codex |
+| 2026-06-13 | Documented money-first hero regression assertions before editing tests | Codex |
+| 2026-06-13 | Documented `🤑` money icon regression assertion | Codex |
+| 2026-06-13 | Synced final homepage regression test docs with sticky, monthly, and money-icon assertions | Codex |

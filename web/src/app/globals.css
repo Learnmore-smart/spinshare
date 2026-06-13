@@ -75,6 +75,10 @@
   border-color: hsl(var(--border));
 }
 
+body, button, input, select, textarea {
+  font-family: var(--font-nunito), sans-serif;
+}
+
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));

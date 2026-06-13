@@ -1,20 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  Activity,
-  ArrowRight,
-  Clock3,
-  Code2,
-  DollarSign,
-  Download,
-  Megaphone,
-  Radio,
-  RefreshCw,
-  ShieldCheck,
-  TrendingUp,
-} from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, RefreshCw } from "lucide-react";
+
+import LoadingStatus, { LOADING_ICONS } from "@/components/LoadingStatus";
 
 const DEVELOPER_SIGNIN_HREF =
   "/signin?role=developer&callbackUrl=%2Fdashboard%2Fdeveloper";
@@ -23,7 +14,6 @@ const ADVERTISER_SIGNIN_HREF =
 
 const MARKET_REFRESH_MS = 15_000;
 const DEVELOPER_SHARE_PERCENT = 60;
-const DEFAULT_WAITS_PER_HOUR = 120;
 
 interface MarketRow {
   id: string;
@@ -58,12 +48,6 @@ function formatMoney(cents: number): string {
   return moneyFormatter.format(cents / 100);
 }
 
-function estimateHourlyCents(topCpmCents: number, waitsPerHour: number): number {
-  return Math.round(
-    (topCpmCents * waitsPerHour * DEVELOPER_SHARE_PERCENT) / 100_000,
-  );
-}
-
 function formatUpdatedAt(updatedAtMs: number | undefined): string {
   if (!updatedAtMs) return "Loading live bids";
 
@@ -73,10 +57,82 @@ function formatUpdatedAt(updatedAtMs: number | undefined): string {
   }).format(updatedAtMs);
 }
 
+function MoneyIcon({ className = "" }: { className?: string }) {
+  return (
+    <span
+      aria-label="money"
+      role="img"
+      className={`inline-grid place-items-center leading-none ${className}`}
+    >
+      🤑
+    </span>
+  );
+}
+
+const CLAUDE_STATES = [
+  { action: "Conjuring", category: "Bash", duration: 3.1 },
+  { action: "Noodling", category: "Glob", duration: 1.4 },
+  { action: "Baking", category: "Write", duration: 0.9 },
+  { action: "Thinking", category: "Read", duration: 2.2 },
+] as const;
+
 export default function HomePage() {
   const [market, setMarket] = useState<MarketResponse | null>(null);
   const [marketStatus, setMarketStatus] = useState<MarketStatus>("loading");
-  const [waitsPerHour, setWaitsPerHour] = useState(DEFAULT_WAITS_PER_HOUR);
+  const [liveEarnings, setLiveEarnings] = useState<number>(0);
+  const [claudeStateIndex, setClaudeStateIndex] = useState<number>(0);
+  const [leftTimer, setLeftTimer] = useState<number>(0.0);
+  const [rightTimer, setRightTimer] = useState<number>(0.0);
+  const [dotCount, setDotCount] = useState<number>(1);
+
+  const currentClaudeState = CLAUDE_STATES[claudeStateIndex] ?? CLAUDE_STATES[0];
+
+  const leftElapsedMs = Math.round(leftTimer * 1000);
+  const leftIconIndex = Math.floor(leftElapsedMs / 125) % LOADING_ICONS.length;
+  const leftIcon = LOADING_ICONS[leftIconIndex] ?? "\u2736";
+
+  const rightElapsedMs = Math.round(rightTimer * 1000);
+  const rightIconIndex = Math.floor(rightElapsedMs / 125) % LOADING_ICONS.length;
+  const rightIcon = LOADING_ICONS[rightIconIndex] ?? "\u2736";
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setLeftTimer((prev) => {
+        const nextVal = prev + 0.1;
+        if (nextVal >= currentClaudeState.duration) {
+          setClaudeStateIndex((prevIdx) => (prevIdx + 1) % CLAUDE_STATES.length);
+          return 0.0;
+        }
+        return nextVal;
+      });
+      setRightTimer((prev) => {
+        const nextVal = prev + 0.1;
+        return nextVal > 10.0 ? 0.0 : nextVal;
+      });
+      setDotCount((prev) => (prev % 3) + 1);
+    }, 100);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [claudeStateIndex, currentClaudeState.duration]);
+
+  useEffect(() => {
+    const startVal = 20 + Math.random() * 5;
+    setLiveEarnings(startVal);
+
+    const interval = window.setInterval(() => {
+      setLiveEarnings((prev) => {
+        if (prev === 0) return startVal;
+        const increment = 0.01 + Math.random() * 0.02;
+        return prev + increment;
+      });
+    }, 500);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -87,6 +143,7 @@ export default function HomePage() {
         if (!response.ok) {
           throw new Error(`Market request failed: ${response.status}`);
         }
+
         const nextMarket = (await response.json()) as MarketResponse;
         if (!cancelled) {
           setMarket(nextMarket);
@@ -111,24 +168,13 @@ export default function HomePage() {
   const rows = market?.rows ?? [];
   const visibleRows = rows.slice(0, 12);
   const topBid = rows[0];
-  const topCpmCents = market?.summary.topCpmCents ?? 0;
-  const hourlyEstimateCents = useMemo(
-    () => estimateHourlyCents(topCpmCents, waitsPerHour),
-    [topCpmCents, waitsPerHour],
-  );
-  const topBidLabel =
-    marketStatus === "loading"
-      ? "Loading live bids"
-      : marketStatus === "error"
-        ? "Market temporarily unavailable"
-        : topBid
-          ? `${topBid.cpmUsd} top CPM`
-          : "No funded bids yet";
+  const sponsorLetter = topBid?.adText ? topBid.adText.trim().charAt(0).toUpperCase() : "R";
+  const monthlyEstimateLabel = `${moneyFormatter.format(liveEarnings)}/mo`;
   const lastUpdatedLabel = formatUpdatedAt(market?.updatedAtMs);
 
   return (
-    <div className="min-h-screen bg-[#edf7f0] text-slate-950 [font-family:Aptos,'Segoe_UI',ui-sans-serif,system-ui,sans-serif]">
-      <header className="border-b border-emerald-900/10 bg-[#edf7f0]/95 backdrop-blur">
+    <div className="min-h-screen bg-[#edf7f0] text-slate-950">
+      <header className="sticky top-0 z-50 border-b border-emerald-900/10 bg-[#edf7f0]/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-3" aria-label="SpinShare home">
             <span className="grid h-9 w-9 place-items-center rounded-[8px] bg-emerald-600 text-sm font-black text-white shadow-[0_10px_24px_rgba(22,163,74,0.24)]">
@@ -138,8 +184,11 @@ export default function HomePage() {
           </Link>
 
           <nav className="hidden items-center gap-6 text-sm font-bold text-slate-600 md:flex">
+            <a href="#money" className="transition hover:text-emerald-700">
+              Money
+            </a>
             <a href="#bid-market" className="transition hover:text-emerald-700">
-              Bid market
+              Market depth
             </a>
             <a href="#how-it-pays" className="transition hover:text-emerald-700">
               How it pays
@@ -158,9 +207,9 @@ export default function HomePage() {
             </Link>
             <Link
               href={DEVELOPER_SIGNIN_HREF}
-              className="inline-flex h-10 items-center gap-2 rounded-[8px] bg-emerald-600 px-4 text-sm font-black text-white shadow-[0_12px_24px_rgba(22,163,74,0.22)] transition hover:bg-emerald-700"
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-emerald-600/25 bg-emerald-600/10 backdrop-blur-md px-5 text-sm font-black text-emerald-800 shadow-[0_4px_12px_rgba(16,185,129,0.06)] transition hover:bg-emerald-600/20 hover:border-emerald-600/40"
             >
-              <Download className="h-4 w-4" />
+              <MoneyIcon />
               Install
             </Link>
           </div>
@@ -168,48 +217,166 @@ export default function HomePage() {
       </header>
 
       <main>
-        <section className="border-b border-emerald-900/10 bg-[#e8f6ed]">
-          <div className="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[1.02fr_0.98fr] lg:items-center">
-            <div className="min-w-0">
-              <div className="inline-flex items-center gap-2 rounded-[8px] border border-emerald-700/20 bg-white px-3 py-2 text-xs font-black uppercase tracking-[0.16em] text-emerald-700">
-                <Radio className="h-4 w-4" />
+        <section id="money" className="relative overflow-hidden border-b border-emerald-900/10 bg-[#e8f6ed]">
+          <div className="spinshare-blob-1 pointer-events-none absolute -left-40 -top-40 h-96 w-96 rounded-full blur-3xl animate-pulse-slow" />
+          <div className="spinshare-blob-2 pointer-events-none absolute -right-40 -bottom-40 h-96 w-96 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: "-5s" }} />
+          <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
+            <div className="mx-auto max-w-5xl text-center">
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-700/20 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-emerald-700 shadow-sm">
+                <MoneyIcon />
                 Live wait-state marketplace
               </div>
 
-              <h1 className="mt-5 max-w-3xl text-5xl font-black leading-[0.96] tracking-tight sm:text-7xl">
-                Earn from every AI wait.
+              <h1 className="mx-auto mt-7 max-w-5xl text-5xl font-black leading-[0.9] tracking-tight sm:text-7xl lg:text-8xl">
+                <span className="block">Your AI thinks</span>
+                <span className="mt-2 flex flex-wrap items-center justify-center gap-4">
+                  <span>You get</span>
+                  <MoneyIcon className="text-6xl sm:text-7xl lg:text-8xl" />
+                </span>
               </h1>
 
-              <p className="mt-5 max-w-2xl text-lg font-semibold leading-8 text-slate-600">
-                SpinShare turns idle agent time into paid ad inventory. Install once, show developer-relevant bids during waits, and keep 60% of credited revenue.
-              </p>
+              <div className="mx-auto mt-6 max-w-2xl text-lg font-semibold leading-8 text-slate-600">
+                <p>SpinShare turns idle AI waits into paid moments.</p>
+                <p className="font-black text-emerald-700">
+                  {DEVELOPER_SHARE_PERCENT}% of revenue goes to you.
+                </p>
+              </div>
+            </div>
 
-              <div className="mt-7 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-[8px] border border-emerald-900/10 bg-white p-4 shadow-[0_18px_48px_rgba(15,23,42,0.06)]">
+            <div className="mx-auto mt-11 grid max-w-5xl items-center gap-6 lg:grid-cols-[1fr_auto_1fr]">
+              <div className="min-w-0">
+                <p className="mb-3 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
+                  Stock Claude Code
+                </p>
+                <div className="rounded-2xl border border-zinc-800 bg-[#141415] p-5 text-left shadow-[0_20px_52px_rgba(15,23,42,0.18)]">
+                  <div className="flex items-center justify-between font-mono text-sm">
+                    <div className="flex items-center gap-3 text-[#c15f3c] min-w-0">
+                      <span className="grid h-5 w-5 shrink-0 select-none place-items-center text-lg leading-none">
+                        {leftIcon}
+                      </span>
+                      <span className="font-semibold truncate">
+                        <span>{currentClaudeState.action}</span>
+                        <span className="inline-block w-[2.25ch] text-left">{".".repeat(dotCount)}</span>
+                      </span>
+                    </div>
+                    <span className="text-zinc-500 text-xs font-semibold shrink-0 pl-2">{currentClaudeState.category} · {leftTimer.toFixed(1)}s</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mx-auto flex flex-col items-center justify-center rotate-90 lg:rotate-0 select-none">
+                <div className="hidden lg:block h-7" />
+                <span className="text-emerald-500 font-black text-2xl tracking-tighter shrink-0">»</span>
+              </div>
+
+              <div className="min-w-0">
+                <p className="mb-3 text-xs font-black uppercase tracking-[0.16em] text-emerald-700">
+                  With SpinShare
+                </p>
+                <div className="rounded-2xl border border-emerald-900/35 bg-[#141415] p-5 text-left shadow-[0_20px_52px_rgba(16,185,129,0.1)]">
+                  <div className="flex items-center justify-between font-mono text-sm">
+                    {/* Left/Middle side: LearnX ad (replaces Claude loader) */}
+                    <div className="flex min-w-0 items-center gap-2 text-sm leading-5">
+                      <Image
+                        alt=""
+                        aria-hidden="true"
+                        className="h-4 w-4 shrink-0 rounded-[3px]"
+                        height={16}
+                        sizes="16px"
+                        src="/learnx/favicon-32x32.png"
+                        width={16}
+                      />
+                      <span className="truncate whitespace-nowrap select-none font-semibold text-slate-200">
+                        LearnX · Know exactly what to study
+                      </span>
+                    </div>
+
+                    {/* Right side: Category and timer */}
+                    <span className="text-zinc-500 text-xs font-semibold shrink-0 pl-2">Edit · {rightTimer.toFixed(1)}s</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-11 flex justify-center">
+              <Link
+                href={DEVELOPER_SIGNIN_HREF}
+                className="group flex w-full max-w-3xl flex-col items-stretch gap-3 rounded-full bg-emerald-600 p-3 text-white shadow-[0_24px_58px_rgba(22,163,74,0.3)] transition hover:-translate-y-0.5 hover:bg-emerald-700 sm:flex-row sm:items-center"
+              >
+                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-white text-3xl text-emerald-700">
+                  <MoneyIcon />
+                </span>
+                <span className="min-w-0 flex-1 px-1 text-left">
+                  <span className="block text-xl font-black leading-tight">
+                    Install and start earning
+                  </span>
+                  <span className="mt-1 block text-sm font-bold text-emerald-50">
+                    Money starts on the next eligible wait
+                  </span>
+                </span>
+                <span className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-black text-emerald-700">
+                  {monthlyEstimateLabel}
+                  <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                </span>
+              </Link>
+            </div>
+
+            <div className="mx-auto mt-4 flex max-w-3xl flex-col items-center justify-center gap-2 text-sm font-bold text-slate-500 sm:flex-row">
+              <span>{DEVELOPER_SHARE_PERCENT}% credited revenue to you.</span>
+              <Link
+                href={ADVERTISER_SIGNIN_HREF}
+                className="inline-flex items-center gap-2 rounded-full border border-emerald-700/20 bg-white px-4 py-2 font-black text-emerald-700 shadow-sm transition hover:border-emerald-500"
+              >
+                Advertisers bid into the next wait
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section id="bid-market" className="bg-[#f8fbf9] px-4 py-16 sm:px-6 lg:py-20">
+          <div className="mx-auto max-w-7xl">
+            <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
+                  Market depth
+                </p>
+                <h2 className="mt-3 max-w-2xl text-4xl font-black tracking-tight sm:text-6xl">
+                  Advertiser money lines up for the next wait.
+                </h2>
+                <p className="mt-4 max-w-xl text-base font-semibold leading-7 text-slate-600">
+                  The highest funded CPM wins placement. You see money, not mystery.
+                </p>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="liquid-glass p-4 text-left">
                   <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
-                    Live top bid
+                    Top CPM
                   </p>
                   <p className="mt-2 text-3xl font-black tracking-tight">
                     {marketStatus === "ready"
                       ? market?.summary.topCpmUsd ?? "$0.00"
                       : "Loading"}
                   </p>
-                  <p className="mt-1 text-sm font-semibold text-slate-500">per 1,000 waits</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-500">
+                    per 1,000 waits
+                  </p>
                 </div>
 
-                <div className="rounded-[8px] border border-emerald-900/10 bg-white p-4 shadow-[0_18px_48px_rgba(15,23,42,0.06)]">
+                <div className="liquid-glass p-4 text-left">
                   <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
-                    Estimated take
+                    Monthly take
                   </p>
                   <p className="mt-2 text-3xl font-black tracking-tight">
-                    {marketStatus === "ready" ? `${formatMoney(hourlyEstimateCents)}/hr` : "Loading"}
+                    {monthlyEstimateLabel}
                   </p>
                   <p className="mt-1 text-sm font-semibold text-slate-500">
-                    at {waitsPerHour} waits/hour
+                    based on current wait volume
                   </p>
                 </div>
 
-                <div className="rounded-[8px] border border-emerald-900/10 bg-white p-4 shadow-[0_18px_48px_rgba(15,23,42,0.06)]">
+                <div className="liquid-glass p-4 text-left">
                   <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
                     Funded bids
                   </p>
@@ -218,196 +385,67 @@ export default function HomePage() {
                       ? market?.summary.liveCampaigns ?? 0
                       : "Loading"}
                   </p>
-                  <p className="mt-1 text-sm font-semibold text-slate-500">self-updating</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-500">
+                    self-updating
+                  </p>
                 </div>
-              </div>
-
-              <div className="mt-6 max-w-xl rounded-[8px] border border-emerald-900/10 bg-white p-4">
-                <div className="flex items-center justify-between gap-4">
-                  <label
-                    htmlFor="waitsPerHour"
-                    className="text-sm font-black text-slate-800"
-                  >
-                    Paid waits per hour
-                  </label>
-                  <span className="font-mono text-sm font-black text-emerald-700">
-                    {waitsPerHour}
-                  </span>
-                </div>
-                <input
-                  id="waitsPerHour"
-                  type="range"
-                  min="20"
-                  max="300"
-                  step="10"
-                  value={waitsPerHour}
-                  onChange={(event) => setWaitsPerHour(Number(event.target.value))}
-                  className="mt-3 h-2 w-full accent-emerald-600"
-                />
-              </div>
-
-              <div className="mt-7 flex flex-col gap-3 lg:flex-row lg:items-center">
-                <Link
-                  href={DEVELOPER_SIGNIN_HREF}
-                  className="group grid w-full max-w-xl grid-cols-[auto_1fr] items-center gap-3 rounded-[8px] bg-emerald-600 p-4 text-white shadow-[0_22px_50px_rgba(22,163,74,0.28)] transition hover:-translate-y-0.5 hover:bg-emerald-700 sm:grid-cols-[auto_1fr_auto]"
-                >
-                  <span className="grid h-11 w-11 place-items-center rounded-[8px] bg-white text-emerald-700">
-                    <Download className="h-5 w-5" />
-                  </span>
-                  <span className="min-w-0 text-left">
-                    <span className="block text-lg font-black leading-tight">
-                      Install the VS Code extension
-                    </span>
-                    <span className="mt-1 block text-sm font-bold text-emerald-50">
-                      Start earning from your next agent wait
-                    </span>
-                  </span>
-                  <span className="col-span-2 inline-flex items-center justify-between gap-2 rounded-[8px] bg-white px-3 py-2 text-sm font-black text-emerald-700 sm:col-span-1 sm:justify-self-end">
-                    {topBidLabel}
-                    <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-                  </span>
-                </Link>
-
-                <Link
-                  href={ADVERTISER_SIGNIN_HREF}
-                  className="inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-[8px] border border-slate-300 bg-white px-5 text-sm font-black text-slate-800 shadow-sm transition hover:border-emerald-500 hover:text-emerald-700 lg:w-auto"
-                >
-                  <Megaphone className="h-4 w-4" />
-                  Advertisers: bid on this line
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
               </div>
             </div>
 
-            <div className="min-w-0">
-              <div className="overflow-hidden rounded-[8px] border border-slate-900/10 bg-[#101713] text-white shadow-[0_26px_70px_rgba(15,23,42,0.22)]">
-                <div className="flex items-center justify-between border-b border-white/10 bg-black/35 px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <span className="h-3 w-3 rounded-full bg-red-500" />
-                    <span className="h-3 w-3 rounded-full bg-amber-400" />
-                    <span className="h-3 w-3 rounded-full bg-emerald-500" />
-                  </div>
-                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-slate-400">
+            <div className="mt-8">
+              <div className="overflow-hidden liquid-glass flex flex-col h-[480px]">
+                <div className="flex items-center justify-between gap-3 border-b border-emerald-900/10 bg-[#edf7f0]/30 px-5 py-4 text-xs font-black uppercase tracking-[0.14em] text-slate-500 shrink-0">
+                  <span>Live bid market</span>
+                  <span className="inline-flex items-center gap-2">
                     <RefreshCw className="h-4 w-4" />
                     {lastUpdatedLabel}
-                  </div>
+                  </span>
                 </div>
 
-                <div className="p-5">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-[8px] border border-white/10 bg-white/5 p-4">
-                      <div className="flex items-center justify-between text-xs font-black uppercase tracking-[0.14em] text-slate-400">
-                        <span>Normal wait</span>
-                        <Clock3 className="h-4 w-4" />
-                      </div>
-                      <p className="mt-5 font-mono text-sm text-amber-200">
-                        * Agent is still thinking...
-                      </p>
-                    </div>
-
-                    <div className="rounded-[8px] border border-emerald-400/30 bg-emerald-400/10 p-4">
-                      <div className="flex items-center justify-between text-xs font-black uppercase tracking-[0.14em] text-emerald-300">
-                        <span>SpinShare wait</span>
-                        <DollarSign className="h-4 w-4" />
-                      </div>
-                      <p className="mt-5 min-h-10 font-mono text-sm text-sky-100">
-                        {topBid?.adText ?? "Loading live bids for this wait line..."}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 rounded-[8px] border border-white/10 bg-white/5 p-4">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <p className="text-xs font-black uppercase tracking-[0.16em] text-slate-400">
-                          Developer ledger preview
-                        </p>
-                        <p className="mt-1 text-2xl font-black">
-                          {marketStatus === "ready"
-                            ? `${formatMoney(hourlyEstimateCents)}/hr`
-                            : "Loading live bids"}
-                        </p>
-                      </div>
-                      <div className="rounded-[8px] bg-white px-3 py-2 text-sm font-black text-emerald-700">
-                        {DEVELOPER_SHARE_PERCENT}% to developer
-                      </div>
-                    </div>
-                    <div className="mt-4 h-2 overflow-hidden rounded-[8px] bg-white/10">
-                      <div className="h-full w-[60%] rounded-[8px] bg-emerald-400" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="bid-market" className="bg-[#f8fbf9] px-4 py-12 sm:px-6 sm:py-16">
-          <div className="mx-auto max-w-7xl">
-            <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600">
-                  Bid market
-                </p>
-                <h2 className="mt-2 max-w-3xl text-3xl font-black tracking-tight sm:text-5xl">
-                  The install button is backed by live advertiser demand.
-                </h2>
-                <p className="mt-3 max-w-2xl text-base font-semibold leading-7 text-slate-600">
-                  Highest CPM wins the next eligible wait. Every lower funded bid stays visible underneath so developers can see the market depth before signup.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 sm:flex">
-                <div className="rounded-[8px] border border-slate-200 bg-white px-4 py-3">
-                  <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
-                    Top CPM
-                  </p>
-                  <p className="mt-1 text-xl font-black">
-                    {marketStatus === "ready"
-                      ? market?.summary.topCpmUsd ?? "$0.00"
-                      : "Loading"}
-                  </p>
-                </div>
-                <div className="rounded-[8px] border border-slate-200 bg-white px-4 py-3">
-                  <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
-                    Updated
-                  </p>
-                  <p className="mt-1 text-xl font-black">{lastUpdatedLabel}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="overflow-hidden rounded-[8px] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
-              <div className="grid min-w-[780px] grid-cols-[64px_minmax(280px,1fr)_160px_170px_110px] border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-slate-500">
-                <span>#</span>
-                <span>Campaign line</span>
-                <span>Bid</span>
-                <span>Remaining budget</span>
-                <span>Status</span>
-              </div>
-
-              <div className="overflow-x-auto">
-                <div className="min-w-[780px] divide-y divide-slate-100">
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin">
                   {visibleRows.length > 0 ? (
                     visibleRows.map((row) => (
                       <div
                         key={row.id}
-                        className="grid grid-cols-[64px_minmax(280px,1fr)_160px_170px_110px] items-center px-4 py-4 text-sm font-semibold text-slate-700"
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-emerald-900/5 bg-white/60 hover:bg-white/90 hover:border-emerald-600/20 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all duration-200"
                       >
-                        <span className="font-mono text-slate-400">{row.rank}</span>
-                        <span className="truncate pr-5 font-bold text-slate-950">
-                          {row.adText}
-                        </span>
-                        <span className="font-black text-slate-950">{row.bidLabel}</span>
-                        <span>{row.remainingBudgetUsd}</span>
-                        <span className="inline-flex w-fit items-center gap-2 rounded-[8px] bg-emerald-50 px-2 py-1 text-xs font-black uppercase text-emerald-700">
-                          <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                          Live
-                        </span>
+                        {/* Left Side: Rank and Campaign Text */}
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-black
+                            ${row.rank === 1 ? 'bg-amber-100 text-amber-800 border border-amber-200 shadow-sm font-bold' :
+                              row.rank === 2 ? 'bg-slate-150 text-slate-700 border border-slate-300' :
+                              row.rank === 3 ? 'bg-orange-100 text-orange-800 border border-orange-200' :
+                              'bg-emerald-50 text-emerald-700'}`}
+                          >
+                            #{row.rank}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="font-bold text-slate-950 truncate text-sm sm:text-base" title={row.adText}>
+                              {row.adText}
+                            </p>
+                            <p className="text-xs text-slate-500 font-semibold mt-0.5">
+                              Remaining Budget: <span className="font-bold text-slate-700">{row.remainingBudgetUsd}</span>
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Right Side: Bid Value & Live Tag */}
+                        <div className="flex items-center gap-4 justify-between sm:justify-end shrink-0">
+                          <div className="text-left sm:text-right">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600/10 px-2.5 py-1 text-xs font-black text-emerald-700 border border-emerald-600/10">
+                              <MoneyIcon className="text-sm" />
+                              {row.bidLabel}
+                            </span>
+                          </div>
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-black uppercase text-emerald-700 border border-emerald-600/10">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            Live
+                          </span>
+                        </div>
                       </div>
                     ))
                   ) : (
-                    <div className="px-4 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center h-full text-center py-12">
                       <p className="text-lg font-black text-slate-950">
                         {marketStatus === "loading"
                           ? "Loading live bids"
@@ -415,7 +453,7 @@ export default function HomePage() {
                             ? "Bid market is temporarily unavailable"
                             : "No funded bids live yet"}
                       </p>
-                      <p className="mt-2 text-sm font-semibold text-slate-500">
+                      <p className="mt-2 text-sm font-semibold text-slate-500 max-w-sm">
                         Funded advertiser campaigns will appear here automatically.
                       </p>
                     </div>
@@ -424,9 +462,11 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="mt-5 flex flex-col gap-3 rounded-[8px] border border-emerald-700/20 bg-emerald-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-emerald-700/20 bg-emerald-50/50 backdrop-blur-md p-5 sm:flex-row sm:items-center sm:justify-between transition-all hover:bg-emerald-50/70">
               <div>
-                <p className="font-black text-emerald-950">Advertisers can move this market.</p>
+                <p className="font-black text-emerald-950">
+                  Advertisers can move this market.
+                </p>
                 <p className="mt-1 text-sm font-semibold text-emerald-800">
                   Add budget and a higher CPM to win the next wait-state placement.
                 </p>
@@ -442,50 +482,70 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="how-it-pays" className="border-y border-emerald-900/10 bg-[#111815] px-4 py-14 text-white sm:px-6">
+        <section
+          id="how-it-pays"
+          className="border-y border-emerald-900/10 bg-[#eef9f3] px-4 py-16 text-slate-950 sm:px-6 lg:py-20"
+        >
           <div className="mx-auto max-w-7xl">
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-[8px] border border-white/10 bg-white/5 p-5">
-                <TrendingUp className="h-6 w-6 text-emerald-300" />
-                <h3 className="mt-4 text-xl font-black">1. Auction every wait</h3>
-                <p className="mt-2 text-sm font-semibold leading-6 text-slate-300">
-                  The extension asks for the current winning campaign when your agent enters a wait state.
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
+                How it pays
+              </p>
+              <h2 className="mt-3 text-4xl font-black tracking-tight sm:text-6xl">
+                Money moves in three short steps.
+              </h2>
+            </div>
+
+            <div className="mt-10 grid gap-4 md:grid-cols-3">
+              <div className="liquid-glass p-6">
+                <div className="grid h-11 w-11 place-items-center rounded-[8px] bg-emerald-50 text-2xl">
+                  <MoneyIcon />
+                </div>
+                <h3 className="mt-5 text-xl font-black">1. Your AI pauses</h3>
+                <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
+                  The extension asks for the current winning campaign when the agent hits a wait state.
                 </p>
               </div>
-              <div className="rounded-[8px] border border-white/10 bg-white/5 p-5">
-                <Activity className="h-6 w-6 text-emerald-300" />
-                <h3 className="mt-4 text-xl font-black">2. Credit impressions</h3>
-                <p className="mt-2 text-sm font-semibold leading-6 text-slate-300">
-                  Paid impressions credit your ledger without click bait or code upload requirements.
+
+              <div className="liquid-glass p-6">
+                <div className="grid h-11 w-11 place-items-center rounded-[8px] bg-emerald-50 text-2xl">
+                  <MoneyIcon />
+                </div>
+                <h3 className="mt-5 text-xl font-black">2. Money appears</h3>
+                <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
+                  The winning advertiser line displays during the wait, with no source upload required.
                 </p>
               </div>
-              <div className="rounded-[8px] border border-white/10 bg-white/5 p-5">
-                <ShieldCheck className="h-6 w-6 text-emerald-300" />
-                <h3 className="mt-4 text-xl font-black">3. Keep the split honest</h3>
-                <p className="mt-2 text-sm font-semibold leading-6 text-slate-300">
-                  The developer share is fixed at 60%, with payout limits and fraud review protecting the exchange.
+
+              <div className="liquid-glass p-6">
+                <div className="grid h-11 w-11 place-items-center rounded-[8px] bg-emerald-50 text-2xl">
+                  <MoneyIcon />
+                </div>
+                <h3 className="mt-5 text-xl font-black">3. You keep 60%</h3>
+                <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
+                  Credited impressions flow to your ledger with payout limits and fraud review protecting the exchange.
                 </p>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="bg-[#edf7f0] px-4 py-14 sm:px-6">
-          <div className="mx-auto flex max-w-5xl flex-col gap-5 md:flex-row md:items-center md:justify-between">
+        <section className="bg-[#edf7f0] px-4 py-16 sm:px-6 lg:py-20">
+          <div className="mx-auto flex max-w-5xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
                 Next paid wait
               </p>
-              <h2 className="mt-2 max-w-2xl text-3xl font-black tracking-tight sm:text-5xl">
-                Put live advertiser money under your spinner.
+              <h2 className="mt-2 max-w-2xl text-4xl font-black tracking-tight sm:text-6xl">
+                Put advertiser money under your spinner.
               </h2>
             </div>
             <Link
               href={DEVELOPER_SIGNIN_HREF}
-              className="inline-flex min-h-14 items-center justify-center gap-3 rounded-[8px] bg-emerald-600 px-5 text-base font-black text-white shadow-[0_18px_44px_rgba(22,163,74,0.24)] transition hover:-translate-y-0.5 hover:bg-emerald-700"
+              className="inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-emerald-600 px-6 text-base font-black text-white shadow-[0_18px_44px_rgba(22,163,74,0.24)] transition hover:-translate-y-0.5 hover:bg-emerald-700"
             >
-              <Code2 className="h-5 w-5" />
-              Install the VS Code extension
+              <MoneyIcon />
+              Start earning
               <ArrowRight className="h-5 w-5" />
             </Link>
           </div>

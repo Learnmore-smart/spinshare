@@ -24,6 +24,8 @@ import Google from "next-auth/providers/google";
 import GitHub from "next-auth/providers/github";
 import Credentials from "next-auth/providers/credentials";
 
+import { findLocalTestUser, isLocalCredentialsEnabled } from "../../dev/test-users";
+
 /**
  * Builds the provider list from the environment. A provider is included only
  * when both of its credentials are set, keeping the build green without creds.
@@ -52,28 +54,40 @@ function buildProviders(
     );
   }
 
-  // Always register credentials provider to enable mock sign-in locally
-  providers.push(
-    Credentials({
-      id: "credentials",
-      name: "Mock Credentials",
-      credentials: {
-        userId: { label: "User ID", type: "text" },
-        role: { label: "Role", type: "text" },
-      },
-      async authorize(credentials) {
-        if (credentials && typeof credentials.userId === "string") {
+  // Email/password sign-in for local test accounts. Registered in every mode
+  // except production, so local/CI can authenticate without OAuth credentials
+  // while production relies solely on Google/GitHub. Credentials are validated
+  // against the fixed `LOCAL_TEST_USERS` — there is no "accept any id" path.
+  if (isLocalCredentialsEnabled(env)) {
+    providers.push(
+      Credentials({
+        id: "credentials",
+        name: "Email and password",
+        credentials: {
+          email: { label: "Email", type: "email" },
+          password: { label: "Password", type: "password" },
+        },
+        async authorize(credentials) {
+          const email =
+            typeof credentials?.email === "string" ? credentials.email : "";
+          const password =
+            typeof credentials?.password === "string"
+              ? credentials.password
+              : "";
+          const user = findLocalTestUser(email, password);
+          if (!user) {
+            return null;
+          }
           return {
-            id: credentials.userId,
-            name: credentials.userId,
-            email: `${credentials.userId}@spinshare.test`,
-            role: credentials.role,
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
           };
-        }
-        return null;
-      },
-    }),
-  );
+        },
+      }),
+    );
+  }
 
   return providers;
 }

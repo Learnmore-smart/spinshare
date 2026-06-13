@@ -1,0 +1,376 @@
+/* SpinShare Emerald Theme Stylesheet */
+
+@keyframes pulse-slow {
+  0%, 100% {
+    transform: scale(1) translate(0, 0);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.12) translate(2%, 3%);
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 10s ease-in-out infinite;
+}
+
+.spinshare-container {
+  background-color: #edf7f0;
+  font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  color: #0f172a;
+}
+
+/* Premium Liquid Glassmorphic Style */
+.liquid-glass {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(16, 185, 129, 0.18);
+  border-radius: 16px;
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.6),
+    0 8px 32px 0 rgba(6, 78, 59, 0.04),
+    0 4px 8px -2px rgba(6, 78, 59, 0.02);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-glass:hover {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(16, 185, 129, 0.35);
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.7),
+    0 16px 48px 0 rgba(6, 78, 59, 0.08),
+    0 8px 16px -4px rgba(6, 78, 59, 0.04);
+  transform: translateY(-2px);
+}
+
+/* Dark Mode Liquid Glassmorphic Style */
+.dark .liquid-glass {
+  background: rgba(15, 23, 42, 0.45);
+  border-color: rgba(0, 255, 0, 0.15);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 8px 32px 0 rgba(0, 0, 0, 0.4);
+}
+
+.dark .liquid-glass:hover {
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(0, 255, 0, 0.3);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 16px 48px 0 rgba(0, 0, 0, 0.6);
+}
+
+/* Premium Glassmorphic Card (spinshare-card) */
+.spinshare-card {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(16, 185, 129, 0.18);
+  border-radius: 16px;
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.6),
+    0 8px 32px 0 rgba(6, 78, 59, 0.04),
+    0 4px 8px -2px rgba(6, 78, 59, 0.02);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.spinshare-card:hover {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(16, 185, 129, 0.35);
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.7),
+    0 16px 48px 0 rgba(6, 78, 59, 0.08),
+    0 8px 16px -4px rgba(6, 78, 59, 0.04);
+  transform: translateY(-2px);
+}
+
+.dark .spinshare-card {
+  background: rgba(15, 23, 42, 0.45);
+  border-color: rgba(0, 255, 0, 0.15);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 8px 32px 0 rgba(0, 0, 0, 0.4);
+}
+
+.dark .spinshare-card:hover {
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(0, 255, 0, 0.3);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 16px 48px 0 rgba(0, 0, 0, 0.6);
+}
+
+/* Primary Button */
+.spinshare-btn-primary {
+  background-color: #059669; /* emerald-600 */
+  color: #ffffff;
+  font-weight: 800;
+  border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+}
+
+.spinshare-btn-primary:hover {
+  background-color: #047857; /* emerald-700 */
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.3);
+}
+
+.spinshare-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Secondary / Outline Button */
+.spinshare-btn-outline {
+  background-color: #ffffff;
+  color: #334155; /* slate-700 */
+  font-weight: 600;
+  border: 1px solid #e2e8f0; /* slate-200 */
+  border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.spinshare-btn-outline:hover:not(:disabled) {
+  background-color: #f0fdf4; /* emerald-50 */
+  border-color: #10b981; /* emerald-500 */
+  color: #047857; /* emerald-700 */
+}
+
+/* Premium Glassmorphic Inputs */
+.spinshare-input,
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"] {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  background-color: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #0f172a;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.spinshare-input:focus,
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+  border-color: #10b981;
+  background-color: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15), inset 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.dark .spinshare-input,
+.dark input[type="text"],
+.dark input[type="number"],
+.dark input[type="email"],
+.dark input[type="password"] {
+  background-color: rgba(15, 23, 42, 0.6);
+  border-color: rgba(0, 255, 0, 0.2);
+  color: #00FF00;
+}
+
+.dark .spinshare-input:focus,
+.dark input[type="text"]:focus,
+.dark input[type="number"]:focus,
+.dark input[type="email"]:focus,
+.dark input[type="password"]:focus {
+  border-color: #00FF00;
+  background-color: rgba(15, 23, 42, 0.85);
+  box-shadow: 0 0 0 3px rgba(0, 255, 0, 0.15);
+}
+
+/* Role Switcher Tabs container */
+.spinshare-switcher-bg {
+  background-color: #e8f6ed;
+  padding: 4px;
+  border-radius: 10px;
+}
+
+/* Active Switcher Tab button */
+.spinshare-switcher-active {
+  background-color: #ffffff;
+  color: #047857; /* emerald-700 */
+  box-shadow: 0 2px 4px rgba(6, 78, 59, 0.04);
+}
+
+/* Inactive Switcher Tab button */
+.spinshare-switcher-inactive {
+  color: #475569; /* slate-600 */
+}
+
+.spinshare-switcher-inactive:hover {
+  color: #0f172a; /* slate-900 */
+}
+
+.money-stream-field {
+  position: absolute;
+  inset: -22%;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transform: rotate(-18deg);
+  opacity: 0.72;
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 12%,
+    #000 88%,
+    transparent
+  );
+}
+
+.money-stream-row {
+  position: absolute;
+  left: -12%;
+  width: 160%;
+  display: flex;
+  will-change: transform;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.money-stream-row-up,
+.money-stream-row-ltr {
+  animation-name: money-stream-up;
+}
+
+.money-stream-row-down,
+.money-stream-row-rtl {
+  animation-name: money-stream-down;
+}
+
+.money-stream-track {
+  display: flex;
+  min-width: 200%;
+  gap: 1.85rem;
+  align-items: center;
+}
+
+.money-stream-icon {
+  display: grid;
+  height: 2.35rem;
+  width: 2.35rem;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(5, 150, 105, 0.18);
+  background: rgba(255, 255, 255, 0.66);
+  box-shadow: 0 10px 24px rgba(6, 78, 59, 0.08);
+  font-size: 1.25rem;
+  transform: rotate(18deg);
+}
+
+@keyframes money-stream-up {
+  from {
+    transform: translate3d(-48%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes money-stream-down {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-48%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .money-stream-row {
+    animation-play-state: paused;
+  }
+}
+
+/* Decorative background blobs */
+.spinshare-blob-1 {
+  background: radial-gradient(circle, rgba(16,185,129,0.18) 0%, rgba(16,185,129,0) 70%);
+}
+
+.spinshare-blob-2 {
+  background: radial-gradient(circle, rgba(52,211,153,0.14) 0%, rgba(52,211,153,0) 70%);
+}
+
+/* Premium Dark Liquid Glassmorphic Style */
+.liquid-glass-dark {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 8px 32px 0 rgba(0, 0, 0, 0.2);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-glass-dark:hover {
+  background: rgba(15, 23, 42, 0.85);
+  border-color: rgba(16, 185, 129, 0.25);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 16px 48px 0 rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Premium Green Liquid Glassmorphic Style */
+.liquid-glass-green {
+  background: rgba(7, 59, 39, 0.78);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 16px;
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.15),
+    0 8px 32px 0 rgba(4, 120, 87, 0.15);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-glass-green:hover {
+  background: rgba(7, 59, 39, 0.88);
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.25),
+    0 16px 48px 0 rgba(4, 120, 87, 0.25);
+  transform: translateY(-2px);
+}
+
+/* Custom Thin Scrollbar for premium tables and scroll areas */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.15);
+  border-radius: 999px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.35);
+}
+
+/* Claude Icon Rotation Spin Animation */
+@keyframes claude-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-claude-spin {
+  display: inline-block;
+  animation: claude-spin 3s linear infinite;
+}
+
+

@@ -8,7 +8,7 @@ This file renders the public SpinShare homepage and polls the live bid market.
 
 ## What It Does
 
-- Presents the developer earning proposition with live top-bid and hourly-estimate math.
+- Presents the developer earning proposition with a money-first hero and monthly estimate.
 - Provides role-specific developer and advertiser sign-in/install entry points.
 - Polls `GET /api/market` every 15 seconds and renders funded bid rows.
 - Shows loading, empty, and temporary-error states without fake campaign data.
@@ -76,6 +76,47 @@ Planned changes:
 
 Verification on 2026-06-13 showed the live-market test direction was not fully implemented: the page still rendered hardcoded sample bids and static `$43.44/mo` copy, and the market route was missing. The page will move to an empty/loading-safe state, poll `GET /api/market`, render live rows when available, and include role query params on developer/advertiser links.
 
+## Planned Fix: Spacious Sticky Homepage Revamp
+
+User feedback on 2026-06-13:
+
+- Buttons feel broken and crowded in the hero CTA area.
+- Navbar does not stay on top while scrolling.
+- Homepage is too dense and needs more first-viewport psychology like the public reference in `public/home-page.png`, without copying its brand.
+- The dark `How it pays` band creates an abrupt black background.
+
+Fix strategy:
+
+- Make the header `sticky top-0 z-50` with a translucent mint/white surface so it remains above content.
+- Rebuild the hero as a centered, spacious first viewport: concise headline, before/after wait-state comparison, one large install pill, and one secondary advertiser link.
+- Move dense stats, sliders, and market detail lower so the entry experience sells the idea before asking the user to parse data.
+- Replace the black process band with a light mint process section.
+- Keep live market data from `GET /api/market`; no fake campaign rows or hardcoded sample advertisers.
+
+## Planned Fix: Money-First Conversion Rewrite
+
+User feedback on 2026-06-13 after visual review:
+
+- The page still reads too much like developer tooling, not money.
+- Download/code icons should become money icons, including navbar and lower CTA.
+- Hero headline should become:
+  - `Your AI thinks`
+  - `You get [money icon]`
+- Supporting copy must be two short lines:
+  - `SpinShare turns idle AI waits into paid moments.`
+  - `60% of revenue goes to you.`
+- The CTA chip should show a monthly amount only, not `/hr live estimate`.
+
+Follow-up requirement:
+
+- Use `🤑` as the product money icon instead of generic dollar/download/code icons.
+
+Psychology direction from the requested search:
+
+- Lead with the reward and minimize reading load because users scan web pages heavily.
+- Use the Fogg motivation/ability/prompt framing: money is the motivation, install is the low-effort ability cue, and the CTA is the prompt.
+- Keep proof nearby, but do not let proof text compete with the money cue.
+
 ## Implemented Fix: Live Market Homepage
 
 - Removed hardcoded ticker ads, sample bid rows, fake `$43.44/mo` copy, FAQ clutter, and the terminal simulation state.
@@ -84,11 +125,26 @@ Verification on 2026-06-13 showed the live-market test direction was not fully i
 - Added a live bid market table fed by `/api/market` with loading, empty, and error states.
 - Added role query params to developer and advertiser links.
 
+## Implemented Fix: Spacious Money-First Homepage
+
+- Rebuilt the first viewport around the headline `Your AI thinks / You get 🤑`.
+- Reduced supporting copy to two short lines, with `60% of revenue goes to you.` highlighted.
+- Replaced download/code/dollar glyphs in primary CTAs with the product money icon.
+- Changed the CTA estimate chip to monthly `/mo` wording and removed `live estimate`.
+- Made the navbar sticky (`sticky top-0 z-50`) so it stays above scrolled content.
+- Moved the dense market stats, slider, and bid table below the hero.
+- Replaced the abrupt dark process band with a light mint `How it pays` section.
+
 ## Verification
 
-- `vitest run src/app/page.test.tsx src/app/api/market/route.test.ts src/app/signin/page.test.ts` passed.
-- `next build` passed.
-- Playwright visual QA was attempted but blocked by the app usage limit.
+- `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/page.test.tsx src/app/signin/page.test.ts` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web build` passed after allowing the configured Google font fetch.
+- Playwright loaded `http://127.0.0.1:3003`, confirmed the page rendered, and captured the first viewport.
+
+## Planned Change: Remove Waits-Per-Hour Slider Panel
+
+User feedback on 2026-06-13: remove the left "Paid waits per hour" slider and "Your share" card from the market-depth section. The live bid market table should span the full width of that row.
 
 ## Bug Fixes
 
@@ -105,3 +161,8 @@ Verification on 2026-06-13 showed the live-market test direction was not fully i
 | 2026-06-13 | Documented live market data and simplified CTA revision plan | Codex |
 | 2026-06-13 | Documented live market wiring completion plan after failing tests | Codex |
 | 2026-06-13 | Synced docs with live market homepage implementation and verification | Codex |
+| 2026-06-13 | Documented spacious sticky homepage revamp plan before editing code | Codex |
+| 2026-06-13 | Documented money-first homepage rewrite after visual review | Codex |
+| 2026-06-13 | Documented requested `🤑` money icon replacement | Codex |
+| 2026-06-13 | Synced docs with final spacious money-first homepage implementation and verification | Codex |
+| 2026-06-13 | Documented removal of waits-per-hour slider panel before editing code | Codex |

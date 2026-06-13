@@ -32,6 +32,19 @@ export class MemoryLedgerRepository implements LedgerRepository {
       .map((entry) => ({ ...entry }));
   }
 
+  /**
+   * Test/seed helper: inserts fully-formed entries synchronously, idempotent by
+   * `entryId` (first write wins). Mirrors `appendEntries` without the async
+   * boundary so the composition root can seed local data during construction.
+   */
+  seed(entries: readonly LedgerEntry[]): void {
+    for (const entry of entries) {
+      if (!this.entries.has(entry.entryId)) {
+        this.entries.set(entry.entryId, { ...entry });
+      }
+    }
+  }
+
   /** Test helper: all durably persisted entries, in insertion order. */
   all(): LedgerEntry[] {
     return [...this.entries.values()];

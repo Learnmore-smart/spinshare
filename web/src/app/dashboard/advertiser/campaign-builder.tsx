@@ -141,7 +141,7 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
               maxLength={AD_TEXT_MAX_LENGTH}
               onChange={(event) => setAdText(event.target.value)}
               placeholder="Ship faster with Acme CI"
-              className="rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="spinshare-input px-3 py-2 text-sm"
             />
           </div>
 
@@ -160,7 +160,7 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
               value={cpm}
               onChange={(event) => setCpm(event.target.value)}
               placeholder="0.50"
-              className="rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="spinshare-input px-3 py-2 text-sm"
             />
             <p className="text-xs text-muted-foreground">
               Between $0.01 and $1,000.00 per thousand impressions.
