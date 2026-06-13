@@ -50,6 +50,11 @@
  *      The settlement math is therefore proven in-process, where `@spinshare/core`
  *      resolves correctly. This route-bundle interop bug is unrelated to the
  *      settlement logic and is flagged for separate follow-up.
+ *
+ * Current status: `next build` followed by `SPINSHARE_E2E_NEXT_CMD=start`
+ * successfully runs this suite. The in-process credited path remains necessary
+ * only because the separately booted mock server has no HTTP test endpoint for
+ * approving a device flow and sharing that minted token with this process.
  */
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";

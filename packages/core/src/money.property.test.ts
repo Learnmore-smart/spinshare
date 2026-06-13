@@ -43,7 +43,7 @@ describe("money math properties", () => {
 
   // Feature: spinshare-ad-exchange, Property 5: Developer credit is 60% rounded to the nearest cent
   // Validates: Requirements 2.2
-  it("Property 5: developer credit is 60% of revenue rounded half-up to the nearest cent", () => {
+  it("Property 5: developer credit is 60% of revenue rounded half-up without exceeding revenue", () => {
     fc.assert(
       fc.property(validCpmCents(), (cpmCents) => {
         const { revenueMicrocents, developerCreditCents } = computeSplit(cpmCents);
@@ -52,14 +52,26 @@ describe("money math properties", () => {
         // creditMicrocents = revenueMicrocents * 60 / 100; cents = / 1000, half-up.
         const numerator = revenueMicrocents * DEVELOPER_SHARE_PERCENT;
         const denom = 100 * MICROCENTS_PER_CENT; // 100000
-        const expectedCreditCents = Math.floor((numerator + denom / 2) / denom);
+        const roundedCreditCents = Math.floor((numerator + denom / 2) / denom);
+        const availableWholeRevenueCents = Math.floor(
+          revenueMicrocents / MICROCENTS_PER_CENT,
+        );
+        const expectedCreditCents = Math.min(
+          roundedCreditCents,
+          availableWholeRevenueCents,
+        );
 
         expect(developerCreditCents).toBe(expectedCreditCents);
+        expect(developerCreditCents).toBeLessThanOrEqual(
+          availableWholeRevenueCents,
+        );
 
         // The credit is within half a cent of the exact 60% value (rounding bound).
         const exactCreditCents =
           (revenueMicrocents * DEVELOPER_SHARE_PERCENT) / denom;
-        expect(Math.abs(developerCreditCents - exactCreditCents)).toBeLessThanOrEqual(0.5);
+        if (roundedCreditCents <= availableWholeRevenueCents) {
+          expect(Math.abs(developerCreditCents - exactCreditCents)).toBeLessThanOrEqual(0.5);
+        }
       }),
       { numRuns: 100 },
     );

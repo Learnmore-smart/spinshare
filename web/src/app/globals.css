@@ -10,43 +10,42 @@
  * #00FF00 == hsl(120 100% 50%).
  */
 :root {
-  --background: 0 0% 2%; /* ~#050505 near-black */
-  --foreground: 120 100% 50%; /* neon green */
+  --background: 210 20% 98%; /* soft slate/gray background #f8fafc */
+  --foreground: 224 71.4% 4.1%; /* slate-950 text */
 
-  --card: 0 0% 5%; /* #0d0d0d */
-  --card-foreground: 120 100% 50%;
+  --card: 0 0% 100%; /* solid white card */
+  --card-foreground: 224 71.4% 4.1%;
 
-  --popover: 0 0% 5%;
-  --popover-foreground: 120 100% 50%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 224 71.4% 4.1%;
 
-  --primary: 120 100% 50%; /* #00FF00 */
-  --primary-foreground: 0 0% 2%; /* near-black text on neon buttons */
+  --primary: 262.1 83.3% 57.8%; /* violet-600 */
+  --primary-foreground: 210 20% 98%; /* white-ish text */
 
-  --secondary: 0 0% 10%; /* #1a1a1a surfaces */
-  --secondary-foreground: 120 100% 50%;
+  --secondary: 220 14.3% 95.9%; /* slate-100 */
+  --secondary-foreground: 220.9 39.3% 11%;
 
-  --muted: 0 0% 12%;
-  --muted-foreground: 120 25% 65%; /* desaturated green for secondary text */
+  --muted: 220 14.3% 95.9%;
+  --muted-foreground: 220 8.9% 46.1%; /* slate-500 */
 
-  --accent: 120 100% 50%;
-  --accent-foreground: 0 0% 2%;
+  --accent: 262.1 83.3% 57.8%;
+  --accent-foreground: 210 20% 98%;
 
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 98%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 20% 98%;
 
-  --border: 120 40% 18%; /* dim green-tinted borders */
-  --input: 120 40% 18%;
-  --ring: 120 100% 50%;
+  --border: 220 13% 91%; /* slate-200 */
+  --input: 220 13% 91%;
+  --ring: 262.1 83.3% 57.8%;
 
-  --neon: 120 100% 50%;
-  --neon-dim: 120 60% 35%;
+  --neon: 262.1 83.3% 57.8%;
+  --neon-dim: 262.1 83.3% 40%;
 
-  --radius: 0.375rem;
+  --radius: 0.75rem;
 }
 
 /*
- * Cyberpunk theme is dark by default. We mirror the tokens under `.dark` so the
- * `darkMode: "class"` strategy and any future light theme stay consistent.
+ * Cyberpunk theme is preserved under the .dark class strategy.
  */
 .dark {
   --background: 0 0% 2%;

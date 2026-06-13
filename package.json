@@ -8,11 +8,11 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "test": "turbo run test",
-    "test:e2e": "turbo run test:e2e --filter=@spinshare/web",
-    "lint": "turbo run lint",
+    "build": "corepack pnpm@9.12.0 --filter @spinshare/core build && corepack pnpm@9.12.0 --filter @spinshare/cli build && corepack pnpm@9.12.0 --filter @spinshare/vscode-extension build && corepack pnpm@9.12.0 --filter @spinshare/web build",
+    "dev": "corepack pnpm@9.12.0 --filter @spinshare/web dev",
+    "test": "corepack pnpm@9.12.0 --filter @spinshare/core test && corepack pnpm@9.12.0 --filter @spinshare/web test && corepack pnpm@9.12.0 --filter @spinshare/cli test && corepack pnpm@9.12.0 --filter @spinshare/vscode-extension test",
+    "test:e2e": "corepack pnpm@9.12.0 --filter @spinshare/web test:e2e",
+    "lint": "corepack pnpm@9.12.0 --filter @spinshare/core lint && corepack pnpm@9.12.0 --filter @spinshare/web lint && corepack pnpm@9.12.0 --filter @spinshare/cli lint && corepack pnpm@9.12.0 --filter @spinshare/vscode-extension lint",
     "emulators": "firebase emulators:start --only firestore"
   },
   "devDependencies": {

@@ -8,50 +8,39 @@
  * consistent with the rest of the UI.
  */
 
-/** Primary neon-green accent (== `--primary` / `--neon`, #00FF00). */
-export const NEON_GREEN = "#00FF00";
-
-/** Dimmed neon-green for secondary series / hover states. */
-export const NEON_GREEN_DIM = "#22b822";
-
-/** Near-black surface color (== `--background`). */
-export const SURFACE = "#050505";
-
-/** Dim green-tinted grid/axis lines (matches `--border`). */
-export const GRID = "#1b3d1b";
-
-/** Desaturated green for axis tick / legend text (matches `--muted-foreground`). */
-export const AXIS_TEXT = "#9bcf9b";
-
 /**
- * Shared Recharts theme object. Spread the relevant slices into Recharts
- * components, e.g. `<CartesianGrid {...chartTheme.grid} />`,
- * `<Line {...chartTheme.line} />`.
+ * Recharts theming for the SpinShare palette, responsive to CSS variables.
+ * Consumed by the developer-earnings chart.
  */
+
 export const chartTheme = {
   /** Ordered color series for multi-line/bar charts. */
-  series: [NEON_GREEN, NEON_GREEN_DIM, AXIS_TEXT] as const,
+  series: [
+    "hsl(var(--primary))",
+    "hsl(var(--neon-dim))",
+    "hsl(var(--muted-foreground))"
+  ] as const,
   grid: {
-    stroke: GRID,
+    stroke: "hsl(var(--border))",
     strokeDasharray: "3 3",
   },
   axis: {
-    stroke: GRID,
-    tick: { fill: AXIS_TEXT, fontSize: 12 },
+    stroke: "hsl(var(--border))",
+    tick: { fill: "hsl(var(--muted-foreground))", fontSize: 12 },
   },
   line: {
-    stroke: NEON_GREEN,
+    stroke: "hsl(var(--primary))",
     strokeWidth: 2,
-    dot: { fill: NEON_GREEN, r: 2 },
+    dot: { fill: "hsl(var(--primary))", r: 2 },
     activeDot: { r: 4 },
   },
   tooltip: {
     contentStyle: {
-      backgroundColor: SURFACE,
-      border: `1px solid ${GRID}`,
+      backgroundColor: "hsl(var(--card))",
+      border: `1px solid hsl(var(--border))`,
       borderRadius: 6,
-      color: NEON_GREEN,
+      color: "hsl(var(--foreground))",
     },
-    cursor: { stroke: NEON_GREEN_DIM },
+    cursor: { stroke: "hsl(var(--muted))" },
   },
 } as const;

@@ -2,7 +2,7 @@
  * Harness smoke test (task 15.1).
  *
  * Proves the e2e harness can start the Next.js app in `SPINSHARE_MODE=local` on
- * an ephemeral port and that `/api/health` becomes ready within the 60-second
+ * an ephemeral port and that HTTP routes become ready within the 60-second
  * startup timeout (Requirements 11.1, 11.8). The full settlement assertions
  * live in task 15.2 and reuse the same {@link startApp} harness.
  */
@@ -31,5 +31,12 @@ describe("e2e harness", () => {
     expect(res.status).toBe(200);
     const body = (await res.json()) as { status: string };
     expect(body.status).toBe("ok");
+  });
+
+  it("serves GET /api/ad with an explicit no-ad response when no campaigns are seeded", async () => {
+    const res = await fetch(`${app.baseUrl}/api/ad`);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { adAvailable?: boolean };
+    expect(body).toEqual({ adAvailable: false });
   });
 });

@@ -13,11 +13,11 @@ export default function RootLayout({
 }: {
   children: ReactNode;
 }) {
-  // `dark` activates the cyberpunk dark theme (darkMode: "class"); body classes
-  // pull the near-black background + neon-green foreground tokens.
+  // `light` activates the premium light theme by default; body classes
+  // pull the soft slate background + dark slate foreground tokens.
   return (
-    <html lang="en" className="dark">
-      <body className="min-h-screen bg-background font-mono text-foreground antialiased">
+    <html lang="en" className="light">
+      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         {children}
       </body>
     </html>

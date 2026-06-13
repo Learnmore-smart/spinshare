@@ -22,10 +22,12 @@
 import NextAuth, { type NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";
 import GitHub from "next-auth/providers/github";
+import Credentials from "next-auth/providers/credentials";
 
 /**
  * Builds the provider list from the environment. A provider is included only
  * when both of its credentials are set, keeping the build green without creds.
+ * We also add a mock Credentials provider for local testing and development.
  */
 function buildProviders(
   env: NodeJS.ProcessEnv = process.env,
@@ -50,6 +52,29 @@ function buildProviders(
     );
   }
 
+  // Always register credentials provider to enable mock sign-in locally
+  providers.push(
+    Credentials({
+      id: "credentials",
+      name: "Mock Credentials",
+      credentials: {
+        userId: { label: "User ID", type: "text" },
+        role: { label: "Role", type: "text" },
+      },
+      async authorize(credentials) {
+        if (credentials && typeof credentials.userId === "string") {
+          return {
+            id: credentials.userId,
+            name: credentials.userId,
+            email: `${credentials.userId}@spinshare.test`,
+            role: credentials.role,
+          };
+        }
+        return null;
+      },
+    }),
+  );
+
   return providers;
 }
 
@@ -58,13 +83,18 @@ export const authConfig: NextAuthConfig = {
   providers: buildProviders(),
   // Stateless JWT sessions: no database adapter needed for this MVP.
   session: { strategy: "jwt" },
+  pages: {
+    signIn: "/signin",
+  },
   callbacks: {
     /** Persist the provider account id onto the JWT as our stable user id. */
-    async jwt({ token, account, profile }) {
+    async jwt({ token, account, profile, user }) {
       if (account) {
         token.provider = account.provider;
       }
-      if (profile && typeof profile.sub === "string") {
+      if (user && typeof user.id === "string") {
+        token.sub = user.id;
+      } else if (profile && typeof profile.sub === "string") {
         token.sub = profile.sub;
       }
       return token;

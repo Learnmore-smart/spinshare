@@ -50,6 +50,12 @@ const POLL_INTERVAL_MS = 500;
 /** Per-poll fetch timeout (health probe should respond near-instantly). */
 const POLL_FETCH_TIMEOUT_MS = 2_000;
 
+/** Default time to wait for graceful server process exit before force kill. */
+const DEFAULT_GRACEFUL_SHUTDOWN_TIMEOUT_MS = 1_500;
+
+/** Default maximum time to wait after a forced shutdown request. */
+const DEFAULT_FORCE_SHUTDOWN_TIMEOUT_MS = 3_000;
+
 /** The base environment the e2e server runs under (credential-free local). */
 const LOCAL_E2E_ENV: Record<string, string> = {
   SPINSHARE_MODE: "local",
@@ -76,6 +82,14 @@ export interface StartAppOptions {
   startupTimeoutMs?: number;
   /** Fixed port to bind; defaults to an OS-assigned ephemeral free port. */
   port?: number;
+}
+
+/** Options for terminating the spawned server process tree. */
+export interface TerminateProcessTreeOptions {
+  /** Time to wait after graceful termination before escalating. */
+  gracefulTimeoutMs?: number;
+  /** Time to wait after forced termination before returning. */
+  forceTimeoutMs?: number;
 }
 
 /**
@@ -126,27 +140,97 @@ async function isHealthy(baseUrl: string): Promise<boolean> {
   }
 }
 
-/** Forcibly terminates a child process tree, resolving once it has exited. */
-function killTree(child: ChildProcess): Promise<void> {
-  if (child.exitCode !== null || child.signalCode !== null || child.pid === undefined) {
+/** Whether a child process has already exited. */
+function hasExited(child: ChildProcess): boolean {
+  return child.exitCode !== null || child.signalCode !== null;
+}
+
+/** Waits for a child process to exit, returning false on timeout. */
+function waitForExit(child: ChildProcess, timeoutMs: number): Promise<boolean> {
+  if (hasExited(child)) {
+    return Promise.resolve(true);
+  }
+
+  return new Promise((resolve) => {
+    const cleanup = (): void => {
+      clearTimeout(timer);
+      child.removeListener("exit", onExit);
+    };
+    const onExit = (): void => {
+      cleanup();
+      resolve(true);
+    };
+    const timer = setTimeout(() => {
+      cleanup();
+      resolve(false);
+    }, timeoutMs);
+
+    child.once("exit", onExit);
+  });
+}
+
+/** Runs Windows taskkill as a bounded best-effort fallback. */
+function forceKillWindows(child: ChildProcess, timeoutMs: number): Promise<void> {
+  if (child.pid === undefined || hasExited(child)) {
     return Promise.resolve();
   }
-  const exited = once(child, "exit").then(() => undefined);
-  if (process.platform === "win32") {
-    // Next.js dev spawns worker processes; `taskkill /T` kills the whole tree.
-    spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"], {
+
+  return new Promise((resolve) => {
+    const killer = spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"], {
       stdio: "ignore",
     });
-  } else {
-    child.kill("SIGTERM");
-    // Escalate if it ignores the polite request.
-    setTimeout(() => {
-      if (child.exitCode === null && child.signalCode === null) {
-        child.kill("SIGKILL");
-      }
-    }, 3_000).unref();
+    const cleanup = (): void => {
+      clearTimeout(timer);
+      killer.removeListener("exit", onDone);
+      killer.removeListener("error", onDone);
+    };
+    const onDone = (): void => {
+      cleanup();
+      resolve();
+    };
+    const timer = setTimeout(() => {
+      cleanup();
+      killer.kill();
+      resolve();
+    }, timeoutMs);
+
+    killer.once("exit", onDone);
+    killer.once("error", onDone);
+  });
+}
+
+/**
+ * Terminates a spawned child process tree without waiting forever.
+ *
+ * The normal path asks the direct child to exit and waits briefly. On Windows,
+ * `taskkill /T` is only used as a bounded fallback, because invoking it as the
+ * first shutdown step can destabilize the Vitest worker that owns the spawned
+ * Next.js server. Non-Windows platforms escalate from SIGTERM to SIGKILL.
+ */
+export async function terminateProcessTree(
+  child: ChildProcess,
+  options: TerminateProcessTreeOptions = {},
+): Promise<void> {
+  const gracefulTimeoutMs =
+    options.gracefulTimeoutMs ?? DEFAULT_GRACEFUL_SHUTDOWN_TIMEOUT_MS;
+  const forceTimeoutMs =
+    options.forceTimeoutMs ?? DEFAULT_FORCE_SHUTDOWN_TIMEOUT_MS;
+
+  if (child.exitCode !== null || child.signalCode !== null || child.pid === undefined) {
+    return;
   }
-  return exited;
+
+  child.kill();
+  if (await waitForExit(child, gracefulTimeoutMs)) {
+    return;
+  }
+
+  if (process.platform === "win32") {
+    await forceKillWindows(child, forceTimeoutMs);
+  } else {
+    child.kill("SIGKILL");
+  }
+  await waitForExit(child, forceTimeoutMs);
 }
 
 /**
@@ -203,7 +287,7 @@ export async function startApp(options: StartAppOptions = {}): Promise<RunningAp
   const stop = async (): Promise<void> => {
     child.stdout?.removeListener("data", appendLog);
     child.stderr?.removeListener("data", appendLog);
-    await killTree(child);
+    await terminateProcessTree(child);
   };
 
   const deadline = Date.now() + startupTimeoutMs;

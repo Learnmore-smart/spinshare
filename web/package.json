@@ -5,7 +5,7 @@
   "description": "SpinShare web application — Next.js App Router HTTP APIs, provider adapters, flush process, and dashboards.",
   "type": "module",
   "scripts": {
-    "build": "next build",
+    "build": "node ./scripts/clean-next.mjs && next build",
     "dev": "next dev",
     "start": "next start",
     "test": "vitest run --passWithNoTests",

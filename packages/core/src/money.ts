@@ -49,13 +49,16 @@ export function perImpressionRevenueMicrocents(cpmCents: number): number {
 
 /**
  * Round `pct` percent of a micro-cent revenue to the nearest whole cent,
- * rounding half-up, using integer arithmetic only.
+ * rounding half-up, using integer arithmetic only, then cap the result to the
+ * whole cents available in the exact revenue.
  *
  * value (micro-cents) = `revenueMicrocents * pct / 100`
  * value (cents)       = that / MICROCENTS_PER_CENT
  *
  * Combined denominator is `100 * MICROCENTS_PER_CENT`. Half-up rounding adds
- * `denom / 2` before the integer floor division.
+ * `denom / 2` before the integer floor division. The final cap prevents a
+ * low-CPM sub-cent impression from crediting 1 cent when total exact revenue is
+ * still below 1 cent, which would make platform retention negative.
  *
  * @param revenueMicrocents Exact per-impression revenue in micro-cents.
  * @param pct Whole-number percentage to take (e.g. 60 for the developer share).
@@ -63,7 +66,13 @@ export function perImpressionRevenueMicrocents(cpmCents: number): number {
  */
 export function roundHalfUpToCents(revenueMicrocents: number, pct: number): number {
   const denom = 100 * MICROCENTS_PER_CENT; // 100000
-  return Math.floor((revenueMicrocents * pct + denom / 2) / denom);
+  const roundedCreditCents = Math.floor(
+    (revenueMicrocents * pct + denom / 2) / denom,
+  );
+  const availableWholeRevenueCents = Math.floor(
+    revenueMicrocents / MICROCENTS_PER_CENT,
+  );
+  return Math.min(roundedCreditCents, availableWholeRevenueCents);
 }
 
 /**
