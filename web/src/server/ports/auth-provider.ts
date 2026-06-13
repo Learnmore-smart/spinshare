@@ -54,6 +54,22 @@ export interface AuthClaims {
   role?: UserRole;
 }
 
+/**
+ * Identity captured from the browser session when a user approves a device
+ * flow. Only {@link DeviceApproval.userId} is required; the optional fields
+ * enrich the minted token's claims when the session exposes them.
+ */
+export interface DeviceApproval {
+  /** Stable user id resolved from the browser session. */
+  userId: string;
+  /** Email associated with the approving user, when available. */
+  email?: string;
+  /** Identity provider that issued the browser session, when available. */
+  provider?: AuthProviderId;
+  /** Role asserted for the approving user, when available. */
+  role?: UserRole;
+}
+
 /** Authentication provider: device flow + token validation. */
 export interface AuthProvider {
   /** Starts a device authorization grant. */
@@ -62,4 +78,18 @@ export interface AuthProvider {
   pollDeviceToken(deviceCode: string): Promise<DeviceTokenResult>;
   /** Validates a token, returning claims or `null` if invalid/expired. */
   validateToken(token: string): Promise<AuthClaims | null>;
+  /**
+   * Approves a pending device flow identified by its short `userCode`, using
+   * the browser-resolved {@link DeviceApproval} identity, and mints the
+   * `Device_Auth_Token`. Rejects if the user code is unknown/expired.
+   */
+  approveDeviceByUserCode(
+    userCode: string,
+    approval: DeviceApproval,
+  ): Promise<string>;
+  /**
+   * Denies a pending device flow identified by its short `userCode`. Rejects
+   * if the user code is unknown/expired.
+   */
+  denyDeviceByUserCode(userCode: string): Promise<void>;
 }

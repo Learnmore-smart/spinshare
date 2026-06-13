@@ -1,0 +1,503 @@
+
+
+Privacy Policy
+Last updated: June 11, 2026
+
+Overview
+Kickbacks.ai ("we", "us", "our") operates the Kickbacks VS Code extension and the kickbacks.ai website. This policy describes how we collect, use, and protect your information.
+
+Information We Collect
+Account information: When you sign in with Google or via an email magic link, we receive your email address and display name (where available) to identify your account and credit earnings.
+Device identifier: A per-installation client identifier is generated locally to associate impression events with your account. It is pseudonymous: it does not identify you by itself, but for signed-in users it is linked to your account so we can credit earnings.
+Ad interaction events: For each ad served we record event telemetry: the event type (impression rendered, viewable, view-duration ticks, clicks), the ad/campaign/creative identifiers, the surface it appeared on (spinner, status line, or overlay), on-screen visibility metrics, a per-event ID used to deduplicate events, timestamps, and the extension and host application versions. In signed-out preview ("demo") mode, this telemetry is not attributed to any user account.
+IP address: We process your IP address on a transient basis for rate-limiting, abuse-detection, and fraud-prevention purposes.
+Payment information: If you purchase ad inventory, payment is processed by Stripe. We do not store your full card details.
+Information We Do Not Collect
+Your source code, file contents, file names, or project structure.
+Your prompts, AI responses, or chat history.
+Your browsing activity outside of our extension and website.
+The extension's telemetry is structurally limited to the ad-event metrics described above — the data it transmits contains no field capable of carrying your code, prompts, or AI interactions.
+
+Local Processing (Never Transmitted)
+To detect when Claude Code is actively running and which session is on screen, the extension reads Claude Code's local session transcript files (~/.claude/projects/**/*.jsonl) on your machine. From those files it parses only three things: the session's entrypoint tag (which distinguishes a VS Code panel session from a terminal session), the name of the most recent tool invocation, and whether the current turn has finished. This is used solely to time ad display and to stop the billing clock when activity ends.
+
+This processing happens entirely on your device. No transcript content — no prompt, response, code, or tool name — is ever transmitted to our servers, and our telemetry schema contains no field capable of carrying it. The extension's source is publicly mirrored at github.com/andrewmccalip/kickbacks.ai if you would like to verify this yourself.
+
+Website Analytics & Cookies
+The kickbacks.ai website (not the extension) uses Microsoft Clarity, a usage-analytics service that records how visitors interact with our pages (clicks, scrolling, and page navigation) and sets cookies to distinguish visitors. We use this to understand and improve the website. See Microsoft's privacy statement for how Clarity handles data. Our pages also load fonts from Google Fonts, which receives your IP address when the font files are fetched.
+
+How We Use Information
+Credit earnings to your account based on ad impressions and clicks.
+Serve relevant ads in the extension spinner slot.
+Improve our service and detect fraud or abuse.
+Communicate important account or service updates.
+Google User Data
+Our use of information received from Google APIs adheres to the Google API Services User Data Policy, including the Limited Use requirements. Specifically, we:
+
+Only use your Google email and display name to identify your account and credit earnings.
+Do not use Google user data for advertising, retargeting, or profiling.
+Do not sell, rent, or share Google user data with data brokers.
+Do not use Google user data to train AI or machine learning models.
+Data Sharing
+We do not sell your personal information. We may share data with:
+
+Stripe: For payment processing and, when payouts open, payout processing and related tax-information collection.
+Google Cloud: For infrastructure hosting, authentication, and data storage.
+Twilio SendGrid: For transactional email (sign-in links and account notices).
+Microsoft Clarity: For website usage analytics, as described above.
+Advertisers: Only aggregate, anonymized impression and click counts.
+Data Retention & Deletion
+Account data is retained while your account is active, and may be retained for up to 7 years after termination or last activity where needed for fraud prevention, financial reconciliation, and legal compliance. You may request deletion by contacting us at support@kickbacks.ai; upon deletion, personal identifiers are removed or anonymized within 30 days, while aggregated or anonymized data and financial records required by law may be retained.
+
+Your Privacy Rights
+Depending on where you live (including California and other U.S. states with privacy laws), you may have the right to request access to, correction of, or deletion of your personal information, and to opt out of any sale or sharing of personal information (which we do not do). Details for California residents are in Section 18 of our Terms of Service. To exercise any of these rights, email support@kickbacks.ai.
+
+Security
+We use industry-standard measures including encrypted connections (TLS), secure authentication tokens, and access controls to protect your data.
+
+Changes
+We may update this policy from time to time. Material changes will be communicated via the extension or email.
+
+Contact
+Questions about this policy? Email support@kickbacks.ai.
+
+Terms of Service
+An Advertising Marketplace and Earnings Program for AI Wait-States — Get Paid for Waiting.
+
+Last updated: June 10, 2026 · Version 1.1
+
+By installing Kickbacks, creating an account, accessing our website, or otherwise using the Service in any manner, you acknowledge that you have read, understood, and agree to be bound by this Agreement. If you do not agree to all terms and conditions, you must immediately discontinue use of the Service and uninstall the Extension.
+
+Contents
+1. Acceptance of Terms
+2. Definitions
+3. Eligibility
+4. Description of the Service
+5. User Accounts & Registration
+6. Earnings Program for Users
+7. Advertising Program for Advertisers
+8. Payment Terms & Conditions
+9. Fraud Prevention, Abuse & Enforcement
+10. Data Collection, Privacy & Telemetry
+11. Third-Party Platform Risks & Acknowledgments
+12. Termination & Account Suspension
+13. Intellectual Property Rights
+14. Disclaimers & Warranties
+15. Limitation of Liability
+16. Indemnification
+17. Dispute Resolution & Arbitration
+18. CCPA & State Law Rights
+19. Digital Millennium Copyright Act (DMCA)
+20. Modifications to Terms
+21. General Provisions
+22. Contact Information
+1. Acceptance of Terms
+These Terms of Service ("Agreement") constitute a legally binding agreement between you ("you," "your," or "User") and Kickbacks (ShiftKeys, Inc.) ("Kickbacks," "ShiftKeys," "we," "us," or "our"), governing your access to and use of the Kickbacks platform, Visual Studio Code (VS Code) extension, IDE plugin, command-line (CLI) integration, and related services (collectively, the "Service").
+
+BY INSTALLING KICKBACKS, CREATING AN ACCOUNT, ACCESSING OUR WEBSITE, OR OTHERWISE USING THE SERVICE IN ANY MANNER, YOU ACKNOWLEDGE THAT YOU HAVE READ, UNDERSTOOD, AND AGREE TO BE BOUND BY THIS AGREEMENT. IF YOU DO NOT AGREE TO ALL TERMS AND CONDITIONS, YOU MUST IMMEDIATELY DISCONTINUE USE OF THE SERVICE AND UNINSTALL THE EXTENSION.
+
+This Agreement applies to all users of the Service, including: (i) end users who use Kickbacks to earn compensation for displaying advertisements during AI wait-states ("Earning Users"); (ii) advertisers who purchase advertising inventory through our platform ("Advertisers"); and (iii) all other visitors to our website or users of our services.
+
+If you are using the Service on behalf of an organization, entity, or employer, you represent and warrant that you have authority to bind such organization to this Agreement, and references to "you" shall include both the individual and the organization.
+
+2. Definitions
+The following terms shall have the meanings set forth below throughout this Agreement:
+
+"Ad Content" or "Advertising Materials," means any text, images, graphics, links, code, or other materials submitted by an Advertiser for display through the Service.
+
+"AI Wait-State" or "Wait-State" means the period during which an AI coding assistant (such as Anthropic's Claude Code or similar products) is processing, reasoning, or generating a response, during which time the Kickbacks extension displays sponsored status-line content.
+
+"Auction" means the real-time bidding system through which Advertisers compete for placement priority in the display queue.
+
+"Bid" means the monetary amount an Advertiser offers to pay per block of 1,000 five-second impressions.
+
+"Block" means a unit of advertising inventory consisting of 1,000 five-second impressions served within AI wait-states.
+
+"Click" means a user's affirmative interaction with an advertisement that triggers a navigation event to the Advertiser's designated destination URL.
+
+"Claude Code" means the AI coding assistant product developed and operated by Anthropic, PBC, whether accessed via Visual Studio Code extension, terminal CLI, or other interfaces.
+
+"Effective CPM" or "eCPM" means the effective cost per thousand impressions calculated based on aggregate bid prices and auction dynamics.
+
+"Earnings" or "User Earnings" means the compensation accrued by an Earning User based on qualifying impressions and clicks, which are based on the revenue generated by advertisements displayed during such user's AI wait-states.
+
+"Extension" means the Kickbacks Visual Studio Code (VS Code) extension, IDE plugin, or command-line interface (CLI) integration installed by a user to enable the Service.
+
+"Impression" means a single instance of an advertisement being displayed within an AI wait-state for a minimum of five (5) seconds.
+
+"Ledger" means the internal accounting record maintained by Kickbacks tracking impressions, clicks, earnings, and payouts attributable to each user or advertiser account.
+
+"Payment Threshold" means the minimum balance required in a user's account before a payout is initiated, as determined by Kickbacks in its sole discretion.
+
+"Platform" means the underlying IDE or code editor (such as Visual Studio Code) in which the Extension operates.
+
+"Revenue Split" means the percentage division of net advertising revenue between Kickbacks and Earning Users, which is 50% of the ad impression or click revenue generated after operational expenses, but may be flexibly and dynamically modified or calculated.
+
+3. Eligibility
+3.1 General Requirements
+You must be at least eighteen (18) years of age and capable of forming a binding contract to use the Service. By using the Service, you represent and warrant that you meet these requirements and that all information you provide is accurate, complete, and current.
+
+3.2 Employer Authorization
+If you are installing or using the Service on a device owned or controlled by an employer, organization, or other third party, you represent and warrant that: (i) you have obtained all necessary authorizations from such entity to install software that modifies IDE behavior and displays third-party advertisements; and (ii) your use of the Service does not violate any employment agreement, company policy, code of conduct, or applicable law.
+
+3.3 Geographic Restrictions
+The Service is available only to users located in jurisdictions where the Service and its operation are lawful. We reserve the right to restrict access to the Service from any jurisdiction at any time. You are solely responsible for compliance with all applicable local laws, rules, and regulations.
+
+3.4 Account Limitations
+Each natural person may maintain only one (1) Earning User account. Creation of multiple accounts by a single individual, use of automated systems to create accounts, or coordination with others to circumvent account limitations constitutes a material breach of this Agreement.
+
+4. Description of the Service
+4.1 Overview
+Kickbacks operates an advertising marketplace that displays sponsored content within the status-line interface or action verb line that appears during AI wait-states in supported development environments. The Service intercepts or patches the rendering layer of AI coding assistant extensions (such as Claude Code for VS Code) to substitute or overlay sponsored messaging during processing intervals.
+
+4.2 For Earning Users
+Upon installing the Extension and completing account registration, Earning Users will see sponsored status-line messages replace or supplement the default spinner text during Claude Code, Codex, (and other supported AI assistant) wait-states. Earning Users accumulate credit based on qualifying impressions and clicks, with an estimated fifty percent (50%) of attributable net advertising revenue (after operational expenses), credited to their account by default, but which is not guaranteed and may vary on the basis of dynamic calculation. Earnings are paid out monthly, subject to the Payment Threshold and other conditions set forth herein.
+
+4.3 For Advertisers
+Advertisers bid in real time for placement priority. Pricing is dynamic and auction-based. Bids are expressed on a cost-per-thousand-impressions (CPM) basis; each block delivers 1,000 impressions of approximately five (5) seconds each. Where clicks are separately billed, the per-click price is a multiple of the prevailing per-impression price (currently fifty (50) times the per-impression rate). Current rates and parameters are shown in the advertiser dashboard at the time of bidding, and Kickbacks may adjust this methodology from time to time. Advertisements are served in descending order of effective value; higher effective bids receive priority placement and are more likely to be filled. All amounts are non-refundable and are considered spent once the corresponding impression or click is served.
+
+4.4 No Guarantee of Availability
+We do not guarantee that the Service will be available at all times, that impressions will be served continuously, or that any minimum level of earnings will be achieved. The Service depends on the usage and uptime of third-party platforms (including Visual Studio Code, Claude Code, and Anthropic's services) that are outside our control.
+
+5. User Accounts & Registration
+5.1 Account Creation
+To participate in the Earnings Program or Advertising Program, you must create an account providing accurate and complete information. You agree to maintain the accuracy of your information and to update it promptly upon any change. You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.
+
+5.2 Account Security
+You agree to: (i) create a strong, unique, and secured password; (ii) not share your account credentials with any third party; and (iii) immediately notify us of any unauthorized use of your account or any other breach of security. We will not be liable for any loss or damage arising from your failure to comply with these obligations.
+
+5.3 Account Ownership
+Accounts are personal to the registered user and may not be transferred, sold, or assigned to any third party without our prior written consent. Any attempt to transfer an account without authorization will result in immediate termination and forfeiture of all unpaid earnings.
+
+5.4 Know Your Business (Advertisers)
+Advertisers may be required to provide additional verification information, including but not limited to: business registration documents, tax identification numbers, payment method verification, and representative identification. Failure to provide requested documentation may result in account suspension or rejection of advertising campaigns.
+
+6. Earnings Program for Users
+6.1 Earnings Accrual
+Earning Users accrue credit based on: (i) qualifying impressions of advertisements displayed during AI wait-states on their authenticated devices; and (ii) qualifying clicks on such advertisements. The current Revenue Split is estimated to be fifty percent (50%) of net advertising revenue (i.e., after operational expenses) attributable to a user's impressions and clicks, but Earnings Accrual is subject to variability and all other terms herein, in good faith.
+
+6.2 Qualifying Impressions
+An impression qualifies for earnings only if: (i) the advertisement is displayed for a minimum of five (5) consecutive seconds during an active AI wait-state; (ii) the Extension is properly installed, authenticated, and connected to our servers; (iii) the impression is generated by a bona fide, human-initiated AI coding request (not automated, scripted, or artificially generated); (iv) the user has not exceeded applicable daily or periodic caps; and (v) the impression is not excluded by our fraud detection systems. A denial of a qualifying claim may be appealed or disputed in line with the requirements of Section 17 of this Agreement.
+
+6.3 Usage Caps
+Kickbacks reserves the right, in its sole discretion and without prior notice, to establish, modify, or enforce daily, weekly, monthly, or other periodic caps on: (a) the number of qualifying impressions per user; (b) the number of qualifying clicks per user; (c) the amount of earnings that may be accrued in a given period; and (d) the number of AI wait-states that generate billable impressions. Activity exceeding any applicable cap is non-billable and does not generate earnings. We may apply caps globally, per region, per account tier, or on an individual basis.
+
+6.4 Revenue Split Adjustments
+Kickbacks reserves the right to adjust the Revenue Split, per-impression rates, per-click rates, auction floor prices, and payment schedules at any time upon reasonable notice (which may include notice posted on our website or via the Extension). Changes to revenue terms will apply prospectively and will not affect earnings already accrued at the time of change.
+
+6.5 Payout Mechanics
+Accrued earnings remain credited to your account balance until disbursed. Once payouts are enabled for your account, earnings are disbursed monthly (on or about the first of each month), subject to the account balance exceeding the then-current Payment Threshold (currently US $10.00, subject to change). Payouts are made via Stripe Connect, or other payment methods elected by Kickbacks. Users are responsible for providing accurate payment information and for all taxes, fees, and regulatory obligations associated with receiving payments. Payouts, together with all associated tax-information collection, reporting, and any required withholding, are administered through our third-party payment processor, Stripe Connect. To receive payouts, Earning Users must complete Stripe Connect onboarding and provide any tax documentation (such as IRS Form W-9 or W-8) requested by the processor.
+
+6.6 Payout Holds and Corrections
+All earnings balances are estimates subject to correction, reconciliation, and audit. Kickbacks reserves the right to: (i) withhold payouts pending fraud review or investigation; (ii) deduct amounts associated with fraudulent, invalid, or reversed transactions; (iii) recover overpaid amounts from future earnings or, if necessary, via direct payment demand; and (iv) refuse payout if the account is under investigation for suspected violations of this Agreement, if payouts to the account would cause sanctions, regulatory, or other compliance risks, or if payout to that account would otherwise be unlawful.
+
+6.7 Forfeiture
+Upon termination of an account for any reason (whether by the user or by Kickbacks), any unpaid earnings below the Payment Threshold are forfeited. If termination results from a breach of this Agreement, all unpaid earnings are forfeited regardless of balance. Earning Users have no property interest in pending or accrued earnings until actually disbursed.
+
+6.8 Tax Classification & Reporting Obligations
+6.8.1 Nature of Payments
+Payments made to Earning Users represent revenue-sharing distributions attributable to the display of third-party advertisements through the user's licensed use of the Kickbacks Extension. Kickbacks does not characterize these payments as wages, salaries, or compensation for services rendered. Users acknowledge that they are not employees, independent contractors, or agents of Kickbacks. The tax classification of these payments (e.g., as royalty income, other income, or self-employment income) depends on the user's individual circumstances and applicable law.
+
+6.8.2 U.S. Tax Reporting — Form 1099-MISC
+For Earning Users who are U.S. persons (as defined by the IRS) and who receive payments totaling six hundred dollars ($600) or more in a calendar year, our third-party payment processor, Stripe Connect, will file IRS Form 1099-MISC (or such other information return as may apply) reporting such amounts in Box 3 (Other Income). The payment processor will furnish the applicable form to each affected Earning User by the deadline required by law (generally January 31 of the following calendar year). Tax documents may be delivered electronically through the payment processor, subject to the user's consent to electronic delivery provided during payout-account setup. The payment processor may adjust the applicable reporting category or form if required by applicable law or IRS guidance.
+
+6.8.3 No 1099-NEC or Withholding
+Kickbacks does not issue Form 1099-NEC (Nonemployee Compensation) and will not treat payments as subject to backup withholding except as provided in Section 6.8.6. Users acknowledge that Kickbacks' classification for reporting purposes does not determine the ultimate tax treatment of payments, and users bear sole responsibility for proper characterization on their tax returns.
+
+6.8.4 Tax Information Collection — Form W-9
+As part of Stripe Connect onboarding, and before any payout can be processed, U.S. person Earning Users must complete and submit IRS Form W-9 (Request for Taxpayer Identification Number and Certification) to the payment processor. Failure to provide a valid W-9 within thirty (30) days of the processor's request will result in a temporary suspension of payouts until the form is received.
+
+6.8.5 International Users — Form W-8BEN / W-8ECI
+As part of Stripe Connect onboarding, Earning Users who are not U.S. persons must complete IRS Form W-8BEN (Certificate of Foreign Status of Beneficial Owner) or Form W-8ECI (Certificate of Foreign Person's Claim for Exemption from Withholding on Income Effectively Connected with the Conduct of a Trade or Business in the United States), as applicable.
+
+Foreign persons receiving payments from U.S. sources may be subject to withholding at a rate of up to thirty percent (30%) on gross payments, unless a reduced rate applies under an applicable income tax treaty between the United States and the recipient's country of residence. The payment processor will withhold at the applicable statutory rate unless a valid W-8BEN claiming treaty benefits is on file with the processor. Users are responsible for providing accurate treaty claim information and understanding their home country's tax obligations.
+
+6.8.6 Backup Withholding
+In accordance with IRC Section 3406, our third-party payment processor is required to impose backup withholding at the rate of twenty-four percent (24%) on reportable payments to any payee who: (i) fails to furnish a valid Taxpayer Identification Number (TIN); (ii) has been notified by the IRS of a failure to report all interest or dividends; or (iii) has provided an incorrect TIN. If the payment processor receives a notice from the IRS requiring backup withholding on a user's account, all subsequent payouts to that user will be subject to backup withholding until the IRS issues a notice of cessation or the user provides a corrected W-9.
+
+6.8.7 User Tax Obligations
+Regardless of whether Kickbacks issues an information return, all distributions received through the Service constitute gross income to the recipient under the Internal Revenue Code (and foreign equivalents), and users are solely responsible for: (i) reporting all payments on their applicable tax returns; (ii) paying all applicable federal, state, local, and foreign income taxes; (iii) remitting self-employment tax if the user's activities constitute a trade or business; (iv) making estimated tax payments if required; and (v) maintaining records sufficient to substantiate income and any claimed deductions.
+
+6.8.8 No Tax Advice
+Nothing in this Agreement or on the Kickbacks website constitutes tax, legal, or accounting advice. Users are strongly encouraged to consult with their own tax advisors regarding the characterization and reporting of payments received through the Service. Kickbacks disclaims all liability for any tax positions taken (or not taken) by users.
+
+7. Advertising Program for Advertisers
+7.1 Campaign Creation & Bidding
+Advertisers may create advertising campaigns by submitting Ad Content and placing bids through our platform. Each bid purchases a block of 1,000 five-second impressions. The highest active bid receives priority placement. Advertisers may increase their bid at any time to improve placement priority.
+
+7.2 Non-Refundable Bids
+ALL BIDS ARE FINAL AND NON-REFUNDABLE ONCE AN IMPRESSION HAS BEEN SERVED. Advertisers acknowledge that bids represent a binding commitment to pay for impressions delivered. Notwithstanding the foregoing, Kickbacks may, in its sole discretion, issue credits for impressions that our systems determine were not delivered in accordance with campaign parameters.
+
+7.3 Ad Content Requirements
+Advertisers warrant and represent that all Ad Content: (i) complies with all applicable laws, regulations, and industry standards; (ii) does not infringe upon any intellectual property rights; (iii) is not false, misleading, deceptive, or defamatory; (iv) does not promote illegal products, services, or activities; (v) does not contain malware, phishing links, or other harmful code; and (vi) complies with the content requirements of this Agreement, including Section 7.4.
+
+7.4 Content Prohibitions
+Without limitation, Ad Content may not: promote gambling (where prohibited); promote alcohol, tobacco, or controlled substances in violation of law; contain adult content, hate speech, or discriminatory material; make unsubstantiated health or financial claims; impersonate Kickbacks or any third party; or violate the intellectual property, privacy, or publicity rights of any person or entity.
+
+7.5 Right to Reject or Remove
+Kickbacks reserves the right, in its sole discretion and without liability, to reject, remove, or suspend any Ad Content or campaign for any reason or no reason, including but not limited to violations of this Agreement, complaints from users, or concerns about brand safety. No refund or credit will be provided for removed campaigns unless Kickbacks determines, in its sole discretion, that removal was erroneous. Advertisers may appeal a removal or suspension within thirty (30) days by contacting support@kickbacks.ai. Kickbacks will review the appeal and, if it determines the action was erroneous, reinstate the campaign and/or issue a credit. All appeal decisions are final.
+
+7.6 Advertiser Indemnification for Content
+Advertisers expressly indemnify and hold harmless Kickbacks from any and all claims, damages, losses, and expenses (including reasonable attorneys' fees) arising out of or relating to: (i) the content, accuracy, or legality of Ad Content; (ii) the products or services promoted; (iii) the destination websites or landing pages linked from advertisements; and (iv) any misrepresentation or breach of warranty by the Advertiser.
+
+7.7 Click Billing
+Where clicks are separately billed for a campaign, the per-click price is a multiple of the campaign's effective per-impression price (currently fifty (50) times the per-impression rate). This multiple is not fixed and may be adjusted by Kickbacks from time to time; current rates are shown in the advertiser dashboard. A "click" is recorded when a user affirmatively interacts with an advertisement in a manner that initiates navigation to the Advertiser's designated URL. Kickbacks makes no representation or warranty regarding conversion rates, return on investment, or business outcomes from advertising campaigns.
+
+8. Payment Terms & Conditions
+8.1 Advertiser Payment Obligations
+Advertisers agree to pay all charges incurred in connection with their account, including all impressions served and clicks recorded. Payment is due in accordance with the billing terms selected during campaign setup. Failure to pay outstanding balances may result in account suspension, campaign termination, and referral to collections.
+
+8.2 Payment Methods
+Kickbacks accepts payment via Stripe Checkout, operated by our third-party payment processor, Stripe, Inc. By providing payment information, you represent and warrant that you are authorized to use the designated payment method. You authorize us to charge your payment method for all charges incurred.
+
+8.3 Late Payments
+Payments not received by the due date are subject to a late fee of 2.5% per month (or the maximum amount permitted by law, if lower) on the outstanding balance. Kickbacks reserves the right to suspend all campaigns and terminate accounts for persistent non-payment.
+
+8.4 Chargebacks and Disputes
+Advertisers must notify Kickbacks of any billing disputes in writing, within thirty (30) days of the charge date. Undisputed portions will be paid promptly. Initiating a chargeback or payment dispute without first attempting to resolve the issue with Kickbacks constitutes a material breach of this Agreement and may result in immediate account holds or termination.
+
+8.5 User Payout Terms
+Earning Users may request account deletion and payout of accrued earnings (subject to the Payment Threshold) by contacting support@kickbacks.ai, or through the account settings interface where available. Payout requests are processed within thirty (30) business days. We reserve the right to delay payouts pending completion of fraud review or verification of payment information.
+
+9. Fraud Prevention, Abuse & Enforcement
+9.1 Strict Prohibition on Fraud
+Kickbacks maintains a zero-tolerance policy for fraud, abuse, and manipulation. The following activities are strictly prohibited and constitute material breaches of this Agreement:
+
+Click Fraud: Any attempt to generate artificial clicks, including but not limited to: automated clicking scripts, click farms, paid-to-click schemes, coordinate clicking networks, or any mechanism designed to inflate click counts artificially.
+Impression Manipulation: Any attempt to generate artificial impressions, including: using automated tools to trigger AI wait-states, running meaningless or repetitive prompts solely to generate ad views, botting or scripting IDE interactions, or colluding with others to inflate impression counts.
+Multi-Account Abuse: Creation or use of multiple accounts by a single individual, coordination with others to operate account networks, or use of shared credentials across multiple users to aggregate earnings.
+Metric Manipulation: Any attempt to interfere with, alter, or falsify telemetry data, impression counts, click events, or any other metric used to calculate earnings or advertising charges.
+Reverse Engineering: Any attempt to decompile, disassemble, reverse engineer, or otherwise derive source code from the Extension; or to intercept, modify, or spoof communications between the Extension and Kickbacks servers.
+Circumvention: Any attempt to circumvent usage caps, geographic restrictions, account limitations, or other technical or policy controls implemented by Kickbacks.
+9.2 Detection and Investigation
+Kickbacks may employ automated systems and manual review processes to detect fraudulent or abusive activity. These systems analyze patterns including but not limited to: prompt frequency, session duration, click timing, account relationships, and behavioral anomalies. Users acknowledge and agree that their use of the Service will be monitored for fraud prevention purposes.
+
+9.3 Enforcement Actions
+Upon detection or reasonable suspicion of fraud or abuse, Kickbacks may, in its sole discretion and without prior notice: (i) suspend or terminate the affected account(s); (ii) void all or a portion of ledger entries associated with fraudulent activity; (iii) withhold or reverse pending payouts; (iv) recover funds previously paid out for fraudulent activity, including by offsetting against future earnings or initiating direct collection proceedings; (v) permanently ban the user from the Service; and (vi) refer the matter to law enforcement or regulatory authorities.
+
+9.4 Burden of Proof
+In any dispute regarding the legitimacy of impressions, clicks, or earnings, Kickbacks' determination based on its internal records and detection systems shall be presumptively valid. The user bears the burden of proving, by clear and convincing evidence, that disputed activity was legitimate.
+
+9.5 Clawback Rights
+If fraudulent activity is detected after payout has occurred, Kickbacks reserves the right to recover paid funds. Recovery methods include: deduction from future earnings; chargeback to the user's registered payment method (if on file); direct payment demand; and referral to collections. Users consent to such recovery methods upon accepting this Agreement.
+
+9.6 Good Faith Overpayment
+If Kickbacks determines that earnings were overstated due to technical error, system malfunction, or miscalculation (independent of user misconduct), we reserve the right to correct the Ledger and recover overpaid amounts, provided such correction is made within ninety (90) days of the overpayment.
+
+10. Data Collection, Privacy & Telemetry
+10.1 Scope of Data Collection
+Kickbacks collects and processes only the data necessary to credit earnings, bill advertisers, prevent fraud, and operate and improve the Service. For each advertisement served, we record event telemetry consisting of: the event type (for example, impression rendered, impression viewable, view-duration ticks, and clicks); the associated advertisement, campaign, and creative identifiers; the surface on which the advertisement was displayed (for example, spinner, status line, or overlay); on-screen visibility metrics (such as viewable percentage and visible duration); a per-installation client identifier; a per-event identifier (UUID) used to deduplicate and reconcile events; timestamps; the Extension version and the host application version (for example, the Claude Code or Visual Studio Code version); and, for signed-in Earning Users, an account identifier used to attribute credit. We also process your internet protocol (IP) address on a transient basis for rate-limiting, abuse-detection, and fraud-prevention purposes.
+
+Telemetry associated with a signed-in Earning User is linked to that user's account for the purpose of crediting earnings and is therefore pseudonymous rather than anonymous to Kickbacks; it is never combined with the content described in Section 10.2. Telemetry generated in signed-out preview ("demo") mode is not attributed to any user account. Kickbacks may also derive aggregated and de-identified usage statistics from this telemetry for analytics and service improvement.
+
+10.2 What We Do NOT Collect
+Kickbacks does not and will not collect, access, process, or store: (i) the content of your code, prompts, or queries submitted to AI coding assistants; (ii) AI responses, generated code, or model outputs; (iii) your context windows, conversation history, files, or project contents; (iv) personal information beyond what is necessary for account creation, payment processing, tax compliance, and fraud prevention; or (v) any data that could reveal your trade secrets, proprietary source code, or confidential business information.
+
+The Service's telemetry is structurally limited to the event metrics described in Section 10.1. The data transmitted by the Extension contains no field capable of carrying your code, prompts, AI interactions, file names, or project contents, and Kickbacks has no technical means of accessing them through the Service.
+
+10.3 Billable Telemetry
+Participation in the Earnings Program requires consent to billable telemetry collection. This telemetry is strictly limited to the pseudonymous metrics described in Section 10.1 and is necessary for crediting earnings and detecting fraud. Withdrawal of telemetry consent will result in immediate cessation of earnings accrual, though previously accrued earnings (if eligible for payout) will be disbursed.
+
+10.4 Data Retention
+Individual account data is retained for 7 years following account termination or 7 years from the last account activity, whichever is longer, for fraud prevention, financial reconciliation, and legal compliance purposes. Aggregated data may be retained indefinitely for analytics and service improvement, and anonymized to the extent practicable or required.
+
+10.5 Data Deletion Requests
+Users may request deletion of their account and associated personal data through the account settings interface or by contacting support. Upon deletion: (i) personal identifiers will be removed or anonymized within 30 days; (ii) aggregated, anonymized data derived from the account may be retained; (iii) financial records required by law will be retained as mandated; and (iv) anonymized impression and click data necessary for advertiser billing reconciliation will be retained in non-identifiable form.
+
+10.6 Third-Party Processors
+Kickbacks utilizes third-party service providers for payment processing, analytics, hosting, and customer support. These currently include Stripe (payment processing and payouts), Google Cloud (hosting, authentication, and data storage), Twilio SendGrid (transactional email), and Microsoft Clarity (usage analytics on the kickbacks.ai website), though providers are subject to change. By using the Service, you consent to the engagement of these subprocessors subject to appropriate data protection agreements.
+
+10.7 Security Measures
+Kickbacks maintains technical and organizational measures designed to protect collected data against unauthorized access, disclosure, alteration, and destruction — including encryption of data in transit (TLS) and at rest, role-based access controls on a least-privilege basis, dedicated secrets management (rather than plaintext configuration), logging, monitoring, and rate-limiting to detect fraud and abuse, and periodic security assessments. Kickbacks further limits its exposure by design: as described in Section 10.2, it does not collect the content of your code, prompts, or AI interactions.
+
+No method of transmission or electronic storage is completely secure, however, and Kickbacks cannot and does not guarantee absolute security. You are responsible for safeguarding your account credentials and for activity under your account, and Kickbacks will notify affected users and authorities of any data breach as required by applicable law.
+
+11. Third-Party Platform Risks & Acknowledgments
+11.1 Extension Modification Acknowledgment
+USERS EXPRESSLY ACKNOWLEDGE AND UNDERSTAND THAT THE KICKBACKS EXTENSION OPERATES BY MODIFYING, PATCHING, OR INTEGRATING WITH THE INTERNAL RENDERING MECHANISMS OF THIRD-PARTY SOFTWARE, INCLUDING BUT NOT LIMITED TO ANTHROPIC'S CLAUDE CODE EXTENSION AND VISUAL STUDIO CODE. THIS MODIFICATION MAY INVOLVE: (i) intercepting or overriding UI rendering calls; (ii) substituting status-line content during wait-states; and (iii) injecting remotely served content into the IDE interface.
+
+11.2 Third-Party Terms of Service
+Installation and use of the Kickbacks Extension by users should not violate the terms of service, end-user license agreements, or acceptable use policies of Anthropic, Microsoft (Visual Studio Code), OpenAI, GitHub, or other third-party platforms. USERS BEAR SOLE RESPONSIBILITY FOR ENSURING THAT THEIR USE OF KICKBACKS COMPLIES WITH ALL APPLICABLE THIRD-PARTY TERMS. Kickbacks does not represent or warrant that any use of the Extension is permitted by any third-party platform.
+
+11.3 Platform Changes & Service Disruption
+Third-party platforms (including Anthropic and Microsoft) may, at any time: (i) modify their software, APIs, or extension architecture; (ii) implement technical measures that block, disable, or interfere with the Kickbacks Extension; (iii) update their terms of service to prohibit Kickbacks' mode of operation; or (iv) take enforcement action against users who have installed the Extension, including suspension or termination of their accounts with the third-party platform.
+
+Kickbacks shall not be liable for any loss, damage, or interruption of service resulting from third-party platform changes or enforcement actions. We will use commercially reasonable efforts to maintain compatibility and address any issues that result from such changes, but provide no guarantee of continuous operation.
+
+11.4 No Affiliation
+Kickbacks is not affiliated with, endorsed by, sponsored by, or otherwise associated with Anthropic, Microsoft, OpenAI, GitHub, or any other third-party platform provider. References to Claude Code, Visual Studio Code, or other products are for descriptive purposes only and do not imply any relationship with the respective trademark owners.
+
+11.5 User Assumption of Risk
+BY INSTALLING AND USING THE EXTENSION, YOU EXPRESSLY ASSUME ALL RISKS ASSOCIATED WITH THIRD-PARTY PLATFORM INTERACTIONS, INCLUDING: (i) the risk that your Anthropic, Microsoft, or other platform account may be suspended or terminated; (ii) the risk of data loss or service interruption; (iii) the risk that the Extension may conflict with other extensions or IDE functionality; and (iv) the risk of security vulnerabilities arising from the Extension's interaction with third-party software.
+
+12. Termination & Account Suspension
+12.1 Termination by User
+You may terminate your account at any time by following the deletion procedures in your account settings or by contacting support. Termination does not relieve you of obligations incurred prior to termination and does not affect provisions that by their nature survive termination.
+
+12.2 Termination by Kickbacks
+Kickbacks reserves the right, in its sole discretion and without prior notice, to suspend or terminate any account, restrict access to the Service, or discontinue service to any user or advertiser for any reason or no reason, including but not limited to: violation of this Agreement; suspected fraud or abuse; request by law enforcement or regulatory authority; extended period of inactivity; or business discontinuation.
+
+12.3 Termination for Cause
+Without limiting Section 12.2, Kickbacks may immediately terminate any account upon: (i) material breach of this Agreement; (ii) detection of fraud, abuse, or manipulation; (iii) use of the Service for unlawful purposes; (iv) actions that expose Kickbacks to legal liability; or (v) repeated violations of acceptable use policies. Termination for cause results in immediate forfeiture of all unpaid earnings and potential liability for damages.
+
+12.4 Effect of Termination
+Upon termination: (i) all licenses granted herein immediately terminate; (ii) you must cease all use of the Service and uninstall the Extension; (iii) accrued earnings below the Payment Threshold are forfeited; (iv) we may delete your account data in accordance with Section 10.5; and (v) any provisions intended by their nature to survive termination shall survive.
+
+12.5 No Right to Reinstatement
+Terminated users have no right to reinstatement. Kickbacks may, in its sole discretion, permit creation of a new account by a previously terminated user, provided all outstanding obligations have been satisfied.
+
+13. Intellectual Property Rights
+13.1 Kickbacks Ownership
+All right, title, and interest in and to the Service, including the Extension, website, software, algorithms, auction systems, analytics, trademarks, trade dress, and all associated intellectual property, are and shall remain the exclusive property of Kickbacks and its licensors. This Agreement does not convey any ownership interest in the Service or its components.
+
+13.2 Limited License to Users
+Subject to your compliance with this Agreement, Kickbacks grants you a limited, non-exclusive, non-transferable, revocable license to: (i) install and use the Extension solely for its intended purpose; and (ii) access and use the website and platform features. This license does not permit: modification, distribution, derivative works, reverse engineering, decompilation, or removal of proprietary notices.
+
+13.3 Advertiser Content License
+By submitting Ad Content, Advertisers grant Kickbacks a worldwide, non-exclusive, royalty-free license to: (i) reproduce, display, and transmit Ad Content through the Service; (ii) modify Ad Content solely as necessary for technical formatting; and (iii) use Advertiser's name and trademarks solely in connection with the display of advertisements. This license terminates when the associated campaign ends or the account is terminated.
+
+13.4 Feedback
+Any feedback, suggestions, or ideas you provide regarding the Service may be used by Kickbacks without restriction, compensation, or attribution. You hereby assign to Kickbacks all right, title, and interest in such feedback.
+
+14. Disclaimers & Warranties
+14.1 Service Provided "As Is"
+THE SERVICE IS PROVIDED ON AN "AS IS" AND "AS AVAILABLE" BASIS WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED. TO THE FULLEST EXTENT PERMITTED BY LAW, KICKBACKS DISCLAIMS ALL WARRANTIES, INCLUDING BUT NOT LIMITED TO: IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, TITLE, AND ANY WARRANTIES ARISING FROM COURSE OF DEALING, COURSE OF PERFORMANCE, OR TRADE USAGE.
+
+14.2 No Guarantee of Results
+KICKBACKS DOES NOT WARRANT THAT: (i) the Service will meet your requirements or expectations; (ii) earnings will reach any particular level; (iii) advertising campaigns will achieve any business results; (iv) the Service will be uninterrupted, timely, secure, or error-free; (v) defects will be corrected; or (vi) the Service is free of viruses or other harmful components.
+
+14.3 Third-Party Content
+Kickbacks does not endorse, verify, or assume responsibility for any Ad Content, destination websites, or third-party products or services advertised through the Service. All transactions between users and advertisers are solely between those parties.
+
+14.4 Extension Risks
+KICKBACKS MAKES NO WARRANTY THAT THE EXTENSION WILL NOT CONFLICT WITH, INTERFERE WITH, OR DAMAGE OTHER SOFTWARE, EXTENSIONS, FILES, OR SYSTEMS. YOU ASSUME ALL RISK OF DATA LOSS OR SYSTEM HARM ARISING FROM INSTALLATION OR USE OF THE EXTENSION.
+
+15. Limitation of Liability
+15.1 Exclusion of Consequential Damages
+TO THE FULLEST EXTENT PERMITTED BY LAW, IN NO EVENT SHALL KICKBACKS, ITS AFFILIATES, OFFICERS, DIRECTORS, EMPLOYEES, AGENTS, SUPPLIERS, OR LICENSORS BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, PUNITIVE, OR EXEMPLARY DAMAGES, INCLUDING BUT NOT LIMITED TO: LOST PROFITS, LOST REVENUE, LOST DATA, LOSS OF GOODWILL, BUSINESS INTERRUPTION, COMPUTER DAMAGE, SYSTEM FAILURE, OR COST OF SUBSTITUTE SERVICES, ARISING OUT OF OR IN CONNECTION WITH THIS AGREEMENT OR THE USE OF THE SERVICE, REGARDLESS OF THE THEORY OF LIABILITY.
+
+15.2 Liability Cap
+KICKBACKS' TOTAL AGGREGATE LIABILITY ARISING OUT OF OR RELATING TO THIS AGREEMENT SHALL NOT EXCEED THE GREATER OF: (i) THE AMOUNT PAID BY YOU TO KICKBACKS IN THE TWELVE (12) MONTHS PRECEDING THE EVENT GIVING RISE TO LIABILITY; OR (ii) ONE HUNDRED UNITED STATES DOLLARS ($100.00).
+
+15.3 Essential Purpose
+THE LIMITATIONS OF LIABILITY SET FORTH IN THIS SECTION 15 SHALL APPLY REGARDLESS OF WHETHER KICKBACKS HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES AND REGARDLESS OF WHETHER THE LIMITED REMEDIES FAIL OF THEIR ESSENTIAL PURPOSE.
+
+16. Indemnification
+16.1 User Indemnification
+You agree to defend, indemnify, and hold harmless Kickbacks and its affiliates, officers, directors, employees, and agents from and against any and all claims, damages, losses, liabilities, costs, and expenses (including reasonable attorneys' fees) arising out of or relating to: (i) your use of the Service; (ii) your violation of this Agreement or any third-party terms; (iii) any dispute between you and your employer or any third party regarding your installation or use of the Extension; (iv) any claim by Anthropic, Microsoft, or other platform provider arising from your use of the Extension; and (v) your violation of any applicable law or regulation.
+
+16.2 Advertiser Indemnification
+Advertisers agree to defend, indemnify, and hold harmless Kickbacks from and against any and all claims, damages, losses, and expenses arising out of or relating to: (i) Ad Content and the products or services promoted; (ii) destination websites and landing pages; (iii) infringement of intellectual property or other rights; (iv) false, misleading, or deceptive advertising claims; and (v) breach of any representation or warranty herein.
+
+16.3 Indemnification Procedure
+Kickbacks will provide prompt notice of any claim subject to indemnification. The indemnifying party will have the right to control the defense and settlement of such claim, provided that Kickbacks may participate with counsel of its own choosing at its own expense. The indemnifying party will not settle any claim in a manner that adversely affects Kickbacks' rights without prior written consent.
+
+17. Dispute Resolution & Arbitration
+17.1 Informal Resolution
+Before initiating any formal dispute resolution proceeding, you agree to first contact Kickbacks informally to attempt to resolve the dispute. Both parties agree to negotiate in good faith for a period of at least thirty (30) days following written notice of the dispute.
+
+17.2 Binding Arbitration
+EXCEPT FOR DISPUTES RELATING TO INTELLECTUAL PROPERTY RIGHTS OR CLAIMS FOR INJUNCTIVE RELIEF, ANY DISPUTE ARISING OUT OF OR RELATING TO THIS AGREEMENT SHALL BE RESOLVED THROUGH BINDING ARBITRATION ADMINISTERED BY THE AMERICAN ARBITRATION ASSOCIATION ("AAA") IN ACCORDANCE WITH ITS COMMERCIAL ARBITRATION RULES. THE ARBITRATION SHALL BE CONDUCTED IN LOS ANGELES, CA, AND JUDGMENT ON THE AWARD MAY BE ENTERED IN ANY COURT OF COMPETENT JURISDICTION.
+
+17.3 Class Action Waiver
+YOU AGREE THAT ANY PROCEEDINGS, WHETHER IN ARBITRATION OR COURT, WILL BE CONDUCTED ONLY ON AN INDIVIDUAL BASIS AND NOT IN A CLASS, CONSOLIDATED, OR REPRESENTATIVE ACTION. YOU WAIVE ANY RIGHT TO PARTICIPATE IN CLASS ACTIONS, PRIVATE ATTORNEY GENERAL ACTIONS, OR CLASS-WIDE ARBITRATION.
+
+17.4 Jury Trial Waiver
+TO THE EXTENT PERMITTED BY LAW, BOTH PARTIES WAIVE ANY RIGHT TO A JURY TRIAL IN ANY LEGAL PROCEEDING ARISING OUT OF OR RELATING TO THIS AGREEMENT.
+
+17.5 Governing Law
+This Agreement shall be governed by and construed in accordance with the laws of the State of California, without regard to its conflict of law principles.
+
+17.6 Injunctive Relief
+Notwithstanding the arbitration provisions above, either party may seek injunctive or other equitable relief in any court of competent jurisdiction to prevent irreparable harm pending arbitration.
+
+18. California Consumer Privacy Act (CCPA) & State Law Rights
+18.1 CCPA Disclosures
+This Section applies solely to California residents and supplements the privacy disclosures elsewhere in this Agreement. For purposes of the California Consumer Privacy Act of 2018, as amended ("CCPA"), Kickbacks may act as a "business" with respect to personal information collected from California residents.
+
+18.2 Categories of Personal Information Collected
+We collect the following categories of personal information from California residents: (i) Identifiers (name, email address, IP address, account ID); (ii) Commercial information (transaction history, payment information); (iii) Internet/Network information (device information, application and extension version, interaction data); and (iv) Professional or employment-related information (if provided).
+
+18.3 Categories of Personal Information Disclosed
+We may disclose the categories of personal information listed above to: service providers (payment processors, hosting providers, analytics providers); and as required by law. Advertisers receive only aggregate, anonymized impression and click statistics. Kickbacks does not sell or share personal information as those terms are defined under the CCPA; if our practices change, we will update this Section and provide any required opt-out mechanism, and California residents may opt out as described in Section 18.4.
+
+18.4 California Consumer Rights
+If you are a California resident, you have the right to: (i) request disclosure of the categories and specific pieces of personal information we have collected; (ii) request deletion of personal information; (iii) request correction of inaccurate personal information; (iv) opt out of the sale or sharing of personal information; and (v) not receive discriminatory treatment for exercising these rights. To exercise these rights, contact us at the address in Section 22.
+
+18.5 Shine the Light Law
+California Civil Code Section 1798.83 permits California residents to request information regarding our disclosure of personal information to third parties for direct marketing purposes. California residents may submit such a request once per calendar year by contacting us at the address in Section 22.
+
+18.6 California Online Erasure Law
+California Business and Professions Code Section 22581 permits registered users who are minors to request removal of content they have publicly posted. While Kickbacks does not operate a platform for user-generated public content, any such requests may be directed to our support team.
+
+18.7 Other State Privacy Laws
+Residents of Virginia (VCDPA), Colorado (CPA), Connecticut (CTDPA), and Utah (UCPA) may have additional privacy rights under applicable state law. To the extent these laws apply to Kickbacks' processing of your personal information, we will comply with applicable requirements. Contact us to exercise rights under these laws.
+
+19. Digital Millennium Copyright Act (DMCA)
+19.1 Designated Agent
+Kickbacks respects intellectual property rights and complies with the DMCA. If you believe that material available through the Service infringes your copyright, you may submit a notification to our Designated Copyright Agent:
+
+Copyright Agent: ShiftKeys, Inc.
+Address: 1111B S Governors Ave, Ste 29681, Dover, DE 19904
+Email: support@kickbacks.ai
+
+19.2 DMCA Notice Requirements
+All DMCA notices must include: (i) a physical or electronic signature of the copyright owner or authorized agent; (ii) identification of the copyrighted work claimed to be infringed; (iii) identification of the infringing material and its location; (iv) contact information; (v) a statement of good faith belief; and (vi) a statement under penalty of perjury.
+
+19.3 Counter-Notice
+If you believe your content was removed in error, you may submit a counter-notice containing: (i) your signature; (ii) identification of the removed material; (iii) a statement under penalty of perjury; (iv) your contact information; and (v) consent to jurisdiction.
+
+19.4 Repeat Infringers
+Kickbacks will terminate the accounts of repeat copyright infringers in appropriate circumstances.
+
+20. Modifications to Terms
+20.1 Right to Modify
+Kickbacks reserves the right to modify this Agreement at any time. Except as provided in Section 20.2 for material changes, changes become effective upon posting of the revised Agreement on our website or through the Extension. The "Last Updated" date at the top of this Agreement indicates when changes were last made.
+
+20.2 Notice of Material Changes
+For material changes to: (i) the Revenue Split or earnings calculation methodology; (ii) data collection practices; (iii) dispute resolution procedures; or (iv) liability limitations, we will provide at least thirty (30) days' notice before the changes take effect. Notice may be provided via email, Extension notification, or website posting.
+
+20.3 Continued Use as Acceptance
+Your continued use of the Service after any modification constitutes acceptance of the modified terms. If you do not agree to modified terms, you must discontinue use and uninstall the Extension.
+
+21. General Provisions
+21.1 Entire Agreement
+This Agreement constitutes the entire agreement between you and Kickbacks regarding the Service and supersedes all prior agreements, understandings, and representations.
+
+21.2 Severability
+If any provision of this Agreement is held invalid or unenforceable, the remaining provisions shall continue in full force and effect, and the invalid provision shall be modified to the minimum extent necessary to make it enforceable.
+
+21.3 Waiver
+No waiver of any provision shall be effective unless in writing signed by the waiving party. Failure to enforce any right shall not constitute a waiver of future enforcement.
+
+21.4 Assignment
+You may not assign this Agreement without prior written consent. Kickbacks may assign this Agreement in connection with a merger, acquisition, or sale of assets.
+
+21.5 Force Majeure
+Kickbacks shall not be liable for failure or delay in performance due to causes beyond its reasonable control, including acts of God, war, terrorism, riots, embargoes, acts of civil or military authorities, fire, floods, accidents, strikes, or shortages of transportation, facilities, fuel, energy, labor, or materials.
+
+21.6 Headings
+Section headings are for convenience only and have no legal effect.
+
+21.7 Notices
+Notices to Kickbacks must be sent to the address in Section 22. Notices to users may be sent to the email address associated with the account or posted on the website.
+
+21.8 Export Compliance
+You represent that you are not located in a country subject to U.S. embargo or designated as a "terrorist supporting" country, and are not listed on any U.S. government prohibited or restricted party list.
+
+21.9 Electronic Communications
+By using the Service, you consent to receive electronic communications from Kickbacks. You agree that all agreements, notices, disclosures, and other communications provided electronically satisfy any legal requirement for written communication.
+
+21.10 No Agency
+No agency, partnership, joint venture, or employment relationship is created by this Agreement.
+
+22. Contact Information
+If you have any questions, concerns, or requests regarding this Agreement or the Service, please contact us:
+
+Kickbacks (ShiftKeys, Inc.)
+1111B S Governors Ave, Ste 29681
+Dover, DE 19904
+Email: support@kickbacks.ai
+Support: support@kickbacks.ai
+
+© 2026 Kickbacks (ShiftKeys, Inc.). All rights reserved.

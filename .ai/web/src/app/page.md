@@ -40,6 +40,11 @@ This file renders the public SpinShare homepage and polls the live bid market.
 
 ## Planned Change
 
+Display "3-second minimum views" on the public homepage so developers and
+advertisers see the counting rule before installing or buying traffic.
+
+## Previous Planned Change
+
 Redesign the homepage around the psychology shown in the public reference screenshots:
 
 - Lead with visible earning math, including a monthly/hourly dollar anchor.
@@ -146,10 +151,46 @@ Psychology direction from the requested search:
 
 User feedback on 2026-06-13: remove the left "Paid waits per hour" slider and "Your share" card from the market-depth section. The live bid market table should span the full width of that row.
 
+## Planned Change: Drop Market-Depth Stat Cards + Bottom Spacing
+
+User feedback on 2026-06-13: the three stat cards ("Top CPM", "Monthly take", "Funded bids") in the market-depth header read as redundant and noisy alongside the live bid market card directly below them. Also the bottom "Advertisers can move this market" CTA panel hugs the table with no breathing room.
+
+Planned changes:
+
+- Remove the three liquid-glass stat cards on the right of the market-depth header.
+- Restructure the market-depth header so the headline + supporting copy span the full row width, no second column.
+- Add vertical spacing between the live bid market card and the "Advertisers can move this market" CTA panel.
+
 ## Bug Fixes
 
 | Date | Bug | Cause | Fix |
 |------|-----|-------|-----|
+
+## Planned Change: Public Advertiser Checkout Form
+
+User feedback on 2026-06-13: the market panel does not make paying obvious enough. Add a native SpinShare-styled form in the market-depth section, inspired by the provided reference, so advertisers can enter email, ad line, destination URL, optional brand metadata, public/private leaderboard preference, CPM bid, and number of 1,000-view blocks. The form posts to a public backend checkout route and redirects to Stripe.
+
+## Implemented Change: Public Advertiser Checkout Form
+
+Mounted `AdvertiserCheckoutForm` in the market-depth section between the live bid market and the advertiser portal CTA. The form preserves the current SpinShare glass/mint UI and makes checkout visible without requiring users to enter the advertiser dashboard first.
+
+## Verification
+
+- Initial page regression failed because the form copy was not rendered.
+- Final focused web test run passed for `page.test.tsx`, market route, and advertiser checkout route.
+- Full web tests, `tsc --noEmit`, and production build passed.
+
+## Planned Adjustment: Header Blur
+
+Screenshot review on 2026-06-13 showed the fixed navbar still reads too flat at the page edge. Strengthen the outer header backdrop blur so the bar feels layered over scrolling content instead of only the inner glass capsule carrying the effect.
+
+## Planned Adjustment: Remove Header Rule
+
+Screenshot review on 2026-06-13 showed the full-width line under the fixed navbar is visually distracting. Remove the header border line and keep the blur on the navbar backdrop itself.
+
+## Planned Adjustment: Container-Only Header Blur
+
+Follow-up screenshot review clarified the blur should belong to the rounded navbar container, not the whole fixed header section. Move the backdrop treatment from the full-width header wrapper to the inner navbar capsule.
 
 ## Change History
 
@@ -166,3 +207,9 @@ User feedback on 2026-06-13: remove the left "Paid waits per hour" slider and "Y
 | 2026-06-13 | Documented requested `🤑` money icon replacement | Codex |
 | 2026-06-13 | Synced docs with final spacious money-first homepage implementation and verification | Codex |
 | 2026-06-13 | Documented removal of waits-per-hour slider panel before editing code | Codex |
+| 2026-06-13 | Documented removal of market-depth stat cards and bottom CTA spacing before editing code | Codex |
+| 2026-06-13 | Documented public advertiser checkout form plan before editing code | Codex |
+| 2026-06-13 | Synced docs with implemented public advertiser checkout form and verification | Codex |
+| 2026-06-13 | Documented navbar border removal and stronger backdrop filter before editing code | Codex |
+| 2026-06-13 | Documented moving header blur from full-width wrapper to navbar container | Codex |
+| 2026-06-13 | Documented homepage 3-second minimum views copy before editing. | Codex |

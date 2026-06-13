@@ -86,4 +86,23 @@ describe("GET /api/market", () => {
       false,
     );
   });
+
+  it("omits private leaderboard campaigns from the public market", async () => {
+    const container = getContainer();
+    seedCampaign(container, { id: "cmp_public", cpmCents: 1200 });
+    seedCampaign(container, {
+      id: "cmp_private",
+      cpmCents: 9000,
+      publicOnLeaderboard: false,
+    });
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.summary.liveCampaigns).toBe(1);
+    expect(body.rows.map((row: { id: string }) => row.id)).toEqual([
+      "cmp_public",
+    ]);
+  });
 });

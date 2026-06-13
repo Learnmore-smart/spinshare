@@ -15,8 +15,18 @@ import type { Campaign } from "@spinshare/core";
 export interface NewCampaign {
   /** Owner user id. */
   advertiserId: string;
+  /** Optional contact email for public checkout-created campaigns. */
+  contactEmail?: string;
   /** Ad copy, 1–60 characters. */
   adText: string;
+  /** Optional HTTPS destination URL for click-through capable clients. */
+  destinationUrl?: string;
+  /** Optional public brand name. */
+  brandName?: string;
+  /** Optional small brand icon data URL. */
+  brandIconDataUrl?: string;
+  /** False hides this campaign from the public homepage leaderboard. */
+  publicOnLeaderboard?: boolean;
   /** Max CPM bid in integer cents (1–100000). */
   cpmCents: number;
 }

@@ -21,6 +21,25 @@ import type { LedgerRepository } from "../../ports/ledger-repository";
 import { getFirestoreClient } from "./client";
 import { COLLECTIONS, toLedgerEntry } from "./collections";
 
+/**
+ * Best-effort conversion of a persisted `createdAt` value to epoch millis for
+ * in-memory ordering. Accepts a Firestore `Timestamp` (has `toMillis`), a
+ * `Date`, or a numeric millis value; anything else (e.g. a not-yet-resolved
+ * server timestamp) sorts as `0` so it lands first in recording order.
+ */
+function toMillis(value: unknown): number {
+  if (value && typeof (value as { toMillis?: unknown }).toMillis === "function") {
+    return (value as { toMillis(): number }).toMillis();
+  }
+  if (value instanceof Date) {
+    return value.getTime();
+  }
+  if (typeof value === "number") {
+    return value;
+  }
+  return 0;
+}
+
 /** Options for {@link FirestoreLedgerRepo}. */
 export interface FirestoreLedgerRepoOptions {
   /** Firestore instance; defaults to the shared client. */
@@ -86,12 +105,26 @@ export class FirestoreLedgerRepo implements LedgerRepository {
   /**
    * Lists every durable entry credited to a developer, ordered by recording
    * time (`createdAt`). Powers the developer dashboard (Requirements 8.1–8.3).
+   *
+   * Filters by `developerId` only — a single-field index Firestore maintains
+   * automatically — and orders by `createdAt` IN MEMORY. Combining the
+   * `developerId` filter with an `orderBy("createdAt")` in the query would
+   * require a composite index; without one Firestore throws
+   * `FAILED_PRECONDITION` for *every* developer (even one with no entries),
+   * which the dashboard would surface as a load error instead of the proper
+   * $0 / empty state. Sorting client-side keeps the query index-free so an
+   * empty ledger reliably returns `[]`.
    */
   async listByDeveloper(developerId: string): Promise<LedgerEntry[]> {
     const snap = await this.collection
       .where("developerId", "==", developerId)
-      .orderBy("createdAt", "asc")
       .get();
-    return snap.docs.map((doc) => toLedgerEntry(doc.id, doc.data()));
+    return snap.docs
+      .slice()
+      .sort(
+        (a, b) =>
+          toMillis(a.get("createdAt")) - toMillis(b.get("createdAt")),
+      )
+      .map((doc) => toLedgerEntry(doc.id, doc.data()));
   }
 }

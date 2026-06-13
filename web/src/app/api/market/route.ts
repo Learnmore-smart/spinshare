@@ -58,7 +58,10 @@ export async function GET(): Promise<Response> {
   try {
     const { campaigns } = getContainer();
     const ranked = (await campaigns.listBiddable()).sort(byAuctionPriority);
-    const rows = ranked.map(toMarketRow);
+    const publicRanked = ranked.filter(
+      (campaign) => campaign.publicOnLeaderboard !== false,
+    );
+    const rows = publicRanked.map(toMarketRow);
     const topCpmCents = rows[0]?.cpmCents ?? 0;
 
     return Response.json(

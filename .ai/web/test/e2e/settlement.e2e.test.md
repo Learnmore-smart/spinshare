@@ -30,6 +30,11 @@ End-to-end settlement verification for the 60/40 money split and `/api/track` bo
 - Keep the credited settlement assertion deterministic and observable; do not depend on unseeded server-process memory.
 - The HTTP boundary test should remain valid in both dev and production-start modes.
 
+## Planned Change
+
+Update in-process successful `/api/track` calls to include
+`viewDurationMs: 3000`, matching the new shared tracking contract.
+
 ## Bug Fixes
 
 | Date | Bug | Cause | Fix |
@@ -42,3 +47,4 @@ End-to-end settlement verification for the 60/40 money split and `/api/track` bo
 |------|--------|--------|
 | 2026-06-13 | Created documentation for settlement comment cleanup. | Codex |
 | 2026-06-13 | Added current production-start status note to the settlement test comment. | Codex |
+| 2026-06-13 | Documented e2e tracking payload update for 3-second viewability. | Codex |

@@ -23,10 +23,10 @@
  * is fully stateless and therefore unaffected by the store choice.
  */
 
-import type { AuthProviderId, UserRole } from "@spinshare/core";
 import type {
   AuthClaims,
   AuthProvider,
+  DeviceApproval,
   DeviceFlowHandle,
   DeviceTokenResult,
 } from "../../ports/auth-provider";
@@ -37,6 +37,9 @@ import {
   type IdGenerator,
 } from "../memory/clock";
 import { mintDeviceToken, verifyDeviceToken } from "./device-token";
+
+/** Re-exported from the port so existing importers keep working. */
+export type { DeviceApproval };
 
 /** Loose environment view (matches the composition root's `ContainerEnv`). */
 type AuthEnv = Record<string, string | undefined>;
@@ -53,15 +56,6 @@ function resolveVerificationUri(env: AuthEnv): string {
     (env.NEXTAUTH_URL ? `${env.NEXTAUTH_URL.replace(/\/$/, "")}/activate` : null) ??
     "https://spinshare.dev/activate";
   return base;
-}
-
-/** Approval identity captured from the browser session. */
-export interface DeviceApproval {
-  /** Stable user id resolved from the NextAuth session. */
-  userId: string;
-  email?: string;
-  provider?: AuthProviderId;
-  role?: UserRole;
 }
 
 interface DeviceRecord {
@@ -206,10 +200,20 @@ export class NextAuthDeviceProvider implements AuthProvider {
    * activation endpoint after the user signs in via Google/GitHub. Returns the
    * minted token. Throws if the user code is unknown or the flow already ended.
    */
-  approveDeviceByUserCode(userCode: string, approval: DeviceApproval): string {
+  async approveDeviceByUserCode(
+    userCode: string,
+    approval: DeviceApproval,
+  ): Promise<string> {
     const found = this.store.findByUserCode(userCode.toUpperCase());
     if (!found) throw new Error(`unknown user code: ${userCode}`);
     return this.approveDevice(found.deviceCode, approval);
+  }
+
+  /** Denies a pending device flow identified by its short `userCode`. */
+  async denyDeviceByUserCode(userCode: string): Promise<void> {
+    const found = this.store.findByUserCode(userCode.toUpperCase());
+    if (!found) throw new Error(`unknown user code: ${userCode}`);
+    this.denyDevice(found.deviceCode);
   }
 
   /** Approves a pending device flow by `deviceCode`, minting a signed token. */

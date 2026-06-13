@@ -93,6 +93,9 @@ export class StripeGateway implements PaymentGateway {
           },
         },
       ],
+      ...(input.customerEmail !== undefined
+        ? { customer_email: input.customerEmail }
+        : {}),
       ...(input.successUrl !== undefined ? { success_url: input.successUrl } : {}),
       ...(input.cancelUrl !== undefined ? { cancel_url: input.cancelUrl } : {}),
     });

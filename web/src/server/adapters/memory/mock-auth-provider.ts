@@ -19,6 +19,7 @@
 import type {
   AuthClaims,
   AuthProvider,
+  DeviceApproval,
   DeviceFlowHandle,
   DeviceTokenResult,
 } from "../../ports/auth-provider";
@@ -29,12 +30,31 @@ import {
   type IdGenerator,
 } from "./clock";
 
+/** Loose environment view used to resolve the verification URL. */
+type AuthEnv = Record<string, string | undefined>;
+
 /** Device-code lifetime in seconds (matches the `/start` contract). */
 const DEVICE_EXPIRES_IN_SEC = 300;
 /** Minimum seconds between token polls before `slow_down` is returned. */
 const DEVICE_POLL_INTERVAL_SEC = 5;
-/** Where users "approve" a device in this mock. */
-const VERIFICATION_URI = "https://mock.spinshare.local/activate";
+/** Fallback activation URL when no host is configured in the environment. */
+const FALLBACK_VERIFICATION_URI = "https://spinshare.dev/activate";
+
+/**
+ * Resolves the browser activation URL the CLI/extension should open. Prefers an
+ * explicit `AUTH_VERIFICATION_URI`, then `<NEXTAUTH_URL>/activate` (so local dev
+ * targets `http://localhost:3000/activate`), then a production fallback. Mirrors
+ * the production provider so the mock points at the real `/activate` page.
+ */
+function resolveVerificationUri(env: AuthEnv): string {
+  return (
+    env.AUTH_VERIFICATION_URI ??
+    (env.NEXTAUTH_URL
+      ? `${env.NEXTAUTH_URL.replace(/\/$/, "")}/activate`
+      : null) ??
+    FALLBACK_VERIFICATION_URI
+  );
+}
 
 interface DeviceRecord {
   userCode: string;
@@ -57,11 +77,13 @@ export class MockAuthProvider implements AuthProvider {
   constructor(
     private readonly clock: Clock = new SystemClock(),
     private readonly ids: IdGenerator = new RandomIdGenerator(),
+    private readonly env: AuthEnv = process.env,
   ) {}
 
   async startDeviceFlow(): Promise<DeviceFlowHandle> {
     const deviceCode = this.ids.next("dc");
     const userCode = this.ids.next("uc").toUpperCase();
+    const verificationUri = resolveVerificationUri(this.env);
     this.devices.set(deviceCode, {
       userCode,
       expiresAtMs: this.clock.nowMs() + DEVICE_EXPIRES_IN_SEC * 1000,
@@ -71,8 +93,8 @@ export class MockAuthProvider implements AuthProvider {
     return {
       deviceCode,
       userCode,
-      verificationUri: VERIFICATION_URI,
-      verificationUriComplete: `${VERIFICATION_URI}?user_code=${encodeURIComponent(userCode)}`,
+      verificationUri,
+      verificationUriComplete: `${verificationUri}?user_code=${encodeURIComponent(userCode)}`,
       intervalSec: DEVICE_POLL_INTERVAL_SEC,
       expiresInSec: DEVICE_EXPIRES_IN_SEC,
     };
@@ -120,6 +142,38 @@ export class MockAuthProvider implements AuthProvider {
   }
 
   // --- Test drivers -------------------------------------------------------
+
+  /**
+   * Approves a pending device flow identified by its short user code, minting a
+   * token for the browser-resolved {@link DeviceApproval} identity. This is the
+   * port method the `/api/auth/device/approve` route calls in local/mock mode.
+   */
+  async approveDeviceByUserCode(
+    userCode: string,
+    approval: DeviceApproval,
+  ): Promise<string> {
+    const found = this.findByUserCode(userCode);
+    if (!found) throw new Error(`unknown user code: ${userCode}`);
+    return this.approveDevice(found.deviceCode, approval.userId);
+  }
+
+  /** Denies a pending device flow identified by its short user code. */
+  async denyDeviceByUserCode(userCode: string): Promise<void> {
+    const found = this.findByUserCode(userCode);
+    if (!found) throw new Error(`unknown user code: ${userCode}`);
+    this.denyDevice(found.deviceCode);
+  }
+
+  /** Finds a pending device record by its short user code (case-insensitive). */
+  private findByUserCode(
+    userCode: string,
+  ): { deviceCode: string; record: DeviceRecord } | undefined {
+    const normalized = userCode.toUpperCase();
+    for (const [deviceCode, record] of this.devices) {
+      if (record.userCode === normalized) return { deviceCode, record };
+    }
+    return undefined;
+  }
 
   /** Approves a pending device flow for `userId`, minting a token. */
   approveDevice(deviceCode: string, userId: string): string {

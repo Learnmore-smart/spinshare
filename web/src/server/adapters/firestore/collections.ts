@@ -42,7 +42,18 @@ export function toCampaign(
   return {
     id,
     advertiserId: String(data.advertiserId ?? ""),
+    ...(data.contactEmail !== undefined
+      ? { contactEmail: String(data.contactEmail) }
+      : {}),
     adText: String(data.adText ?? ""),
+    ...(data.destinationUrl !== undefined
+      ? { destinationUrl: String(data.destinationUrl) }
+      : {}),
+    ...(data.brandName !== undefined ? { brandName: String(data.brandName) } : {}),
+    ...(data.brandIconDataUrl !== undefined
+      ? { brandIconDataUrl: String(data.brandIconDataUrl) }
+      : {}),
+    publicOnLeaderboard: data.publicOnLeaderboard !== false,
     cpmCents: Number(data.cpmCents ?? 0),
     budgetCents: Number(data.budgetCents ?? 0),
     status: data.status as CampaignStatus,

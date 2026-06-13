@@ -62,6 +62,17 @@ Follow-up requirement:
 
 - Use `🤑` as the repeated money icon in the stream rows.
 
+## Planned Adjustment: Sign-In Glass Layout
+
+User feedback on 2026-06-13: the sign-up/sign-in page white auth container should show a stronger backdrop-filter glass treatment, and the "Back to home" control should move to the top-left in its own 3D glass container.
+
+Fix strategy:
+
+- Keep the money-stream background behind all sign-in controls.
+- Move the home link out of the centered form column into an absolutely positioned top-left button.
+- Apply a dedicated sign-in card glass class so the white container visibly blurs and catches the background.
+- Give the top-left home button the same elevated liquid-glass visual language.
+
 ## Verification
 
 - `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/page.test.tsx src/app/signin/page.test.ts` passed.
@@ -77,4 +88,5 @@ Follow-up requirement:
 | 2026-06-13 | Documented diagonal money-stream sign-in enhancement before editing code. | Codex |
 | 2026-06-13 | Documented requested `🤑` stream icon replacement. | Codex |
 | 2026-06-13 | Replaced the "type any id" mock box with an official email/password form validated against defined local test accounts; implemented `MONEY_STREAM_ROWS` background. | Kiro |
+| 2026-06-13 | Documented requested sign-in card backdrop and top-left 3D home button adjustment. | Codex |
 | 2026-06-13 | Synced docs with final `🤑` money stream, ASCII form helper cleanup, and verification. | Codex |

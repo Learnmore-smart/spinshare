@@ -28,7 +28,16 @@ Provides live bid-market summary data for the homepage.
 
 - Keep sorting consistent with the bidding engine.
 - Do not return non-biddable campaigns in the public market list.
+- Respect `publicOnLeaderboard === false` for public leaderboard rows.
 - This endpoint is informational only; it must not mutate money or campaigns.
+
+## Planned Change
+
+Filter private campaigns out of the public market rows while leaving them eligible for ad delivery through the bidding endpoint.
+
+## Implemented Change
+
+`GET /api/market` now filters out campaigns where `publicOnLeaderboard === false` after loading/sorting biddable campaigns. Actual ad selection still uses the repository's full biddable set.
 
 ## Bug Fixes
 
@@ -43,3 +52,5 @@ Provides live bid-market summary data for the homepage.
 |------|--------|--------|
 | 2026-06-13 | Created documentation for market route implementation. | Codex |
 | 2026-06-13 | Documented final route response contract for live homepage polling. | Codex |
+| 2026-06-13 | Documented leaderboard privacy filtering plan. | Codex |
+| 2026-06-13 | Synced docs with public leaderboard filtering implementation. | Codex |

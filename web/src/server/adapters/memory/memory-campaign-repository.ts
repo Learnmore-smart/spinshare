@@ -42,7 +42,18 @@ export class MemoryCampaignRepository implements CampaignRepository {
     const campaign: Campaign = {
       id: this.ids.next("cmp"),
       advertiserId: input.advertiserId,
+      ...(input.contactEmail !== undefined
+        ? { contactEmail: input.contactEmail }
+        : {}),
       adText: input.adText,
+      ...(input.destinationUrl !== undefined
+        ? { destinationUrl: input.destinationUrl }
+        : {}),
+      ...(input.brandName !== undefined ? { brandName: input.brandName } : {}),
+      ...(input.brandIconDataUrl !== undefined
+        ? { brandIconDataUrl: input.brandIconDataUrl }
+        : {}),
+      publicOnLeaderboard: input.publicOnLeaderboard ?? true,
       cpmCents: input.cpmCents,
       budgetCents: 0,
       status: "active",

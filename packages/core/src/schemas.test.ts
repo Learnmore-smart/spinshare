@@ -6,8 +6,10 @@ import {
   CPM_CENTS_MIN,
   FUNDING_CENTS_MAX,
   FUNDING_CENTS_MIN,
+  advertiserCheckoutSchema,
   createCampaignSchema,
   fundingAmountSchema,
+  getAdvertiserCheckoutAmountCents,
   trackRequestSchema,
 } from "./schemas";
 
@@ -101,6 +103,55 @@ describe("fundingAmountSchema", () => {
     expect(
       fundingAmountSchema.safeParse({ campaignId: "", amountCents: 100 })
         .success,
+    ).toBe(false);
+  });
+});
+
+describe("advertiserCheckoutSchema", () => {
+  const validCheckout = {
+    email: "ads@example.com",
+    adText: "Try Linear — issue tracking built for speed",
+    destinationUrl: "https://linear.app/",
+    brandName: "Linear",
+    publicOnLeaderboard: true,
+    cpmCents: 500,
+    blockCount: 2,
+  };
+
+  it("accepts a valid public checkout and derives total funding from blocks", () => {
+    const parsed = advertiserCheckoutSchema.safeParse(validCheckout);
+
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(getAdvertiserCheckoutAmountCents(parsed.data)).toBe(1000);
+    }
+  });
+
+  it("accepts private leaderboard submissions", () => {
+    expect(
+      advertiserCheckoutSchema.safeParse({
+        ...validCheckout,
+        publicOnLeaderboard: false,
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects non-HTTPS destination URLs", () => {
+    expect(
+      advertiserCheckoutSchema.safeParse({
+        ...validCheckout,
+        destinationUrl: "http://linear.app/",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects block counts that exceed the funding maximum", () => {
+    expect(
+      advertiserCheckoutSchema.safeParse({
+        ...validCheckout,
+        cpmCents: FUNDING_CENTS_MAX,
+        blockCount: 2,
+      }).success,
     ).toBe(false);
   });
 });

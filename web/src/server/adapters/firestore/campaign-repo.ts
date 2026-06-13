@@ -68,7 +68,18 @@ export class FirestoreCampaignRepo implements CampaignRepository {
     const campaign: Campaign = {
       id: ref.id,
       advertiserId: input.advertiserId,
+      ...(input.contactEmail !== undefined
+        ? { contactEmail: input.contactEmail }
+        : {}),
       adText: input.adText,
+      ...(input.destinationUrl !== undefined
+        ? { destinationUrl: input.destinationUrl }
+        : {}),
+      ...(input.brandName !== undefined ? { brandName: input.brandName } : {}),
+      ...(input.brandIconDataUrl !== undefined
+        ? { brandIconDataUrl: input.brandIconDataUrl }
+        : {}),
+      publicOnLeaderboard: input.publicOnLeaderboard ?? true,
       cpmCents: input.cpmCents,
       budgetCents: 0,
       status: "active",

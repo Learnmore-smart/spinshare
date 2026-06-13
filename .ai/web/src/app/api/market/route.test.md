@@ -38,6 +38,14 @@ Tests for the public homepage market endpoint.
 
 Add failing tests before implementing `GET /api/market`.
 
+## Planned Regression: Private Leaderboard Campaigns
+
+Add a failing test that funded campaigns with `publicOnLeaderboard: false` are omitted from `/api/market` rows and summary counts.
+
+## Implemented Regression: Private Leaderboard Campaigns
+
+Added a route test that seeds public and private funded campaigns and verifies `/api/market` only returns the public campaign.
+
 ## Verification
 
 - Initial run failed because `./route` was missing.
@@ -53,3 +61,5 @@ Add failing tests before implementing `GET /api/market`.
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-13 | Created doc for market route tests | Codex |
+| 2026-06-13 | Documented private leaderboard filtering regression test | Codex |
+| 2026-06-13 | Synced docs with final private leaderboard filtering test. | Codex |

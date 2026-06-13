@@ -1,9 +1,10 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Code, Layers } from "lucide-react";
@@ -60,31 +61,57 @@ const DEMO_CREDENTIALS: Record<SignInRole, { email: string; password: string }> 
 };
 
 function MoneyStreamBackground() {
+  const [glyphsPerRow, setGlyphsPerRow] = useState(18);
+
+  useEffect(() => {
+    const handleResize = () => {
+      // Each icon + gap is 4.2rem = 67.2px (assuming 16px default font size)
+      const glyphWidthPx = 67.2;
+      // We target 1.8x width of the window to account for the tilted container layout
+      const targetWidth = window.innerWidth * 1.8;
+      const needed = Math.max(18, Math.ceil(targetWidth / glyphWidthPx));
+      setGlyphsPerRow(needed);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <>
       <div aria-hidden className="money-stream-field">
-        {MONEY_STREAM_ROWS.map((row, rowIndex) => (
-          <div
-            key={rowIndex}
-            className={`money-stream-row money-stream-row-${row.direction}`}
-            style={{
-              top: `${-8 + rowIndex * 12}%`,
-              animationDelay: `${rowIndex * -1.4}s`,
-              animationDuration: `${24 + (rowIndex % 4) * 4}s`,
-            }}
-          >
-            <div className="money-stream-track">
-              {[...row.icons, ...row.icons].map((glyph, glyphIndex) => (
-                <span
-                  key={`${rowIndex}-${glyphIndex}`}
-                  className="money-stream-icon"
-                >
-                  {glyph}
-                </span>
-              ))}
+        {MONEY_STREAM_ROWS.map((row, rowIndex) => {
+          const icons = Array.from(
+            { length: glyphsPerRow },
+            (_, col) => moneyGlyphAt(rowIndex + col),
+          );
+          return (
+            <div
+              key={rowIndex}
+              className="money-stream-row"
+              style={{
+                top: `${-8 + rowIndex * 12}%`,
+              }}
+            >
+              <div
+                className={`money-stream-track money-stream-track-${row.direction}`}
+                style={{
+                  animationDelay: `${rowIndex * -1.4}s`,
+                  animationDuration: `${24 + (rowIndex % 4) * 4}s`,
+                }}
+              >
+                {[...icons, ...icons].map((glyph, glyphIndex) => (
+                  <span
+                    key={`${rowIndex}-${glyphIndex}`}
+                    className="money-stream-icon"
+                  >
+                    {glyph}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.56),rgba(237,247,240,0.78)_42%,rgba(242,251,246,0.95))]" />
     </>
@@ -147,24 +174,29 @@ function SignInForm() {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden p-4 sm:p-6 spinshare-container">
+    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden px-4 pb-4 pt-20 sm:p-6 spinshare-container">
       <MoneyStreamBackground />
 
-      <div className="z-10 w-full max-w-[420px] space-y-6">
-        {/* Navigation link back to homepage */}
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-sm font-bold text-emerald-800 transition-colors hover:text-emerald-950"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to home
-        </Link>
+      <Link
+        href="/"
+        className="spinshare-back-home absolute left-4 top-4 z-20 inline-flex items-center gap-2 px-4 py-3 text-sm font-black text-emerald-800 sm:left-8 sm:top-8"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to home
+      </Link>
 
-        <Card className="spinshare-card border-none p-2 sm:p-4">
+      <div className="z-10 w-full max-w-[420px] space-y-6">
+        <Card className="spinshare-card spinshare-static spinshare-signin-card p-2 sm:p-4">
           <CardHeader className="space-y-2 pb-4 text-center">
             {/* Logo */}
-            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-[8px] bg-emerald-600 text-sm font-black text-white shadow-[0_10px_24px_rgba(22,163,74,0.24)]">
-              S$
+            <div className="mx-auto flex h-11 w-11 items-center justify-center">
+              <Image
+                src="/logo/spinshare-logo.png"
+                alt="SpinShare Logo"
+                width={44}
+                height={44}
+                className="rounded-[8px] object-contain shadow-[0_10px_24px_rgba(22,163,74,0.24)]"
+              />
             </div>
             <CardTitle className="mt-2 text-2xl font-black tracking-tight text-slate-900">
               Sign in to SpinShare

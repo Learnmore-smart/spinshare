@@ -3,14 +3,13 @@
 @tailwind utilities;
 
 /*
- * SpinShare cyberpunk palette — neon-green (#00FF00) on near-black surfaces.
- * Values are HSL channels (without the hsl() wrapper) so Tailwind tokens in
- * `tailwind.config.ts` can compose them with alpha (e.g. `hsl(var(--neon) / 0.4)`).
- *
- * #00FF00 == hsl(120 100% 50%).
+ * SpinShare palette — green/emerald primary on light surfaces.
+ * HSL channel values (without the hsl() wrapper) for Tailwind token composition.
+ * The full colour palette and semantic tokens live in theme.css.
  */
+
 :root {
-  --background: 210 20% 98%; /* soft slate/gray background #f8fafc */
+  --background: 150 38% 95%; /* #e8f6ed — light green page bg */
   --foreground: 224 71.4% 4.1%; /* slate-950 text */
 
   --card: 0 0% 100%; /* solid white card */
@@ -19,40 +18,40 @@
   --popover: 0 0% 100%;
   --popover-foreground: 224 71.4% 4.1%;
 
-  --primary: 262.1 83.3% 57.8%; /* violet-600 */
-  --primary-foreground: 210 20% 98%; /* white-ish text */
+  --primary: 160 84% 39%; /* emerald-600 #059669 */
+  --primary-foreground: 0 0% 100%; /* white text */
 
-  --secondary: 220 14.3% 95.9%; /* slate-100 */
-  --secondary-foreground: 220.9 39.3% 11%;
+  --secondary: 150 20% 95%; /* light green tint */
+  --secondary-foreground: 160 84% 25%; /* dark green text */
 
-  --muted: 220 14.3% 95.9%;
+  --muted: 220 14.3% 95.9%; /* slate-100 */
   --muted-foreground: 220 8.9% 46.1%; /* slate-500 */
 
-  --accent: 262.1 83.3% 57.8%;
-  --accent-foreground: 210 20% 98%;
+  --accent: 160 84% 39%; /* emerald-600 */
+  --accent-foreground: 0 0% 100%;
 
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 20% 98%;
 
-  --border: 220 13% 91%; /* slate-200 */
-  --input: 220 13% 91%;
-  --ring: 262.1 83.3% 57.8%;
+  --border: 150 20% 90%; /* green-tinted border */
+  --input: 150 20% 90%;
+  --ring: 160 84% 39%; /* emerald-600 */
 
-  --neon: 262.1 83.3% 57.8%;
-  --neon-dim: 262.1 83.3% 40%;
+  --neon: 160 84% 39%; /* emerald-600 — matches primary */
+  --neon-dim: 160 84% 25%;
 
   --radius: 0.75rem;
 }
 
 /*
- * Cyberpunk theme is preserved under the .dark class strategy.
+ * Cyberpunk theme under .dark — neon green on near-black.
  */
 .dark {
-  --background: 0 0% 2%;
+  --background: 240 30% 3%;
   --foreground: 120 100% 50%;
-  --card: 0 0% 5%;
+  --card: 240 30% 5%;
   --card-foreground: 120 100% 50%;
-  --popover: 0 0% 5%;
+  --popover: 240 30% 5%;
   --popover-foreground: 120 100% 50%;
   --primary: 120 100% 50%;
   --primary-foreground: 0 0% 2%;

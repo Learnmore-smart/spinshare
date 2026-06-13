@@ -19,9 +19,14 @@ describe("HomePage", () => {
     expect(html).toContain("SpinShare turns idle AI waits into paid moments.");
     expect(html).toContain("60% of revenue goes to you.");
     expect(html).toContain("Market depth");
+    expect(html).toContain("Bid live for the most-watched spinner");
+    expect(html).toContain("EMAIL");
+    expect(html).toContain("Destination URL");
+    expect(html).toContain("Show me on the public leaderboard");
+    expect(html).toContain("Checkout now on Stripe");
     expect(html).toContain("role=developer");
     expect(html).toContain("role=advertiser");
-    expect(html).toContain("sticky top-0 z-50");
+    expect(html).toContain("fixed top-0 left-0 right-0 z-50");
     expect(html).not.toContain("Try Firecrawl");
     expect(html).not.toContain("$43.44/mo");
     expect(html).not.toContain("live estimate");

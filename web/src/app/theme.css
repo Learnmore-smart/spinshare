@@ -1,4 +1,174 @@
-/* SpinShare Emerald Theme Stylesheet */
+/* =====================================================================
+   SpinShare Emerald Theme — CSS Custom Properties
+   =====================================================================
+   All color values are extracted from the home page design.
+   Main color: emerald/green (#059669 / hsl(160 84% 39%)).
+   ===================================================================== */
+
+:root {
+  /* ── Primary (emerald/green) ── */
+  --color-primary-50:  #ecfdf5;
+  --color-primary-100: #d1fae5;
+  --color-primary-200: #a7f3d0;
+  --color-primary-300: #6ee7b7;
+  --color-primary-400: #34d399;
+  --color-primary-500: #10b981;
+  --color-primary-600: #059669;
+  --color-primary-700: #047857;
+  --color-primary-800: #065f46;
+  --color-primary-900: #064e3b;
+  --color-primary-950: #022c22;
+
+  /* ── Semantic aliases ── */
+  --color-accent:   var(--color-primary-500);
+  --color-accent-hover: var(--color-primary-400);
+
+  /* ── Page backgrounds ── */
+  --bg-page:        #e8f6ed;
+  --bg-page-alt:    #f8fbf9;
+  --bg-page-warm:   #eef9f3;
+  --bg-page-muted:  #edf7f0;
+
+  /* ── Surface / card ── */
+  --surface-white:  #ffffff;
+  --surface-glass:  rgba(255, 255, 255, 0.55);
+  --surface-glass-mid: rgba(255, 255, 255, 0.42);
+  --surface-glass-end: rgba(255, 255, 255, 0.38);
+  --surface-glass-hover: rgba(255, 255, 255, 0.70);
+  --surface-glass-hover-mid: rgba(255, 255, 255, 0.58);
+  --surface-glass-hover-end: rgba(255, 255, 255, 0.55);
+  --surface-glass-light-green: rgba(232, 246, 237, 0.7);
+  --surface-glass-light-green-mid: rgba(232, 246, 237, 0.55);
+  --surface-glass-light-green-end: rgba(232, 246, 237, 0.5);
+  --surface-glass-light-green-hover: rgba(232, 246, 237, 0.85);
+  --surface-glass-light-green-hover-mid: rgba(232, 246, 237, 0.7);
+  --surface-glass-light-green-hover-end: rgba(232, 246, 237, 0.65);
+  --surface-glass-green: rgba(7, 59, 39, 0.82);
+  --surface-glass-green-mid: rgba(7, 59, 39, 0.72);
+  --surface-glass-green-end: rgba(7, 59, 39, 0.68);
+  --surface-glass-green-hover: rgba(7, 59, 39, 0.9);
+  --surface-glass-green-hover-mid: rgba(7, 59, 39, 0.82);
+  --surface-glass-green-hover-end: rgba(7, 59, 39, 0.78);
+  --surface-black:  #141415;
+  --surface-black-hover: #1a1a1b;
+  --surface-input:  rgba(255, 255, 255, 0.5);
+  --surface-input-focus: rgba(255, 255, 255, 0.85);
+  --surface-btn-glass: rgba(255, 255, 255, 0.6);
+  --surface-btn-glass-hover: rgba(255, 255, 255, 0.85);
+
+  /* ── Text ── */
+  --text-primary:   #0f172a;
+  --text-secondary: #475569;
+  --text-muted:     #94a3b8;
+  --text-inverse:   #ffffff;
+  --text-accent:    var(--color-primary-700);
+  --text-accent-strong: var(--color-primary-800);
+
+  /* ── Borders ── */
+  --border-default: #e2e8f0;
+  --border-accent:  rgba(16, 185, 129, 0.16);
+  --border-accent-hover: rgba(16, 185, 129, 0.28);
+  --border-accent-strong: rgba(16, 185, 129, 0.35);
+  --border-accent-strong-hover: rgba(16, 185, 129, 0.5);
+  --border-input:  rgba(16, 185, 129, 0.2);
+  --border-input-focus: var(--color-primary-500);
+  --border-subtle: rgba(16, 185, 129, 0.1);
+
+  /* ── Shadows ── */
+  --shadow-accent-glow: rgba(16, 185, 129, 0.24);
+  --shadow-accent-btn:  rgba(5, 150, 105, 0.2);
+  --shadow-accent-btn-hover: rgba(16, 185, 129, 0.35);
+  --shadow-accent-outline-hover: rgba(16, 185, 129, 0.15);
+  --shadow-inner-highlight: rgba(255, 255, 255, 0.85);
+  --shadow-inner-glow: rgba(255, 255, 255, 0.45);
+  --shadow-inner-depth: rgba(15, 23, 42, 0.05);
+  --shadow-elevation-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-elevation-md: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
+  --shadow-elevation-lg: 0 20px 48px -8px rgba(15, 23, 42, 0.06);
+
+  /* ── Focus ring ── */
+  --ring-accent: rgba(16, 185, 129, 0.15);
+
+  /* ── Decorative blobs ── */
+  --blob-1: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0) 70%);
+  --blob-2: radial-gradient(circle, rgba(52, 211, 153, 0.14) 0%, rgba(52, 211, 153, 0) 70%);
+
+  /* ── Chart gradient ── */
+  --chart-stroke: var(--color-primary-500);
+  --chart-fill-start: rgba(16, 185, 129, 0.1);
+  --chart-fill-end: rgba(16, 185, 129, 0);
+
+  /* ── Ticker ── */
+  --ticker-bg: #0a0a0b;
+  --ticker-badge-bg: rgba(16, 185, 129, 0.15);
+  --ticker-badge-text: var(--color-primary-400);
+
+  /* ── Radius ── */
+  --radius-sm:  8px;
+  --radius-md:  10px;
+  --radius-lg:  14px;
+  --radius-xl:  18px;
+  --radius-full: 9999px;
+
+  /* ── Transitions ── */
+  --transition-smooth: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-glass: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* =====================================================================
+   Dark mode overrides (cyberpunk neon-green on near-black)
+   ===================================================================== */
+.dark {
+  --bg-page: #05060f;
+  --bg-page-alt: #05060f;
+  --bg-page-warm: #05060f;
+  --bg-page-muted: #05060f;
+
+  --surface-white:  rgba(15, 23, 42, 0.55);
+  --surface-glass:  rgba(15, 23, 42, 0.55);
+  --surface-glass-mid: rgba(15, 23, 42, 0.42);
+  --surface-glass-end: rgba(15, 23, 42, 0.38);
+  --surface-glass-hover: rgba(15, 23, 42, 0.7);
+  --surface-glass-hover-mid: rgba(15, 23, 42, 0.58);
+  --surface-glass-hover-end: rgba(15, 23, 42, 0.55);
+
+  --text-primary:   #00FF00;
+  --text-secondary: rgba(0, 255, 0, 0.65);
+  --text-muted:     rgba(0, 255, 0, 0.4);
+  --text-inverse:   #05060f;
+  --text-accent:    #00FF00;
+  --text-accent-strong: #00FF00;
+
+  --border-default: rgba(0, 255, 0, 0.18);
+  --border-accent:  rgba(0, 255, 0, 0.15);
+  --border-accent-hover: rgba(0, 255, 0, 0.3);
+  --border-input:  rgba(0, 255, 0, 0.2);
+  --border-input-focus: #00FF00;
+
+  --shadow-accent-glow: rgba(0, 255, 0, 0.15);
+  --shadow-inner-highlight: rgba(255, 255, 255, 0.18);
+  --shadow-inner-glow: rgba(255, 255, 255, 0.1);
+  --shadow-inner-depth: rgba(0, 0, 0, 0.5);
+
+  --ring-accent: rgba(0, 255, 0, 0.15);
+
+  --surface-input:  rgba(15, 23, 42, 0.6);
+  --surface-input-focus: rgba(15, 23, 42, 0.85);
+  --surface-btn-glass: rgba(15, 23, 42, 0.55);
+  --surface-btn-glass-hover: rgba(15, 23, 42, 0.7);
+
+  --ticker-bg: #0a0a0b;
+  --ticker-badge-bg: rgba(0, 255, 0, 0.15);
+  --ticker-badge-text: #00FF00;
+
+  --chart-stroke: #00FF00;
+  --chart-fill-start: rgba(0, 255, 0, 0.1);
+  --chart-fill-end: rgba(0, 255, 0, 0);
+}
+
+/* =====================================================================
+   Animations
+   ===================================================================== */
 
 @keyframes pulse-slow {
   0%, 100% {
@@ -15,144 +185,341 @@
   animation: pulse-slow 10s ease-in-out infinite;
 }
 
-.spinshare-container {
-  background-color: #edf7f0;
-  font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-  color: #0f172a;
+@keyframes claude-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
-/* Premium Liquid Glassmorphic Style */
+.animate-claude-spin {
+  display: inline-block;
+  animation: claude-spin 3s linear infinite;
+}
+
+@keyframes marquee {
+  0%   { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+@keyframes money-stream-ltr {
+  from { transform: translate3d(-50%, 0, 0); }
+  to   { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes money-stream-rtl {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .money-stream-track {
+    animation-play-state: paused;
+  }
+}
+
+/* =====================================================================
+   Page container
+   ===================================================================== */
+
+.spinshare-container {
+  background-color: var(--bg-page);
+  font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  color: var(--text-primary);
+}
+
+/* =====================================================================
+   Liquid Glass — base light surface
+   ===================================================================== */
+
 .liquid-glass {
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(16, 185, 129, 0.18);
-  border-radius: 16px;
-  box-shadow: 
-    inset 0 1px 1px rgba(255, 255, 255, 0.6),
-    0 8px 32px 0 rgba(6, 78, 59, 0.04),
-    0 4px 8px -2px rgba(6, 78, 59, 0.02);
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  background:
+    linear-gradient(180deg, var(--surface-glass) 0%, var(--surface-glass-mid) 50%, var(--surface-glass-end) 100%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    inset 0 1px 0 0 var(--shadow-inner-highlight),
+    inset 0 2px 12px 0 var(--shadow-inner-glow),
+    inset 0 -4px 16px 0 var(--shadow-inner-depth),
+    inset 0 -1px 2px 0 rgba(16, 185, 129, 0.06),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.4),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.2),
+    var(--shadow-elevation-sm),
+    var(--shadow-elevation-md),
+    var(--shadow-elevation-lg);
+  transition: var(--transition-glass);
+}
+
+.liquid-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 50%);
+  opacity: 0.7;
+  mix-blend-mode: screen;
 }
 
 .liquid-glass:hover {
-  background: rgba(255, 255, 255, 0.55);
-  border-color: rgba(16, 185, 129, 0.35);
-  box-shadow: 
-    inset 0 1px 1px rgba(255, 255, 255, 0.7),
-    0 16px 48px 0 rgba(6, 78, 59, 0.08),
-    0 8px 16px -4px rgba(6, 78, 59, 0.04);
+  background:
+    linear-gradient(180deg, var(--surface-glass-hover) 0%, var(--surface-glass-hover-mid) 50%, var(--surface-glass-hover-end) 100%);
+  border-color: var(--border-accent-hover);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.95),
+    inset 0 2px 14px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -4px 16px 0 rgba(15, 23, 42, 0.04),
+    inset 0 -1px 2px 0 rgba(16, 185, 129, 0.08),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.55),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.3),
+    0 2px 4px 0 rgba(15, 23, 42, 0.04),
+    0 14px 32px -4px rgba(15, 23, 42, 0.1),
+    0 28px 64px -8px rgba(15, 23, 42, 0.08);
   transform: translateY(-2px);
 }
 
-/* Dark Mode Liquid Glassmorphic Style */
+.liquid-glass:hover::before {
+  opacity: 1;
+}
+
+/* Dark mode liquid glass */
 .dark .liquid-glass {
-  background: rgba(15, 23, 42, 0.45);
-  border-color: rgba(0, 255, 0, 0.15);
-  box-shadow: 
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.55) 0%, rgba(15, 23, 42, 0.42) 50%, rgba(15, 23, 42, 0.38) 100%);
+  border-color: var(--border-accent);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.18),
+    inset 0 2px 12px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -4px 16px 0 rgba(0, 0, 0, 0.5),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.08),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.05),
+    0 10px 30px 0 rgba(0, 0, 0, 0.4);
 }
 
 .dark .liquid-glass:hover {
-  background: rgba(15, 23, 42, 0.55);
-  border-color: rgba(0, 255, 0, 0.3);
-  box-shadow: 
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 16px 48px 0 rgba(0, 0, 0, 0.6);
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.58) 50%, rgba(15, 23, 42, 0.55) 100%);
+  border-color: var(--border-accent-hover);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.25),
+    inset 0 2px 14px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -4px 16px 0 rgba(0, 0, 0, 0.6),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.12),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.06),
+    0 18px 48px 0 rgba(0, 0, 0, 0.6);
 }
 
-/* Premium Glassmorphic Card (spinshare-card) */
+/* =====================================================================
+   SpinShare Card — alias of liquid glass
+   ===================================================================== */
+
 .spinshare-card {
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(16, 185, 129, 0.18);
-  border-radius: 16px;
-  box-shadow: 
-    inset 0 1px 1px rgba(255, 255, 255, 0.6),
-    0 8px 32px 0 rgba(6, 78, 59, 0.04),
-    0 4px 8px -2px rgba(6, 78, 59, 0.02);
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  background:
+    linear-gradient(180deg, var(--surface-glass) 0%, var(--surface-glass-mid) 50%, var(--surface-glass-end) 100%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    inset 0 1px 0 0 var(--shadow-inner-highlight),
+    inset 0 2px 12px 0 var(--shadow-inner-glow),
+    inset 0 -4px 16px 0 var(--shadow-inner-depth),
+    inset 0 -1px 2px 0 rgba(16, 185, 129, 0.06),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.4),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.2),
+    var(--shadow-elevation-sm),
+    var(--shadow-elevation-md),
+    var(--shadow-elevation-lg);
+  transition: var(--transition-glass);
+}
+
+.spinshare-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 50%);
+  opacity: 0.7;
+  mix-blend-mode: screen;
 }
 
 .spinshare-card:hover {
-  background: rgba(255, 255, 255, 0.55);
-  border-color: rgba(16, 185, 129, 0.35);
-  box-shadow: 
-    inset 0 1px 1px rgba(255, 255, 255, 0.7),
-    0 16px 48px 0 rgba(6, 78, 59, 0.08),
-    0 8px 16px -4px rgba(6, 78, 59, 0.04);
+  background:
+    linear-gradient(180deg, var(--surface-glass-hover) 0%, var(--surface-glass-hover-mid) 50%, var(--surface-glass-hover-end) 100%);
+  border-color: var(--border-accent-hover);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.95),
+    inset 0 2px 14px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -4px 16px 0 rgba(15, 23, 42, 0.04),
+    inset 0 -1px 2px 0 rgba(16, 185, 129, 0.08),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.55),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.3),
+    0 2px 4px 0 rgba(15, 23, 42, 0.04),
+    0 14px 32px -4px rgba(15, 23, 42, 0.1),
+    0 28px 64px -8px rgba(15, 23, 42, 0.08);
   transform: translateY(-2px);
 }
 
 .dark .spinshare-card {
   background: rgba(15, 23, 42, 0.45);
-  border-color: rgba(0, 255, 0, 0.15);
-  box-shadow: 
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  border-color: var(--border-accent);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
+    inset 0 2px 4px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -2px 6px 0 rgba(0, 0, 0, 0.5),
+    0 10px 30px 0 rgba(0, 0, 0, 0.4);
 }
 
 .dark .spinshare-card:hover {
   background: rgba(15, 23, 42, 0.55);
-  border-color: rgba(0, 255, 0, 0.3);
-  box-shadow: 
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 16px 48px 0 rgba(0, 0, 0, 0.6);
+  border-color: var(--border-accent-hover);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+    inset 0 2px 4px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -2px 6px 0 rgba(0, 0, 0, 0.6),
+    0 18px 48px 0 rgba(0, 0, 0, 0.6);
 }
 
-/* Primary Button */
+/* =====================================================================
+   Primary Button
+   ===================================================================== */
+
 .spinshare-btn-primary {
-  background-color: #059669; /* emerald-600 */
-  color: #ffffff;
+  position: relative;
+  background-color: var(--color-primary-600);
+  color: var(--text-inverse);
   font-weight: 800;
-  border-radius: 8px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+  border-radius: 12px;
+  transition: var(--transition-smooth);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.35),
+    inset 0 2px 4px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -2px 6px 0 rgba(6, 78, 59, 0.25),
+    0 4px 12px var(--shadow-accent-btn);
 }
 
 .spinshare-btn-primary:hover {
-  background-color: #047857; /* emerald-700 */
+  background-color: var(--color-primary-400);
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.3);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.6),
+    inset 0 2px 6px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -2px 6px 0 rgba(6, 78, 59, 0.15),
+    0 8px 24px var(--shadow-accent-btn-hover);
 }
 
 .spinshare-btn-primary:active {
   transform: translateY(0);
 }
 
-/* Secondary / Outline Button */
+/* =====================================================================
+   Outline / Secondary Button
+   ===================================================================== */
+
 .spinshare-btn-outline {
-  background-color: #ffffff;
-  color: #334155; /* slate-700 */
-  font-weight: 600;
-  border: 1px solid #e2e8f0; /* slate-200 */
-  border-radius: 8px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  background-color: var(--surface-white);
+  color: var(--text-secondary);
+  font-weight: 700;
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  transition: var(--transition-smooth);
+  box-shadow:
+    inset 0 1px 0 0 #ffffff,
+    inset 0 2px 4px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 6px 0 rgba(15, 23, 42, 0.06),
+    0 4px 12px rgba(15, 23, 42, 0.04);
 }
 
 .spinshare-btn-outline:hover:not(:disabled) {
-  background-color: #f0fdf4; /* emerald-50 */
-  border-color: #10b981; /* emerald-500 */
-  color: #047857; /* emerald-700 */
+  background-color: var(--surface-white);
+  border-color: var(--color-primary-500);
+  color: var(--color-primary-700);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 0 #ffffff,
+    inset 0 2px 6px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -2px 6px 0 rgba(16, 185, 129, 0.08),
+    0 8px 20px var(--shadow-accent-outline-hover);
 }
 
-/* Premium Glassmorphic Inputs */
+.spinshare-btn-outline:active {
+  transform: translateY(0);
+}
+
+/* =====================================================================
+   Glass Button
+   ===================================================================== */
+
+.spinshare-btn-glass {
+  position: relative;
+  background-color: var(--surface-btn-glass);
+  color: var(--color-primary-800);
+  border: 1px solid rgba(5, 150, 105, 0.18);
+  border-radius: var(--radius-full);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    inset 0 1.5px 0 0 rgba(255, 255, 255, 0.85),
+    inset 0 2px 6px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -2px 6px 0 rgba(16, 185, 129, 0.06),
+    0 4px 12px rgba(16, 185, 129, 0.04);
+  transition: var(--transition-smooth);
+}
+
+.spinshare-btn-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 50%);
+  opacity: 0.6;
+  mix-blend-mode: screen;
+}
+
+.spinshare-btn-glass:hover {
+  background-color: var(--surface-btn-glass-hover);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: var(--color-primary-700);
+  box-shadow:
+    inset 0 1.5px 0 0 rgba(255, 255, 255, 0.95),
+    inset 0 2px 8px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -2px 6px 0 rgba(16, 185, 129, 0.08),
+    0 6px 18px rgba(16, 185, 129, 0.12);
+  transform: translateY(-1px);
+}
+
+.spinshare-btn-glass:hover::before {
+  opacity: 1;
+}
+
+/* =====================================================================
+   Inputs
+   ===================================================================== */
+
 .spinshare-input,
 input[type="text"],
 input[type="number"],
 input[type="email"],
 input[type="password"] {
   width: 100%;
-  border-radius: 10px;
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-input);
+  background-color: var(--surface-input);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  color: #0f172a;
+  color: var(--text-primary);
   outline: none;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: var(--transition-smooth);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
@@ -161,9 +528,9 @@ input[type="text"]:focus,
 input[type="number"]:focus,
 input[type="email"]:focus,
 input[type="password"]:focus {
-  border-color: #10b981;
-  background-color: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15), inset 0 1px 2px rgba(0, 0, 0, 0.02);
+  border-color: var(--border-input-focus);
+  background-color: var(--surface-input-focus);
+  box-shadow: 0 0 0 3px var(--ring-accent), inset 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .dark .spinshare-input,
@@ -171,9 +538,9 @@ input[type="password"]:focus {
 .dark input[type="number"],
 .dark input[type="email"],
 .dark input[type="password"] {
-  background-color: rgba(15, 23, 42, 0.6);
-  border-color: rgba(0, 255, 0, 0.2);
-  color: #00FF00;
+  background-color: var(--surface-input);
+  border-color: var(--border-input);
+  color: var(--text-primary);
 }
 
 .dark .spinshare-input:focus,
@@ -181,33 +548,38 @@ input[type="password"]:focus {
 .dark input[type="number"]:focus,
 .dark input[type="email"]:focus,
 .dark input[type="password"]:focus {
-  border-color: #00FF00;
-  background-color: rgba(15, 23, 42, 0.85);
-  box-shadow: 0 0 0 3px rgba(0, 255, 0, 0.15);
+  border-color: var(--border-input-focus);
+  background-color: var(--surface-input-focus);
+  box-shadow: 0 0 0 3px var(--ring-accent);
 }
 
-/* Role Switcher Tabs container */
+/* =====================================================================
+   Role Switcher
+   ===================================================================== */
+
 .spinshare-switcher-bg {
-  background-color: #e8f6ed;
+  background-color: var(--bg-page);
   padding: 4px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
 }
 
-/* Active Switcher Tab button */
 .spinshare-switcher-active {
-  background-color: #ffffff;
-  color: #047857; /* emerald-700 */
+  background-color: var(--surface-white);
+  color: var(--color-primary-700);
   box-shadow: 0 2px 4px rgba(6, 78, 59, 0.04);
 }
 
-/* Inactive Switcher Tab button */
 .spinshare-switcher-inactive {
-  color: #475569; /* slate-600 */
+  color: var(--text-secondary);
 }
 
 .spinshare-switcher-inactive:hover {
-  color: #0f172a; /* slate-900 */
+  color: var(--text-primary);
 }
+
+/* =====================================================================
+   Money Stream Background
+   ===================================================================== */
 
 .money-stream-field {
   position: absolute;
@@ -217,13 +589,7 @@ input[type="password"]:focus {
   pointer-events: none;
   transform: rotate(-18deg);
   opacity: 0.72;
-  mask-image: linear-gradient(
-    90deg,
-    transparent,
-    #000 12%,
-    #000 88%,
-    transparent
-  );
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
 }
 
 .money-stream-row {
@@ -231,26 +597,24 @@ input[type="password"]:focus {
   left: -12%;
   width: 160%;
   display: flex;
+}
+
+.money-stream-track {
+  display: flex;
+  width: max-content;
+  gap: 1.85rem;
+  align-items: center;
   will-change: transform;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
 }
 
-.money-stream-row-up,
-.money-stream-row-ltr {
-  animation-name: money-stream-up;
+.money-stream-track-ltr {
+  animation-name: money-stream-ltr;
 }
 
-.money-stream-row-down,
-.money-stream-row-rtl {
-  animation-name: money-stream-down;
-}
-
-.money-stream-track {
-  display: flex;
-  min-width: 200%;
-  gap: 1.85rem;
-  align-items: center;
+.money-stream-track-rtl {
+  animation-name: money-stream-rtl;
 }
 
 .money-stream-icon {
@@ -258,7 +622,7 @@ input[type="password"]:focus {
   height: 2.35rem;
   width: 2.35rem;
   place-items: center;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   border: 1px solid rgba(5, 150, 105, 0.18);
   background: rgba(255, 255, 255, 0.66);
   box-shadow: 0 10px 24px rgba(6, 78, 59, 0.08);
@@ -266,84 +630,217 @@ input[type="password"]:focus {
   transform: rotate(18deg);
 }
 
-@keyframes money-stream-up {
-  from {
-    transform: translate3d(-48%, 0, 0);
-  }
-  to {
-    transform: translate3d(0, 0, 0);
-  }
-}
+/* =====================================================================
+   Decorative Blobs
+   ===================================================================== */
 
-@keyframes money-stream-down {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    transform: translate3d(-48%, 0, 0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .money-stream-row {
-    animation-play-state: paused;
-  }
-}
-
-/* Decorative background blobs */
 .spinshare-blob-1 {
-  background: radial-gradient(circle, rgba(16,185,129,0.18) 0%, rgba(16,185,129,0) 70%);
+  background: var(--blob-1);
 }
 
 .spinshare-blob-2 {
-  background: radial-gradient(circle, rgba(52,211,153,0.14) 0%, rgba(52,211,153,0) 70%);
+  background: var(--blob-2);
 }
 
-/* Premium Dark Liquid Glassmorphic Style */
+/* =====================================================================
+   Dark Glass Surface
+   ===================================================================== */
+
 .liquid-glass-dark {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.7) 50%, rgba(15, 23, 42, 0.65) 100%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  box-shadow: 
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 8px 32px 0 rgba(0, 0, 0, 0.2);
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+    inset 0 2px 12px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -4px 16px 0 rgba(0, 0, 0, 0.5),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.08),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.04),
+    0 12px 32px 0 rgba(0, 0, 0, 0.3);
+  transition: var(--transition-glass);
 }
 
 .liquid-glass-dark:hover {
-  background: rgba(15, 23, 42, 0.85);
-  border-color: rgba(16, 185, 129, 0.25);
-  box-shadow: 
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 16px 48px 0 rgba(0, 0, 0, 0.3);
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.8) 50%, rgba(15, 23, 42, 0.75) 100%);
+  border-color: var(--border-accent-hover);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.25),
+    inset 0 2px 14px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -4px 16px 0 rgba(0, 0, 0, 0.6),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.12),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.06),
+    0 18px 48px 0 rgba(0, 0, 0, 0.4);
   transform: translateY(-2px);
 }
 
-/* Premium Green Liquid Glassmorphic Style */
-.liquid-glass-green {
-  background: rgba(7, 59, 39, 0.78);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(16, 185, 129, 0.35);
+/* =====================================================================
+   Black Glass Surface
+   ===================================================================== */
+
+.liquid-glass-black {
+  position: relative;
+  background: var(--surface-black);
   border-radius: 16px;
-  box-shadow: 
-    inset 0 1px 1px rgba(255, 255, 255, 0.15),
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
+    inset 0 2px 8px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -4px 16px 0 rgba(0, 0, 0, 0.6),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.06),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.03),
+    0 20px 52px 0 rgba(0, 0, 0, 0.35);
+  transition: var(--transition-glass);
+}
+
+.liquid-glass-black::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 50%);
+  opacity: 0.8;
+  mix-blend-mode: screen;
+}
+
+.liquid-glass-black:hover {
+  background: var(--surface-black-hover);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.22),
+    inset 0 2px 10px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -4px 16px 0 rgba(0, 0, 0, 0.7),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.1),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.05),
+    0 24px 64px 0 rgba(0, 0, 0, 0.45);
+  transform: translateY(-2px);
+}
+
+/* =====================================================================
+   Light Green Glass Surface
+   ===================================================================== */
+
+.liquid-glass-light-green {
+  position: relative;
+  background:
+    linear-gradient(180deg, var(--surface-glass-light-green) 0%, var(--surface-glass-light-green-mid) 50%, var(--surface-glass-light-green-end) 100%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.9),
+    inset 0 2px 12px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -4px 16px 0 rgba(16, 185, 129, 0.1),
+    inset 0 -1px 2px 0 rgba(16, 185, 129, 0.08),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.5),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.3),
+    0 8px 32px 0 rgba(6, 78, 59, 0.04),
+    0 4px 8px -2px rgba(6, 78, 59, 0.02);
+  transition: var(--transition-glass);
+}
+
+.liquid-glass-light-green::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 50%);
+  opacity: 0.7;
+  mix-blend-mode: screen;
+}
+
+.liquid-glass-light-green:hover {
+  background:
+    linear-gradient(180deg, var(--surface-glass-light-green-hover) 0%, var(--surface-glass-light-green-hover-mid) 50%, var(--surface-glass-light-green-hover-end) 100%);
+  border-color: rgba(16, 185, 129, 0.38);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.95),
+    inset 0 2px 14px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -4px 16px 0 rgba(16, 185, 129, 0.15),
+    inset 0 -1px 2px 0 rgba(16, 185, 129, 0.1),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.6),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.35),
+    0 16px 48px 0 rgba(6, 78, 59, 0.08),
+    0 8px 16px -4px rgba(6, 78, 59, 0.04);
+  transform: translateY(-2px);
+}
+
+.liquid-glass-light-green:hover::before {
+  opacity: 1;
+}
+
+/* =====================================================================
+   Green Glass Surface
+   ===================================================================== */
+
+.liquid-glass-green {
+  position: relative;
+  background:
+    linear-gradient(180deg, var(--surface-glass-green) 0%, var(--surface-glass-green-mid) 50%, var(--surface-glass-green-end) 100%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--border-accent-strong);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.25),
+    inset 0 2px 12px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -4px 16px 0 rgba(4, 120, 87, 0.25),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.1),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.05),
     0 8px 32px 0 rgba(4, 120, 87, 0.15);
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: var(--transition-glass);
 }
 
 .liquid-glass-green:hover {
-  background: rgba(7, 59, 39, 0.88);
-  border-color: rgba(16, 185, 129, 0.5);
-  box-shadow: 
-    inset 0 1px 1px rgba(255, 255, 255, 0.25),
+  background:
+    linear-gradient(180deg, var(--surface-glass-green-hover) 0%, var(--surface-glass-green-hover-mid) 50%, var(--surface-glass-green-hover-end) 100%);
+  border-color: var(--border-accent-strong-hover);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.35),
+    inset 0 2px 14px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -4px 16px 0 rgba(4, 120, 87, 0.3),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.15),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.08),
     0 16px 48px 0 rgba(4, 120, 87, 0.25);
   transform: translateY(-2px);
 }
 
-/* Custom Thin Scrollbar for premium tables and scroll areas */
+/* =====================================================================
+   Static modifier — removes hover lift/sheen for non-interactive containers
+   ===================================================================== */
+
+.spinshare-card.spinshare-static:hover,
+.liquid-glass.spinshare-static:hover {
+  transform: none;
+  background:
+    linear-gradient(180deg, var(--surface-glass) 0%, var(--surface-glass-mid) 50%, var(--surface-glass-end) 100%);
+  border-color: var(--border-accent);
+  box-shadow:
+    inset 0 1px 0 0 var(--shadow-inner-highlight),
+    inset 0 2px 12px 0 var(--shadow-inner-glow),
+    inset 0 -4px 16px 0 var(--shadow-inner-depth),
+    inset 0 -1px 2px 0 rgba(16, 185, 129, 0.06),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.4),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.2),
+    var(--shadow-elevation-sm),
+    var(--shadow-elevation-md),
+    var(--shadow-elevation-lg);
+}
+
+.spinshare-card.spinshare-static:hover::before,
+.liquid-glass.spinshare-static:hover::before {
+  opacity: 0.7;
+}
+
+/* =====================================================================
+   Custom Thin Scrollbar
+   ===================================================================== */
+
 .scrollbar-thin::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -353,24 +850,36 @@ input[type="password"]:focus {
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background: rgba(16, 185, 129, 0.15);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
 }
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background: rgba(16, 185, 129, 0.35);
 }
 
-/* Claude Icon Rotation Spin Animation */
-@keyframes claude-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-.animate-claude-spin {
+/* =====================================================================
+   3D Green Highlight Text Effect (Hero)
+   ===================================================================== */
+
+.spinshare-hero-highlight-3d {
+  background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-500) 50%, var(--color-primary-400) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--color-primary-600);
+  filter:
+    drop-shadow(0 1px 0 var(--color-primary-700))
+    drop-shadow(0 2px 0 var(--color-primary-800))
+    drop-shadow(0 3px 0 var(--color-primary-900))
+    drop-shadow(0 8px 16px rgba(16, 185, 129, 0.25));
+  transition: var(--transition-smooth);
   display: inline-block;
-  animation: claude-spin 3s linear infinite;
 }
 
-
+.spinshare-hero-highlight-3d:hover {
+  transform: translateY(-2px) scale(1.02);
+  filter:
+    drop-shadow(0 2px 0 var(--color-primary-700))
+    drop-shadow(0 3px 0 var(--color-primary-800))
+    drop-shadow(0 4px 0 var(--color-primary-900))
+    drop-shadow(0 12px 24px rgba(16, 185, 129, 0.35));
+}

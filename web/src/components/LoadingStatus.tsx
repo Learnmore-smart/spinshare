@@ -103,21 +103,21 @@ export const LOADING_VERBS = [
 ] as const;
 
 export const LOADING_ICONS = [
-  "\u2736",
-  "\u273b",
-  "\u2722",
-  "\u273d",
-  "\u273a",
-  "\u273d",
-  "\u2722",
-  "\u273b",
+  "\u2722", // ✢
+  "\u2736", // ✶
+  "\u273b", // ✻
+  "\u2733", // ✳
+  "\u273d", // ✽
+  "\u273a", // ✺
+  "\u273d", // ✽
+  "\u2733", // ✳
 ] as const;
 
 export type LoadingVerb = (typeof LOADING_VERBS)[number];
 
 const BRAND_TEXT = "LearnX \u00b7 Know exactly what to study";
 const DOTS_PER_ICON_FRAME = ELLIPSIS_STEP_MS / ICON_FRAME_MS;
-const FALLBACK_LOADING_ICON = "\u2736";
+const FALLBACK_LOADING_ICON = "\u2722";
 
 interface LoadingAnimationState {
   frameIndex: number;
@@ -234,7 +234,7 @@ export default function LoadingStatus({
         </span>
         <span className="min-w-[9rem] select-none text-sm font-semibold leading-5 tracking-normal text-[#c15f3c]">
           <span>{animationState.verb}</span>
-          <span className="inline-block w-[2.25ch] text-left">{dotText}</span>
+          <span className="inline-block w-[4ch] text-left">{dotText}</span>
         </span>
       </div>
 

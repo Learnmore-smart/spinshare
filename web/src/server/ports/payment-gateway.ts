@@ -19,6 +19,8 @@ export interface CheckoutInput {
   successUrl?: string;
   /** Optional redirect URL when checkout is cancelled. */
   cancelUrl?: string;
+  /** Optional customer email passed through to Stripe Checkout. */
+  customerEmail?: string;
 }
 
 /**

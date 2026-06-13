@@ -32,6 +32,14 @@ export const CPM_CENTS_MAX = 100_000;
 export const FUNDING_CENTS_MIN = 100;
 /** Maximum funding amount in cents, = $100,000.00. Requirement 9.6, 9.7. */
 export const FUNDING_CENTS_MAX = 10_000_000;
+/** Maximum number of 1,000-view blocks in a public checkout form. */
+export const ADVERTISER_CHECKOUT_BLOCKS_MAX = 10_000;
+/** Maximum email length accepted by the public checkout form. */
+export const ADVERTISER_CHECKOUT_EMAIL_MAX_LENGTH = 254;
+/** Maximum optional brand name length accepted by the public checkout form. */
+export const BRAND_NAME_MAX_LENGTH = 60;
+/** Maximum data URL length for an optional small brand icon. */
+export const BRAND_ICON_DATA_URL_MAX_LENGTH = 90_000;
 
 // ---------------------------------------------------------------------------
 // Campaign creation (Requirements 9.1, 9.2, 9.3, 9.4)
@@ -104,6 +112,106 @@ export const fundingAmountSchema = z.object({
 
 /** Validated funding request payload. */
 export type FundingAmountInput = z.infer<typeof fundingAmountSchema>;
+
+// ---------------------------------------------------------------------------
+// Public advertiser checkout (homepage form)
+// ---------------------------------------------------------------------------
+
+/** Contact email for public advertiser checkout. */
+export const advertiserEmailSchema = z
+  .string()
+  .trim()
+  .email({ message: "Enter a valid email address" })
+  .max(ADVERTISER_CHECKOUT_EMAIL_MAX_LENGTH, {
+    message: "Email must be at most 254 characters",
+  });
+
+/** HTTPS destination URL for a public advertiser campaign. */
+export const destinationUrlSchema = z
+  .string()
+  .trim()
+  .url({ message: "Destination URL must be a valid URL" })
+  .refine((value) => {
+    try {
+      return new URL(value).protocol === "https:";
+    } catch {
+      return false;
+    }
+  }, { message: "Destination URL must start with https://" });
+
+/** Optional public brand name shown on leaderboards when supplied. */
+export const brandNameSchema = z
+  .string()
+  .trim()
+  .max(BRAND_NAME_MAX_LENGTH, {
+    message: `Brand name must be at most ${BRAND_NAME_MAX_LENGTH} characters`,
+  })
+  .optional()
+  .transform((value) => (value && value.length > 0 ? value : undefined));
+
+/** Optional small image data URL for brand icons uploaded from the public form. */
+export const brandIconDataUrlSchema = z
+  .string()
+  .trim()
+  .max(BRAND_ICON_DATA_URL_MAX_LENGTH, {
+    message: "Brand icon must be 64 KB or smaller",
+  })
+  .refine(
+    (value) =>
+      /^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(
+        value,
+      ),
+    { message: "Brand icon must be a PNG, JPG, or WebP data URL" },
+  )
+  .optional()
+  .transform((value) => (value && value.length > 0 ? value : undefined));
+
+/** Number of 1,000-view blocks bought in public checkout. */
+export const advertiserCheckoutBlockCountSchema = z
+  .number({ invalid_type_error: "Number of blocks must be a number" })
+  .int({ message: "Number of blocks must be a whole number" })
+  .min(1, { message: "Buy at least 1 block" })
+  .max(ADVERTISER_CHECKOUT_BLOCKS_MAX, {
+    message: `Buy at most ${ADVERTISER_CHECKOUT_BLOCKS_MAX} blocks`,
+  });
+
+/** Public homepage advertiser checkout payload. */
+export const advertiserCheckoutSchema = z
+  .object({
+    email: advertiserEmailSchema,
+    adText: adTextSchema,
+    destinationUrl: destinationUrlSchema,
+    brandName: brandNameSchema,
+    brandIconDataUrl: brandIconDataUrlSchema,
+    publicOnLeaderboard: z.boolean(),
+    cpmCents: cpmCentsSchema,
+    blockCount: advertiserCheckoutBlockCountSchema,
+  })
+  .superRefine((value, ctx) => {
+    const amountCents = getAdvertiserCheckoutAmountCents(value);
+    if (
+      !Number.isSafeInteger(amountCents) ||
+      amountCents < FUNDING_CENTS_MIN ||
+      amountCents > FUNDING_CENTS_MAX
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["blockCount"],
+        message: "Total checkout amount must be between $1.00 and $100,000.00",
+      });
+    }
+  });
+
+/** Validated public advertiser checkout payload. */
+export type AdvertiserCheckoutInput = z.infer<typeof advertiserCheckoutSchema>;
+
+/** Derives total checkout funding from CPM bid and 1,000-view block count. */
+export function getAdvertiserCheckoutAmountCents(input: {
+  cpmCents: number;
+  blockCount: number;
+}): number {
+  return input.cpmCents * input.blockCount;
+}
 
 // ---------------------------------------------------------------------------
 // Track request (POST /api/track body)

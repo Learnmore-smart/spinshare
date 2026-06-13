@@ -8,7 +8,13 @@ SpinShare is a developer-first ad exchange for monetizing AI coding wait states.
 
 ## Current Focus
 
-The web app is a Next.js App Router project. The homepage needs to sell the earning opportunity more directly, with money-forward messaging, install CTAs, and visible advertiser bid demand.
+Pre-launch: closing the device-flow login gap. The CLI (`spinshare login`) and the
+VS Code extension open `<host>/activate?user_code=...`, so the web app now ships an
+`/activate` approval page plus a `POST /api/auth/device/approve` endpoint. Approval
+resolves the user from the NextAuth session and mints the Device_Auth_Token via the
+composition-root AuthProvider (mock locally, HMAC-signed in oauth/production). The
+mock provider's `verificationUri` now uses the real host (`NEXTAUTH_URL`) instead of
+the old `mock.spinshare.local` placeholder.
 
 ## Constraints
 
@@ -22,3 +28,4 @@ The web app is a Next.js App Router project. The homepage needs to sell the earn
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-13 | Created documentation mirror for homepage redesign work | Codex |
+| 2026-06-13 | Added /activate page + approve endpoint; mock verificationUri now uses real host | Kiro |

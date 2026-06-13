@@ -122,14 +122,14 @@ describe("LoadingStatus", () => {
 
   it("cycles the icon ping-pong sequence over exactly one second", () => {
     const expectedIcons = [
-      "\u2736",
-      "\u273b",
-      "\u2722",
-      "\u273d",
-      "\u273a",
-      "\u273d",
-      "\u2722",
-      "\u273b",
+      "\u2722", // ✢
+      "\u2736", // ✶
+      "\u273b", // ✻
+      "\u2733", // ✳
+      "\u273d", // ✽
+      "\u273a", // ✺
+      "\u273d", // ✽
+      "\u2733", // ✳
     ];
 
     expect(subject.ICON_FRAME_MS).toBe(125);
@@ -139,7 +139,7 @@ describe("LoadingStatus", () => {
       [0, 125, 250, 375, 500, 625, 750, 875, 1000].map((elapsedMs) =>
         subject.getIconForElapsedMs(elapsedMs),
       ),
-    ).toEqual([...expectedIcons, "\u2736"]);
+    ).toEqual([...expectedIcons, "\u2722"]);
   });
 
   it("formats the ellipsis cycle over exactly one second", () => {

@@ -60,8 +60,18 @@ export interface Campaign {
   id: string;
   /** Owner user id. */
   advertiserId: string;
+  /** Advertiser contact email for public checkout-created campaigns. */
+  contactEmail?: string;
   /** Ad copy, 1–60 characters. */
   adText: string;
+  /** Optional HTTPS destination URL for click-through capable clients. */
+  destinationUrl?: string;
+  /** Optional advertiser brand name for public market display. */
+  brandName?: string;
+  /** Optional small brand icon data URL captured from the public checkout form. */
+  brandIconDataUrl?: string;
+  /** False hides this campaign from the public market leaderboard. */
+  publicOnLeaderboard?: boolean;
   /** Max CPM bid in integer cents. */
   cpmCents: number;
   /** Remaining budget in integer cents. */

@@ -36,6 +36,11 @@ This file verifies that the public homepage keeps money-forward conversion conte
 
 ## Planned Change
 
+Add a failing homepage copy assertion for "3-second minimum views" before
+editing the page.
+
+## Previous Planned Change
+
 Create the failing regression/conversion test before replacing the homepage so the redesign is pinned to earning math, install CTA visibility, and bid market proof.
 
 ## Test Harness Adjustment
@@ -90,6 +95,14 @@ Update the static homepage test before implementation so it requires:
 | Date | Bug | Cause | Fix |
 |------|-----|-------|-----|
 
+## Planned Regression: Public Advertiser Checkout Form
+
+Update the static homepage test before implementation so it requires visible advertiser checkout affordances: email, destination URL, public leaderboard toggle copy, and Stripe checkout CTA. The test should remain copy-level and not depend on client interaction.
+
+## Implemented Regression: Public Advertiser Checkout Form
+
+The homepage static-render test now requires the public checkout headline, email field label, destination URL label, public leaderboard toggle copy, and Stripe checkout CTA.
+
 ## Change History
 
 | Date | Change | Author |
@@ -105,3 +118,4 @@ Update the static homepage test before implementation so it requires:
 | 2026-06-13 | Documented money-first hero regression assertions before editing tests | Codex |
 | 2026-06-13 | Documented `🤑` money icon regression assertion | Codex |
 | 2026-06-13 | Synced final homepage regression test docs with sticky, monthly, and money-icon assertions | Codex |
+| 2026-06-13 | Documented 3-second minimum views homepage copy regression before editing tests. | Codex |
