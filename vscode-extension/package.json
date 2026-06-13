@@ -1,0 +1,68 @@
+{
+  "name": "@spinshare/vscode-extension",
+  "displayName": "SpinShare",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SpinShare extension — shows ads in a progress notification during AI generation wait states. Compatible with VSCode, Trae, and Cursor.",
+  "publisher": "spinshare",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "spinshare.showStatus",
+        "title": "SpinShare: Show Status"
+      },
+      {
+        "command": "spinshare.signIn",
+        "title": "SpinShare: Sign In"
+      },
+      {
+        "command": "spinshare.signOut",
+        "title": "SpinShare: Sign Out"
+      },
+      {
+        "command": "spinshare.startGeneration",
+        "title": "SpinShare: Start Generation (show ad)"
+      },
+      {
+        "command": "spinshare.completeGeneration",
+        "title": "SpinShare: Complete Generation (dismiss ad)"
+      }
+    ],
+    "configuration": {
+      "title": "SpinShare",
+      "properties": {
+        "spinshare.baseUrl": {
+          "type": "string",
+          "default": "https://spinshare.dev",
+          "description": "Base URL of the SpinShare web application."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p ./",
+    "dev": "tsc -p ./ --watch",
+    "test": "vitest run --passWithNoTests",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@spinshare/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.0",
+    "@types/vscode": "^1.75.0",
+    "fast-check": "^3.22.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

@@ -1,0 +1,160 @@
+/**
+ * @spinshare/cli — spinner-interception transform (task 13.2).
+ *
+ * This module is a PURE, side-effect-free transform. It does not touch real
+ * streams, spawn processes, or perform any I/O — that wiring lands in task 13.4
+ * (`wrap.ts`). Keeping the classification and rendering logic pure makes it
+ * directly drivable by the Property 21 test (task 13.3) and reusable by the
+ * child-process wrapper.
+ *
+ * Behavior (design "CLI Wrapper" + Requirements 5.2–5.5):
+ *   - A chunk that consists solely of spinner characters from `{ |, /, -, \ }`
+ *     (optionally accompanied by carriage returns, spaces, and ANSI escape
+ *     sequences) is a wait-state / spinner-only frame. Its bytes are SUPPRESSED;
+ *     in their place the current ad text is rendered on a single `\r`-updating
+ *     line.
+ *   - Any other chunk is "real" output and is forwarded UNMODIFIED, byte for
+ *     byte, preserving order.
+ *
+ * The transform classifies whole chunks (one chunk == one frame), matching the
+ * way the wrapper reads discrete frames off the child's stdout and the way the
+ * property test interleaves spinner / non-spinner frames.
+ */
+
+/** The four ASCII spinner glyphs recognized as wait-state animation frames. */
+export const SPINNER_CHARS: ReadonlySet<string> = new Set(["|", "/", "-", "\\"]);
+
+/**
+ * Standard ANSI escape-sequence matcher (CSI sequences such as cursor moves and
+ * SGR color codes, plus OSC sequences). Used to ignore terminal control codes
+ * when deciding whether a frame is "spinner only".
+ */
+// eslint-disable-next-line no-control-regex
+const ANSI_PATTERN =
+  /[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-ntqry=><~]))/g;
+
+/** Carriage returns and spaces are layout-only inside a spinner frame. */
+// eslint-disable-next-line no-control-regex
+const SPINNER_FILLER = /[\r ]/g;
+
+/** ANSI "erase to end of line" — clears stale characters from a longer prior ad. */
+const ERASE_TO_EOL = "\u001b[K";
+
+/** Normalize a chunk to a UTF-8 string for classification/inspection. */
+function toStr(chunk: string | Buffer): string {
+  return typeof chunk === "string" ? chunk : chunk.toString("utf8");
+}
+
+/**
+ * Convert a chunk to a Buffer WITHOUT altering its bytes, so non-spinner output
+ * is forwarded exactly as received (important for binary-safe pass-through).
+ */
+function toBuffer(chunk: string | Buffer): Buffer {
+  return typeof chunk === "string" ? Buffer.from(chunk, "utf8") : Buffer.from(chunk);
+}
+
+/** Strip ANSI escape sequences from a string. Exposed for reuse/testing. */
+export function stripAnsi(input: string | Buffer): string {
+  return toStr(input).replace(ANSI_PATTERN, "");
+}
+
+/**
+ * Pure classifier: is this chunk a spinner-only (wait-state) frame?
+ *
+ * A chunk qualifies when, after removing ANSI escape sequences, carriage
+ * returns, and spaces, the remaining content is non-empty and consists ONLY of
+ * spinner glyphs from {@link SPINNER_CHARS}. A chunk with no spinner glyph
+ * (e.g. plain text, a newline, or pure whitespace) is NOT a spinner frame and
+ * is treated as real output.
+ */
+export function isSpinnerFrame(chunk: string | Buffer): boolean {
+  const stripped = stripAnsi(chunk).replace(SPINNER_FILLER, "");
+  if (stripped.length === 0) {
+    return false; // nothing but CR / spaces / ANSI — not a spinner animation
+  }
+  for (const ch of stripped) {
+    if (!SPINNER_CHARS.has(ch)) {
+      return false; // contains real output → forward unmodified
+    }
+  }
+  return true;
+}
+
+/** The outcome of transforming a single input chunk. */
+export interface RenderResult {
+  /** Exact bytes to write to the real stdout for this chunk. */
+  output: Buffer;
+  /**
+   * True when the chunk was classified as a spinner-only frame. Task 13.4 uses
+   * this to detect wait-state start/end and debounce impression reporting.
+   */
+  spinner: boolean;
+}
+
+export interface RendererOptions {
+  /**
+   * Returns the ad text to display while a spinner is active, or `null`/`""`
+   * when no ad is available. When absent, spinner frames are simply suppressed
+   * (the neutral-fallback policy is decided by the wrapper in task 13.4).
+   */
+  getAdText: () => string | null | undefined;
+  /**
+   * When true (default), append an ANSI "erase to end of line" after the ad so
+   * a shorter ad fully overwrites a longer previous one on the shared line.
+   */
+  eraseLine?: boolean;
+}
+
+/**
+ * Pure spinner-interception transform.
+ *
+ * Feed it chunks via {@link SpinnerRenderer.render} (one chunk per frame). It
+ * returns the bytes to write plus whether the chunk was a spinner frame. It
+ * holds no stream references and performs no I/O, so it is fully deterministic
+ * for a fixed `getAdText`.
+ */
+export class SpinnerRenderer {
+  private readonly getAdText: () => string | null | undefined;
+  private readonly eraseLine: boolean;
+
+  constructor(options: RendererOptions) {
+    this.getAdText = options.getAdText;
+    this.eraseLine = options.eraseLine ?? true;
+  }
+
+  /**
+   * Transform a single chunk.
+   *
+   * - Spinner-only frame → suppress its bytes; emit `\r<ad>[erase]` on the
+   *   shared updating line (or nothing when no ad is available).
+   * - Anything else → forward the original bytes unmodified.
+   */
+  render(chunk: string | Buffer): RenderResult {
+    if (isSpinnerFrame(chunk)) {
+      const ad = this.getAdText();
+      if (ad && ad.length > 0) {
+        const line = "\r" + ad + (this.eraseLine ? ERASE_TO_EOL : "");
+        return { output: Buffer.from(line, "utf8"), spinner: true };
+      }
+      // No ad to show: suppress the spinner entirely.
+      return { output: Buffer.alloc(0), spinner: true };
+    }
+    return { output: toBuffer(chunk), spinner: false };
+  }
+
+  /**
+   * Convenience for tests / batch use: transform a sequence of chunks and
+   * return the concatenated output bytes, preserving order.
+   */
+  renderAll(chunks: Array<string | Buffer>): Buffer {
+    return Buffer.concat(chunks.map((c) => this.render(c).output));
+  }
+}
+
+/**
+ * Functional convenience wrapper around {@link SpinnerRenderer} for callers that
+ * prefer not to manage an instance.
+ */
+export function createRenderer(options: RendererOptions): SpinnerRenderer {
+  return new SpinnerRenderer(options);
+}

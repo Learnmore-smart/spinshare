@@ -1,0 +1,25 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "rootDir": "src",
+    "outDir": "out",
+    "composite": false,
+    "lib": ["ES2022"],
+    "types": ["node", "vscode"],
+    // Resolve `@spinshare/core` through its built package types (node_modules
+    // workspace symlink → dist/*.d.ts) instead of the source path alias from
+    // tsconfig.base.json. The alias points at core's `src`, which lives outside
+    // this package's `rootDir` and would break the `tsc` emit.
+    "paths": {}
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": [
+    "node_modules",
+    "out",
+    "dist",
+    "coverage",
+    "src/**/*.test.ts"
+  ]
+}

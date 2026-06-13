@@ -1,0 +1,23 @@
+{
+  "name": "spinshare",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SpinShare — a developer-first ad exchange that monetizes AI agent wait states.",
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e --filter=@spinshare/web",
+    "lint": "turbo run lint",
+    "emulators": "firebase emulators:start --only firestore"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.0",
+    "turbo": "^2.9.0",
+    "typescript": "^5.6.0"
+  }
+}

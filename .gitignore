@@ -1,0 +1,60 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+web-bundle/
+
+# Build and distribution directories
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+.svelte-kit/
+bin/
+obj/
+
+# Turbo cache
+.turbo/
+
+# VS Code / IDE files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Testing
+coverage/
+.nyc_output/
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+!.env.example
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# TypeScript compilation info
+*.tsbuildinfo
