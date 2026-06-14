@@ -375,6 +375,20 @@ input[type="password"]:focus {
   100% { background-position: 100% 50%; }
 }
 
+/* =====================================================================
+   Language switcher dropdown — fade + pop from bottom-right anchor.
+   ===================================================================== */
+@keyframes spinshare-lang-menu-in {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .spinshare-hero-highlight-3d {
   background-image: linear-gradient(
     90deg,

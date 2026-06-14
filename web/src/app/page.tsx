@@ -8,6 +8,8 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 import AdvertiserCheckoutForm from "./advertiser-checkout-form";
 import LoadingStatus, { LOADING_ICONS, LOADING_VERBS } from "@/components/LoadingStatus";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useT } from "@/lib/i18n/locale-provider";
 
 const DEVELOPER_SIGNIN_HREF =
   "/signin?role=developer&callbackUrl=%2Fdashboard%2Fdeveloper";
@@ -159,6 +161,7 @@ function generateChartData(topBid: number, timeframe: "24h" | "all") {
 }
 
 export default function HomePage() {
+  const t = useT();
   const [market, setMarket] = useState<MarketResponse | null>(null);
   const [marketStatus, setMarketStatus] = useState<MarketStatus>("loading");
   const [timeframe, setTimeframe] = useState<"24h" | "all">("24h");
@@ -319,42 +322,31 @@ export default function HomePage() {
             <span className="text-xl font-black tracking-tight">SpinShare</span>
           </Link>
 
-          <nav className="hidden items-center gap-6 text-sm font-bold text-slate-600 md:flex">
+          <nav className="hidden items-center gap-2 text-xs font-bold text-slate-600 lg:flex">
             <a href="#money" className="transition hover:text-emerald-700">
-              Money
+              {t.nav.money}
             </a>
             <a href="#bid-market" className="transition hover:text-emerald-700">
-              Market depth
+              {t.nav.marketDepth}
             </a>
             <a href="#how-it-pays" className="transition hover:text-emerald-700">
-              How it pays
+              {t.nav.howItPays}
             </a>
-            <Link href={ADVERTISER_SIGNIN_HREF} className="transition hover:text-emerald-700">
-              Advertisers
-            </Link>
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <Link
-              href="/signin?role=developer"
-              className="spinshare-btn-outline inline-flex h-10 items-center px-3 text-sm sm:px-4"
+              href="/signin"
+              className="spinshare-btn-outline inline-flex h-9 items-center px-2.5 text-xs sm:px-3"
             >
-              <span className="sm:hidden">Login</span>
-              <span className="hidden sm:inline">User login</span>
-            </Link>
-            <Link
-              href={ADVERTISER_SIGNIN_HREF}
-              className="spinshare-btn-outline inline-flex h-10 items-center px-3 text-sm sm:px-4"
-            >
-              <span className="sm:hidden">Ads</span>
-              <span className="hidden sm:inline">Advertisers</span>
+              {t.nav.userLogin}
             </Link>
             <Link
               href={DEVELOPER_SIGNIN_HREF}
-              className="spinshare-btn-primary inline-flex h-10 items-center gap-2 px-4 text-sm sm:px-5"
+              className="spinshare-btn-primary inline-flex h-9 items-center gap-1.5 px-3 text-xs sm:px-4"
             >
               <MoneyIcon />
-              Install
+              {t.nav.install}
             </Link>
           </div>
         </div>
@@ -369,17 +361,17 @@ export default function HomePage() {
 
 
               <h1 className="mx-auto mt-0 max-w-5xl text-5xl font-black leading-[0.9] tracking-tight sm:text-7xl lg:text-8xl">
-                <span className="block">Your AI thinks</span>
+                <span className="block">{t.home.heroLine1}</span>
                 <span className="mt-2 flex flex-wrap items-center justify-center gap-4">
-                  <span className="spinshare-hero-highlight-3d">You get</span>
+                  <span className="spinshare-hero-highlight-3d">{t.home.heroHighlight}</span>
                   <MoneyIcon className="text-6xl sm:text-7xl lg:text-8xl" />
                 </span>
               </h1>
 
               <div className="mx-auto mt-6 max-w-2xl text-lg font-semibold leading-8 text-slate-600">
-                <p>SpinShare turns idle AI waits into paid moments.</p>
+                <p>{t.home.heroSub}</p>
                 <p className="font-black text-emerald-700">
-                  {DEVELOPER_SHARE_PERCENT}% of revenue goes to you.
+                  {t.home.heroShare(DEVELOPER_SHARE_PERCENT)}
                 </p>
               </div>
             </div>
@@ -387,7 +379,7 @@ export default function HomePage() {
             <div className="mx-auto mt-11 grid max-w-5xl items-center gap-6 lg:grid-cols-[1fr_auto_1fr]">
               <div className="min-w-0">
                 <p className="mb-3 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
-                  Stock Claude Code
+                  {t.home.stockClaude}
                 </p>
                 <div className="liquid-glass-black border border-zinc-800 p-5 text-left">
                   <div className="flex items-center justify-between font-mono text-sm">
@@ -412,7 +404,7 @@ export default function HomePage() {
 
               <div className="min-w-0">
                 <p className="mb-3 text-xs font-black uppercase tracking-[0.16em] text-emerald-700">
-                  With SpinShare
+                  {t.home.withSpinShare}
                 </p>
                 <div className="liquid-glass-black border border-emerald-900/35 p-5 text-left">
                   <div className="flex items-center justify-between font-mono text-sm">
@@ -428,7 +420,7 @@ export default function HomePage() {
                         width={16}
                       />
                       <span className="truncate whitespace-nowrap select-none font-semibold text-slate-200">
-                        LearnX · Know exactly what to study
+                        {t.home.learnAdCopy}
                         <span className="inline-block w-[3ch] text-left">{".".repeat(sharedDotCount)}</span>
                       </span>
                     </div>
@@ -450,10 +442,10 @@ export default function HomePage() {
                 </span>
                 <span className="min-w-0 flex-1 px-1 text-left">
                   <span className="block text-xl font-black leading-tight">
-                    Install and start earning
+                    {t.home.ctaInstall}
                   </span>
                   <span className="mt-1 block text-sm font-bold text-emerald-50">
-                    Money starts on the next eligible wait
+                    {t.home.ctaInstallSub}
                   </span>
                 </span>
                 <span className="liquid-glass-light-green inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full px-5 text-sm font-black text-emerald-800">
@@ -733,7 +725,7 @@ export default function HomePage() {
               className="spinshare-btn-primary inline-flex min-h-14 items-center justify-center gap-3 rounded-full px-6 text-base text-white"
             >
               <MoneyIcon />
-              Start earning
+              {t.home.ctaEarning}
               <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
@@ -752,10 +744,10 @@ export default function HomePage() {
             />
             <span className="font-black text-slate-950">SpinShare</span>
           </div>
-          <p>&copy; 2026 SpinShare. Paid wait states for AI coding tools.</p>
-          <div className="flex gap-5">
+          <p>&copy; 2026 SpinShare. {t.home.footerCopy}</p>
+          <div className="flex flex-wrap items-center gap-5">
             <Link href="/signin?role=developer" className="text-slate-500">
-              Login
+              {t.nav.userLogin}
             </Link>
             <Link href="/privacy" className="text-slate-500">
               Privacy
@@ -763,6 +755,7 @@ export default function HomePage() {
             <Link href="/terms" className="text-slate-500">
               Terms
             </Link>
+            <LanguageSwitcher />
           </div>
         </div>
       </footer>

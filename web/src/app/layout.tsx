@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import type { ReactNode } from "react";
 import "./globals.css";
 import "./theme.css";
 import "./home.css";
+import { LocaleProvider } from "@/lib/i18n/locale-provider";
+import { detectLocaleFromHeaders } from "@/lib/i18n/detect-locale";
 
 export const metadata: Metadata = {
   title: "SpinShare",
@@ -12,17 +15,20 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  // `light` activates the premium light theme by default; body classes
-  // pull the soft slate background + dark slate foreground tokens.
+  // Server-detect the user's preferred locale from the Accept-Language header.
+  // The client provider can later override this with a localStorage value
+  // (or the user's manual selection from the switcher).
+  const initialLocale = detectLocaleFromHeaders(headers());
+
   return (
-    <html lang="en" className="light">
+    <html lang={initialLocale} className="light" suppressHydrationWarning>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
-        {children}
+        <LocaleProvider initialLocale={initialLocale}>{children}</LocaleProvider>
       </body>
     </html>
   );
