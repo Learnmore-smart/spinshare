@@ -41,3 +41,13 @@ export function detectLocaleFromHeaders(headers: { get(name: string): string | n
   const raw = headers.get("accept-language");
   return detectLocaleFromAcceptLanguage(raw);
 }
+
+/** Client-only: read `navigator.language` and map to a supported locale. */
+export function detectLocaleFromNavigator(): Locale {
+  if (typeof navigator === "undefined") return DEFAULT_LOCALE;
+  const navLang =
+    navigator.language ??
+    (navigator as { userLanguage?: string }).userLanguage ??
+    null;
+  return detectLocaleFromAcceptLanguage(navLang);
+}

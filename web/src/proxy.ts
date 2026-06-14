@@ -39,7 +39,7 @@ export function proxy(request: NextRequest) {
   // 1. Highest priority: a previously persisted user choice (cookie set by
   //    the language switcher — the client also mirrors this to localStorage).
   const cookieLocale = request.cookies.get(LOCALE_COOKIE)?.value;
-  if (cookieLocale && (LOCALES as readonly string[]).includes(cookieLocale)) {
+  if (cookieLocale && cookieLocale !== "auto" && (LOCALES as readonly string[]).includes(cookieLocale)) {
     response.headers.set("x-spinshare-locale", cookieLocale);
     return response;
   }

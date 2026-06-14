@@ -1,18 +1,24 @@
 # LanguageSwitcher
 
+> Last updated: 2026-06-14 | Protection: STANDARD
+
 ## Purpose
-Pill-shaped language switcher with globe icon and native locale name. Opens a glass-morphism dropdown listing supported locales (en, zh, fr).
+Pill-shaped language switcher with globe icon. Opens a dropdown with **Auto** (browser-detected) plus explicit locale choices (en, zh, fr).
 
-## Planned changes (2026-06-14)
-- Dropdown panel: opaque `bg-white` (dark: `#0f1613`), no backdrop blur.
-- Selected locale: emerald fill + inset ring. Hover on others: neutral slate only.
-
-## Constraints
-- Client component; uses `LocaleProvider` for locale state and `localStorage` persistence.
-- Dropdown placement: `top` (default, opens above trigger — nav/footer) or `bottom` (settings/forms).
-- `variant="list"` still available for always-visible lists; settings uses default dropdown + `placement="bottom"`.
+## What It Does
+- First row: **Auto** — follows browser language via `LocaleProvider` preference
+- Remaining rows: explicit locale picks (persisted to localStorage + cookie)
+- Pill label shows "Auto" when preference is auto, otherwise the active locale native name
+- `variant="list"`: same options in always-visible vertical list
+- Smooth enter/exit animation via `language-switcher.css`
 
 ## Dependencies
-- `@/lib/i18n/locale-provider`
-- `@/lib/i18n/types` (`LOCALE_LABELS`, `Locale`)
-- `lucide-react` icons
+- `@/lib/i18n/locale-provider` (`useLocale`, `useLocalePreference`, `useSetLocalePreference`)
+- `@/lib/i18n/types`
+- `./language-switcher.css`
+
+## Change History
+| Date | Change |
+|------|--------|
+| 2026-06-14 | Auto option at top; removed header hint text |
+| 2026-06-14 | Smooth enter/exit dropdown animation |

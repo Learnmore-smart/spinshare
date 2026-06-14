@@ -148,7 +148,7 @@ const en: DictionaryBase = {
   common: {
     backToHome: "Back to Home",
     languageLabel: "Language",
-    languageHint: "Auto-detected from your browser",
+    languageAuto: "Auto",
   },
 };
 
@@ -295,7 +295,7 @@ const zh: DictionaryBase = {
   common: {
     backToHome: "返回首页",
     languageLabel: "语言",
-    languageHint: "已根据浏览器自动检测",
+    languageAuto: "自动",
   },
 };
 
@@ -449,7 +449,7 @@ const fr: DictionaryBase = {
   common: {
     backToHome: "Retour à l'accueil",
     languageLabel: "Langue",
-    languageHint: "Détectée automatiquement depuis votre navigateur",
+    languageAuto: "Auto",
   },
 };
 

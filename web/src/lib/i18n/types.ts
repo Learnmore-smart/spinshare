@@ -2,6 +2,9 @@ export const LOCALES = ["en", "zh", "fr"] as const;
 export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "en";
 
+export const LOCALE_AUTO = "auto" as const;
+export type LocalePreference = typeof LOCALE_AUTO | Locale;
+
 export const LOCALE_LABELS: Record<Locale, { native: string; english: string; short: string; flag: string }> = {
   en: { native: "English", english: "English", short: "EN", flag: "🇺🇸" },
   zh: { native: "中文", english: "Chinese", short: "中", flag: "🇨🇳" },
@@ -167,7 +170,7 @@ export interface Dictionary {
   common: {
     backToHome: string;
     languageLabel: string;
-    languageHint: string;
+    languageAuto: string;
   };
   developerDashboard: {
     yourBalance: string;
