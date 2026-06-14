@@ -200,6 +200,14 @@ Screenshot review on 2026-06-13 showed the full-width line under the fixed navba
 
 Follow-up screenshot review clarified the blur should belong to the rounded navbar container, not the whole fixed header section. Move the backdrop treatment from the full-width header wrapper to the inner navbar capsule.
 
+## Implemented Change (2026-06-14)
+
+Removed bid-market sample data:
+
+- Deleted fake CPM history chart, 24H/ALL toggles, and fabricated fleet imps/min badge.
+- Top CPM now shows `$0.00` when no live bids (was `$11.00`).
+- Table fourth column shows each row's real `remainingBudgetUsd` instead of hash-based impression progress bars.
+
 ## Planned Change (2026-06-14)
 
 - Footer `liquid-glass` panel: add `spinshare-static` so it does not animate on hover.

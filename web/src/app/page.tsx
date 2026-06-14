@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, RefreshCw } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 import AdvertiserCheckoutForm from "./advertiser-checkout-form";
 import LoadingStatus, { LOADING_ICONS, LOADING_VERBS } from "@/components/LoadingStatus";
@@ -83,95 +82,10 @@ const CLAUDE_STATES = LOADING_VERBS.map((verb, i) => ({
   duration: Math.max(3.0, 1.0 + ((i * 7 + 3) % 25) / 10),
 }));
 
-function getCampaignStats(campaignId: string) {
-  let hash = 0;
-  for (let i = 0; i < campaignId.length; i++) {
-    hash = campaignId.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  hash = Math.abs(hash);
-
-  const targets = [1000, 2000, 5000, 7000, 10000, 20000, 32000, 34000, 45000, 200000];
-  const target = targets[hash % targets.length] ?? 10000;
-
-  // pct between 0% and 80%
-  const pct = (hash % 80) / 100;
-  const served = Math.round(target * pct);
-
-  return { served, target };
-}
-
-function formatImpressionsCount(val: number): string {
-  if (val === 0) return "0";
-  if (val >= 1000) {
-    const k = val / 1000;
-    return `${k.toFixed(1).replace(".0", "")}k`;
-  }
-  return val.toString();
-}
-
-function generateChartData(topBid: number, timeframe: "24h" | "all") {
-  const multipliers24h = [
-    { time: "13:08", mult: 2.54 },
-    { time: "13:40", mult: 3.18 },
-    { time: "14:10", mult: 2.00 },
-    { time: "14:30", mult: 4.18 },
-    { time: "14:45", mult: 1.90 },
-    { time: "14:55", mult: 2.27 },
-    { time: "15:40", mult: 2.27 },
-    { time: "16:10", mult: 2.45 },
-    { time: "16:49", mult: 2.91 },
-    { time: "17:30", mult: 2.91 },
-    { time: "18:00", mult: 2.82 },
-    { time: "18:30", mult: 2.91 },
-    { time: "18:54", mult: 2.27 },
-    { time: "19:40", mult: 2.27 },
-    { time: "20:20", mult: 2.00 },
-    { time: "21:00", mult: 2.91 },
-    { time: "21:30", mult: 2.45 },
-    { time: "21:48", mult: 2.00 },
-    { time: "22:40", mult: 2.27 },
-    { time: "23:30", mult: 2.00 },
-    { time: "0:40", mult: 1.82 },
-    { time: "1:41", mult: 1.82 },
-    { time: "2:20", mult: 1.09 },
-    { time: "3:00", mult: 0.63 },
-    { time: "4:00", mult: 0.63 },
-    { time: "4:40", mult: 1.09 },
-    { time: "5:24", mult: 0.63 },
-    { time: "6:20", mult: 0.63 },
-    { time: "7:00", mult: 0.82 },
-    { time: "8:00", mult: 0.82 },
-    { time: "8:59", mult: 1.00 },
-  ];
-
-  const multipliersAll = [
-    { time: "Mon", mult: 1.82 },
-    { time: "Tue", mult: 2.27 },
-    { time: "Wed", mult: 2.91 },
-    { time: "Thu", mult: 1.90 },
-    { time: "Fri", mult: 3.18 },
-    { time: "Sat", mult: 2.45 },
-    { time: "Sun", mult: 1.00 },
-  ];
-
-  const list = timeframe === "24h" ? multipliers24h : multipliersAll;
-
-  return list.map((item) => ({
-    time: item.time,
-    bid: parseFloat((item.mult * topBid).toFixed(2)),
-  }));
-}
-
 export default function HomePage() {
   const t = useT();
   const [market, setMarket] = useState<MarketResponse | null>(null);
   const [marketStatus, setMarketStatus] = useState<MarketStatus>("loading");
-  const [timeframe, setTimeframe] = useState<"24h" | "all">("24h");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
   const [liveEarnings, setLiveEarnings] = useState<number>(0);
   const [claudeStateIndex, setClaudeStateIndex] = useState<number>(0);
   const [leftTimer, setLeftTimer] = useState<number>(0.0);
@@ -262,10 +176,7 @@ export default function HomePage() {
   const monthlyEstimateLabel = `${moneyFormatter.format(liveEarnings)}${t.home.monthlyEstimateSuffix}`;
   const lastUpdatedLabel = formatUpdatedAt(market?.updatedAtMs, t.market.loadingLiveBidsShort);
 
-  const topBidPrice = topBid?.cpmCents ? topBid.cpmCents / 100 : 11.0;
-  const chartData = generateChartData(topBidPrice, timeframe);
-  const fleetRateVal = marketStatus === "ready" && market ? (market.summary.liveCampaigns * 0.6).toFixed(1).replace(".0", "") : "9";
-  const fleetRate = `${fleetRateVal}k`;
+  const topBidPrice = topBid?.cpmCents ? topBid.cpmCents / 100 : 0;
 
   const bids = market?.rows ?? [];
 
@@ -483,88 +394,10 @@ export default function HomePage() {
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <div className="spinshare-home-timeframe">
-                      <button
-                        onClick={() => setTimeframe("24h")}
-                        className={`spinshare-home-timeframe__btn ${
-                          timeframe === "24h" ? "spinshare-home-timeframe__btn--active" : ""
-                        }`}
-                      >
-                        {t.market.timeframe24h}
-                      </button>
-                      <button
-                        onClick={() => setTimeframe("all")}
-                        className={`spinshare-home-timeframe__btn ${
-                          timeframe === "all" ? "spinshare-home-timeframe__btn--active" : ""
-                        }`}
-                      >
-                        {t.market.timeframeAll}
-                      </button>
-                    </div>
-
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-callout)] bg-[var(--surface-callout)] px-2.5 py-1 text-xs font-black uppercase text-[var(--text-accent-strong)]">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       {t.market.adsLive(market?.summary.liveCampaigns ?? 0)}
                     </span>
-                  </div>
-                </div>
-
-                {/* Chart Section */}
-                <div className="relative px-6 py-2">
-                  {/* Floating Badge */}
-                  <div className="spinshare-home-chart-badge absolute top-4 right-8 z-10 backdrop-blur">
-                    {t.market.impsPerMinFleet(fleetRate)}
-                  </div>
-                  {/* Chart */}
-                  <div className="h-52 w-full">
-                    {mounted ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart
-                          data={chartData}
-                          margin={{ top: 20, right: 10, left: -20, bottom: 0 }}
-                        >
-                          <defs>
-                            <linearGradient id="colorBid" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/>
-                              <stop offset="95%" stopColor="#10b981" stopOpacity={0.0}/>
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                          <XAxis
-                            dataKey="time"
-                            tickLine={false}
-                            axisLine={false}
-                            tick={{ fill: "#94a3b8", fontSize: 11 }}
-                          />
-                          <YAxis
-                            tickLine={false}
-                            axisLine={false}
-                            tick={{ fill: "#94a3b8", fontSize: 11 }}
-                            domain={[0, (max: number) => Math.max(45, Math.ceil(max / 5) * 5)]}
-                            tickFormatter={(val) => `$${val.toFixed(2)}`}
-                          />
-                          <Tooltip
-                            formatter={(value: number) => [`$${value.toFixed(2)}`, t.market.chartBidLabel]}
-                            contentStyle={{
-                              backgroundColor: "#fff",
-                              border: "1px solid #e2e8f0",
-                              borderRadius: "8px",
-                              fontSize: "12px",
-                            }}
-                          />
-                          <Area
-                            type="stepAfter"
-                            dataKey="bid"
-                            stroke="#10b981"
-                            strokeWidth={2}
-                            fillOpacity={1}
-                            fill="url(#colorBid)"
-                          />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="h-full w-full animate-pulse rounded-xl bg-[var(--surface-empty)]" />
-                    )}
                   </div>
                 </div>
 
@@ -581,27 +414,14 @@ export default function HomePage() {
                     {/* Table Body */}
                     {visibleRows.length > 0 ? (
                       <div className="divide-y divide-[var(--border-subtle)]">
-                        {visibleRows.map((row) => {
-                          const stats = getCampaignStats(row.id);
-                          const servedLabel = formatImpressionsCount(stats.served);
-                          const targetLabel = formatImpressionsCount(stats.target);
-                          const pct = stats.target > 0 ? stats.served / stats.target : 0;
-
-                          return (
+                        {visibleRows.map((row) => (
                             <div key={row.id} className="grid grid-cols-[40px_1fr_180px_240px] gap-4 py-3.5 items-center text-sm">
                               <div className="font-bold text-[var(--text-muted)]">{row.rank}</div>
                               <div className="truncate font-semibold text-[var(--text-primary)]" title={row.adText}>{row.adText}</div>
                               <div className="spinshare-home-strong font-black">{row.bidLabel}</div>
-                              <div className="flex items-center gap-2">
-                                <span className="w-16 text-xs font-bold tabular-nums text-[var(--text-muted)]">{servedLabel} / {targetLabel}</span>
-                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                                <div className="spinshare-home-progress-track">
-                                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${pct * 100}%` }} />
-                                </div>
-                              </div>
+                              <div className="spinshare-home-strong font-black tabular-nums">{row.remainingBudgetUsd}</div>
                             </div>
-                          );
-                        })}
+                          ))}
                       </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center text-center py-16">
