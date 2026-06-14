@@ -343,6 +343,13 @@ export default function HomePage() {
               <span className="hidden sm:inline">User login</span>
             </Link>
             <Link
+              href={ADVERTISER_SIGNIN_HREF}
+              className="spinshare-btn-outline inline-flex h-10 items-center px-3 text-sm sm:px-4"
+            >
+              <span className="sm:hidden">Ads</span>
+              <span className="hidden sm:inline">Advertisers</span>
+            </Link>
+            <Link
               href={DEVELOPER_SIGNIN_HREF}
               className="spinshare-btn-primary inline-flex h-10 items-center gap-2 px-4 text-sm sm:px-5"
             >
