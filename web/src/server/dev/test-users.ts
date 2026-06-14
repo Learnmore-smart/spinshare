@@ -63,6 +63,9 @@ export const LOCAL_TEST_USERS: readonly LocalTestUser[] = [
 export function isLocalCredentialsEnabled(
   env: NodeJS.ProcessEnv = process.env,
 ): boolean {
+  if (env.NODE_ENV === "development") {
+    return true;
+  }
   return (env.SPINSHARE_MODE ?? "local").toLowerCase() !== "production";
 }
 

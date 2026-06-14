@@ -37,6 +37,11 @@ import {
   type IdGenerator,
 } from "../memory/clock";
 import { mintDeviceToken, verifyDeviceToken } from "./device-token";
+import {
+  getSharedDeviceCodeStore,
+  type DeviceCodeStore,
+} from "./device-code-store";
+import { generateShortUserCode } from "./device-user-code";
 
 /** Re-exported from the port so existing importers keep working. */
 export type { DeviceApproval };
@@ -58,56 +63,6 @@ function resolveVerificationUri(env: AuthEnv): string {
   return base;
 }
 
-interface DeviceRecord {
-  userCode: string;
-  /** Epoch millis at which the device code expires. */
-  expiresAtMs: number;
-  /** Epoch millis of the previous poll, for `slow_down` enforcement. */
-  lastPollMs: number | null;
-  state:
-    | { kind: "pending" }
-    | { kind: "approved"; accessToken: string }
-    | { kind: "denied" };
-}
-
-/**
- * Pluggable storage for in-flight device codes. The default is in-process;
- * inject a shared implementation for multi-instance deployments.
- */
-export interface DeviceCodeStore {
-  get(deviceCode: string): DeviceRecord | undefined;
-  set(deviceCode: string, record: DeviceRecord): void;
-  delete(deviceCode: string): void;
-  /** Finds a device record by its short user code (for browser approval). */
-  findByUserCode(userCode: string): { deviceCode: string; record: DeviceRecord } | undefined;
-}
-
-/** Default in-process {@link DeviceCodeStore}. */
-class InMemoryDeviceCodeStore implements DeviceCodeStore {
-  private readonly byDeviceCode = new Map<string, DeviceRecord>();
-
-  get(deviceCode: string): DeviceRecord | undefined {
-    return this.byDeviceCode.get(deviceCode);
-  }
-
-  set(deviceCode: string, record: DeviceRecord): void {
-    this.byDeviceCode.set(deviceCode, record);
-  }
-
-  delete(deviceCode: string): void {
-    this.byDeviceCode.delete(deviceCode);
-  }
-
-  findByUserCode(
-    userCode: string,
-  ): { deviceCode: string; record: DeviceRecord } | undefined {
-    for (const [deviceCode, record] of this.byDeviceCode) {
-      if (record.userCode === userCode) return { deviceCode, record };
-    }
-    return undefined;
-  }
-}
-
 /** Options for {@link NextAuthDeviceProvider}. */
 export interface NextAuthDeviceProviderOptions {
   clock?: Clock;
@@ -115,6 +70,9 @@ export interface NextAuthDeviceProviderOptions {
   store?: DeviceCodeStore;
   env?: AuthEnv;
 }
+
+// Re-export for tests and custom deployments.
+export type { DeviceCodeStore, DeviceRecord } from "./device-code-store";
 
 export class NextAuthDeviceProvider implements AuthProvider {
   private readonly clock: Clock;
@@ -125,13 +83,13 @@ export class NextAuthDeviceProvider implements AuthProvider {
   constructor(options: NextAuthDeviceProviderOptions = {}) {
     this.clock = options.clock ?? new SystemClock();
     this.ids = options.ids ?? new RandomIdGenerator();
-    this.store = options.store ?? new InMemoryDeviceCodeStore();
+    this.store = options.store ?? getSharedDeviceCodeStore();
     this.env = options.env ?? process.env;
   }
 
   async startDeviceFlow(): Promise<DeviceFlowHandle> {
     const deviceCode = this.ids.next("dc");
-    const userCode = this.ids.next("uc").toUpperCase();
+    const userCode = generateShortUserCode();
     const verificationUri = resolveVerificationUri(this.env);
     this.store.set(deviceCode, {
       userCode,

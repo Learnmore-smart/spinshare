@@ -8,9 +8,13 @@ import Image from "next/image";
 import { ArrowLeft, Code, Layers } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { SegmentSlider } from "@/components/SegmentSlider";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { SpinShareWordmark } from "@/components/SpinShareWordmark";
 import { useT } from "@/lib/i18n/locale-provider";
 import "./signin.css";
+
+import { dictionaries } from "@/lib/i18n/dictionaries";
 
 type SignInRole = "developer" | "advertiser";
 
@@ -18,13 +22,15 @@ interface RoleSearchParams {
   get(name: string): string | null;
 }
 
+const enSignin = dictionaries.en.signin;
+
+/** English sign-in copy contract for tests — mirrors `dictionaries.en.signin`. */
 export const SIGNIN_PAGE_COPY = {
-  eyebrow: "User earnings portal",
-  headline: "Sign in to see your SpinShare balance",
-  body: "Your private dashboard shows credited events, payout status, and recent activity from the extension.",
-  panelLabel: "Start with SpinShare",
-  developerRole: "Developer",
-  advertiserRole: "Advertiser",
+  headline: `${enSignin.headlinePrefix} ${enSignin.headlineHighlight}`,
+  body: enSignin.body,
+  panelLabel: enSignin.panelLabel,
+  developerRole: enSignin.roleDeveloper,
+  advertiserRole: enSignin.roleAdvertiser,
 } as const;
 
 export function resolveInitialRole(searchParams: RoleSearchParams): SignInRole {
@@ -68,7 +74,7 @@ function SignInForm() {
     try {
       await signIn(provider, { callbackUrl });
     } catch {
-      setError("Something went wrong starting sign-in. Please try again.");
+      setError(t.signin.errorOAuth);
     } finally {
       setLoading(null);
     }
@@ -86,12 +92,12 @@ function SignInForm() {
         callbackUrl,
       });
       if (!result || result.error) {
-        setError("Incorrect email or password.");
+        setError(t.signin.errorCredentials);
         return;
       }
       window.location.assign(result.url ?? callbackUrl);
     } catch {
-      setError("Something went wrong signing in. Please try again.");
+      setError(t.signin.errorSignIn);
     } finally {
       setLoading(null);
     }
@@ -117,9 +123,7 @@ function SignInForm() {
             height={36}
             className="h-9 w-9 rounded-[8px] object-contain shadow-[0_10px_24px_rgba(22,163,74,0.24)]"
           />
-          <span className="text-xl font-black tracking-tight text-slate-950">
-            SpinShare
-          </span>
+          <SpinShareWordmark className="text-xl" />
         </Link>
 
         <div className="flex items-center gap-2">
@@ -153,13 +157,13 @@ function SignInForm() {
               </p>
             </div>
             <div className="rounded-[16px] border border-white/70 bg-white/48 p-4 shadow-[0_18px_46px_rgba(15,23,42,0.05)] backdrop-blur-xl">
-              <p className="text-2xl font-black text-slate-950">Private</p>
+              <p className="text-2xl font-black text-slate-950">{t.signin.cardPrivate}</p>
               <p className="mt-1 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
                 {t.signin.cardDashboard}
               </p>
             </div>
             <div className="rounded-[16px] border border-white/70 bg-white/48 p-4 shadow-[0_18px_46px_rgba(15,23,42,0.05)] backdrop-blur-xl">
-              <p className="text-2xl font-black text-slate-950">Live</p>
+              <p className="text-2xl font-black text-slate-950">{t.signin.cardLive}</p>
               <p className="mt-1 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
                 {t.signin.cardPayout}
               </p>
@@ -171,32 +175,15 @@ function SignInForm() {
           aria-label={t.signin.panelLabel}
           className="spinshare-signin-card p-5 sm:p-6"
         >
-          <div className="spinshare-role-slider" data-role={role}>
-            <button
-              type="button"
-              onClick={() => setRole("developer")}
-              className={`flex min-h-11 items-center justify-center gap-2 rounded-[10px] text-sm font-black transition-colors ${
-                role === "developer"
-                  ? "text-emerald-700"
-                  : "text-slate-500 hover:text-slate-950"
-              }`}
-            >
-              <Code className="h-4 w-4" />
-              {t.signin.roleDeveloper}
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole("advertiser")}
-              className={`flex min-h-11 items-center justify-center gap-2 rounded-[10px] text-sm font-black transition-colors ${
-                role === "advertiser"
-                  ? "text-emerald-700"
-                  : "text-slate-500 hover:text-slate-950"
-              }`}
-            >
-              <Layers className="h-4 w-4" />
-              {t.signin.roleAdvertiser}
-            </button>
-          </div>
+          <SegmentSlider
+            ariaLabel={t.signin.signInAs}
+            value={role}
+            onChange={setRole}
+            options={[
+              { value: "developer", label: t.signin.roleDeveloper, icon: <Code className="h-4 w-4" /> },
+              { value: "advertiser", label: t.signin.roleAdvertiser, icon: <Layers className="h-4 w-4" /> },
+            ]}
+          />
 
           <div className="mt-5 space-y-3">
             <Button
@@ -232,14 +219,14 @@ function SignInForm() {
               <div className="w-full border-t border-emerald-900/10" />
             </div>
             <span className="relative bg-white/95 px-3 text-xs font-black uppercase tracking-widest text-emerald-800/60">
-              or
+              {t.signin.orDivider}
             </span>
           </div>
 
           <form onSubmit={handleCredentialsSignIn} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="email" className="text-xs font-black uppercase tracking-wider text-emerald-900/80">
-                Email
+                {t.signin.emailLabel}
               </label>
               <input
                 id="email"
@@ -255,14 +242,14 @@ function SignInForm() {
 
             <div className="space-y-2">
               <label htmlFor="password" className="text-xs font-black uppercase tracking-wider text-emerald-900/80">
-                Password
+                {t.signin.passwordLabel}
               </label>
               <input
                 id="password"
                 type="password"
                 autoComplete="current-password"
                 required
-                placeholder="password"
+                placeholder={t.signin.passwordPlaceholder}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="spinshare-input min-h-11 px-3 py-2.5 text-sm"
@@ -286,7 +273,7 @@ function SignInForm() {
 
           <div className="mt-5 rounded-[14px] border border-emerald-900/10 bg-emerald-50/70 p-4 text-center">
             <p className="text-xs font-semibold text-emerald-900/70">
-              Local test {role} account
+              {t.signin.localTestAccount(role === "developer" ? t.signin.roleDeveloper : t.signin.roleAdvertiser)}
             </p>
             <p className="mt-0.5 text-xs font-mono text-emerald-900/80">
               {DEMO_CREDENTIALS[role].email} / {DEMO_CREDENTIALS[role].password}
@@ -296,7 +283,7 @@ function SignInForm() {
               onClick={fillDemoCredentials}
               className="mt-2 text-xs font-bold text-emerald-700 underline-offset-2 hover:underline"
             >
-              Use this account
+              {t.signin.useThisAccount}
             </button>
           </div>
         </section>

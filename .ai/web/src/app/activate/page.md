@@ -36,3 +36,4 @@
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-13 | Created activate page to close the device-flow login gap | Kiro |
+| 2026-06-14 | Restyled to emerald theme.css (match /signin); removed cyberpunk cyan grid | Codex |

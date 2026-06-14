@@ -1,0 +1,154 @@
+
+          <LegalSection id={7} title={titles[7] ?? ""}>
+            <LegalSubsection title="7.1 Création de campagne et enchères">
+              Les Annonceurs peuvent créer des Campagnes en soumettant du Contenu publicitaire et une offre CPM maximale via notre plateforme. La Campagne avec l&apos;offre CPM maximale active la plus élevée remporte chaque emplacement publicitaire ; en cas d&apos;égalité, la priorité est accordée à la date de création la plus ancienne, puis à l&apos;identifiant de campagne le plus bas. Les Annonceurs peuvent augmenter leur offre à tout moment pour améliorer la priorité de placement.
+            </LegalSubsection>
+            <LegalSubsection title="7.2 Offres non remboursables">
+              TOUTES LES OFFRES SONT DÉFINITIVES ET NON REMBOURSABLES UNE FOIS QU&apos;UNE IMPRESSION A ÉTÉ DIFFUSÉE. Les Annonceurs reconnaissent que les offres constituent un engagement contraignant de payer pour les impressions diffusées. Nonobstant ce qui précède, SpinShare peut, à sa seule discrétion, émettre des crédits pour les impressions que nos systèmes déterminent ne pas avoir été diffusées conformément aux paramètres de la campagne.
+            </LegalSubsection>
+            <LegalSubsection title="7.3 Exigences relatives au contenu publicitaire">
+              Les Annonceurs garantissent et déclarent que tout Contenu publicitaire : (i) est conforme à toutes les lois, réglementations et normes sectorielles applicables ; (ii) ne porte pas atteinte à des droits de propriété intellectuelle ; (iii) n&apos;est pas faux, trompeur, mensonger ou diffamatoire ; (iv) ne promeut pas de produits, services ou activités illégaux ; (v) ne contient pas de logiciels malveillants, de liens de hameçonnage ou d&apos;autre code nuisible ; et (vi) est conforme aux exigences de contenu du présent Contrat, y compris la section 7.4.
+            </LegalSubsection>
+            <LegalSubsection title="7.4 Interdictions de contenu">
+              Sans limitation, le Contenu publicitaire ne peut pas : promouvoir les jeux d&apos;argent (lorsque interdit) ; promouvoir l&apos;alcool, le tabac ou des substances contrôlées en violation de la loi ; contenir du contenu pour adultes, des discours haineux ou du matériel discriminatoire ; formuler des allégations de santé ou financières non étayées ; usurper l&apos;identité de SpinShare ou de tout tiers ; ou violer les droits de propriété intellectuelle, de confidentialité ou de publicité de toute personne ou entité.
+            </LegalSubsection>
+            <LegalSubsection title="7.5 Droit de refuser ou de retirer">
+              SpinShare se réserve le droit, à sa seule discrétion et sans responsabilité, de refuser, retirer ou suspendre tout Contenu publicitaire ou campagne pour quelque raison que ce soit ou sans raison, y compris mais sans s&apos;y limiter les violations du présent Contrat, les plaintes d&apos;utilisateurs ou les préoccupations relatives à la sécurité de la marque. Aucun remboursement ni crédit ne sera accordé pour les campagnes retirées, sauf si SpinShare détermine, à sa seule discrétion, que le retrait était erroné. Les Annonceurs peuvent faire appel d&apos;un retrait ou d&apos;une suspension dans les trente (30) jours en contactant support@spinshare.dev. SpinShare examinera l&apos;appel et, s&apos;il détermine que l&apos;action était erronée, rétablira la campagne et/ou émettra un crédit. Toutes les décisions d&apos;appel sont définitives.
+            </LegalSubsection>
+            <LegalSubsection title="7.6 Indemnisation de l&apos;annonceur pour le contenu">
+              Les Annonceurs indemnisent expressément et tiennent SpinShare indemne de toute réclamation, dommage, perte et dépense (y compris les honoraires d&apos;avocat raisonnables) découlant de ou liés à : (i) le contenu, l&apos;exactitude ou la légalité du Contenu publicitaire ; (ii) les produits ou services promus ; (iii) les sites web ou pages d&apos;atterrissage de destination liés depuis les publicités ; et (iv) toute fausse déclaration ou violation de garantie par l&apos;Annonceur.
+            </LegalSubsection>
+            <LegalSubsection title="7.7 Facturation des clics">
+              Lorsque les clics sont facturés séparément pour une campagne, le prix par clic est un multiple du prix effectif par impression de la campagne. Ce multiple n&apos;est pas fixe et peut être ajusté par SpinShare de temps à autre ; les tarifs actuels sont affichés dans le tableau de bord annonceur. Un « clic » est enregistré lorsqu&apos;un utilisateur interagit de manière affirmative avec une publicité d&apos;une manière qui initie la navigation vers l&apos;URL désignée par l&apos;Annonceur. SpinShare ne fait aucune déclaration ni garantie concernant les taux de conversion, le retour sur investissement ou les résultats commerciaux des campagnes publicitaires.
+            </LegalSubsection>
+          </LegalSection>
+
+          <LegalSection id={8} title={titles[8] ?? ""}>
+            <LegalSubsection title="8.1 Obligations de paiement de l&apos;annonceur">
+              Les Annonceurs acceptent de payer tous les frais encourus en lien avec leur compte, y compris toutes les impressions diffusées et les clics enregistrés. Le paiement est dû conformément aux conditions de facturation sélectionnées lors de la configuration de la campagne (généralement le prépaiement d&apos;un budget de Campagne via Stripe Checkout, avec déduction des impressions au fur et à mesure de leur diffusion). Le défaut de paiement des soldes impayés peut entraîner la suspension du compte, la résiliation de la campagne et le recouvrement.
+            </LegalSubsection>
+            <LegalSubsection title="8.2 Modes de paiement">
+              SpinShare accepte les paiements via Stripe Checkout, exploité par notre processeur de paiement tiers, Stripe, Inc. En fournissant des informations de paiement, vous déclarez et garantissez être autorisé à utiliser le mode de paiement désigné. Vous nous autorisez à débiter votre mode de paiement pour tous les frais encourus.
+            </LegalSubsection>
+            <LegalSubsection title="8.3 Paiements tardifs">
+              Les paiements non reçus à la date d&apos;échéance sont soumis à des frais de retard de 2,5 % par mois (ou au montant maximum autorisé par la loi, si inférieur) sur le solde impayé. SpinShare se réserve le droit de suspendre toutes les campagnes et de résilier les comptes en cas de non-paiement persistant.
+            </LegalSubsection>
+            <LegalSubsection title="8.4 Rétrofacturations et litiges">
+              Les Annonceurs doivent notifier SpinShare de tout litige de facturation par écrit, dans les trente (30) jours suivant la date de prélèvement. Les portions non contestées seront payées rapidement. L&apos;initiation d&apos;une rétrofacturation ou d&apos;un litige de paiement sans avoir d&apos;abord tenté de résoudre le problème avec SpinShare constitue une violation substantielle du présent Contrat et peut entraîner une suspension ou une résiliation immédiate du compte.
+            </LegalSubsection>
+            <LegalSubsection title="8.5 Conditions de paiement des utilisateurs">
+              Les Utilisateurs rémunérés peuvent demander la suppression de leur compte et le paiement des gains accumulés (sous réserve du Seuil de paiement) en contactant support@spinshare.dev, ou via l&apos;interface des paramètres du compte lorsque disponible. Les demandes de paiement sont traitées dans les trente (30) jours ouvrables. Nous nous réservons le droit de retarder les paiements en attendant l&apos;achèvement de l&apos;examen anti-fraude ou la vérification des informations de paiement.
+            </LegalSubsection>
+          </LegalSection>
+
+          <LegalSection id={9} title={titles[9] ?? ""}>
+            <LegalSubsection title="9.1 Interdiction stricte de la fraude">
+              <p>
+                SpinShare applique une politique de tolérance zéro envers la fraude, les abus et la manipulation. Les activités suivantes sont strictement interdites et constituent des violations substantielles du présent Contrat :
+              </p>
+              <ul className="list-disc space-y-2 pl-6">
+                <li>
+                  <strong className="text-slate-900">Fraude au clic.</strong> Toute tentative de générer des clics artificiels, y compris mais sans s&apos;y limiter : scripts de clics automatisés, fermes de clics, systèmes payés au clic, réseaux de clics coordonnés ou tout mécanisme conçu pour gonfler artificiellement le nombre de clics.
+                </li>
+                <li>
+                  <strong className="text-slate-900">Manipulation des impressions.</strong>{" "}
+                  Toute tentative de générer des impressions artificielles, y compris : utiliser des outils automatisés pour déclencher des temps d&apos;attente IA, exécuter des invites dénuées de sens ou répétitives uniquement pour générer des vues publicitaires, automatiser ou scripter les interactions IDE ou terminal, ou conspirer avec d&apos;autres pour gonfler le nombre d&apos;impressions.
+                </li>
+                <li>
+                  <strong className="text-slate-900">Contournement de la vélocité.</strong>{" "}
+                  Toute tentative de contourner la Limite de vélocité ou d&apos;autres plafonds de débit, y compris par le partage d&apos;identifiants, l&apos;utilisation de comptes multiples ou une activité coordonnée.
+                </li>
+                <li>
+                  <strong className="text-slate-900">Abus multi-comptes.</strong>{" "}
+                  La création ou l&apos;utilisation de plusieurs comptes par une même personne, la coordination avec d&apos;autres pour exploiter des réseaux de comptes, ou l&apos;utilisation d&apos;identifiants partagés entre plusieurs utilisateurs pour agréger des gains.
+                </li>
+                <li>
+                  <strong className="text-slate-900">Manipulation des métriques.</strong>{" "}
+                  Toute tentative d&apos;interférer avec, d&apos;altérer ou de falsifier les données de télémétrie, les comptes d&apos;impressions, les événements de clic ou toute autre métrique utilisée pour calculer les gains ou les frais publicitaires.
+                </li>
+                <li>
+                  <strong className="text-slate-900">Rétro-ingénierie.</strong>{" "}
+                  Toute tentative de décompiler, désassembler, procéder à la rétro-ingénierie ou autrement dériver le code source de l&apos;Extension ou du Wrapper CLI ; ou d&apos;intercepter, modifier ou usurper les communications entre le client et les serveurs SpinShare, sauf dans la mesure permise par les licences open source applicables.
+                </li>
+                <li>
+                  <strong className="text-slate-900">Contournement.</strong> Toute
+                  tentative de contourner les plafonds d&apos;utilisation, les restrictions géographiques, les limitations de compte ou d&apos;autres contrôles techniques ou politiques mis en œuvre par SpinShare.
+                </li>
+              </ul>
+            </LegalSubsection>
+            <LegalSubsection title="9.2 Détection et enquête">
+              SpinShare peut employer des systèmes automatisés et des processus d&apos;examen manuel pour détecter une activité frauduleuse ou abusive. Ces systèmes analysent des schémas incluant mais sans s&apos;y limiter : la fréquence des invites, la durée des sessions, le timing des clics, les relations entre comptes et les anomalies comportementales. Les utilisateurs reconnaissent et acceptent que leur utilisation du Service sera surveillée à des fins de prévention de la fraude.
+            </LegalSubsection>
+            <LegalSubsection title="9.3 Mesures d&apos;application">
+              Lors de la détection ou d&apos;un soupçon raisonnable de fraude ou d&apos;abus, SpinShare peut, à sa seule discrétion et sans préavis : (i) suspendre ou résilier le(s) compte(s) concerné(s) ; (ii) annuler tout ou partie des écritures du Grand livre associées à une activité frauduleuse ; (iii) retenir ou annuler les paiements en attente ; (iv) recouvrer les fonds précédemment versés pour une activité frauduleuse, y compris par compensation sur des gains futurs ou l&apos;initiation de procédures de recouvrement direct ; (v) bannir définitivement l&apos;utilisateur du Service ; et (vi) signaler l&apos;affaire aux autorités chargées de l&apos;application de la loi ou aux autorités réglementaires.
+            </LegalSubsection>
+            <LegalSubsection title="9.4 Charge de la preuve">
+              Dans tout litige concernant la légitimité des impressions, clics ou gains, la détermination de SpinShare fondée sur ses registres internes et ses systèmes de détection sera présumée valide. L&apos;utilisateur supporte la charge de prouver, par une preuve claire et convaincante, que l&apos;activité contestée était légitime.
+            </LegalSubsection>
+            <LegalSubsection title="9.5 Droits de récupération">
+              Si une activité frauduleuse est détectée après le versement, SpinShare se réserve le droit de recouvrer les fonds versés. Les méthodes de recouvrement comprennent : la déduction des gains futurs ; la rétrofacturation sur le mode de paiement enregistré de l&apos;utilisateur (s&apos;il est archivé) ; la demande de paiement direct ; et le recouvrement. Les utilisateurs consentent à ces méthodes de recouvrement en acceptant le présent Contrat.
+            </LegalSubsection>
+            <LegalSubsection title="9.6 Surpaiement de bonne foi">
+              Si SpinShare détermine que les gains ont été surestimés en raison d&apos;une erreur technique, d&apos;un dysfonctionnement du système ou d&apos;un mauvais calcul (indépendamment d&apos;une faute de l&apos;utilisateur), nous nous réservons le droit de corriger le Grand livre et de recouvrer les montants trop versés, à condition que cette correction soit effectuée dans les quatre-vingt-dix (90) jours suivant le surpaiement.
+            </LegalSubsection>
+          </LegalSection>
+
+          <LegalSection id={10} title={titles[10] ?? ""}>
+            <LegalSubsection title="10.1 Portée de la collecte de données">
+              SpinShare collecte et traite uniquement les données nécessaires pour créditer les gains, facturer les annonceurs, prévenir la fraude et exploiter et améliorer le Service. Pour chaque publicité diffusée, nous enregistrons une télémétrie d&apos;événements comprenant : le type d&apos;événement (par exemple, impression rendue, impression visible, ticks de durée de vue et clics) ; les identifiants de publicité, de campagne et de créatif associés ; la surface sur laquelle la publicité a été affichée (par exemple, spinner, ligne d&apos;état, notification de progression ou superposition) ; les métriques de visibilité à l&apos;écran (telles que le pourcentage visible et la durée visible) ; un identifiant client par installation ; un identifiant par événement (UUID) utilisé pour dédupliquer et rapprocher les événements ; des horodatages ; la version du client et la version de l&apos;application hôte (par exemple, la version SpinShare, Claude Code ou Visual Studio Code) ; et, pour les Utilisateurs rémunérés connectés, un identifiant de compte utilisé pour attribuer le crédit. Nous traitons également votre adresse de protocole Internet (IP) de manière transitoire à des fins de limitation de débit, de détection des abus et de prévention de la fraude.
+            </LegalSubsection>
+            <LegalSubsection title="10.2 Ce que nous ne collectons PAS">
+              SpinShare ne collecte pas, n&apos;accède pas, ne traite pas et ne stocke pas : (i) le contenu de votre code, de vos invites ou de vos requêtes soumises aux assistants de codage IA ; (ii) les réponses IA, le code généré ou les sorties de modèle ; (iii) vos fenêtres de contexte, historique de conversation, fichiers ou contenus de projet ; (iv) des informations personnelles au-delà de ce qui est nécessaire pour la création de compte, le traitement des paiements, la conformité fiscale et la prévention de la fraude ; ou (v) toute donnée susceptible de révéler vos secrets commerciaux, code source propriétaire ou informations commerciales confidentielles.
+            </LegalSubsection>
+            <LegalSubsection title="10.3 Télémétrie facturable">
+              La participation au Programme de gains nécessite le consentement à la collecte de télémétrie facturable. Cette télémétrie est strictement limitée aux métriques pseudonymes décrites à la section 10.1 et est nécessaire pour créditer les gains et détecter la fraude. Le retrait du consentement à la télémétrie entraînera la cessation immédiate de l&apos;accumulation des gains, bien que les gains déjà accumulés (s&apos;ils sont éligibles au paiement) seront versés.
+            </LegalSubsection>
+            <LegalSubsection title="10.4 Conservation des données">
+              Les données de compte individuelles sont conservées pendant 7 ans suivant la résiliation du compte ou 7 ans à compter de la dernière activité du compte, selon la période la plus longue, à des fins de prévention de la fraude, de rapprochement financier et de conformité légale. Les données agrégées peuvent être conservées indéfiniment pour l&apos;analyse et l&apos;amélioration du service, et anonymisées dans la mesure du possible ou requis.
+            </LegalSubsection>
+            <LegalSubsection title="10.5 Demandes de suppression de données">
+              Les utilisateurs peuvent demander la suppression de leur compte et des données personnelles associées en contactant support@spinshare.dev. Lors de la suppression : (i) les identifiants personnels seront supprimés ou anonymisés dans les 30 jours ; (ii) les données agrégées et anonymisées dérivées du compte peuvent être conservées ; (iii) les registres financiers requis par la loi seront conservés comme mandaté ; et (iv) les données d&apos;impressions et de clics anonymisées nécessaires au rapprochement de facturation des annonceurs seront conservées sous une forme non identifiable.
+            </LegalSubsection>
+            <LegalSubsection title="10.6 Sous-traitants tiers">
+              SpinShare utilise des prestataires de services tiers pour le traitement des paiements, l&apos;analyse, l&apos;hébergement et le support client. Ceux-ci comprennent actuellement Stripe (traitement des paiements et versements), Google Cloud / Firebase (hébergement, authentification et stockage de données), Twilio SendGrid (courriel transactionnel) et un fournisseur d&apos;analyse d&apos;utilisation du site web, bien que les prestataires soient susceptibles de changer. En utilisant le Service, vous consentez à l&apos;engagement de ces sous-traitants sous réserve d&apos;accords de protection des données appropriés.
+            </LegalSubsection>
+            <LegalSubsection title="10.7 Mesures de sécurité">
+              SpinShare maintient des mesures techniques et organisationnelles conçues pour protéger les données collectées contre l&apos;accès, la divulgation, l&apos;altération et la destruction non autorisés &mdash; y compris le chiffrement des données en transit (TLS) et au repos, des contrôles d&apos;accès basés sur les rôles selon le principe du moindre privilège, une gestion dédiée des secrets (plutôt qu&apos;une configuration en texte clair), la journalisation, la surveillance et la limitation de débit pour détecter la fraude et les abus, et des évaluations de sécurité périodiques. SpinShare limite en outre son exposition par conception : comme décrit à la section 10.2, il ne collecte pas le contenu de votre code, de vos invites ou de vos interactions IA.
+            </LegalSubsection>
+          </LegalSection>
+
+          <LegalSection id={11} title={titles[11] ?? ""}>
+            <LegalSubsection title="11.1 Reconnaissance de modification de l&apos;extension et du Wrapper CLI">
+              LES UTILISATEURS RECONNAISSENT ET COMPRENNENT EXPRESSÉMENT QUE L&apos;EXTENSION SPINSHARE ET LE WRAPPER CLI FONCTIONNENT EN MODIFIANT, CORRIGEANT OU S&apos;INTÉGRANT AUX MÉCANISMES DE RENDU INTERNES DE LOGICIELS TIERS, Y COMPRIS MAIS SANS S&apos;Y LIMITER L&apos;EXTENSION CLAUDE CODE D&apos;ANTHROPIC, VISUAL STUDIO CODE ET LES OUTILS CLI CIBLES. CETTE MODIFICATION PEUT IMPLIQUER : (i) l&apos;interception ou le remplacement des appels de rendu de l&apos;interface utilisateur ; (ii) la substitution du contenu de la ligne d&apos;état ou du spinner pendant les temps d&apos;attente ; et (iii) l&apos;injection de contenu servi à distance dans l&apos;interface de l&apos;éditeur ou du terminal.
+            </LegalSubsection>
+            <LegalSubsection title="11.2 Conditions d&apos;utilisation de tiers">
+              L&apos;installation et l&apos;utilisation de l&apos;Extension SpinShare et du Wrapper CLI par les utilisateurs ne doivent pas violer les conditions d&apos;utilisation, les contrats de licence utilisateur final ou les politiques d&apos;utilisation acceptable d&apos;Anthropic, Microsoft (Visual Studio Code), OpenAI, GitHub ou d&apos;autres plateformes tierces. LES UTILISATEURS ASSUMENT L&apos;ENTIÈRE RESPONSABILITÉ DE S&apos;ASSURER QUE LEUR UTILISATION DE SPINSHARE EST CONFORME À TOUTES LES CONDITIONS APPLICABLES DE TIERS. SpinShare ne déclare ni ne garantit qu&apos;une utilisation quelconque de l&apos;Extension ou du Wrapper CLI est autorisée par une plateforme tierce.
+            </LegalSubsection>
+            <LegalSubsection title="11.3 Modifications de plateforme et interruption de service">
+              Les plateformes tierces (y compris Anthropic et Microsoft) peuvent, à tout moment : (i) modifier leur logiciel, leurs API ou l&apos;architecture de leurs extensions ; (ii) mettre en œuvre des mesures techniques qui bloquent, désactivent ou interfèrent avec l&apos;Extension SpinShare ou le Wrapper CLI ; (iii) mettre à jour leurs conditions d&apos;utilisation pour interdire le mode de fonctionnement de SpinShare ; ou (iv) prendre des mesures d&apos;application à l&apos;encontre des utilisateurs ayant installé l&apos;Extension ou le Wrapper CLI, y compris la suspension ou la résiliation de leurs comptes auprès de la plateforme tierce.
+            </LegalSubsection>
+            <LegalSubsection title="11.4 Aucune affiliation">
+              SpinShare n&apos;est pas affilié à, approuvé par, sponsorisé par ou autrement associé à Anthropic, Microsoft, OpenAI, GitHub ou tout autre fournisseur de plateforme tiers. Les références à Claude Code, Visual Studio Code ou d&apos;autres produits sont uniquement à des fins descriptives et n&apos;impliquent aucune relation avec les propriétaires respectifs des marques.
+            </LegalSubsection>
+            <LegalSubsection title="11.5 Assumption des risques par l&apos;utilisateur">
+              EN INSTALLANT ET EN UTILISANT L&apos;EXTENSION OU LE WRAPPER CLI, VOUS ASSUMEZ EXPRESSÉMENT TOUS LES RISQUES ASSOCIÉS AUX INTERACTIONS AVEC DES PLATEFORMES TIERS, Y COMPRIS : (i) le risque que votre compte Anthropic, Microsoft ou autre plateforme soit suspendu ou résilié ; (ii) le risque de perte de données ou d&apos;interruption de service ; (iii) le risque que l&apos;Extension ou le Wrapper CLI entre en conflit avec d&apos;autres extensions, plugins ou fonctionnalités de l&apos;IDE ; et (iv) le risque de vulnérabilités de sécurité découlant de l&apos;interaction du client avec des logiciels tiers.
+            </LegalSubsection>
+          </LegalSection>
+
+          <LegalSection id={12} title={titles[12] ?? ""}>
+            <LegalSubsection title="12.1 Résiliation par l&apos;utilisateur">
+              Vous pouvez résilier votre compte à tout moment en contactant support@spinshare.dev et en demandant la suppression. La résiliation ne vous libère pas des obligations contractées avant la résiliation et n&apos;affecte pas les dispositions qui, par leur nature, survivent à la résiliation.
+            </LegalSubsection>
+            <LegalSubsection title="12.2 Résiliation par SpinShare">
+              SpinShare se réserve le droit, à sa seule discrétion et sans préavis, de suspendre ou résilier tout compte, de restreindre l&apos;accès au Service ou d&apos;interrompre le service à tout utilisateur ou annonceur pour quelque raison que ce soit ou sans raison, y compris mais sans s&apos;y limiter : violation du présent Contrat ; fraude ou abus suspectés ; demande d&apos;une autorité chargée de l&apos;application de la loi ou d&apos;une autorité réglementaire ; période prolongée d&apos;inactivité ; ou cessation d&apos;activité.
+            </LegalSubsection>
+            <LegalSubsection title="12.3 Résiliation pour motif">
+              Sans limiter la section 12.2, SpinShare peut résilier immédiatement tout compte en cas de : (i) violation substantielle du présent Contrat ; (ii) détection de fraude, d&apos;abus ou de manipulation ; (iii) utilisation du Service à des fins illégales ; (iv) actions exposant SpinShare à une responsabilité légale ; ou (v) violations répétées des politiques d&apos;utilisation acceptable. La résiliation pour motif entraîne la confiscation immédiate de tous les gains impayés et une responsabilité potentielle pour dommages-intérêts.
+            </LegalSubsection>
+            <LegalSubsection title="12.4 Effet de la résiliation">
+              Lors de la résiliation : (i) toutes les licences accordées aux présentes prennent fin immédiatement ; (ii) vous devez cesser toute utilisation du Service et désinstaller l&apos;Extension et le Wrapper CLI ; (iii) les gains accumulés inférieurs au Seuil de paiement sont confisqués ; (iv) nous pouvons supprimer les données de votre compte conformément à la section 10.5 ; et (v) toute disposition destinée par sa nature à survivre à la résiliation survivra.
+            </LegalSubsection>
+            <LegalSubsection title="12.5 Aucun droit au rétablissement">
+              Les utilisateurs résiliés n&apos;ont aucun droit au rétablissement. SpinShare peut, à sa seule discrétion, autoriser la création d&apos;un nouveau compte par un utilisateur précédemment résilié, à condition que toutes les obligations en suspens aient été satisfaites.
+            </LegalSubsection>
+          </LegalSection>

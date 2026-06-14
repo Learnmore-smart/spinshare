@@ -52,6 +52,10 @@ function makeVscode(choice: string | undefined = SIGN_IN_ACTION): MockVsCode {
         prompts.push(message);
         return nextChoice;
       },
+      showErrorMessage: async (message: string) => {
+        prompts.push(`ERROR: ${message}`);
+        return undefined;
+      },
     },
     env: {
       openExternal: async (target: UriLike) => {

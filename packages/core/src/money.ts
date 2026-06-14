@@ -33,6 +33,22 @@ export const MICROCENTS_PER_CENT = 1000;
 /** Developer share of per-impression revenue, as a whole-number percentage. */
 export const DEVELOPER_SHARE_PERCENT = 60;
 
+/** Minimum balance in integer cents before a developer payout can be initiated ($5.00). */
+export const MINIMUM_PAYOUT_CENTS = 500;
+
+/**
+ * Max developer credits that may accrue in a rolling 60-minute window ($20.00).
+ * Policy constant — surfaced on the dashboard; server enforcement is not wired yet
+ * (velocity shadow-ban is the only live anti-abuse cap today).
+ */
+export const DEVELOPER_HOURLY_EARNING_LIMIT_CENTS = 2_000;
+
+/**
+ * Max developer credits that may accrue per calendar day ($300.00).
+ * Policy constant — surfaced on the dashboard; server enforcement is not wired yet.
+ */
+export const DEVELOPER_DAILY_EARNING_LIMIT_CENTS = 30_000;
+
 /**
  * Exact per-impression revenue in micro-cents for a given CPM.
  *

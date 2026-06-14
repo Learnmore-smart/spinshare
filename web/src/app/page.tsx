@@ -9,6 +9,8 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import AdvertiserCheckoutForm from "./advertiser-checkout-form";
 import LoadingStatus, { LOADING_ICONS, LOADING_VERBS } from "@/components/LoadingStatus";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { SiteNavAuth } from "@/components/SiteNavAuth";
+import { SpinShareWordmark } from "@/components/SpinShareWordmark";
 import { useT } from "@/lib/i18n/locale-provider";
 
 const DEVELOPER_SIGNIN_HREF =
@@ -52,8 +54,8 @@ function formatMoney(cents: number): string {
   return moneyFormatter.format(cents / 100);
 }
 
-function formatUpdatedAt(updatedAtMs: number | undefined): string {
-  if (!updatedAtMs) return "Loading live bids";
+function formatUpdatedAt(updatedAtMs: number | undefined, loadingLabel: string): string {
+  if (!updatedAtMs) return loadingLabel;
 
   return new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
@@ -257,8 +259,8 @@ export default function HomePage() {
   const visibleRows = rows.slice(0, 12);
   const topBid = rows[0];
   const sponsorLetter = topBid?.adText ? topBid.adText.trim().charAt(0).toUpperCase() : "R";
-  const monthlyEstimateLabel = `${moneyFormatter.format(liveEarnings)}/mo`;
-  const lastUpdatedLabel = formatUpdatedAt(market?.updatedAtMs);
+  const monthlyEstimateLabel = `${moneyFormatter.format(liveEarnings)}${t.home.monthlyEstimateSuffix}`;
+  const lastUpdatedLabel = formatUpdatedAt(market?.updatedAtMs, t.market.loadingLiveBidsShort);
 
   const topBidPrice = topBid?.cpmCents ? topBid.cpmCents / 100 : 11.0;
   const chartData = generateChartData(topBidPrice, timeframe);
@@ -310,7 +312,7 @@ export default function HomePage() {
           </div>
         )}
 
-        <div className="liquid-glass spinshare-static mx-auto mt-3 flex h-16 max-w-7xl items-center justify-between rounded-[20px] bg-white/55 px-4 backdrop-blur-2xl [backdrop-filter:blur(24px)_saturate(180%)] [-webkit-backdrop-filter:blur(24px)_saturate(180%)] sm:px-6">
+        <div className="liquid-glass spinshare-static relative mx-auto mt-3 flex h-16 max-w-7xl items-center justify-between rounded-[20px] bg-white/55 px-4 backdrop-blur-2xl [backdrop-filter:blur(24px)_saturate(180%)] [-webkit-backdrop-filter:blur(24px)_saturate(180%)] sm:px-6">
           <Link href="/" className="flex items-center gap-3" aria-label="SpinShare home">
             <Image
               src="/logo/spinshare-logo.png"
@@ -319,10 +321,10 @@ export default function HomePage() {
               height={36}
               className="h-9 w-9 rounded-[8px] object-contain shadow-[0_10px_24px_rgba(22,163,74,0.24)]"
             />
-            <span className="text-xl font-black tracking-tight">SpinShare</span>
+            <SpinShareWordmark className="text-xl" />
           </Link>
 
-          <nav className="hidden items-center gap-6 text-sm font-bold text-slate-600 lg:flex">
+          <nav className="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-10 text-sm font-bold text-slate-600 lg:pointer-events-auto lg:flex xl:gap-16">
             <a href="#money" className="transition hover:text-emerald-700">
               {t.nav.money}
             </a>
@@ -335,19 +337,7 @@ export default function HomePage() {
           </nav>
 
           <div className="flex items-center gap-1.5">
-            <Link
-              href="/signin"
-              className="spinshare-btn-outline inline-flex h-9 items-center px-2.5 text-xs sm:px-3"
-            >
-              {t.nav.userLogin}
-            </Link>
-            <Link
-              href={DEVELOPER_SIGNIN_HREF}
-              className="spinshare-btn-primary inline-flex h-9 items-center gap-1.5 px-3 text-xs sm:px-4"
-            >
-              <MoneyIcon />
-              {t.nav.install}
-            </Link>
+            <SiteNavAuth variant="landing" />
           </div>
         </div>
       </header>
@@ -456,12 +446,12 @@ export default function HomePage() {
             </div>
 
             <div className="mx-auto mt-4 flex max-w-3xl flex-col items-center justify-center gap-2 text-sm font-bold text-slate-500 sm:flex-row">
-              <span>{DEVELOPER_SHARE_PERCENT}% credited revenue to you.</span>
+              <span>{t.home.creditedRevenue(DEVELOPER_SHARE_PERCENT)}</span>
               <Link
                 href={ADVERTISER_SIGNIN_HREF}
                 className="spinshare-btn-outline inline-flex items-center gap-2 px-4 py-2 text-emerald-700"
               >
-                Advertisers bid into the next wait
+                {t.home.advertisersBidCta}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -472,13 +462,13 @@ export default function HomePage() {
           <div className="mx-auto max-w-7xl">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
-                Market depth
+                {t.nav.marketDepth}
               </p>
               <h2 className="mt-3 max-w-2xl text-4xl font-black tracking-tight sm:text-6xl">
-                Advertiser money lines up for the next wait.
+                {t.market.title}
               </h2>
               <p className="mt-4 max-w-xl text-base font-semibold leading-7 text-slate-600">
-                The highest funded CPM wins placement. You see money, not mystery.
+                {t.market.subtitle}
               </p>
             </div>
 
@@ -487,9 +477,9 @@ export default function HomePage() {
                 {/* Header Row */}
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-6 pt-6 pb-2">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-black uppercase tracking-[0.16em] text-blue-600">Bid Market</span>
+                    <span className="text-xs font-black uppercase tracking-[0.16em] text-blue-600">{t.market.bidMarket}</span>
                     <span className="text-3xl font-black text-slate-950">${topBidPrice.toFixed(2)}</span>
-                    <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">per 1,000 impressions</span>
+                    <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">{t.market.perThousandImps}</span>
                   </div>
 
                   <div className="flex items-center gap-4">
@@ -502,7 +492,7 @@ export default function HomePage() {
                             : "hover:text-slate-950"
                         }`}
                       >
-                        24H
+                        {t.market.timeframe24h}
                       </button>
                       <button
                         onClick={() => setTimeframe("all")}
@@ -512,13 +502,13 @@ export default function HomePage() {
                             : "hover:text-slate-950"
                         }`}
                       >
-                        ALL
+                        {t.market.timeframeAll}
                       </button>
                     </div>
 
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-black uppercase text-emerald-700 border border-emerald-600/10">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      {market?.summary.liveCampaigns ?? 0} Ads Live
+                      {t.market.adsLive(market?.summary.liveCampaigns ?? 0)}
                     </span>
                   </div>
                 </div>
@@ -527,7 +517,7 @@ export default function HomePage() {
                 <div className="relative px-6 py-2">
                   {/* Floating Badge */}
                   <div className="absolute top-4 right-8 z-10 rounded-full border border-slate-100 bg-white/95 backdrop-blur px-3 py-1 text-xs font-mono font-bold text-slate-600 shadow-sm flex items-center gap-2">
-                    <span className="text-emerald-600 font-extrabold">{fleetRate}</span> imps/min across the fleet
+                    {t.market.impsPerMinFleet(fleetRate)}
                   </div>
                   {/* Chart */}
                   <div className="h-52 w-full">
@@ -558,7 +548,7 @@ export default function HomePage() {
                             tickFormatter={(val) => `$${val.toFixed(2)}`}
                           />
                           <Tooltip
-                            formatter={(value: number) => [`$${value.toFixed(2)}`, "Bid"]}
+                            formatter={(value: number) => [`$${value.toFixed(2)}`, t.market.chartBidLabel]}
                             contentStyle={{
                               backgroundColor: "#fff",
                               border: "1px solid #e2e8f0",
@@ -588,9 +578,9 @@ export default function HomePage() {
                     {/* Table Header */}
                     <div className="grid grid-cols-[40px_1fr_180px_240px] gap-4 border-b border-emerald-900/10 pb-3 text-xs font-black uppercase tracking-wider text-slate-400">
                       <div>#</div>
-                      <div>Campaign</div>
-                      <div>Bid / 1,000 Imps</div>
-                      <div>Impressions</div>
+                      <div>{t.market.campaign}</div>
+                      <div>{t.market.bidPerThousand}</div>
+                      <div>{t.market.impressions}</div>
                     </div>
 
                     {/* Table Body */}
@@ -622,13 +612,13 @@ export default function HomePage() {
                       <div className="flex flex-col items-center justify-center text-center py-16">
                         <p className="text-sm font-black text-slate-950">
                           {marketStatus === "loading"
-                            ? "Loading live bids..."
+                            ? t.market.loadingLiveBids
                             : marketStatus === "error"
-                              ? "Bid market is temporarily unavailable"
-                              : "No funded bids live yet"}
+                              ? t.market.bidMarketUnavailable
+                              : t.market.noFundedBids}
                         </p>
                         <p className="mt-1 text-xs font-semibold text-slate-500 max-w-sm">
-                          Funded advertiser campaigns will appear here automatically.
+                          {t.market.fundedCampaignsAppear}
                         </p>
                       </div>
                     )}
@@ -642,17 +632,17 @@ export default function HomePage() {
             <div className="mt-12 liquid-glass-light-green p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="font-black text-emerald-950">
-                  Advertisers can move this market.
+                  {t.market.advertisersMoveMarket}
                 </p>
                 <p className="mt-1 text-sm font-semibold text-emerald-800">
-                  Add budget and a higher CPM to win the next wait-state placement.
+                  {t.market.addBudgetCpm}
                 </p>
               </div>
               <Link
                 href={ADVERTISER_SIGNIN_HREF}
                 className="liquid-glass inline-flex min-h-12 items-center justify-center gap-2 rounded-[14px] px-5 text-sm font-black text-slate-950"
               >
-                Open advertiser portal
+                {t.market.openAdvertiserPortal}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -666,10 +656,10 @@ export default function HomePage() {
           <div className="mx-auto max-w-7xl">
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
-                How it pays
+                {t.nav.howItPays}
               </p>
               <h2 className="mt-3 text-4xl font-black tracking-tight sm:text-6xl">
-                Money moves in three short steps.
+                {t.howItPaysSection.title}
               </h2>
             </div>
 
@@ -678,9 +668,9 @@ export default function HomePage() {
                 <div className="grid h-11 w-11 place-items-center rounded-[8px] bg-emerald-50 text-2xl">
                   <MoneyIcon />
                 </div>
-                <h3 className="mt-5 text-xl font-black">1. Your AI pauses</h3>
+                <h3 className="mt-5 text-xl font-black">{t.howItPaysSection.step1Title}</h3>
                 <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
-                  The extension asks for the current winning campaign when the agent hits a wait state.
+                  {t.howItPaysSection.step1Body}
                 </p>
               </div>
 
@@ -688,9 +678,9 @@ export default function HomePage() {
                 <div className="grid h-11 w-11 place-items-center rounded-[8px] bg-emerald-50 text-2xl">
                   <MoneyIcon />
                 </div>
-                <h3 className="mt-5 text-xl font-black">2. Money appears</h3>
+                <h3 className="mt-5 text-xl font-black">{t.howItPaysSection.step2Title}</h3>
                 <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
-                  The winning advertiser line displays during the wait, with no source upload required.
+                  {t.howItPaysSection.step2Body}
                 </p>
               </div>
 
@@ -698,12 +688,12 @@ export default function HomePage() {
                 <div className="grid h-11 w-11 place-items-center rounded-[8px] bg-emerald-50 text-2xl">
                   <MoneyIcon />
                 </div>
-                <h3 className="mt-5 text-xl font-black">3. You keep 60%</h3>
+                <h3 className="mt-5 text-xl font-black">{t.howItPaysSection.step3Title(DEVELOPER_SHARE_PERCENT)}</h3>
                 <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
-                  Credited impressions flow to your ledger with payout limits and fraud review protecting the exchange.
+                  {t.howItPaysSection.step3Body}
                 </p>
                 <p className="mt-2 text-xs font-black uppercase tracking-[0.14em] text-emerald-700">
-                  3-second minimum views
+                  {t.howItPaysSection.minViewSeconds}
                 </p>
               </div>
             </div>
@@ -714,10 +704,10 @@ export default function HomePage() {
           <div className="mx-auto flex max-w-5xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
-                Next paid wait
+                {t.bottomCta.eyebrow}
               </p>
               <h2 className="mt-2 max-w-2xl text-4xl font-black tracking-tight sm:text-6xl">
-                Put advertiser money under your spinner.
+                {t.bottomCta.title}
               </h2>
             </div>
             <Link
@@ -742,7 +732,7 @@ export default function HomePage() {
               height={32}
               className="h-8 w-8 rounded-[8px] object-contain"
             />
-            <span className="font-black text-slate-950">SpinShare</span>
+            <SpinShareWordmark />
           </div>
           <p>&copy; 2026 SpinShare. {t.home.footerCopy}</p>
           <div className="flex flex-wrap items-center gap-5">
@@ -750,10 +740,10 @@ export default function HomePage() {
               {t.nav.userLogin}
             </Link>
             <Link href="/privacy" className="text-slate-500">
-              Privacy
+              {t.footer.privacy}
             </Link>
             <Link href="/terms" className="text-slate-500">
-              Terms
+              {t.footer.terms}
             </Link>
             <LanguageSwitcher />
           </div>

@@ -20,6 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useT } from "@/lib/i18n/locale-provider";
 
 import { CampaignBuilder } from "./campaign-builder";
 import { CampaignList } from "./campaign-list";
@@ -38,6 +39,7 @@ type LoadState =
   | { status: "error"; message: string };
 
 export function AdvertiserDashboard({ token }: AdvertiserDashboardProps) {
+  const t = useT();
   const [state, setState] = useState<LoadState>({ status: "loading" });
 
   const loadCampaigns = useCallback(async (): Promise<void> => {
@@ -50,7 +52,7 @@ export function AdvertiserDashboard({ token }: AdvertiserDashboardProps) {
       if (!response.ok) {
         setState({
           status: "error",
-          message: `Could not load your campaigns (error ${response.status}).`,
+          message: t.advertiserDashboard.loadError(response.status),
         });
         return;
       }
@@ -59,8 +61,7 @@ export function AdvertiserDashboard({ token }: AdvertiserDashboardProps) {
     } catch {
       setState({
         status: "error",
-        message:
-          "Could not reach the server. Check your connection and try again.",
+        message: t.advertiserDashboard.networkError,
       });
     }
   }, [token]);
@@ -87,27 +88,26 @@ export function AdvertiserDashboard({ token }: AdvertiserDashboardProps) {
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10">
       <header className="flex flex-col gap-1">
         <h1 className="text-3xl font-bold tracking-tight text-primary [text-shadow:0_0_18px_hsl(var(--neon)/0.6)]">
-          Advertiser dashboard
+          {t.advertiserDashboard.title}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Create campaigns, fund their budgets, and reach developers inside their
-          tools.
+          {t.advertiserDashboard.subtitle}
         </p>
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-          3-second minimum views
+          {t.advertiserDashboard.minViewSeconds}
         </p>
       </header>
 
       <CampaignBuilder token={token} onCreated={handleCreated} />
 
       <section className="flex flex-col gap-4">
-        <h2 className="text-xl font-semibold text-foreground">Your campaigns</h2>
+        <h2 className="text-xl font-semibold text-foreground">{t.advertiserDashboard.yourCampaigns}</h2>
 
         {state.status === "loading" && (
           <Card data-testid="campaigns-loading">
             <CardHeader>
               <CardTitle className="text-base text-muted-foreground">
-                Loading campaigns…
+                {t.advertiserDashboard.loadingCampaigns}
               </CardTitle>
             </CardHeader>
           </Card>
@@ -117,7 +117,7 @@ export function AdvertiserDashboard({ token }: AdvertiserDashboardProps) {
           <Card data-testid="campaigns-error">
             <CardHeader>
               <CardTitle className="text-base text-destructive">
-                Something went wrong
+                {t.advertiserDashboard.somethingWrong}
               </CardTitle>
               <CardDescription>{state.message}</CardDescription>
             </CardHeader>
@@ -129,7 +129,7 @@ export function AdvertiserDashboard({ token }: AdvertiserDashboardProps) {
                   void loadCampaigns();
                 }}
               >
-                Retry
+                {t.advertiserDashboard.retry}
               </Button>
             </div>
           </Card>

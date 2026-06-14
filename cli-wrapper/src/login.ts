@@ -62,7 +62,7 @@ export function openSystemBrowser(
     let command: string;
     let args: string[];
     if (platform === "win32") {
-      // `start` is a cmd builtin; the empty "" is the (ignored) window title.
+      // Empty title arg + URL as separate spawn arg (do not wrap in extra quotes).
       command = "cmd";
       args = ["/c", "start", "", url];
     } else if (platform === "darwin") {
@@ -119,6 +119,11 @@ export async function runLogin(deps: RunLoginDeps): Promise<LoginResult> {
   const out = (line: string): void => void stdout.write(line);
   const err = (line: string): void => void stderr.write(line);
 
+  const baseUrl = api.getBaseUrl?.();
+  if (baseUrl) {
+    out(`SpinShare API: ${baseUrl}\n`);
+  }
+
   // Step 1: start the device flow.
   let start: Awaited<ReturnType<DeviceAuthApi["startDeviceFlow"]>>;
   try {
@@ -130,10 +135,11 @@ export async function runLogin(deps: RunLoginDeps): Promise<LoginResult> {
 
   // Step 2: show the code and open the browser (print URL as a fallback).
   out(`\nTo finish signing in, confirm this code in your browser:\n\n`);
-  out(`    ${start.userCode}\n\n`);
+  out(`    ${start.userCode}\n`);
+  out(`    (8 characters, like ABCD-5678)\n\n`);
   const launched = await safeOpen(openBrowser, start.verificationUriComplete);
   if (launched) {
-    out(`Opened your browser to:\n  ${start.verificationUri}\n`);
+    out(`Opened your browser to:\n  ${start.verificationUriComplete}\n`);
   } else {
     out(`Open this URL in your browser to continue:\n  ${start.verificationUriComplete}\n`);
   }
@@ -174,7 +180,9 @@ export async function runLogin(deps: RunLoginDeps): Promise<LoginResult> {
         intervalMs += 5000;
         break;
       case "expired_token":
-        err(`Login failed: the request expired before it was approved.\n`);
+        err(
+          `Login failed: the device code expired or was lost (did the dev server restart?). Run \`pnpm cli:login:local\` again.\n`,
+        );
         return 1;
       case "access_denied":
         err(`Login failed: the request was declined.\n`);

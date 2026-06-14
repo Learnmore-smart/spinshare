@@ -38,7 +38,14 @@ This file renders the public SpinShare homepage and polls the live bid market.
 - Keep homepage market values derived from `GET /api/market`, not hardcoded samples.
 - Avoid implying source-code upload or intrusive ad behavior.
 
-## Planned Change
+## Planned Change (2026-06-14)
+
+Navbar polish:
+
+- Center the three section anchor links (`#money`, `#bid-market`, `#how-it-pays`) with even horizontal spacing (absolute center in the glass bar).
+- Remove signed-in email from `SiteNavAuth` — keep Dashboard + Sign out on landing only.
+
+## Previous Planned Change
 
 Display "3-second minimum views" on the public homepage so developers and
 advertisers see the counting rule before installing or buying traffic.

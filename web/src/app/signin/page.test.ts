@@ -19,14 +19,11 @@ describe("resolveInitialRole", () => {
 
 describe("SIGNIN_PAGE_COPY", () => {
   it("describes the clean split sign-in page", () => {
-    expect(SIGNIN_PAGE_COPY.eyebrow).toBe("User earnings portal");
-    expect(SIGNIN_PAGE_COPY.headline).toBe(
-      "Sign in to see your SpinShare balance",
-    );
+    expect(SIGNIN_PAGE_COPY.headline).toBe("Sign in to see your balance");
     expect(SIGNIN_PAGE_COPY.body).toBe(
-      "Your private dashboard shows credited events, payout status, and recent activity from the extension.",
+      "SpinShare pays you for each ad shown for at least 3 seconds during AI wait states. Sign in to see your balance, watch live bid activity, and withdraw earnings.",
     );
-    expect(SIGNIN_PAGE_COPY.panelLabel).toBe("Start with SpinShare");
+    expect(SIGNIN_PAGE_COPY.panelLabel).toBe("Authentication");
     expect(SIGNIN_PAGE_COPY.developerRole).toBe("Developer");
     expect(SIGNIN_PAGE_COPY.advertiserRole).toBe("Advertiser");
   });

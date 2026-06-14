@@ -94,9 +94,10 @@ function buildProviders(
 
 /** The shared Auth.js configuration object. */
 export const authConfig: NextAuthConfig = {
+  trustHost: true,
   providers: buildProviders(),
   // Stateless JWT sessions: no database adapter needed for this MVP.
-  session: { strategy: "jwt" },
+  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
   pages: {
     signIn: "/signin",
   },

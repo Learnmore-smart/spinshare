@@ -64,6 +64,14 @@
   --text-accent:    var(--color-primary-700);
   --text-accent-strong: var(--color-primary-800);
 
+  /* ── Brand wordmark (matches infinity icon) ── */
+  --brand-wordmark-green-dark:  #4aaa24;
+  --brand-wordmark-green-mid:   #72d03a;
+  --brand-wordmark-green-light: #96ef58;
+  --brand-wordmark-silver-dark:  #687078;
+  --brand-wordmark-silver-mid:   #9ba5af;
+  --brand-wordmark-silver-light: #cfd6de;
+
   /* ── Borders ── */
   --border-default: #e2e8f0;
   --border-accent:  rgba(16, 185, 129, 0.16);

@@ -1,6 +1,13 @@
 # api-client.ts
 
-> Last updated: 2026-06-13 | Protection: STANDARD
+> Last updated: 2026-06-14 | Protection: STANDARD
+
+## Planned Changes (2026-06-14)
+
+- Default base URL → `https://www.spinshare.dev`.
+- Parse device/start body via `text()` first; clear error when server returns HTML (undeployed Cloud Run placeholder).
+- `getBaseUrl()` for login status output.
+
 
 ## Purpose
 

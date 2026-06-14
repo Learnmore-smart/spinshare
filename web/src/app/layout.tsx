@@ -4,7 +4,11 @@ import type { ReactNode } from "react";
 import "./globals.css";
 import "./theme.css";
 import "./home.css";
+import "@/components/segment-slider.css";
 import { LocaleProvider } from "@/lib/i18n/locale-provider";
+import { AuthSessionProvider } from "@/components/auth/session-provider";
+import { ThemeScript } from "@/components/theme/theme-script";
+import { ThemeProvider } from "@/lib/theme/theme-provider";
 import { detectLocaleFromAcceptLanguage } from "@/lib/i18n/detect-locale";
 import { DEFAULT_LOCALE, LOCALES, type Locale } from "@/lib/i18n/types";
 
@@ -40,9 +44,16 @@ export default async function RootLayout({
     : detectLocaleFromAcceptLanguage(acceptLanguage) ?? DEFAULT_LOCALE;
 
   return (
-    <html lang={initialLocale} className="light" suppressHydrationWarning>
+    <html lang={initialLocale} suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
-        <LocaleProvider initialLocale={initialLocale}>{children}</LocaleProvider>
+        <AuthSessionProvider>
+          <ThemeProvider>
+            <LocaleProvider initialLocale={initialLocale}>{children}</LocaleProvider>
+          </ThemeProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   );

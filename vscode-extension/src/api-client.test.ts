@@ -14,7 +14,13 @@ function makeFetch(
 }
 
 function jsonResponse(body: unknown, ok = true, status = 200): FetchResponseLike {
-  return { ok, status, json: async () => body };
+  const serialized = JSON.stringify(body);
+  return {
+    ok,
+    status,
+    json: async () => body,
+    text: async () => serialized,
+  };
 }
 
 describe("AdApiClient.getAd", () => {

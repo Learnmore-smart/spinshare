@@ -26,6 +26,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useT } from "@/lib/i18n/locale-provider";
+import { translateValidationError } from "@/lib/i18n/translate-validation-error";
 
 import { adTextState, validateCpmDollars, type CampaignView } from "./lib";
 
@@ -58,6 +60,7 @@ export interface CampaignBuilderProps {
 }
 
 export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
+  const t = useT();
   const [adText, setAdText] = useState("");
   const [destinationUrl, setDestinationUrl] = useState("");
   const [brandName, setBrandName] = useState("");
@@ -111,19 +114,19 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
     if (!text.valid) {
       setError(
         text.isEmpty
-          ? "Ad text is required."
-          : `Ad text must be at most ${AD_TEXT_MAX_LENGTH} characters.`,
+          ? t.advertiserDashboard.adTextRequired
+          : t.advertiserDashboard.adTextMaxLength(AD_TEXT_MAX_LENGTH),
       );
       return;
     }
     const trimmedUrl = destinationUrl.trim();
     if (trimmedUrl.length > 0 && !/^https:\/\//i.test(trimmedUrl)) {
-      setError("Destination URL must start with https://");
+      setError(t.advertiserDashboard.destinationHttps);
       return;
     }
     const cpmResult = validateCpmDollars(cpm);
     if (!cpmResult.ok) {
-      setError(cpmResult.error);
+      setError(translateValidationError(cpmResult.error, t));
       return;
     }
 
@@ -156,23 +159,23 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
         setBrandIconDataUrl(null);
         setPublicOnLeaderboard(true);
         setCpm("");
-        setSuccess("Campaign created. Add funds below to start bidding.");
+        setSuccess(t.advertiserDashboard.campaignCreated);
         return;
       }
       if (response.status === 400) {
         const body = (await response.json().catch(() => null)) as
           | { error?: string }
           | null;
-        setError(body?.error ?? "The campaign details were rejected.");
+        setError(body?.error ?? t.advertiserDashboard.campaignRejected);
         return;
       }
       if (response.status === 401) {
-        setError("Your session has expired. Refresh the page to sign in again.");
+        setError(t.advertiserDashboard.sessionExpired);
         return;
       }
-      setError(`Could not create the campaign (error ${response.status}).`);
+      setError(t.advertiserDashboard.createError(response.status));
     } catch {
-      setError("Could not reach the server. Check your connection and try again.");
+      setError(t.advertiserDashboard.networkError);
     } finally {
       setSubmitting(false);
     }
@@ -181,10 +184,9 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-primary">New campaign</CardTitle>
+        <CardTitle className="text-primary">{t.advertiserDashboard.newCampaign}</CardTitle>
         <CardDescription>
-          Write your ad copy and set a max CPM bid. New campaigns start with a $0
-          budget — add funds once it&apos;s created.
+          {t.advertiserDashboard.newCampaignDesc}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -192,7 +194,7 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
           <div className="flex flex-col gap-1.5">
             <div className="flex items-baseline justify-between">
               <label htmlFor="adText" className="text-sm font-medium">
-                Ad text
+                {t.advertiserDashboard.adText}
               </label>
               <span
                 className={`text-xs tabular-nums ${counterClass}`}
@@ -209,14 +211,14 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
               value={adText}
               maxLength={AD_TEXT_MAX_LENGTH}
               onChange={(event) => setAdText(event.target.value)}
-              placeholder="Ship faster with Acme CI"
+              placeholder={t.advertiserDashboard.adTextPlaceholder}
               className="spinshare-input px-3 py-2 text-sm"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="destinationUrl" className="text-sm font-medium">
-              Destination URL
+              {t.advertiserDashboard.destinationUrl}
             </label>
             <input
               id="destinationUrl"
@@ -224,18 +226,17 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
               type="url"
               value={destinationUrl}
               onChange={(event) => setDestinationUrl(event.target.value)}
-              placeholder="https://acme.dev/ci"
+              placeholder={t.advertiserDashboard.destinationPlaceholder}
               className="spinshare-input px-3 py-2 text-sm"
             />
             <p className="text-xs text-muted-foreground">
-              Where the ad links to. Must start with https://. Leave blank for a
-              non-clickable ad.
+              {t.advertiserDashboard.destinationHint}
             </p>
           </div>
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="brandName" className="text-sm font-medium">
-              Brand name
+              {t.advertiserDashboard.brandName}
             </label>
             <input
               id="brandName"
@@ -243,14 +244,14 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
               type="text"
               value={brandName}
               onChange={(event) => setBrandName(event.target.value)}
-              placeholder="Acme"
+              placeholder={t.advertiserDashboard.brandNamePlaceholder}
               className="spinshare-input px-3 py-2 text-sm"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="brandIcon" className="text-sm font-medium">
-              Brand icon
+              {t.advertiserDashboard.brandIcon}
             </label>
             <input
               id="brandIcon"
@@ -262,13 +263,13 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
             />
             <p className="text-xs text-muted-foreground">
               {brandIconDataUrl
-                ? "Icon ready."
-                : "Optional. PNG, JPG, or WebP up to 64 KB."}
+                ? t.advertiserDashboard.iconReady
+                : t.advertiserDashboard.iconHint}
             </p>
           </div>
 
           <label className="flex cursor-pointer items-center justify-between gap-3 text-sm font-medium">
-            <span>Show on the public leaderboard</span>
+            <span>{t.advertiserDashboard.showOnLeaderboard}</span>
             <input
               type="checkbox"
               checked={publicOnLeaderboard}
@@ -281,7 +282,7 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="cpm" className="text-sm font-medium">
-              Max CPM bid (USD)
+              {t.advertiserDashboard.maxCpmBid}
             </label>
             <input
               id="cpm"
@@ -293,11 +294,11 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
               step="0.01"
               value={cpm}
               onChange={(event) => setCpm(event.target.value)}
-              placeholder="0.50"
+              placeholder={t.advertiserDashboard.cpmPlaceholder}
               className="spinshare-input px-3 py-2 text-sm"
             />
             <p className="text-xs text-muted-foreground">
-              Between $0.01 and $1,000.00 per thousand impressions.
+              {t.advertiserDashboard.cpmHint}
             </p>
           </div>
 
@@ -313,7 +314,7 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
           )}
 
           <Button type="submit" disabled={submitting || !text.valid}>
-            {submitting ? "Creating…" : "Create campaign"}
+            {submitting ? t.advertiserDashboard.creating : t.advertiserDashboard.createCampaign}
           </Button>
         </form>
       </CardContent>

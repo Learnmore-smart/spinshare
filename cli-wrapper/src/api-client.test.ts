@@ -12,10 +12,12 @@ import {
 } from "./api-client.js";
 
 function jsonResponse(status: number, body: unknown): FetchResponseLike {
+  const serialized = JSON.stringify(body);
   return {
     ok: status >= 200 && status < 300,
     status,
     json: async () => body,
+    text: async () => serialized,
   };
 }
 
@@ -214,6 +216,19 @@ describe("device flow", () => {
       fetchImpl: async () => jsonResponse(500, {}),
     });
     await expect(client.startDeviceFlow()).rejects.toThrow();
+  });
+
+  it("startDeviceFlow throws a helpful error when the server returns HTML", async () => {
+    const client = new CliApiClient({
+      baseUrl: "https://x.dev",
+      fetchImpl: async () => ({
+        ok: true,
+        status: 200,
+        json: async () => ({}),
+        text: async () => "<!doctype html><html></html>",
+      }),
+    });
+    await expect(client.startDeviceFlow()).rejects.toThrow(/HTML instead of JSON/);
   });
 
   it("pollDeviceToken sends the deviceCode and never throws", async () => {

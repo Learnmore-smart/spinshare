@@ -16,6 +16,7 @@
  * | `SPINSHARE_COUNTER`      | `memory` \| `rtdb`                  | `CounterStore`     |
  * | `FIREBASE_DATABASE_URL`  | RTDB url (required for `rtdb`)      | RTDB connection    |
  * | `FIRESTORE_EMULATOR_HOST`| host:port (presence)                | Firestore vs memory|
+ * | `SPINSHARE_USE_FIRESTORE` | `1` (local only)                   | cloud Firestore in local mode |
  * | `STRIPE_MODE`            | `mock` \| `test` \| `live`          | `PaymentGateway`   |
  * | `AUTH_MODE`              | `mock` \| `oauth`                   | `AuthProvider`     |
  *
@@ -143,21 +144,33 @@ function hasFirebaseServiceAccount(env: ContainerEnv): boolean {
 }
 
 /**
- * Selects the durable Firestore-backed repositories. Uses the real Firestore
- * client (which targets the emulator when `FIRESTORE_EMULATOR_HOST` is set) in
- * production, whenever the emulator host is configured, or whenever explicit
- * Firebase service-account credentials are present. Otherwise — local mode with
- * no emulator and no creds — falls back to the pure in-memory repos so the app
- * runs with zero external dependencies.
+ * True when local dev should talk to Firestore instead of the in-memory repos.
+ *
+ * Local mode defaults to in-memory + {@link seedLocalTestData} so `pnpm dev` and
+ * `pnpm cli:test:local` work out of the box even when Firebase service-account
+ * creds are present for OAuth. Opt in to cloud Firestore with
+ * `SPINSHARE_USE_FIRESTORE=1`, or use the emulator via `FIRESTORE_EMULATOR_HOST`.
+ */
+function useFirestoreInLocal(env: ContainerEnv): boolean {
+  if (Boolean(env.FIRESTORE_EMULATOR_HOST)) {
+    return true;
+  }
+  return (env.SPINSHARE_USE_FIRESTORE ?? "").trim() === "1";
+}
+
+/**
+ * Selects the durable Firestore-backed repositories. Uses Firestore in production,
+ * when the emulator host is configured, or when local mode explicitly opts in
+ * (`SPINSHARE_USE_FIRESTORE=1`). Otherwise — local mode — falls back to the pure
+ * in-memory repos so the app runs with zero external dependencies and seeds demo
+ * campaigns for CLI/dashboard testing.
  */
 function buildDurableRepos(
   env: ContainerEnv,
   mode: SpinshareMode,
 ): Pick<Container, "campaigns" | "users" | "ledger" | "paymentEvents"> {
   const useFirestore =
-    mode === "production" ||
-    Boolean(env.FIRESTORE_EMULATOR_HOST) ||
-    hasFirebaseServiceAccount(env);
+    mode === "production" || (mode === "local" && useFirestoreInLocal(env));
 
   if (
     useFirestore &&
@@ -257,8 +270,11 @@ export function buildContainer(env: ContainerEnv = process.env): Container {
   };
 }
 
-/** Process-wide singleton, lazily built on first access. */
+/** Process-wide singleton for production builds. */
 let singleton: Container | undefined;
+
+/** Process-wide singleton, lazily built on first access. Survives Next.js dev HMR. */
+const CONTAINER_KEY = Symbol.for("spinshare.container");
 
 /**
  * Returns the process-wide {@link Container}, building it from `process.env` on
@@ -266,6 +282,13 @@ let singleton: Container | undefined;
  * rather than constructing adapters directly.
  */
 export function getContainer(): Container {
+  if (process.env.NODE_ENV === "development") {
+    const g = globalThis as Record<symbol, Container | undefined>;
+    if (!g[CONTAINER_KEY]) {
+      g[CONTAINER_KEY] = buildContainer();
+    }
+    return g[CONTAINER_KEY];
+  }
   if (!singleton) {
     singleton = buildContainer();
   }
@@ -278,4 +301,8 @@ export function getContainer(): Container {
  */
 export function resetContainer(): void {
   singleton = undefined;
+  const g = globalThis as Record<symbol, Container | undefined>;
+  delete g[CONTAINER_KEY];
+  const storeKey = Symbol.for("spinshare.deviceCodeStore");
+  delete (globalThis as Record<symbol, unknown>)[storeKey];
 }

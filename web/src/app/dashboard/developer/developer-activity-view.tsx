@@ -1,0 +1,65 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
+import { useT } from "@/lib/i18n/locale-provider";
+
+import { useDeveloperDashboard } from "./developer-dashboard-data";
+import { ActivityList, ActivityTable } from "./developer-dashboard-parts";
+import { SetupGuideLinkButton } from "./setup-guide-modal";
+import "./developer-dashboard.css";
+
+export function DeveloperActivityView() {
+  const t = useT();
+  const { summary } = useDeveloperDashboard();
+  const { impressionCount, rows } = summary;
+  const [activityQuery, setActivityQuery] = useState("");
+
+  const filteredRows = useMemo(() => {
+    const q = activityQuery.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter(
+      (row) =>
+        row.campaignId.toLowerCase().includes(q) ||
+        row.entryId.toLowerCase().includes(q),
+    );
+  }, [activityQuery, rows]);
+
+  return (
+    <section className="dev-dash-panel dev-dash-rise p-4 sm:p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="text-sm font-black text-slate-900">{t.developerDashboard.recentCredit}</h2>
+          <p className="text-xs font-semibold text-slate-500">{t.developerDashboard.recentCreditSub}</p>
+        </div>
+        <input
+          type="search"
+          value={activityQuery}
+          onChange={(e) => setActivityQuery(e.target.value)}
+          placeholder={t.developerDashboard.filterPlaceholder}
+          className="spinshare-input w-full px-3 py-2.5 text-sm font-semibold normal-case tracking-normal sm:max-w-xs"
+        />
+      </div>
+
+      <div className="mt-4">
+        {impressionCount === 0 ? (
+          <div className="py-8 text-center">
+            <p className="text-sm font-semibold text-slate-500">
+              {t.developerDashboard.activityEmpty}
+            </p>
+            <SetupGuideLinkButton className="mt-3" />
+          </div>
+        ) : filteredRows.length === 0 ? (
+          <p className="py-8 text-center text-sm font-semibold text-slate-500">
+            {t.developerDashboard.noFilterMatch}
+          </p>
+        ) : (
+          <>
+            <ActivityList rows={filteredRows} />
+            <ActivityTable rows={filteredRows} />
+          </>
+        )}
+      </div>
+    </section>
+  );
+}

@@ -2,15 +2,12 @@
 
 /**
  * Interactive approve/deny control for the `/activate` page.
- *
- * Rendered only for a signed-in developer. Auto-fills the `user_code` from the
- * URL (passed in as {@link ActivateClientProps.initialUserCode}) but keeps it
- * editable as a manual-entry fallback. Approving or denying POSTs the user code
- * + decision to `POST /api/auth/device/approve`; the server derives the approver
- * identity from the session and mints (or refuses) the Device_Auth_Token.
  */
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+
+import { useT } from "@/lib/i18n/locale-provider";
 
 /** Props for {@link ActivateClient}. */
 export interface ActivateClientProps {
@@ -28,28 +25,38 @@ type Status =
   | { kind: "denied" }
   | { kind: "error"; message: string };
 
-/** Maps an API error code to a human-readable message. */
-function messageForError(code: string): string {
-  switch (code) {
-    case "unknown_user_code":
-      return "That code is unknown or has expired. Start the login again from your terminal.";
-    case "not_authenticated":
-      return "Your session expired. Refresh the page and sign in again.";
-    case "invalid_request":
-      return "Enter the code shown in your terminal (for example WXYZ-1234).";
-    default:
-      return "Something went wrong approving the device. Please try again.";
-  }
-}
-
 export function ActivateClient({
   initialUserCode,
   email,
 }: ActivateClientProps): React.JSX.Element {
-  const [userCode, setUserCode] = useState(initialUserCode);
+  const t = useT();
+  const searchParams = useSearchParams();
+  const codeFromUrl = (searchParams.get("user_code") ?? "").trim();
+  const resolvedCode = (initialUserCode.trim() || codeFromUrl).toUpperCase();
+  const [userCode, setUserCode] = useState(resolvedCode);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const autoApproveStarted = useRef(false);
+
+  useEffect(() => {
+    if (resolvedCode) {
+      setUserCode(resolvedCode);
+    }
+  }, [resolvedCode]);
 
   const submitting = status.kind === "submitting";
+
+  const messageForError = (code: string): string => {
+    switch (code) {
+      case "unknown_user_code":
+        return t.activate.errorUnknownCode;
+      case "not_authenticated":
+        return t.activate.errorNotAuthenticated;
+      case "invalid_request":
+        return t.activate.errorInvalidRequest;
+      default:
+        return t.activate.errorGeneric;
+    }
+  };
 
   const submit = async (decision: "approve" | "deny"): Promise<void> => {
     const code = userCode.trim();
@@ -66,11 +73,11 @@ export function ActivateClient({
       });
       const data: unknown = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const code =
+        const errCode =
           typeof (data as { error?: unknown }).error === "string"
             ? (data as { error: string }).error
             : "unknown";
-        setStatus({ kind: "error", message: messageForError(code) });
+        setStatus({ kind: "error", message: messageForError(errCode) });
         return;
       }
       const approved = (data as { approved?: unknown }).approved === true;
@@ -80,18 +87,75 @@ export function ActivateClient({
     }
   };
 
-  // Terminal success / denial states replace the form.
+  // Already signed in on the website → approve the CLI/extension automatically.
+  useEffect(() => {
+    if (autoApproveStarted.current) return;
+    if (!resolvedCode) return;
+    autoApproveStarted.current = true;
+    void submit("approve");
+  }, [resolvedCode]);
+
+  if (!resolvedCode) {
+    return (
+      <div className="space-y-4 text-center">
+        <p className="text-sm font-semibold text-slate-600">
+          {t.activate.missingCodeBody}
+        </p>
+        <div className="space-y-2 text-left">
+          <label
+            htmlFor="user_code"
+            className="block text-xs font-black uppercase tracking-wider text-emerald-900/80"
+          >
+            {t.activate.pasteCodeLabel}
+          </label>
+          <input
+            id="user_code"
+            value={userCode}
+            onChange={(e) => setUserCode(e.target.value.toUpperCase())}
+            placeholder={t.activate.pasteCodePlaceholder}
+            autoComplete="off"
+            spellCheck={false}
+            className="spinshare-input w-full px-4 py-3 text-center font-mono text-xl font-black tracking-[0.25em]"
+          />
+        </div>
+        {status.kind === "error" ? (
+          <p role="alert" className="text-sm font-semibold text-red-600">
+            {status.message}
+          </p>
+        ) : null}
+        <button
+          type="button"
+          onClick={() => void submit("approve")}
+          disabled={submitting || userCode.trim().length === 0}
+          className="spinshare-btn-primary min-h-12 w-full px-4 text-sm disabled:opacity-50"
+        >
+          {t.activate.approveDevice}
+        </button>
+      </div>
+    );
+  }
+
+  if (status.kind === "submitting") {
+    return (
+      <div className="space-y-2 text-center" role="status" aria-live="polite">
+        <p className="text-sm font-semibold text-slate-600">
+          {status.decision === "approve"
+            ? t.activate.approvingDevice
+            : t.activate.decliningRequest}
+        </p>
+        <p className="text-xs text-slate-500">{t.activate.returnToTerminal}</p>
+      </div>
+    );
+  }
+
   if (status.kind === "approved") {
     return (
       <div className="space-y-3 text-center" role="status">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-cyan-400/60 bg-cyan-400/10 text-2xl text-cyan-300 [text-shadow:0_0_12px_rgba(34,211,238,0.7)]">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-2xl text-emerald-700">
           ✓
         </div>
-        <h2 className="text-lg font-black text-white">Device approved</h2>
-        <p className="text-sm text-slate-300">
-          You&apos;re all set. Return to your terminal — it will finish signing
-          in automatically.
-        </p>
+        <h2 className="text-lg font-black text-slate-950">{t.activate.approvedTitle}</h2>
+        <p className="text-sm font-semibold text-slate-600">{t.activate.approvedBody}</p>
       </div>
     );
   }
@@ -99,13 +163,11 @@ export function ActivateClient({
   if (status.kind === "denied") {
     return (
       <div className="space-y-3 text-center" role="status">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-fuchsia-400/60 bg-fuchsia-400/10 text-2xl text-fuchsia-300">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-2xl text-slate-500">
           ✕
         </div>
-        <h2 className="text-lg font-black text-white">Device denied</h2>
-        <p className="text-sm text-slate-300">
-          The login request was declined. You can safely close this page.
-        </p>
+        <h2 className="text-lg font-black text-slate-950">{t.activate.deniedTitle}</h2>
+        <p className="text-sm font-semibold text-slate-600">{t.activate.deniedBody}</p>
       </div>
     );
   }
@@ -113,36 +175,38 @@ export function ActivateClient({
   return (
     <div className="space-y-5">
       {email ? (
-        <p className="text-center text-xs font-medium text-slate-400">
-          Signed in as{" "}
-          <span className="font-mono text-cyan-300">{email}</span>
+        <p className="text-center text-xs font-black uppercase tracking-wider text-emerald-900/70">
+          {t.activate.signedInAs}{" "}
+          <span className="font-mono normal-case tracking-normal text-emerald-800">
+            {email}
+          </span>
         </p>
       ) : null}
 
       <div className="space-y-2">
         <label
           htmlFor="user_code"
-          className="block font-mono text-[11px] uppercase tracking-[0.3em] text-cyan-300/80"
+          className="block text-xs font-black uppercase tracking-wider text-emerald-900/80"
         >
-          Device code
+          {t.activate.deviceCode}
         </label>
         <input
           id="user_code"
           value={userCode}
-          onChange={(e) => setUserCode(e.target.value.toUpperCase())}
-          placeholder="WXYZ-1234"
+          readOnly
+          aria-readonly
           autoComplete="off"
           spellCheck={false}
           disabled={submitting}
-          className="w-full rounded-lg border border-cyan-400/30 bg-black/40 px-4 py-3 text-center font-mono text-xl font-bold tracking-[0.3em] text-white outline-none transition-all placeholder:text-slate-600 focus:border-cyan-400/80 focus:shadow-[0_0_24px_rgba(34,211,238,0.35)]"
+          className="spinshare-input w-full px-4 py-3 text-center font-mono text-xl font-black tracking-[0.25em]"
         />
-        <p className="text-center text-xs text-slate-500">
-          Confirm this matches the code shown in your terminal.
+        <p className="text-center text-xs font-semibold text-slate-500">
+          {t.activate.codeHint}
         </p>
       </div>
 
       {status.kind === "error" ? (
-        <p role="alert" className="text-center text-sm font-semibold text-fuchsia-300">
+        <p role="alert" className="text-center text-sm font-semibold text-red-600">
           {status.message}
         </p>
       ) : null}
@@ -152,21 +216,17 @@ export function ActivateClient({
           type="button"
           onClick={() => void submit("deny")}
           disabled={submitting}
-          className="flex-1 rounded-lg border border-slate-600/60 bg-white/[0.02] px-4 py-3 text-sm font-bold uppercase tracking-wider text-slate-300 transition-all hover:border-fuchsia-400/50 hover:text-fuchsia-200 disabled:opacity-50"
+          className="spinshare-btn-outline flex-1 min-h-12 px-4 text-sm disabled:opacity-50"
         >
-          {status.kind === "submitting" && status.decision === "deny"
-            ? "Denying..."
-            : "Deny"}
+          {t.activate.deny}
         </button>
         <button
           type="button"
           onClick={() => void submit("approve")}
           disabled={submitting}
-          className="flex-1 rounded-lg border border-cyan-400/70 bg-cyan-400/15 px-4 py-3 text-sm font-bold uppercase tracking-wider text-cyan-100 transition-all hover:bg-cyan-400/25 hover:shadow-[0_0_24px_rgba(34,211,238,0.5)] disabled:opacity-50"
+          className="spinshare-btn-primary flex-1 min-h-12 px-4 text-sm disabled:opacity-50"
         >
-          {status.kind === "submitting" && status.decision === "approve"
-            ? "Approving..."
-            : "Approve device"}
+          {t.activate.approveDevice}
         </button>
       </div>
     </div>

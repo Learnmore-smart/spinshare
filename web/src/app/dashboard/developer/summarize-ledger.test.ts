@@ -9,7 +9,7 @@
 import { describe, expect, it } from "vitest";
 import type { LedgerEntry } from "@spinshare/core";
 
-import { summarizeLedger } from "./summarize-ledger";
+import { summarizeLedger, buildChartSeries } from "./summarize-ledger";
 
 function entry(overrides: Partial<LedgerEntry> = {}): LedgerEntry {
   return {
@@ -28,6 +28,9 @@ describe("summarizeLedger", () => {
     const summary = summarizeLedger([]);
     expect(summary.totalEarningsCents).toBe(0);
     expect(summary.totalEarningsUsd).toBe("0.00");
+    expect(summary.todayEarningsCents).toBe(0);
+    expect(summary.hourlyEarningsCents).toBe(0);
+    expect(summary.monthEarningsCents).toBe(0);
     expect(summary.impressionCount).toBe(0);
     expect(summary.rows).toHaveLength(0);
     expect(summary.series).toHaveLength(0);
@@ -77,6 +80,16 @@ describe("summarizeLedger", () => {
       { sequence: 1, label: "#1", creditCents: 10, cumulativeCents: 10, cumulativeUsd: 0.1 },
       { sequence: 2, label: "#2", creditCents: 15, cumulativeCents: 25, cumulativeUsd: 0.25 },
     ]);
+  });
+
+  it("builds chart series for all time without filtering", () => {
+    const rows = summarizeLedger([
+      entry({ entryId: "a", developerCreditCents: 10, createdAtMs: 0 }),
+      entry({ entryId: "b", developerCreditCents: 5, createdAtMs: Date.now() }),
+    ]).rows;
+    const series = buildChartSeries(rows, "all");
+    expect(series).toHaveLength(2);
+    expect(series[1]?.cumulativeCents).toBe(15);
   });
 
   it("does not mutate the input array", () => {

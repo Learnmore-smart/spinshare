@@ -66,6 +66,14 @@ export function toLedgerEntry(
   id: string,
   data: FirebaseFirestore.DocumentData,
 ): LedgerEntry {
+  const createdAt = data.createdAt;
+  let createdAtMs: number | undefined;
+  if (createdAt && typeof createdAt.toMillis === "function") {
+    createdAtMs = createdAt.toMillis();
+  } else if (typeof data.createdAtMs === "number") {
+    createdAtMs = data.createdAtMs;
+  }
+
   return {
     entryId: String(data.entryId ?? id),
     campaignId: String(data.campaignId ?? ""),
@@ -73,5 +81,6 @@ export function toLedgerEntry(
     revenueMicrocents: Number(data.revenueMicrocents ?? 0),
     developerCreditCents: Number(data.developerCreditCents ?? 0),
     spinshareRetentionMicrocents: Number(data.spinshareRetentionMicrocents ?? 0),
+    ...(createdAtMs !== undefined ? { createdAtMs } : {}),
   };
 }

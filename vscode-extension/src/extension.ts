@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 
 import { AdController } from "./ad-controller";
 import { AdApiClient, DEFAULT_BASE_URL } from "./api-client";
-import { AuthManager } from "./auth";
+import { AuthManager, formatSignInFailure } from "./auth";
 
 /**
  * SpinShare VSCode extension entry point.
@@ -34,6 +34,15 @@ export function activate(context: vscode.ExtensionContext): void {
     client,
     secrets: context.secrets,
     onError: (error) => console.error("[spinshare] auth error", error),
+    runWithProgress: (title, task) =>
+      vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title,
+          cancellable: false,
+        },
+        task,
+      ),
   });
 
   const controller = new AdController({
@@ -50,7 +59,16 @@ export function activate(context: vscode.ExtensionContext): void {
   });
 
   // Warm the token cache from secure storage so `getToken()` is populated.
-  void auth.initialize();
+  // If the developer is not signed in yet, prompt immediately on activation
+  // (Requirement 6.4) instead of waiting for a generation hook.
+  void auth.initialize().then(async () => {
+    if (!(await auth.isAuthenticated())) {
+      const token = await auth.ensureAuthenticated();
+      if (token !== undefined) {
+        void vscode.window.showInformationMessage("Signed in to SpinShare.");
+      }
+    }
+  });
 
   const showStatus = vscode.commands.registerCommand(
     "spinshare.showStatus",
@@ -66,8 +84,8 @@ export function activate(context: vscode.ExtensionContext): void {
       if (result.ok) {
         void vscode.window.showInformationMessage("Signed in to SpinShare.");
       } else if (result.reason !== "cancelled") {
-        void vscode.window.showWarningMessage(
-          `SpinShare sign-in failed (${result.reason}).`,
+        void vscode.window.showErrorMessage(
+          formatSignInFailure(result.reason, result.detail),
         );
       }
     },

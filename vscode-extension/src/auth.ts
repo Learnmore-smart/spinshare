@@ -53,6 +53,11 @@ export interface UriLike {
 export interface AuthWindowLike {
   showInformationMessage(
     message: string,
+    optionsOrItem?: { modal?: boolean } | string,
+    ...items: string[]
+  ): Thenable<string | undefined>;
+  showErrorMessage(
+    message: string,
     ...items: string[]
   ): Thenable<string | undefined>;
 }
@@ -94,6 +99,14 @@ export interface AuthManagerDeps {
   sleep?: (ms: number) => Promise<void>;
   /** Optional sink for non-fatal errors (e.g. logging). */
   onError?: (error: unknown) => void;
+  /**
+   * Optional progress wrapper (e.g. `vscode.window.withProgress`) so sign-in
+   * does not look like it vanished after the prompt is dismissed.
+   */
+  runWithProgress?: <R>(
+    title: string,
+    task: () => Thenable<R>,
+  ) => Thenable<R>;
 }
 
 // ---------------------------------------------------------------------------
@@ -120,7 +133,31 @@ function defaultSleep(ms: number): Promise<void> {
 /** Outcome of a {@link AuthManager.signIn} attempt. */
 export type SignInResult =
   | { ok: true; token: string }
-  | { ok: false; reason: "denied" | "expired" | "cancelled" | "error" };
+  | {
+      ok: false;
+      reason: "denied" | "expired" | "cancelled" | "error";
+      detail?: string;
+    };
+
+/** Human-readable failure text for UI toasts. */
+export function formatSignInFailure(
+  reason: Extract<SignInResult, { ok: false }>["reason"],
+  detail?: string,
+): string {
+  switch (reason) {
+    case "denied":
+      return "Sign-in was denied in the browser.";
+    case "expired":
+      return "Sign-in timed out. Run SpinShare: Sign In to try again.";
+    case "error":
+      return (
+        detail ??
+        "Could not reach the SpinShare server. Check spinshare.baseUrl (use http://localhost:3000 for local dev)."
+      );
+    case "cancelled":
+      return "Sign-in was cancelled.";
+  }
+}
 
 /**
  * Owns the Device_Auth_Token lifecycle and the interactive sign-in flow.
@@ -137,6 +174,12 @@ export class AuthManager {
   private readonly now: () => number;
   private readonly sleep: (ms: number) => Promise<void>;
   private readonly onError: (error: unknown) => void;
+  private readonly runWithProgress: <R>(
+    title: string,
+    task: () => Thenable<R>,
+  ) => Thenable<R>;
+  /** Last device/start error message for user-facing toasts. */
+  private lastSignInErrorDetail: string | undefined;
 
   /** In-memory cache of the persisted token (`undefined` = unknown/none). */
   private cachedToken: string | undefined;
@@ -152,6 +195,8 @@ export class AuthManager {
     this.now = deps.now ?? (() => Date.now());
     this.sleep = deps.sleep ?? defaultSleep;
     this.onError = deps.onError ?? (() => {});
+    this.runWithProgress =
+      deps.runWithProgress ?? (async (_title, task) => task());
   }
 
   /**
@@ -206,15 +251,23 @@ export class AuthManager {
 
     const choice = await this.vscode.window.showInformationMessage(
       SIGN_IN_PROMPT,
+      { modal: true },
       SIGN_IN_ACTION,
     );
     if (choice !== SIGN_IN_ACTION) {
-      // Developer dismissed the prompt; remain unauthenticated, show no ad.
       return undefined;
     }
 
     const result = await this.signIn();
-    return result.ok ? result.token : undefined;
+    if (!result.ok) {
+      if (result.reason !== "cancelled") {
+        void this.vscode.window.showErrorMessage(
+          formatSignInFailure(result.reason, result.detail),
+        );
+      }
+      return undefined;
+    }
+    return result.token;
   }
 
   /**
@@ -229,7 +282,11 @@ export class AuthManager {
     if (this.signInInFlight !== null) {
       return this.signInInFlight;
     }
-    const flow = this.runDeviceFlow().finally(() => {
+    const flow = Promise.resolve(
+      this.runWithProgress("SpinShare: waiting for browser sign-in…", () =>
+        this.runDeviceFlow(),
+      ),
+    ).finally(() => {
       this.signInInFlight = null;
     });
     this.signInInFlight = flow;
@@ -248,22 +305,29 @@ export class AuthManager {
   }
 
   private async runDeviceFlow(): Promise<SignInResult> {
+    this.lastSignInErrorDetail = undefined;
     let start: DeviceFlowStart;
     try {
       start = await this.client.startDeviceFlow();
     } catch (error) {
       this.onError(error);
-      return { ok: false, reason: "error" };
+      this.lastSignInErrorDetail =
+        error instanceof Error ? error.message : "device/start failed";
+      return { ok: false, reason: "error", detail: this.lastSignInErrorDetail };
     }
 
-    // Open the system browser to the pre-filled verification URI so the
-    // developer can approve the device. A failure to launch is non-fatal —
-    // the flow can still complete if they open the URL another way.
+    let opened = false;
     try {
       const uri = this.vscode.Uri.parse(start.verificationUriComplete);
-      await this.vscode.env.openExternal(uri);
+      opened = await this.vscode.env.openExternal(uri);
     } catch (error) {
       this.onError(error);
+    }
+
+    if (!opened) {
+      void this.vscode.window.showInformationMessage(
+        `Open ${start.verificationUriComplete} in your browser and enter code ${start.userCode}.`,
+      );
     }
 
     let intervalMs =

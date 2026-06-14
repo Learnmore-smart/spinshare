@@ -95,10 +95,20 @@ Planned changes:
 | Date | Bug | Cause | Fix |
 |------|-----|-------|-----|
 
+## Planned Change: Brand Wordmark Colors
+
+Add CSS variables matching the logo infinity icon:
+
+- `--brand-wordmark-spin`: bright lime green (left loop)
+- `--brand-wordmark-share`: light silver gray (right loop)
+
+Consumed by `SpinShareWordmark` in nav/footer logo lockups.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-14 | Documented brand wordmark color tokens for SpinShareWordmark | Cursor |
 | 2026-06-13 | Created documentation for theme.css before adding money-stream animations | Codex |
 | 2026-06-13 | Synced docs with implemented money-stream animation classes and verification | Codex |
 | 2026-06-13 | Documented sign-in glass card and top-left home button helper classes. | Codex |

@@ -6,6 +6,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { Code, Layers, Home, LogIn, Zap, ArrowRight } from "lucide-react";
 
+import { SpinShareWordmark } from "@/components/SpinShareWordmark";
+
 const DEV_ACCOUNTS = {
   developer: { email: "developer@spinshare.test", password: "spinshare" },
   advertiser: { email: "advertiser@spinshare.test", password: "spinshare" },
@@ -96,9 +98,7 @@ export default function DevPageClient() {
             height={36}
             className="h-9 w-9 rounded-[8px] object-contain shadow-[0_10px_24px_rgba(22,163,74,0.24)]"
           />
-          <span className="text-xl font-black tracking-tight text-slate-950">
-            SpinShare
-          </span>
+          <SpinShareWordmark className="text-xl" />
         </Link>
         <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black uppercase tracking-wider text-amber-700">
           Dev Mode

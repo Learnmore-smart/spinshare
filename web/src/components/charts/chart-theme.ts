@@ -44,3 +44,31 @@ export const chartTheme = {
     cursor: { stroke: "hsl(var(--muted))" },
   },
 } as const;
+
+/** Light dashboard chart palette (mint page background). */
+export const lightChartTheme = {
+  grid: {
+    stroke: "#d1e7dd",
+    strokeDasharray: "3 3",
+  },
+  axis: {
+    stroke: "#d1e7dd",
+    tick: { fill: "#64748b", fontSize: 11 },
+  },
+  line: {
+    stroke: "#10b981",
+    strokeWidth: 2,
+    dot: { fill: "#10b981", r: 2 },
+    activeDot: { r: 4 },
+  },
+  tooltip: {
+    contentStyle: {
+      backgroundColor: "#ffffff",
+      border: "1px solid #e2e8f0",
+      borderRadius: 8,
+      color: "#0f172a",
+      fontSize: 12,
+    },
+    cursor: { stroke: "#cbd5e1" },
+  },
+} as const;

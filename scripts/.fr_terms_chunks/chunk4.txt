@@ -1,0 +1,95 @@
+
+          <LegalSection id={19} title={titles[19] ?? ""}>
+            <LegalSubsection title="19.1 Agent désigné">
+              SpinShare respecte les droits de propriété intellectuelle et se conforme au DMCA. Si vous pensez que du matériel disponible via le Service porte atteinte à votre droit d&apos;auteur, vous pouvez soumettre une notification à notre Agent désigné pour le droit d&apos;auteur :{" "}
+              <a
+                href="mailto:support@spinshare.dev"
+                className="font-bold text-emerald-700 underline-offset-2 hover:underline"
+              >
+                support@spinshare.dev
+              </a>
+              .
+            </LegalSubsection>
+            <LegalSubsection title="19.2 Exigences de notification DMCA">
+              Toutes les notifications DMCA doivent inclure : (i) une signature physique ou électronique du titulaire du droit d&apos;auteur ou de l&apos;agent autorisé ; (ii) l&apos;identification de l&apos;œuvre protégée prétendument violée ; (iii) l&apos;identification du matériel contrefaisant et son emplacement ; (iv) des coordonnées ; (v) une déclaration de conviction de bonne foi ; et (vi) une déclaration sous peine de parjure.
+            </LegalSubsection>
+            <LegalSubsection title="19.3 Contre-notification">
+              Si vous pensez que votre contenu a été retiré par erreur, vous pouvez soumettre une contre-notification contenant : (i) votre signature ; (ii) l&apos;identification du matériel retiré ; (iii) une déclaration sous peine de parjure ; (iv) vos coordonnées ; et (v) le consentement à la juridiction.
+            </LegalSubsection>
+            <LegalSubsection title="19.4 Contrevenants récidivistes">
+              SpinShare résiliera les comptes des contrevenants récidivistes en matière de droit d&apos;auteur dans les circonstances appropriées.
+            </LegalSubsection>
+          </LegalSection>
+
+          <LegalSection id={20} title={titles[20] ?? ""}>
+            <LegalSubsection title="20.1 Droit de modification">
+              SpinShare se réserve le droit de modifier le présent Contrat à tout moment. Sauf disposition contraire à la section 20.2 pour les modifications substantielles, les modifications entrent en vigueur dès la publication du Contrat révisé sur notre site web ou via l&apos;Extension. La date « Dernière mise à jour » en haut du présent Contrat indique la date des dernières modifications.
+            </LegalSubsection>
+            <LegalSubsection title="20.2 Avis de modifications substantielles">
+              Pour les modifications substantielles concernant : (i) le Partage des revenus ou la méthodologie de calcul des gains ; (ii) les pratiques de collecte de données ; (iii) les procédures de résolution des litiges ; ou (iv) les limitations de responsabilité, nous fournirons un préavis d&apos;au moins trente (30) jours avant l&apos;entrée en vigueur des modifications. L&apos;avis peut être fourni par courriel, notification via l&apos;Extension ou publication sur le site web.
+            </LegalSubsection>
+            <LegalSubsection title="20.3 Utilisation continue comme acceptation">
+              Votre utilisation continue du Service après toute modification constitue l&apos;acceptation des conditions modifiées. Si vous n&apos;acceptez pas les conditions modifiées, vous devez cesser d&apos;utiliser le Service et désinstaller l&apos;Extension et le Wrapper CLI.
+            </LegalSubsection>
+          </LegalSection>
+
+          <LegalSection id={21} title={titles[21] ?? ""}>
+            <LegalSubsection title="21.1 Intégralité de l&apos;accord">
+              Le présent Contrat constitue l&apos;intégralité de l&apos;accord entre vous et SpinShare concernant le Service et remplace tous les accords, ententes et déclarations antérieurs.
+            </LegalSubsection>
+            <LegalSubsection title="21.2 Divisibilité">
+              Si une disposition du présent Contrat est jugée invalide ou inapplicable, les dispositions restantes continueront de produire leurs effets, et la disposition invalide sera modifiée dans la mesure minimale nécessaire pour la rendre applicable.
+            </LegalSubsection>
+            <LegalSubsection title="21.3 Renonciation">
+              Aucune renonciation à une disposition ne sera effective sauf si elle est écrite et signée par la partie renonçante. Le défaut d&apos;exercer un droit ne constitue pas une renonciation à son exercice futur.
+            </LegalSubsection>
+            <LegalSubsection title="21.4 Cession">
+              Vous ne pouvez pas céder le présent Contrat sans consentement écrit préalable. SpinShare peut céder le présent Contrat dans le cadre d&apos;une fusion, acquisition ou vente d&apos;actifs.
+            </LegalSubsection>
+            <LegalSubsection title="21.5 Force majeure">
+              SpinShare ne sera pas responsable d&apos;un manquement ou d&apos;un retard d&apos;exécution dû à des causes échappant à son contrôle raisonnable, y compris les cas de force majeure, la guerre, le terrorisme, les émeutes, les embargos, les actes des autorités civiles ou militaires, les incendies, les inondations, les accidents, les grèves ou les pénuries de transport, d&apos;installations, de carburant, d&apos;énergie, de main-d&apos;œuvre ou de matériaux.
+            </LegalSubsection>
+            <LegalSubsection title="21.6 Titres">
+              Les titres de section sont fournis uniquement pour des raisons de commodité et n&apos;ont aucun effet juridique.
+            </LegalSubsection>
+            <LegalSubsection title="21.7 Notifications">
+              Les notifications à SpinShare doivent être envoyées à l&apos;adresse courriel de la section 22. Les notifications aux utilisateurs peuvent être envoyées à l&apos;adresse courriel associée au compte ou publiées sur le site web.
+            </LegalSubsection>
+            <LegalSubsection title="21.8 Conformité à l&apos;exportation">
+              Vous déclarez ne pas être situé dans un pays soumis à un embargo américain ou autre embargo applicable ou désigné comme pays « soutenant le terrorisme », et ne pas figurer sur une liste gouvernementale américaine ou autre liste de parties interdites ou restreintes.
+            </LegalSubsection>
+            <LegalSubsection title="21.9 Communications électroniques">
+              En utilisant le Service, vous consentez à recevoir des communications électroniques de SpinShare. Vous acceptez que tous les accords, avis, divulgations et autres communications fournis électroniquement satisfont à toute exigence légale de communication écrite.
+            </LegalSubsection>
+            <LegalSubsection title="21.10 Absence de mandat">
+              Aucune relation d&apos;agence, de partenariat, de coentreprise ou d&apos;emploi n&apos;est créée par le présent Contrat.
+            </LegalSubsection>
+          </LegalSection>
+
+          <LegalSection id={22} title={titles[22] ?? ""}>
+            <p>
+              Si vous avez des questions, des préoccupations ou des demandes concernant le présent Contrat ou le Service, veuillez nous contacter :
+            </p>
+            <ul className="list-disc space-y-1 pl-6">
+              <li>
+                <strong className="text-slate-900">Courriel :</strong>{" "}
+                <a
+                  href="mailto:support@spinshare.dev"
+                  className="font-bold text-emerald-700 underline-offset-2 hover:underline"
+                >
+                  support@spinshare.dev
+                </a>
+              </li>
+              <li>
+                <strong className="text-slate-900">Site web :</strong>{" "}
+                spinshare.dev
+              </li>
+            </ul>
+            <p className="mt-4 text-xs font-bold uppercase tracking-wider text-slate-500">
+              © 2026 spinshare.dev. Tous droits réservés.
+            </p>
+          </LegalSection>
+
+    </>
+  );
+}

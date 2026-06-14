@@ -1,0 +1,96 @@
+
+          <LegalSection id={13} title={titles[13] ?? ""}>
+            <LegalSubsection title="13.1 Propriété de SpinShare">
+              Tous les droits, titres et intérêts relatifs au Service, y compris l&apos;Extension, le Wrapper CLI, le site web, les logiciels, algorithmes, systèmes d&apos;enchères, analyses, marques, présentation commerciale et toute propriété intellectuelle associée, sont et demeureront la propriété exclusive de SpinShare et de ses concédants de licence. Le présent Contrat ne confère aucun droit de propriété sur le Service ou ses composants.
+            </LegalSubsection>
+            <LegalSubsection title="13.2 Licence limitée aux utilisateurs">
+              Sous réserve de votre conformité au présent Contrat, SpinShare vous accorde une licence limitée, non exclusive, non transférable et révocable pour : (i) installer et utiliser l&apos;Extension et le Wrapper CLI uniquement aux fins prévues ; et (ii) accéder et utiliser les fonctionnalités du site web et de la plateforme. Cette licence ne permet pas : la modification, la distribution, les œuvres dérivées, la rétro-ingénierie, la décompilation ou la suppression d&apos;avis de propriété, sauf dans la mesure permise par les licences open source applicables couvrant l&apos;Extension ou le Wrapper CLI.
+            </LegalSubsection>
+            <LegalSubsection title="13.3 Licence de contenu annonceur">
+              En soumettant du Contenu publicitaire, les Annonceurs accordent à SpinShare une licence mondiale, non exclusive et libre de redevances pour : (i) reproduire, afficher et transmettre le Contenu publicitaire via le Service ; (ii) modifier le Contenu publicitaire uniquement dans la mesure nécessaire au formatage technique ; et (iii) utiliser le nom et les marques de l&apos;Annonceur uniquement en lien avec l&apos;affichage des publicités. Cette licence prend fin lorsque la Campagne associée se termine ou que le compte est résilié.
+            </LegalSubsection>
+            <LegalSubsection title="13.4 Retours d&apos;expérience">
+              Tout retour d&apos;expérience, suggestion ou idée que vous fournissez concernant le Service peut être utilisé par SpinShare sans restriction, compensation ni attribution. Vous cédez par les présentes à SpinShare tous les droits, titres et intérêts relatifs à ces retours.
+            </LegalSubsection>
+            <LegalSubsection title="13.5 Open source">
+              Des portions de l&apos;Extension et du Wrapper CLI peuvent être publiées sous des licences open source. Rien dans le présent Contrat ne restreint les droits qui vous sont accordés par ces licences. En cas de conflit entre le présent Contrat et une licence open source applicable, la licence open source prévaut pour le code couvert.
+            </LegalSubsection>
+          </LegalSection>
+
+          <LegalSection id={14} title={titles[14] ?? ""}>
+            <LegalSubsection title="14.1 Service fourni « en l&apos;état »">
+              LE SERVICE EST FOURNI « EN L&apos;ÉTAT » ET « SELON DISPONIBILITÉ » SANS GARANTIE D&apos;AUCUNE SORTE, EXPRESSE OU IMPLICITE. DANS LA MESURE MAXIMALE PERMISE PAR LA LOI, SPINSHARE DÉCLINE TOUTE GARANTIE, Y COMPRIS MAIS SANS S&apos;Y LIMITER : LES GARANTIES IMPLICITES DE QUALITÉ MARCHANDE, D&apos;ADÉQUATION À UN USAGE PARTICULIER, DE NON-CONTREFAÇON, DE TITRE, ET TOUTE GARANTIE DÉCOULANT DES USAGES DU COMMERCE, DE LA CONDUITE DES AFFAIRES OU DES PRATIQUES COMMERCIALES.
+            </LegalSubsection>
+            <LegalSubsection title="14.2 Aucune garantie de résultats">
+              SPINSHARE NE GARANTIT PAS QUE : (i) LE SERVICE RÉPONDRA À VOS EXIGENCES OU ATTENTES ; (ii) LES GAINS ATTEINDRONT UN NIVEAU PARTICULIER ; (iii) LES CAMPAGNES PUBLICITAIRES ATTEINDRONT DES RÉSULTATS COMMERCIAUX ; (iv) LE SERVICE SERA ININTERROMPU, OPPORTUN, SÉCURISÉ OU EXEMPT D&apos;ERREURS ; (v) LES DÉFAUTS SERONT CORRIGÉS ; OU (vi) LE SERVICE EST EXEMPT DE VIRUS OU D&apos;AUTRES COMPOSANTS NUISIBLES.
+            </LegalSubsection>
+            <LegalSubsection title="14.3 Contenu tiers">
+              SpinShare n&apos;approuve pas, ne vérifie pas et n&apos;assume pas la responsabilité de tout Contenu publicitaire, site web de destination ou produit ou service tiers annoncé via le Service. Toutes les transactions entre utilisateurs et annonceurs se font uniquement entre ces parties.
+            </LegalSubsection>
+            <LegalSubsection title="14.4 Risques liés à l&apos;extension et au Wrapper CLI">
+              SPINSHARE NE GARANTIT PAS QUE L&apos;EXTENSION OU LE WRAPPER CLI NE SERA PAS EN CONFLIT AVEC, N&apos;INTERFÉRERA PAS AVEC OU N&apos;ENDOMMAGERA PAS D&apos;AUTRES LOGICIELS, EXTENSIONS, PLUGINS, FICHIERS OU SYSTÈMES. VOUS ASSUMEZ TOUS LES RISQUES DE PERTE DE DONNÉES OU DE DOMMAGE SYSTÈME DÉCOULANT DE L&apos;INSTALLATION OU DE L&apos;UTILISATION DE L&apos;EXTENSION OU DU WRAPPER CLI.
+            </LegalSubsection>
+          </LegalSection>
+
+          <LegalSection id={15} title={titles[15] ?? ""}>
+            <LegalSubsection title="15.1 Exclusion des dommages indirects">
+              DANS LA MESURE MAXIMALE PERMISE PAR LA LOI, EN AUCUN CAS SPINSHARE, SES AFFILIÉS, DIRIGEANTS, ADMINISTRATEURS, EMPLOYÉS, AGENTS, FOURNISSEURS OU CONCÉDANTS DE LICENCE NE SERONT RESPONSABLES DE TOUT DOMMAGE INDIRECT, ACCESSOIRE, SPÉCIAL, CONSÉCUTIF, PUNITIF OU EXEMPLAIRE, Y COMPRIS MAIS SANS S&apos;Y LIMITER : PERTE DE PROFITS, PERTE DE REVENUS, PERTE DE DONNÉES, PERTE DE CLIENTÈLE, INTERRUPTION D&apos;ACTIVITÉ, DOMMAGE INFORMATIQUE, DÉFAILLANCE SYSTÈME OU COÛT DE SERVICES DE REMPLACEMENT, DÉCOULANT DE OU EN LIEN AVEC LE PRÉSENT CONTRAT OU L&apos;UTILISATION DU SERVICE, QUEL QUE SOIT LE FONDEMENT DE LA RESPONSABILITÉ.
+            </LegalSubsection>
+            <LegalSubsection title="15.2 Plafond de responsabilité">
+              LA RESPONSABILITÉ TOTALE AGRÉGÉE DE SPINSHARE DÉCOULANT DE OU LIÉE AU PRÉSENT CONTRAT NE DÉPASSERA PAS LE PLUS ÉLEVÉ DES MONTANTS SUIVANTS : (i) LE MONTANT QUE VOUS AVEZ PAYÉ À SPINSHARE AU COURS DES DOUZE (12) MOIS PRÉCÉDANT L&apos;ÉVÉNEMENT DONNANT LIEU À LA RESPONSABILITÉ ; OU (ii) CENT DOLLARS AMÉRICAINS (100,00 $).
+            </LegalSubsection>
+            <LegalSubsection title="15.3 Objet essentiel">
+              LES LIMITATIONS DE RESPONSABILITÉ ÉNONCÉES DANS LA PRÉSENTE SECTION 15 S&apos;APPLIQUERONT QUE SPINSHARE AIT ÉTÉ INFORMÉ OU NON DE LA POSSIBILITÉ DE TELS DOMMAGES ET QUE LES RECOURS LIMITÉS ÉCHOUENT OU NON À LEUR OBJET ESSENTIEL.
+            </LegalSubsection>
+          </LegalSection>
+
+          <LegalSection id={16} title={titles[16] ?? ""}>
+            <LegalSubsection title="16.1 Indemnisation par l&apos;utilisateur">
+              Vous acceptez de défendre, d&apos;indemniser et de tenir SpinShare et ses affiliés, dirigeants, administrateurs, employés et agents indemnes de toute réclamation, dommage, perte, responsabilité, coût et dépense (y compris les honoraires d&apos;avocat raisonnables) découlant de ou liés à : (i) votre utilisation du Service ; (ii) votre violation du présent Contrat ou de toute condition de tiers ; (iii) tout litige entre vous et votre employeur ou tout tiers concernant votre installation ou utilisation de l&apos;Extension ou du Wrapper CLI ; (iv) toute réclamation d&apos;Anthropic, Microsoft ou autre fournisseur de plateforme découlant de votre utilisation du Service ; et (v) votre violation de toute loi ou réglementation applicable.
+            </LegalSubsection>
+            <LegalSubsection title="16.2 Indemnisation de l&apos;annonceur">
+              Les Annonceurs acceptent de défendre, d&apos;indemniser et de tenir SpinShare indemne de toute réclamation, dommage, perte et dépense découlant de ou liés à : (i) le Contenu publicitaire et les produits ou services promus ; (ii) les sites web et pages d&apos;atterrissage de destination ; (iii) la contrefaçon de propriété intellectuelle ou d&apos;autres droits ; (iv) les allégations publicitaires fausses, trompeuses ou mensongères ; et (v) la violation de toute déclaration ou garantie aux présentes.
+            </LegalSubsection>
+            <LegalSubsection title="16.3 Procédure d&apos;indemnisation">
+              SpinShare fournira un avis rapide de toute réclamation soumise à indemnisation. La partie indemnisante aura le droit de contrôler la défense et le règlement de cette réclamation, à condition que SpinShare puisse participer avec un conseil de son choix à ses propres frais. La partie indemnisante ne réglera aucune réclamation d&apos;une manière qui affecte défavorablement les droits de SpinShare sans consentement écrit préalable.
+            </LegalSubsection>
+          </LegalSection>
+
+          <LegalSection id={17} title={titles[17] ?? ""}>
+            <LegalSubsection title="17.1 Résolution informelle">
+              Avant d&apos;initier toute procédure formelle de résolution de litige, vous acceptez de contacter d&apos;abord SpinShare de manière informelle pour tenter de résoudre le litige. Les deux parties acceptent de négocier de bonne foi pendant une période d&apos;au moins trente (30) jours suivant la notification écrite du litige.
+            </LegalSubsection>
+            <LegalSubsection title="17.2 Arbitrage obligatoire">
+              SAUF POUR LES LITIGES RELATIFS AUX DROITS DE PROPRIÉTÉ INTELLECTUELLE OU LES DEMANDES DE MESURES INJONCTIVES, TOUT LITIGE DÉCOULANT DE OU LIÉ AU PRÉSENT CONTRAT SERA RÉSOLU PAR UN ARBITRAGE OBLIGATOIRE ADMINISTRÉ PAR L&apos;AMERICAN ARBITRATION ASSOCIATION (« AAA ») CONFORMÉMENT À SES RÈGLES D&apos;ARBITRAGE COMMERCIAL. L&apos;ARBITRAGE SERA CONDUIT PAR VISIOCONFÉRENCE OU, SI UNE AUDIENCE EST REQUISE, DANS UN LIEU CONVENU MUTUELLEMENT. LE JUGEMENT SUR LA SENTENCE PEUT ÊTRE RENDU PAR TOUT TRIBUNAL COMPÉTENT.
+            </LegalSubsection>
+            <LegalSubsection title="17.3 Renonciation aux recours collectifs">
+              VOUS ACCEPTEZ QUE TOUTE PROCÉDURE, QU&apos;ELLE SOIT EN ARBITRAGE OU DEVANT UN TRIBUNAL, NE SERA CONDUITE QU&apos;À TITRE INDIVIDUEL ET NON DANS LE CADRE D&apos;UN RECOURS COLLECTIF, CONSOLIDÉ OU REPRÉSENTATIF. VOUS RENONCEZ À TOUT DROIT DE PARTICIPER À DES RECOURS COLLECTIFS, DES ACTIONS DE PROCUREUR GÉNÉRAL PRIVÉ OU À UN ARBITRAGE COLLECTIF.
+            </LegalSubsection>
+            <LegalSubsection title="17.4 Renonciation au procès devant jury">
+              DANS LA MESURE PERMISE PAR LA LOI, LES DEUX PARTIES RENONCENT À TOUT DROIT À UN PROCÈS DEVANT JURY DANS TOUTE PROCÉDURE JUDICIAIRE DÉCOULANT DE OU LIÉE AU PRÉSENT CONTRAT.
+            </LegalSubsection>
+            <LegalSubsection title="17.5 Droit applicable">
+              Le présent Contrat est régi et interprété conformément aux lois de l&apos;État de Californie, sans égard à ses principes de conflit de lois.
+            </LegalSubsection>
+            <LegalSubsection title="17.6 Mesures injonctives">
+              Nonobstant les dispositions d&apos;arbitrage ci-dessus, chaque partie peut demander une mesure injonctive ou autre mesure équitable devant tout tribunal compétent pour prévenir un préjudice irréparable en attendant l&apos;arbitrage.
+            </LegalSubsection>
+          </LegalSection>
+
+          <LegalSection id={18} title={titles[18] ?? ""}>
+            <LegalSubsection title="18.1 Portée">
+              La présente section complète les divulgations de confidentialité de la Politique de confidentialité et décrit les droits qui peuvent s&apos;appliquer à vous selon votre lieu de résidence. Les droits applicables dépendent de votre juridiction et de nos obligations en vertu de la loi pertinente.
+            </LegalSubsection>
+            <LegalSubsection title="18.2 Californie (CCPA / CPRA)">
+              Si vous êtes résident de Californie, vous avez le droit de : (i) demander la divulgation des catégories et des éléments spécifiques d&apos;informations personnelles que nous avons collectés ; (ii) demander la suppression d&apos;informations personnelles ; (iii) demander la correction d&apos;informations personnelles inexactes ; (iv) vous opposer à la vente ou au partage d&apos;informations personnelles ; et (v) ne pas faire l&apos;objet d&apos;un traitement discriminatoire pour l&apos;exercice de ces droits. SpinShare ne vend ni ne partage d&apos;informations personnelles au sens défini par le CCPA. Pour exercer ces droits, contactez-nous à l&apos;adresse indiquée à la section 22.
+            </LegalSubsection>
+            <LegalSubsection title="18.3 Union européenne et Royaume-Uni (RGPD / UK GDPR)">
+              Si vous êtes dans l&apos;UE ou au Royaume-Uni, nos bases juridiques de traitement sont : l&apos;exécution d&apos;un contrat (fourniture du Service et crédit des gains), nos intérêts légitimes (exploitation, sécurisation et amélioration du Service, prévention de la fraude) et l&apos;obligation légale (fiscalité, comptabilité et conformité). Vous avez le droit d&apos;accéder, de rectifier, d&apos;effacer, de restreindre ou de vous opposer au traitement de vos données personnelles, et le droit à la portabilité des données. Vous avez également le droit de déposer une plainte auprès d&apos;une autorité de contrôle de votre juridiction.
+            </LegalSubsection>
+            <LegalSubsection title="18.4 Canada (LPRPDE)">
+              Si vous êtes au Canada, vous pouvez demander l&apos;accès à vos informations personnelles et leur correction en vertu de la Loi sur la protection des renseignements personnels et les documents électroniques (« LPRPDE ») et des lois provinciales applicables en matière de confidentialité. Pour exercer ces droits, contactez-nous à support@spinshare.dev. Si vous n&apos;êtes pas satisfait de notre réponse, vous pouvez contacter le Commissariat à la protection de la vie privée du Canada.
+            </LegalSubsection>
+            <LegalSubsection title="18.5 Autres lois étatiques américaines sur la confidentialité">
+              Les résidents de Virginie (VCDPA), du Colorado (CPA), du Connecticut (CTDPA), de l&apos;Utah (UCPA) et d&apos;autres États américains disposant de lois comparables sur la confidentialité peuvent avoir des droits supplémentaires, y compris le droit de confirmer si nous traitons vos informations personnelles, d&apos;y accéder et de les corriger, d&apos;obtenir une copie portable et de vous opposer à la publicité ciblée ou à la vente d&apos;informations personnelles (dont nous ne faisons ni l&apos;une ni l&apos;autre). Pour exercer vos droits en vertu de ces lois, contactez-nous à support@spinshare.dev.
+            </LegalSubsection>
+          </LegalSection>

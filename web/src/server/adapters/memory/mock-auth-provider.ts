@@ -29,6 +29,7 @@ import {
   type Clock,
   type IdGenerator,
 } from "./clock";
+import { generateShortUserCode } from "../auth/device-user-code";
 
 /** Loose environment view used to resolve the verification URL. */
 type AuthEnv = Record<string, string | undefined>;
@@ -82,7 +83,7 @@ export class MockAuthProvider implements AuthProvider {
 
   async startDeviceFlow(): Promise<DeviceFlowHandle> {
     const deviceCode = this.ids.next("dc");
-    const userCode = this.ids.next("uc").toUpperCase();
+    const userCode = generateShortUserCode();
     const verificationUri = resolveVerificationUri(this.env);
     this.devices.set(deviceCode, {
       userCode,

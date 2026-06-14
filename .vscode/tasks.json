@@ -4,7 +4,7 @@
     {
       "label": "build-extension",
       "type": "shell",
-      "command": "corepack pnpm@9.12.0 --filter @spinshare/vscode-extension build",
+      "command": "corepack pnpm@9.12.0 --filter ./vscode-extension build",
       "options": {
         "cwd": "${workspaceFolder}"
       },

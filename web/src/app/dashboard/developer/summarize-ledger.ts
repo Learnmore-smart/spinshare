@@ -33,6 +33,8 @@ export interface LedgerActivityRow {
   developerCreditCents: number;
   /** `developerCreditCents` formatted as a USD string, e.g. "0.18". */
   developerCreditUsd: string;
+  /** When the impression was recorded, if known. */
+  createdAtMs?: number;
 }
 
 /** One point of the earnings-over-time chart series. */
@@ -58,12 +60,80 @@ export interface DeveloperDashboardSummary {
   totalEarningsCents: number;
   /** `totalEarningsCents` formatted as a USD string for the KPI card. */
   totalEarningsUsd: string;
+  /** Credits recorded since UTC midnight today, in integer cents. */
+  todayEarningsCents: number;
+  /** `todayEarningsCents` formatted as a USD string. */
+  todayEarningsUsd: string;
+  /** Credits in the rolling last 60 minutes, in integer cents. */
+  hourlyEarningsCents: number;
+  /** `hourlyEarningsCents` formatted as a USD string. */
+  hourlyEarningsUsd: string;
+  /** Credits recorded in the current calendar month, in integer cents. */
+  monthEarningsCents: number;
+  /** `monthEarningsCents` formatted as a USD string. */
+  monthEarningsUsd: string;
   /** Number of recorded impressions (== number of activity rows). */
   impressionCount: number;
   /** Cumulative earnings series for the chart, one point per impression. */
   series: EarningsSeriesPoint[];
   /** One activity-table row per impression, in recording order. */
   rows: LedgerActivityRow[];
+}
+
+function startOfUtcDayMs(now = Date.now()): number {
+  const d = new Date(now);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+}
+
+function startOfUtcMonthMs(now = Date.now()): number {
+  const d = new Date(now);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
+}
+
+function formatShortUtcDate(ms: number): string {
+  return new Date(ms).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+export type ChartRange = "24h" | "7d" | "30d" | "all";
+
+const CHART_RANGE_MS: Record<Exclude<ChartRange, "all">, number> = {
+  "24h": 24 * 60 * 60 * 1000,
+  "7d": 7 * 24 * 60 * 60 * 1000,
+  "30d": 30 * 24 * 60 * 60 * 1000,
+};
+
+/** Builds a cumulative chart series for entries inside a time window. */
+export function buildChartSeries(
+  rows: readonly LedgerActivityRow[],
+  range: ChartRange,
+  now = Date.now(),
+): EarningsSeriesPoint[] {
+  const inRange =
+    range === "all"
+      ? rows
+      : rows.filter((row) => {
+          const cutoff = now - CHART_RANGE_MS[range];
+          return row.createdAtMs === undefined || row.createdAtMs >= cutoff;
+        });
+  let cumulativeCents = 0;
+  return inRange.map((row, index) => {
+    cumulativeCents += row.developerCreditCents;
+    const sequence = index + 1;
+    return {
+      sequence,
+      label:
+        row.createdAtMs !== undefined
+          ? formatShortUtcDate(row.createdAtMs)
+          : `#${row.sequence}`,
+      creditCents: row.developerCreditCents,
+      cumulativeCents,
+      cumulativeUsd: cumulativeCents / 100,
+    };
+  });
 }
 
 /**
@@ -88,11 +158,24 @@ export function summarizeLedger(
   const rows: LedgerActivityRow[] = [];
   const series: EarningsSeriesPoint[] = [];
   let totalEarningsCents = 0;
+  let todayEarningsCents = 0;
+  let hourlyEarningsCents = 0;
+  let monthEarningsCents = 0;
+  const dayStart = startOfUtcDayMs();
+  const monthStart = startOfUtcMonthMs();
+  const hourStart = Date.now() - 60 * 60 * 1000;
 
   entries.forEach((entry, index) => {
     const sequence = index + 1;
     const credit = entry.developerCreditCents;
     totalEarningsCents += credit;
+
+    const atMs = entry.createdAtMs;
+    if (atMs !== undefined) {
+      if (atMs >= hourStart) hourlyEarningsCents += credit;
+      if (atMs >= dayStart) todayEarningsCents += credit;
+      if (atMs >= monthStart) monthEarningsCents += credit;
+    }
 
     rows.push({
       entryId: entry.entryId,
@@ -100,11 +183,12 @@ export function summarizeLedger(
       campaignId: entry.campaignId,
       developerCreditCents: credit,
       developerCreditUsd: formatCentsAsUsd(credit),
+      ...(atMs !== undefined ? { createdAtMs: atMs } : {}),
     });
 
     series.push({
       sequence,
-      label: `#${sequence}`,
+      label: atMs !== undefined ? formatShortUtcDate(atMs) : `#${sequence}`,
       creditCents: credit,
       cumulativeCents: totalEarningsCents,
       cumulativeUsd: totalEarningsCents / 100,
@@ -114,6 +198,12 @@ export function summarizeLedger(
   return {
     totalEarningsCents,
     totalEarningsUsd: formatCentsAsUsd(totalEarningsCents),
+    todayEarningsCents,
+    todayEarningsUsd: formatCentsAsUsd(todayEarningsCents),
+    hourlyEarningsCents,
+    hourlyEarningsUsd: formatCentsAsUsd(hourlyEarningsCents),
+    monthEarningsCents,
+    monthEarningsUsd: formatCentsAsUsd(monthEarningsCents),
     impressionCount: entries.length,
     series,
     rows,

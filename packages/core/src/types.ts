@@ -100,6 +100,8 @@ export interface LedgerEntry {
   developerCreditCents: number;
   /** Platform retention in micro-cents (revenue − developer credit). */
   spinshareRetentionMicrocents: number;
+  /** Epoch millis when the impression was durably recorded (optional for legacy rows). */
+  createdAtMs?: number;
 }
 
 // ---------------------------------------------------------------------------

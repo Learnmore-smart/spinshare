@@ -33,6 +33,7 @@ export interface FetchResponseLike {
   ok: boolean;
   status: number;
   json(): Promise<unknown>;
+  text(): Promise<string>;
 }
 
 /** Injectable `fetch`-compatible function. */
@@ -63,7 +64,7 @@ export interface CliApiClientOptions {
 }
 
 /** Default SpinShare web base URL; overridable via env/config. */
-export const DEFAULT_BASE_URL = "https://spinshare.dev";
+export const DEFAULT_BASE_URL = "https://www.spinshare.dev";
 
 /**
  * Resolve the API base URL from explicit option → environment → default.
@@ -93,6 +94,23 @@ function resolveDefaultFetch(): FetchLike {
     throw new Error("No global fetch available; pass a fetchImpl to CliApiClient.");
   }
   return globalFetch as FetchLike;
+}
+
+/** Parse a fetch body as JSON; throw a helpful error when the server returns HTML. */
+export async function readJsonBody(
+  res: FetchResponseLike,
+  context: string,
+): Promise<unknown> {
+  const raw = await res.text();
+  try {
+    return JSON.parse(raw) as unknown;
+  } catch {
+    const html = raw.trimStart().startsWith("<!");
+    const hint = html
+      ? `Server returned HTML instead of JSON — is SpinShare deployed at this URL? For local dev run \`pnpm dev\` then \`pnpm cli:login:local\` (or set SPINSHARE_BASE_URL=http://localhost:3000).`
+      : "Server returned a non-JSON response.";
+    throw new Error(`${context} (${res.status}): ${hint}`);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -135,6 +153,8 @@ export type DeviceTokenPoll =
 
 /** Minimal interface the `login` flow depends on; {@link CliApiClient} implements it. */
 export interface DeviceAuthApi {
+  /** Optional — printed at the start of `spinshare login`. */
+  getBaseUrl?(): string;
   startDeviceFlow(): Promise<DeviceFlowStart>;
   pollDeviceToken(deviceCode: string): Promise<DeviceTokenPoll>;
 }
@@ -290,6 +310,11 @@ export class CliApiClient implements DeviceAuthApi {
     this.fetchImpl = options.fetchImpl ?? resolveDefaultFetch();
   }
 
+  /** Resolved API base URL (for status messages in `spinshare login`). */
+  getBaseUrl(): string {
+    return this.baseUrl;
+  }
+
   private authHeaders(): Record<string, string> {
     const bearer = this.tokenProvider();
     return bearer ? { Authorization: `Bearer ${bearer}` } : {};
@@ -319,7 +344,8 @@ export class CliApiClient implements DeviceAuthApi {
     if (!res.ok) {
       throw new Error(`Failed to start device flow (status ${res.status}).`);
     }
-    const parsed = parseDeviceFlowStart(await res.json());
+    const body = await readJsonBody(res, "device/start failed");
+    const parsed = parseDeviceFlowStart(body);
     if (parsed === null) {
       throw new Error("Malformed device-flow start response.");
     }
@@ -339,7 +365,8 @@ export class CliApiClient implements DeviceAuthApi {
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ deviceCode }),
       });
-      return parseDeviceTokenResponse(res.status, await res.json());
+      const body = await readJsonBody(res, "device/token failed");
+      return parseDeviceTokenResponse(res.status, body);
     } catch (err) {
       return {
         status: "error",

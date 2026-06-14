@@ -33,6 +33,7 @@ export interface FetchResponseLike {
   ok: boolean;
   status: number;
   json(): Promise<unknown>;
+  text(): Promise<string>;
 }
 
 /** Injectable `fetch`-compatible function. */
@@ -55,7 +56,7 @@ export interface AdApiClientOptions {
 }
 
 /** Default SpinShare web base URL; overridable via extension settings. */
-export const DEFAULT_BASE_URL = "https://spinshare.dev";
+export const DEFAULT_BASE_URL = "https://www.spinshare.dev";
 
 function resolveDefaultFetch(): FetchLike {
   const globalFetch = (globalThis as { fetch?: unknown }).fetch;
@@ -279,10 +280,22 @@ export class AdApiClient {
       },
       body: JSON.stringify({}),
     });
+    const raw = await res.text();
+    let body: unknown;
+    try {
+      body = JSON.parse(raw) as unknown;
+    } catch {
+      const hint = raw.trimStart().startsWith("<!")
+        ? "Server returned HTML instead of JSON — is SpinShare deployed? For local dev set spinshare.baseUrl to http://localhost:3000."
+        : "Server returned a non-JSON response.";
+      throw new Error(
+        `device/start failed (${res.status}): ${hint}`,
+      );
+    }
     if (!res.ok) {
       throw new Error(`device/start failed with status ${res.status}`);
     }
-    const parsed = parseDeviceFlowStart(await res.json());
+    const parsed = parseDeviceFlowStart(body);
     if (parsed === null) {
       throw new Error("device/start returned a malformed payload");
     }

@@ -8,14 +8,19 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "corepack pnpm@9.12.0 --filter @spinshare/core build && corepack pnpm@9.12.0 --filter @spinshare/cli build && corepack pnpm@9.12.0 --filter @spinshare/vscode-extension build && corepack pnpm@9.12.0 --filter @spinshare/web build",
+    "build": "corepack pnpm@9.12.0 --filter @spinshare/core build && corepack pnpm@9.12.0 --filter @spinshare/cli build && corepack pnpm@9.12.0 --filter ./vscode-extension build && corepack pnpm@9.12.0 --filter @spinshare/web build",
     "dev": "corepack pnpm@9.12.0 --filter @spinshare/web dev",
-    "test": "corepack pnpm@9.12.0 --filter @spinshare/core test && corepack pnpm@9.12.0 --filter @spinshare/web test && corepack pnpm@9.12.0 --filter @spinshare/cli test && corepack pnpm@9.12.0 --filter @spinshare/vscode-extension test",
+    "test": "corepack pnpm@9.12.0 --filter @spinshare/core test && corepack pnpm@9.12.0 --filter @spinshare/web test && corepack pnpm@9.12.0 --filter @spinshare/cli test && corepack pnpm@9.12.0 --filter ./vscode-extension test",
     "test:e2e": "corepack pnpm@9.12.0 --filter @spinshare/web test:e2e",
-    "lint": "corepack pnpm@9.12.0 --filter @spinshare/core lint && corepack pnpm@9.12.0 --filter @spinshare/web lint && corepack pnpm@9.12.0 --filter @spinshare/cli lint && corepack pnpm@9.12.0 --filter @spinshare/vscode-extension lint",
+    "lint": "corepack pnpm@9.12.0 --filter @spinshare/core lint && corepack pnpm@9.12.0 --filter @spinshare/web lint && corepack pnpm@9.12.0 --filter @spinshare/cli lint && corepack pnpm@9.12.0 --filter ./vscode-extension lint",
     "emulators": "npx --yes firebase-tools emulators:start --only firestore",
     "deploy:indexes": "node web/scripts/deploy-firestore-indexes.mjs",
-    "verify:prod-env": "node web/scripts/verify-prod-env.mjs --strict-production"
+    "verify:prod-env": "node web/scripts/verify-prod-env.mjs --strict-production",
+    "cli": "node cli-wrapper/dist/index.js",
+    "cli:login": "node cli-wrapper/dist/index.js login",
+    "cli:login:local": "node cli-wrapper/scripts/run-local.mjs login",
+    "cli:test": "node cli-wrapper/dist/index.js node cli-wrapper/fake-ai.js",
+    "cli:test:local": "node cli-wrapper/scripts/run-local.mjs node fake-ai.js"
   },
   "devDependencies": {
     "@types/node": "^22.5.0",

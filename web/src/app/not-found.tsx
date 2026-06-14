@@ -8,6 +8,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import { SiteFooter } from "@/components/SiteFooter";
+import { SpinShareWordmark } from "@/components/SpinShareWordmark";
 import { useT } from "@/lib/i18n/locale-provider";
 
 export default function NotFound() {
@@ -31,7 +32,7 @@ export default function NotFound() {
               height={36}
               className="h-9 w-9 rounded-[8px] object-contain shadow-[0_10px_24px_rgba(22,163,74,0.24)]"
             />
-            <span className="text-xl font-black tracking-tight">SpinShare</span>
+            <SpinShareWordmark className="text-xl" />
           </Link>
 
           <nav className="hidden items-center gap-6 text-sm font-bold text-slate-600 md:flex">

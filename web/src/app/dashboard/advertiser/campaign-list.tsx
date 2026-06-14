@@ -22,6 +22,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useT } from "@/lib/i18n/locale-provider";
+import { translateValidationError } from "@/lib/i18n/translate-validation-error";
 
 import { formatUsd, validateFundingDollars, type CampaignView } from "./lib";
 
@@ -34,15 +36,14 @@ export interface CampaignListProps {
 }
 
 export function CampaignList({ token, campaigns }: CampaignListProps) {
+  const t = useT();
   if (campaigns.length === 0) {
     return (
       <Card data-testid="campaigns-empty">
         <CardHeader>
-          <CardTitle className="text-primary">No campaigns yet</CardTitle>
+          <CardTitle className="text-primary">{t.advertiserDashboard.noCampaignsTitle}</CardTitle>
           <CardDescription>
-            Create your first campaign above. Once it&apos;s live and funded, it
-            will start bidding for ad slots during developers&apos; AI wait
-            states.
+            {t.advertiserDashboard.noCampaignsDesc}
           </CardDescription>
         </CardHeader>
       </Card>
@@ -68,6 +69,7 @@ function CampaignCard({
   token: string;
   campaign: CampaignView;
 }) {
+  const t = useT();
   const [amount, setAmount] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -77,7 +79,7 @@ function CampaignCard({
 
     const result = validateFundingDollars(amount);
     if (!result.ok) {
-      setError(result.error);
+      setError(translateValidationError(result.error, t));
       return;
     }
 
@@ -105,14 +107,14 @@ function CampaignCard({
         const body = (await response.json().catch(() => null)) as
           | { error?: string }
           | null;
-        setError(body?.error ?? "The amount was rejected.");
+        setError(body?.error ?? t.advertiserDashboard.amountRejected);
       } else if (response.status === 401) {
-        setError("Your session has expired. Refresh the page to sign in again.");
+        setError(t.advertiserDashboard.sessionExpired);
       } else {
-        setError(`Could not start checkout (error ${response.status}).`);
+        setError(t.advertiserDashboard.checkoutError(response.status));
       }
     } catch {
-      setError("Could not reach the server. Check your connection and try again.");
+      setError(t.advertiserDashboard.networkError);
     } finally {
       setBusy(false);
     }
@@ -126,13 +128,13 @@ function CampaignCard({
         </CardTitle>
         <CardDescription className="flex flex-wrap gap-x-6 gap-y-1">
           <span>
-            Remaining budget:{" "}
+            {t.advertiserDashboard.remainingBudget}{" "}
             <span className="font-medium text-primary tabular-nums">
               {formatUsd(campaign.budgetCents)}
             </span>
           </span>
           <span>
-            Max CPM:{" "}
+            {t.advertiserDashboard.maxCpm}{" "}
             <span className="font-medium text-foreground tabular-nums">
               {formatUsd(campaign.cpmCents)}
             </span>
@@ -148,7 +150,7 @@ function CampaignCard({
             htmlFor={`funds-${campaign.id}`}
             className="text-sm font-medium"
           >
-            Add funds (USD)
+            {t.advertiserDashboard.addFundsLabel}
           </label>
           <div className="flex flex-wrap items-start gap-2">
             <input
@@ -160,7 +162,7 @@ function CampaignCard({
               step="0.01"
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
-              placeholder="25.00"
+              placeholder={t.advertiserDashboard.addFundsPlaceholder}
               className="w-40 spinshare-input px-3 py-2 text-sm"
             />
             <Button
@@ -171,11 +173,11 @@ function CampaignCard({
                 void addFunds();
               }}
             >
-              {busy ? "Redirecting…" : "Add Funds"}
+              {busy ? t.advertiserDashboard.redirecting : t.advertiserDashboard.addFunds}
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Between $1.00 and $100,000.00. You&apos;ll complete payment on Stripe.
+            {t.advertiserDashboard.addFundsHint}
           </p>
           {error !== null && (
             <p className="text-sm text-destructive" role="alert">

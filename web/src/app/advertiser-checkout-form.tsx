@@ -10,6 +10,8 @@ import {
   formatUsd,
   validateCpmDollars,
 } from "./dashboard/advertiser/lib";
+import { useT } from "@/lib/i18n/locale-provider";
+import { translateValidationError } from "@/lib/i18n/translate-validation-error";
 
 const ICON_MAX_BYTES = 64 * 1024;
 const ICON_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
@@ -38,6 +40,7 @@ function parseBlockCount(value: string): number | null {
 }
 
 export default function AdvertiserCheckoutForm() {
+  const t = useT();
   const [email, setEmail] = useState("");
   const [adText, setAdText] = useState("");
   const [destinationUrl, setDestinationUrl] = useState("");
@@ -70,19 +73,19 @@ export default function AdvertiserCheckoutForm() {
       return;
     }
     if (!ICON_TYPES.has(file.type)) {
-      setError("Brand icon must be a PNG, JPG, or WebP image.");
+      setError(t.errors.iconType);
       event.target.value = "";
       return;
     }
     if (file.size > ICON_MAX_BYTES) {
-      setError("Brand icon must be 64 KB or smaller.");
+      setError(t.errors.iconSize);
       event.target.value = "";
       return;
     }
     try {
       setBrandIconDataUrl(await readFileAsDataUrl(file));
     } catch {
-      setError("Could not read the brand icon. Try another image.");
+      setError(t.errors.iconRead);
       event.target.value = "";
     }
   }
@@ -96,20 +99,20 @@ export default function AdvertiserCheckoutForm() {
         setAdLineShake(true);
         setTimeout(() => setAdLineShake(false), 500);
       } else {
-        setError(`Ad line must be at most ${AD_TEXT_MAX_LENGTH} characters.`);
+        setError(t.errors.adLineMaxLength(AD_TEXT_MAX_LENGTH));
       }
       return;
     }
     if (!cpm.ok) {
-      setError(cpm.error);
+      setError(translateValidationError(cpm.error, t));
       return;
     }
     if (blocks === null) {
-      setError("Enter a whole number of blocks.");
+      setError(t.errors.blocksWholeNumber);
       return;
     }
     if (amountCents < 100) {
-      setError("Checkout total must be at least $1.00.");
+      setError(t.errors.checkoutMinTotal);
       return;
     }
 
@@ -135,13 +138,13 @@ export default function AdvertiserCheckoutForm() {
         | null;
 
       if (!response.ok || typeof body?.url !== "string") {
-        setError(body?.error ?? `Checkout failed with status ${response.status}.`);
+        setError(body?.error ?? t.errors.checkoutFailed(response.status));
         return;
       }
 
       window.location.assign(body.url);
     } catch {
-      setError("Could not reach checkout. Check your connection and try again.");
+      setError(t.errors.checkoutNetwork);
     } finally {
       setSubmitState("idle");
     }
@@ -153,25 +156,26 @@ export default function AdvertiserCheckoutForm() {
         <div className="grid gap-8 lg:grid-cols-[minmax(0,0.82fr)_minmax(360px,1fr)] lg:items-start">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600">
-              Advertisers
+              {t.nav.advertisers}
             </p>
             <h3 className="mt-2 max-w-2xl text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
-              Bid live for the most-watched spinner.
+              {t.advertiser.title}
             </h3>
             <p className="mt-3 max-w-xl text-sm font-semibold leading-6 text-slate-600">
-              Each block buys 1,000 five-second impressions. Higher bids rank first;
-              private bids still run, but stay off the public market table.
+              {t.advertiser.body}
             </p>
 
             <div className="mt-6 rounded-[14px] border border-emerald-500/20 bg-emerald-50/60 p-4">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">
-                    Estimated total
+                    {t.advertiser.estimatedTotal}
                   </p>
                   <p className="mt-1 text-sm font-bold text-emerald-950">
-                    {blocks ?? 0} block{blocks === 1 ? "" : "s"} at{" "}
-                    {cpm.ok ? formatUsd(cpm.cents) : "$0.00"} per block
+                    {t.advertiser.blocksAtPrice(
+                      blocks ?? 0,
+                      cpm.ok ? formatUsd(cpm.cents) : "$0.00",
+                    )}
                   </p>
                 </div>
                 <p className="shrink-0 text-4xl font-black tracking-tight text-slate-950">
@@ -183,17 +187,17 @@ export default function AdvertiserCheckoutForm() {
                   <p className="text-lg font-black text-slate-950">
                     {cpm.ok ? formatUsd(cpm.cents) : "$0.00"}
                   </p>
-                  <p className="text-xs font-bold text-slate-500">per block</p>
+                  <p className="text-xs font-bold text-slate-500">{t.advertiser.perBlock}</p>
                 </div>
                 <div className="rounded-[10px] bg-white/75 p-3">
                   <p className="text-lg font-black text-slate-950">{blocks ?? 0}</p>
-                  <p className="text-xs font-bold text-slate-500">blocks</p>
+                  <p className="text-xs font-bold text-slate-500">{t.advertiser.blocks}</p>
                 </div>
                 <div className="rounded-[10px] bg-white/75 p-3">
                   <p className="text-lg font-black text-slate-950">
                     {((blocks ?? 0) * 1000).toLocaleString("en-US")}
                   </p>
-                  <p className="text-xs font-bold text-slate-500">total views</p>
+                  <p className="text-xs font-bold text-slate-500">{t.advertiser.totalViews}</p>
                 </div>
               </div>
             </div>
@@ -202,22 +206,22 @@ export default function AdvertiserCheckoutForm() {
           <form onSubmit={handleSubmit} className="grid gap-4" noValidate>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="grid gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
-                EMAIL
+                {t.advertiser.email}
                 <input
                   type="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  placeholder="you@example.com"
+                  placeholder={t.advertiser.emailPlaceholder}
                   className="spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal"
                 />
               </label>
               <label className="grid gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
-                Destination URL
+                {t.advertiser.destinationUrl}
                 <input
                   type="url"
                   value={destinationUrl}
                   onChange={(event) => setDestinationUrl(event.target.value)}
-                  placeholder="https://www.learnx.pro"
+                  placeholder={t.advertiser.destinationPlaceholder}
                   className="spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal"
                 />
               </label>
@@ -225,7 +229,7 @@ export default function AdvertiserCheckoutForm() {
 
             <label className="grid gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
               <span className="flex items-center justify-between gap-3">
-                <span>Ad line - 3-60 char</span>
+                <span>{t.advertiser.adLine}</span>
                 <span className={`tabular-nums ${counterClass}`}>
                   {text.length}/{AD_TEXT_MAX_LENGTH}
                 </span>
@@ -235,25 +239,25 @@ export default function AdvertiserCheckoutForm() {
                 value={adText}
                 maxLength={AD_TEXT_MAX_LENGTH}
                 onChange={(event) => { setAdText(event.target.value); if (adLineShake) setAdLineShake(false); }}
-                placeholder="LearnX - Know exactly what to study"
+                placeholder={t.advertiser.adLinePlaceholder}
                 className={`spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal${adLineShake ? " !border-red-500 !ring-2 !ring-red-300 animate-shake" : ""}`}
               />
             </label>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="grid gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
-                Brand name
+                {t.advertiser.brandName}
                 <input
                   type="text"
                   value={brandName}
                   onChange={(event) => setBrandName(event.target.value)}
-                  placeholder="Linear"
+                  placeholder={t.advertiser.brandNamePlaceholder}
                   className="spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal"
                 />
               </label>
 
               <label className="grid gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
-                Brand icon
+                {t.advertiser.brandIcon}
                 <span className="spinshare-input flex min-h-[42px] cursor-pointer items-center justify-between gap-3 px-3 py-2.5 text-sm font-semibold normal-case tracking-normal text-slate-500">
                   <span className="flex min-w-0 items-center gap-2">
                     {brandIconDataUrl ? (
@@ -262,7 +266,7 @@ export default function AdvertiserCheckoutForm() {
                       <Upload className="h-4 w-4 shrink-0" />
                     )}
                     <span className="truncate">
-                      {brandIconDataUrl ? "Icon ready" : "PNG, JPG, WebP <= 64 KB"}
+                      {brandIconDataUrl ? t.advertiser.iconReady : t.advertiser.iconHint}
                     </span>
                   </span>
                   <input
@@ -278,7 +282,7 @@ export default function AdvertiserCheckoutForm() {
             <label className="flex cursor-pointer items-center justify-between gap-4 rounded-[12px] border border-emerald-500/20 bg-white/60 px-3 py-2.5 text-sm font-bold text-slate-700">
               <span className="flex min-w-0 items-center gap-2">
                 <Lock className="h-4 w-4 shrink-0 text-emerald-700" />
-                <span>Show me on the public leaderboard</span>
+                <span>{t.advertiser.showOnLeaderboard}</span>
               </span>
               <span className="relative shrink-0">
                 <input
@@ -295,7 +299,7 @@ export default function AdvertiserCheckoutForm() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="grid gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
-                Bid per block
+                {t.advertiser.bidPerBlock}
                 <input
                   type="number"
                   min="0.01"
@@ -308,7 +312,7 @@ export default function AdvertiserCheckoutForm() {
                 />
               </label>
               <label className="grid gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
-                Number of blocks
+                {t.advertiser.numberOfBlocks}
                 <input
                   type="number"
                   min="1"
@@ -332,7 +336,7 @@ export default function AdvertiserCheckoutForm() {
               disabled={submitState === "submitting"}
               className="spinshare-btn-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitState === "submitting" ? "Opening Stripe..." : "Checkout now on Stripe"}
+              {submitState === "submitting" ? t.advertiser.openingStripe : t.advertiser.checkoutStripe}
               <ArrowRight className="h-4 w-4" />
             </button>
           </form>

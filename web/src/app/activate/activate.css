@@ -1,0 +1,30 @@
+/* Device authorization page — matches sign-in emerald theme (theme.css). */
+
+.spinshare-activate-page {
+  background-color: var(--bg-page);
+  font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  color: var(--text-primary);
+}
+
+.spinshare-activate-card {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 24px;
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.82) 0%, rgba(240, 253, 244, 0.7) 45%, rgba(209, 250, 229, 0.56) 100%);
+  backdrop-filter: blur(30px) saturate(175%);
+  -webkit-backdrop-filter: blur(30px) saturate(175%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.98),
+    inset 0 18px 22px -24px rgba(255, 255, 255, 0.95),
+    inset 0 -22px 34px -30px rgba(6, 78, 59, 0.32),
+    0 18px 30px -22px rgba(6, 78, 59, 0.28),
+    0 40px 78px -36px rgba(6, 78, 59, 0.3);
+}
+
+.spinshare-activate-card > * {
+  position: relative;
+  z-index: 1;
+}
