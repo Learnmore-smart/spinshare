@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+*.md
+public
+cli-wrapper
+vscode-extension
+docs
+.ai
+.kiro
+.trae
+.vscode
+.playwright-mcp

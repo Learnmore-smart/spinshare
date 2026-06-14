@@ -337,13 +337,14 @@ export default function HomePage() {
           <div className="flex items-center gap-2">
             <Link
               href="/signin?role=developer"
-              className="spinshare-btn-outline hidden h-10 items-center px-4 text-sm sm:inline-flex"
+              className="spinshare-btn-outline inline-flex h-10 items-center px-3 text-sm sm:px-4"
             >
-              User login
+              <span className="sm:hidden">Login</span>
+              <span className="hidden sm:inline">User login</span>
             </Link>
             <Link
               href={DEVELOPER_SIGNIN_HREF}
-              className="spinshare-btn-primary inline-flex h-10 items-center gap-2 px-5 text-sm"
+              className="spinshare-btn-primary inline-flex h-10 items-center gap-2 px-4 text-sm sm:px-5"
             >
               <MoneyIcon />
               Install

@@ -238,13 +238,13 @@
 }
 
 .spinshare-btn-primary:hover {
-  background-color: var(--color-primary-400);
+  background-color: var(--color-primary-700);
   transform: translateY(-1px);
   box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.6),
-    inset 0 2px 6px 0 rgba(255, 255, 255, 0.3),
-    inset 0 -2px 6px 0 rgba(6, 78, 59, 0.15),
-    0 8px 24px var(--shadow-accent-btn-hover);
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
+    inset 0 2px 6px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -2px 6px 0 rgba(6, 78, 59, 0.2),
+    0 6px 18px var(--shadow-accent-btn);
 }
 
 .spinshare-btn-primary:active {
@@ -391,4 +391,24 @@ input[type="password"]:focus {
   color: var(--color-primary-600);
   animation: spinshare-gradient-sweep 3s linear infinite;
   display: inline-block;
+}
+
+/* =====================================================================
+   404 — 3D light pastel green text effect
+   Stacked text-shadows create depth without animating the gradient.
+   ===================================================================== */
+.spinshare-404-3d {
+  color: #d1fae5; /* primary-100 — the lightest pastel mint */
+  text-shadow:
+    0 1px 0 #a7f3d0,        /* primary-200 */
+    0 2px 0 #a7f3d0,
+    0 3px 0 #86efac,        /* primary-300 */
+    0 4px 0 #6ee7b7,        /* primary-300 */
+    0 5px 0 #6ee7b7,
+    0 6px 1px rgba(16, 185, 129, 0.10),
+    0 0 5px rgba(167, 243, 208, 0.40),
+    0 1px 3px rgba(255, 255, 255, 0.50),
+    0 12px 32px rgba(16, 185, 129, 0.20);
+  letter-spacing: -0.04em;
+  user-select: none;
 }

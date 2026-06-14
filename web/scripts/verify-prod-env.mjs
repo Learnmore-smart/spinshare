@@ -74,8 +74,8 @@ function maskedPresent(env, name) {
   return value(env, name).length > 0;
 }
 
-function result(name, ok, detail) {
-  return { name, ok, detail };
+function result(name, ok, detail, warnings) {
+  return { name, ok, detail, warnings: warnings ?? [] };
 }
 
 function withTimeout(promise, ms, label) {
@@ -185,6 +185,7 @@ function isLocalHttpUrl(raw) {
 
 export function checkStrictModes(env) {
   const failures = [];
+  const warnings = [];
   if (value(env, "SPINSHARE_MODE") !== "production") {
     failures.push("SPINSHARE_MODE must be production");
   }
@@ -198,15 +199,20 @@ export function checkStrictModes(env) {
     failures.push("STRIPE_MODE must be test or live");
   }
   if (isLocalHttpUrl(value(env, "NEXTAUTH_URL"))) {
-    failures.push("NEXTAUTH_URL must not be localhost for production");
+    warnings.push("NEXTAUTH_URL is localhost — set https://www.spinshare.dev in Cloud Run variables for production");
   }
   if (value(env, "AUTH_VERIFICATION_URI") && isLocalHttpUrl(value(env, "AUTH_VERIFICATION_URI"))) {
-    failures.push("AUTH_VERIFICATION_URI must not be localhost for production");
+    warnings.push("AUTH_VERIFICATION_URI is localhost — set https://www.spinshare.dev/activate in Cloud Run variables for production");
   }
   return result(
     "env.production.flags",
     failures.length === 0,
-    failures.length === 0 ? "production flags are set" : failures.join("; "),
+    failures.length === 0
+      ? warnings.length > 0
+        ? `production flags are set; ${warnings.join("; ")}`
+        : "production flags are set"
+      : failures.join("; "),
+    warnings,
   );
 }
 
@@ -382,9 +388,16 @@ async function checkGoogleOAuth(env) {
 }
 
 function printText(results) {
+  const yellow = "\x1b[33m";
+  const reset = "\x1b[0m";
   for (const item of results) {
     const marker = item.ok ? "PASS" : "FAIL";
     console.log(`${marker} ${item.name}: ${item.detail}`);
+    if (item.ok && item.warnings?.length > 0) {
+      for (const w of item.warnings) {
+        console.log(`${yellow}  WARNING: ${w}${reset}`);
+      }
+    }
   }
 }
 
