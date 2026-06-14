@@ -1,11 +1,12 @@
 /**
  * CounterStore port — the hot path.
  *
- * Backed by Redis in production (`RedisCounterStore`) or an in-memory store
- * locally (`MemoryCounterStore`). Holds the pending balance/budget deltas,
+ * Backed by Firebase Realtime Database in production
+ * (`RealtimeDbCounterStore`) or an in-memory store locally
+ * (`MemoryCounterStore`). Holds the pending balance/budget deltas,
  * velocity windows, shadow-ban flags, and the pending ledger queue between
- * flushes. See design "Provider Abstraction Layer (Ports)" and "Redis Key
- * Schema (hot path)".
+ * flushes. See design "Provider Abstraction Layer (Ports)" and the RTDB key
+ * schema (hot path).
  *
  * All monetary values are integers: whole cents (`*Cents`) for durable balances
  * and budgets, micro-cents (`*Microcents`, 1 cent = 1000 micro-cents) for

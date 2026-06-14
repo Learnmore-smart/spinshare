@@ -1,6 +1,6 @@
 # theme.css
 
-> Last updated: 2026-06-13 | Protection: STANDARD
+> Last updated: 2026-06-14 | Protection: STANDARD
 
 ## Purpose
 
@@ -66,6 +66,30 @@ Add sign-in-specific glass helpers:
 - `.spinshare-signin-card` for a brighter translucent auth card with stronger backdrop blur.
 - `.spinshare-back-home` for the top-left 3D glass home navigation button.
 
+## Planned Enhancement: Sign-In Auth Panel 3D Depth
+
+User feedback on 2026-06-14: the sign-in form container needs a stronger 3D effect.
+
+Planned changes:
+
+- Implement `.spinshare-signin-card` as a static elevated glass slab with layered outer shadows.
+- Add pseudo-element highlights for a beveled top edge and soft bottom depth.
+- Keep the class non-interactive and compatible with the existing Tailwind padding utilities.
+- Avoid changing the shared input/button APIs or layout behavior.
+
+## Implemented Enhancement: Sign-In Auth Panel 3D Depth
+
+- Added `.spinshare-signin-card` as a dedicated elevated glass slab class.
+- Added layered inset and outer shadows for a stronger raised container effect.
+- Added pseudo-element highlights for the top bevel, inner sheen, and soft bottom shadow.
+- Ensured direct children render above decorative pseudo-elements.
+
+## Verification: Sign-In Auth Panel 3D Depth
+
+- `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/signin/page.test.ts` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+- Browser screenshot smoke check confirmed the sign-in auth card renders with the intended 3D depth and readable controls.
+
 ## Bug Fixes
 
 | Date | Bug | Cause | Fix |
@@ -78,3 +102,5 @@ Add sign-in-specific glass helpers:
 | 2026-06-13 | Created documentation for theme.css before adding money-stream animations | Codex |
 | 2026-06-13 | Synced docs with implemented money-stream animation classes and verification | Codex |
 | 2026-06-13 | Documented sign-in glass card and top-left home button helper classes. | Codex |
+| 2026-06-14 | Documented stronger 3D sign-in auth panel styling before editing CSS. | Codex |
+| 2026-06-14 | Synced docs with implemented `.spinshare-signin-card` 3D depth styling and verification. | Codex |

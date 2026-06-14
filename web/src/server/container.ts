@@ -13,17 +13,20 @@
  * | Flag                     | Values                              | Selects            |
  * |--------------------------|-------------------------------------|--------------------|
  * | `SPINSHARE_MODE`         | `local` (default) \| `production`   | overall defaults   |
- * | `SPINSHARE_REDIS`        | `memory` \| `ioredis-mock` \| <url> | `CounterStore`     |
+ * | `SPINSHARE_COUNTER`      | `memory` \| `rtdb`                  | `CounterStore`     |
+ * | `FIREBASE_DATABASE_URL`  | RTDB url (required for `rtdb`)      | RTDB connection    |
  * | `FIRESTORE_EMULATOR_HOST`| host:port (presence)                | Firestore vs memory|
  * | `STRIPE_MODE`            | `mock` \| `test` \| `live`          | `PaymentGateway`   |
  * | `AUTH_MODE`              | `mock` \| `oauth`                   | `AuthProvider`     |
  *
- * In `local` mode counters default to {@link MemoryCounterStore}; the Firestore
- * repos are used when `FIRESTORE_EMULATOR_HOST` is set (the e2e default, same
- * client targeting the emulator) and otherwise fall back to pure in-memory
- * repos so local mode works with zero external dependencies. Production-only
- * adapters that are not implemented yet (Redis/Stripe/OAuth) throw a clear
- * error identifying the flag to flip back to a working local value.
+ * In `local` mode counters default to {@link MemoryCounterStore}; in
+ * `production` they default to {@link RealtimeDbCounterStore} (Firebase Realtime
+ * Database — the Google-native replacement for the former Redis/Upstash hot
+ * path). The Firestore repos are used when `FIRESTORE_EMULATOR_HOST` is set (the
+ * e2e default, same client targeting the emulator) and otherwise fall back to
+ * pure in-memory repos so local mode works with zero external dependencies.
+ * Production-only adapters that are not implemented yet (Stripe/OAuth) throw a
+ * clear error identifying the flag to flip back to a working local value.
  */
 
 import type {
@@ -55,6 +58,7 @@ import {
   FirestoreUserRepo,
 } from "./adapters/firestore";
 import { StripeGateway } from "./adapters/stripe";
+import { RealtimeDbCounterStore } from "./adapters/rtdb";
 // Import the concrete device-flow provider directly (not the barrel) so the
 // composition root never pulls in the NextAuth browser-session instance: the
 // adapter and its `validateToken` are pure crypto + an in-memory device store
@@ -86,21 +90,6 @@ export type SpinshareMode = "local" | "production";
 /** A read-only view of the environment used for adapter selection. */
 export type ContainerEnv = Record<string, string | undefined>;
 
-/**
- * Builds the error thrown when a configuration value selects a
- * production-only adapter that has not been implemented yet.
- */
-function notImplemented(
-  adapter: string,
-  selectedBy: string,
-  workingHint: string,
-): Error {
-  return new Error(
-    `${adapter} is not implemented in this mode yet (selected by ${selectedBy}). ` +
-      `For local development use ${workingHint}.`,
-  );
-}
-
 /** Resolves and validates the deployment mode. */
 function resolveMode(env: ContainerEnv): SpinshareMode {
   const raw = (env.SPINSHARE_MODE ?? "local").toLowerCase();
@@ -112,33 +101,63 @@ function resolveMode(env: ContainerEnv): SpinshareMode {
   );
 }
 
-/** Selects the {@link CounterStore} from `SPINSHARE_REDIS`. */
+/**
+ * Selects the {@link CounterStore} from `SPINSHARE_COUNTER` (defaults to
+ * `memory` locally, `rtdb` in production). `rtdb` selects the Google-native
+ * {@link RealtimeDbCounterStore} and requires `FIREBASE_DATABASE_URL`.
+ */
 function buildCounterStore(env: ContainerEnv, mode: SpinshareMode): CounterStore {
-  const redis = (env.SPINSHARE_REDIS ?? (mode === "local" ? "memory" : "")).trim();
-  if (redis === "memory" || redis === "ioredis-mock") {
+  const counter = (
+    env.SPINSHARE_COUNTER ?? (mode === "local" ? "memory" : "rtdb")
+  ).trim();
+  if (counter === "memory") {
     return new MemoryCounterStore();
   }
-  // A connection string / Upstash URL selects the production Redis adapter.
-  throw notImplemented(
-    "RedisCounterStore",
-    `SPINSHARE_REDIS="${redis}"`,
-    "SPINSHARE_REDIS=memory",
+  if (counter === "rtdb") {
+    if (!(env.FIREBASE_DATABASE_URL ?? "").trim()) {
+      throw new Error(
+        'FIREBASE_DATABASE_URL must be set when SPINSHARE_COUNTER="rtdb" ' +
+          "(the Firebase Realtime Database URL, e.g. " +
+          'https://<project>-default-rtdb.firebaseio.com). For local development use SPINSHARE_COUNTER=memory.',
+      );
+    }
+    return new RealtimeDbCounterStore();
+  }
+  throw new Error(
+    `Invalid SPINSHARE_COUNTER="${env.SPINSHARE_COUNTER}". Expected "memory" or "rtdb".`,
+  );
+}
+
+/**
+ * True when an explicit Firebase service-account credential is configured
+ * (`FIREBASE_CLIENT_EMAIL` + `FIREBASE_PRIVATE_KEY`). Lets local development run
+ * against real cloud Firestore just by providing creds — without flipping
+ * `SPINSHARE_MODE` to production (which would disable the local email/password
+ * test accounts used to sign in to the dashboards).
+ */
+function hasFirebaseServiceAccount(env: ContainerEnv): boolean {
+  return Boolean(
+    (env.FIREBASE_CLIENT_EMAIL ?? "").trim() &&
+      (env.FIREBASE_PRIVATE_KEY ?? "").trim(),
   );
 }
 
 /**
  * Selects the durable Firestore-backed repositories. Uses the real Firestore
  * client (which targets the emulator when `FIRESTORE_EMULATOR_HOST` is set) in
- * production, or whenever the emulator host is configured locally. Otherwise —
- * local mode with no emulator — falls back to the pure in-memory repos so the
- * app runs with zero external dependencies.
+ * production, whenever the emulator host is configured, or whenever explicit
+ * Firebase service-account credentials are present. Otherwise — local mode with
+ * no emulator and no creds — falls back to the pure in-memory repos so the app
+ * runs with zero external dependencies.
  */
 function buildDurableRepos(
   env: ContainerEnv,
   mode: SpinshareMode,
 ): Pick<Container, "campaigns" | "users" | "ledger" | "paymentEvents"> {
   const useFirestore =
-    mode === "production" || Boolean(env.FIRESTORE_EMULATOR_HOST);
+    mode === "production" ||
+    Boolean(env.FIRESTORE_EMULATOR_HOST) ||
+    hasFirebaseServiceAccount(env);
 
   if (useFirestore) {
     return {

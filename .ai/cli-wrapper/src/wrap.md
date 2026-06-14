@@ -43,8 +43,23 @@ time a spinner run reaches the 3-second viewability floor":
 - cancel/reset without reporting when a wait state ends before 3000 ms
 - have `runWrap` wait for the threshold before calling `reportImpression`
 
+## Implemented Change
+
+`WaitStateTracker` now records wait start time, emits one impression only after
+the run reaches 3000 ms, and exposes `qualify()` so quiet waits can count via a
+timer. `runWrap` schedules a 3000 ms report at wait start, clears it when output
+resumes, and sends `viewDurationMs` only for eligible waits.
+
+## Verification
+
+- Initial CLI focused run failed on immediate-report behavior and old API
+  payload shape.
+- Final focused CLI run passed: 3 files, 30 tests.
+- Full root test run passed, including CLI 9 files and 68 tests.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-13 | Created doc before adding CLI 3-second viewability logic. | Codex |
+| 2026-06-13 | Synced doc with implemented CLI delayed viewability reporting. | Codex |

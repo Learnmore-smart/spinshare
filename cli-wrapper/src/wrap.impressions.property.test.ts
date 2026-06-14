@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import fc from "fast-check";
+
 import {
   WaitStateTracker,
   countImpressions,
@@ -7,95 +8,87 @@ import {
 } from "./wrap.js";
 
 /**
- * Feature: spinshare-ad-exchange, Property 22: Exactly one impression per wait
- * state — Validates: Requirements 5.7.
+ * Property 22: exactly one impression per eligible wait state.
  *
- * A "wait state" is a maximal contiguous run of spinner frames. No matter how
- * many spinner frames occur inside one run, exactly ONE impression is reported
- * for that run; a non-spinner frame ends the wait state. Therefore the number
- * of impressions over any frame sequence equals the number of contiguous
- * spinner runs.
- *
- * We verify this two ways against an independently-computed run count:
- *   - the pure {@link countImpressions} helper, and
- *   - driving {@link WaitStateTracker.observe} across the sequence, additionally
- *     asserting `impression` is never true on a non-spinner frame nor on a
- *     spinner frame that immediately follows another spinner frame.
+ * A wait state is a maximal contiguous run of spinner frames. It becomes
+ * eligible only when an observed spinner frame is at least 3000 ms after the
+ * run started. Shorter runs produce zero impressions.
  */
 
-/** A single frame classification: spinner true/false. */
-const frameArb: fc.Arbitrary<FrameClassification> = fc
-  .boolean()
-  .map((spinner) => ({ spinner }));
+const frameArb: fc.Arbitrary<FrameClassification> = fc.record({
+  spinner: fc.boolean(),
+  atMs: fc.integer({ min: 0, max: 20_000 }),
+});
 
-/** Arbitrary sequences of frames, including the empty sequence. */
 const framesArb: fc.Arbitrary<FrameClassification[]> = fc.array(frameArb, {
   maxLength: 60,
 });
 
-/**
- * Independently count the number of maximal contiguous runs of spinner frames
- * in the sequence (a wait state = one such run). A run is counted at its first
- * spinner frame: a spinner frame starts a new run iff the previous frame was
- * not a spinner frame.
- */
-function countContiguousSpinnerRuns(
+function sortByTime(frames: ReadonlyArray<FrameClassification>): FrameClassification[] {
+  return [...frames].sort((a, b) => (a.atMs ?? 0) - (b.atMs ?? 0));
+}
+
+function countEligibleSpinnerRuns(
   frames: ReadonlyArray<FrameClassification>,
 ): number {
   let runs = 0;
-  let prevSpinner = false;
+  let active = false;
+  let reported = false;
+  let startMs = 0;
+
   for (const frame of frames) {
-    if (frame.spinner && !prevSpinner) {
-      runs += 1;
+    const atMs = frame.atMs ?? 0;
+    if (frame.spinner) {
+      if (!active) {
+        active = true;
+        reported = false;
+        startMs = atMs;
+      }
+      if (!reported && atMs - startMs >= 3000) {
+        runs += 1;
+        reported = true;
+      }
+    } else {
+      active = false;
+      reported = false;
     }
-    prevSpinner = frame.spinner;
   }
+
   return runs;
 }
 
-describe("Property 22: exactly one impression per wait state", () => {
-  it("countImpressions equals the number of contiguous spinner runs", () => {
+describe("Property 22: exactly one impression per eligible wait state", () => {
+  it("countImpressions equals the number of spinner runs that reach 3 seconds", () => {
     fc.assert(
-      fc.property(framesArb, (frames) => {
-        expect(countImpressions(frames)).toBe(
-          countContiguousSpinnerRuns(frames),
-        );
+      fc.property(framesArb, (rawFrames) => {
+        const frames = sortByTime(rawFrames);
+        expect(countImpressions(frames)).toBe(countEligibleSpinnerRuns(frames));
       }),
       { numRuns: 100 },
     );
   });
 
-  it("WaitStateTracker emits one impression per wait state and never mid-run", () => {
+  it("WaitStateTracker emits one impression per eligible wait state and never before 3 seconds", () => {
     fc.assert(
-      fc.property(framesArb, (frames) => {
+      fc.property(framesArb, (rawFrames) => {
+        const frames = sortByTime(rawFrames);
         const tracker = new WaitStateTracker();
         let impressions = 0;
-        let prevSpinner = false;
 
         for (const frame of frames) {
-          const step = tracker.observe(frame);
+          const step = tracker.observe(frame, frame.atMs ?? 0);
           if (step.impression) {
             impressions += 1;
+            expect(step.viewDurationMs).toBeGreaterThanOrEqual(3000);
           }
 
-          // Impression must never fire on a non-spinner frame...
           if (!frame.spinner) {
             expect(step.impression).toBe(false);
           }
-          // ...nor on a spinner frame immediately following another spinner
-          // frame (those are debounced into the run already in progress).
-          if (frame.spinner && prevSpinner) {
-            expect(step.impression).toBe(false);
-          }
-
-          // inWaitState mirrors whether the current frame is a spinner frame.
           expect(step.inWaitState).toBe(frame.spinner);
-
-          prevSpinner = frame.spinner;
         }
 
-        // Exactly one impression per contiguous spinner run.
-        expect(impressions).toBe(countContiguousSpinnerRuns(frames));
+        expect(impressions).toBe(countEligibleSpinnerRuns(frames));
       }),
       { numRuns: 100 },
     );

@@ -1,17 +1,11 @@
-import { describe, it, expect } from "vitest";
-import { AdController, type VsCodeLike, type AdClientLike } from "./ad-controller";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
 import type { AdResponse, TrackResponse } from "@spinshare/core";
 
-/**
- * Unit tests for AdController.
- *
- * The dedicated property test ("Property 24: One impression per generation")
- * is task 14.4; these are example-based checks of the core behaviours.
- */
+import { AdController, type AdClientLike, type VsCodeLike } from "./ad-controller";
 
 interface ProgressCall {
   title?: string;
-  /** Resolves when the withProgress task promise settles (notification dismissed). */
   dismissed: boolean;
 }
 
@@ -43,7 +37,10 @@ function makeMockVscode(): { vscode: VsCodeLike; progressCalls: ProgressCall[] }
   return { vscode, progressCalls };
 }
 
-function makeMockClient(ad: AdResponse): { client: AdClientLike; impressions: string[] } {
+function makeMockClient(ad: AdResponse): {
+  client: AdClientLike;
+  impressions: string[];
+} {
   const impressions: string[] = [];
   const track: TrackResponse = {
     recorded: true,
@@ -52,8 +49,8 @@ function makeMockClient(ad: AdResponse): { client: AdClientLike; impressions: st
   };
   const client: AdClientLike = {
     getAd: async () => ad,
-    reportImpression: async (campaignId: string) => {
-      impressions.push(campaignId);
+    reportImpression: async (campaignId: string, viewDurationMs: number) => {
+      impressions.push(`${campaignId}:${viewDurationMs}`);
       return track;
     },
   };
@@ -69,17 +66,49 @@ const availableAd: AdResponse = {
 };
 
 describe("AdController", () => {
-  it("shows the ad text and reports exactly one impression per generation", async () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("shows the ad text but does not report before 3 seconds", async () => {
+    vi.useFakeTimers();
     const { vscode, progressCalls } = makeMockVscode();
     const { client, impressions } = makeMockClient(availableAd);
     const controller = new AdController({ vscode, client });
 
     await controller.startGeneration();
+    await vi.advanceTimersByTimeAsync(2999);
 
     expect(progressCalls).toHaveLength(1);
     expect(progressCalls[0].title).toBe(availableAd.adText);
-    expect(impressions).toEqual(["cmp_123"]);
+    expect(impressions).toEqual([]);
     expect(controller.isActive).toBe(true);
+  });
+
+  it("reports exactly one impression when the generation reaches 3 seconds", async () => {
+    vi.useFakeTimers();
+    const { vscode } = makeMockVscode();
+    const { client, impressions } = makeMockClient(availableAd);
+    const controller = new AdController({ vscode, client });
+
+    await controller.startGeneration();
+    await vi.advanceTimersByTimeAsync(3000);
+
+    expect(impressions).toEqual(["cmp_123:3000"]);
+  });
+
+  it("cancels the pending impression when generation completes before 3 seconds", async () => {
+    vi.useFakeTimers();
+    const { vscode } = makeMockVscode();
+    const { client, impressions } = makeMockClient(availableAd);
+    const controller = new AdController({ vscode, client });
+
+    await controller.startGeneration();
+    await vi.advanceTimersByTimeAsync(2999);
+    controller.completeGeneration();
+    await vi.advanceTimersByTimeAsync(1);
+
+    expect(impressions).toEqual([]);
   });
 
   it("dismisses the notification when the generation completes", async () => {
@@ -110,24 +139,28 @@ describe("AdController", () => {
   });
 
   it("does not start a second notification or impression while one is active", async () => {
+    vi.useFakeTimers();
     const { vscode, progressCalls } = makeMockVscode();
     const { client, impressions } = makeMockClient(availableAd);
     const controller = new AdController({ vscode, client });
 
     await controller.startGeneration();
     await controller.startGeneration();
+    await vi.advanceTimersByTimeAsync(3000);
 
     expect(progressCalls).toHaveLength(1);
-    expect(impressions).toEqual(["cmp_123"]);
+    expect(impressions).toEqual(["cmp_123:3000"]);
   });
 
   it("reports exactly one impression across many start/complete cycles", async () => {
+    vi.useFakeTimers();
     const { vscode } = makeMockVscode();
     const { client, impressions } = makeMockClient(availableAd);
     const controller = new AdController({ vscode, client });
 
     for (let i = 0; i < 5; i++) {
       await controller.startGeneration();
+      await vi.advanceTimersByTimeAsync(3000);
       controller.completeGeneration();
     }
 
@@ -135,14 +168,15 @@ describe("AdController", () => {
   });
 
   it("passes the bearer token through to the client", async () => {
+    vi.useFakeTimers();
     const { vscode } = makeMockVscode();
     let seenToken: string | undefined;
     const client: AdClientLike = {
-      getAd: async (token) => {
+      getAd: async () => availableAd,
+      reportImpression: async (_campaignId, _viewDurationMs, token) => {
         seenToken = token;
-        return availableAd;
+        return null;
       },
-      reportImpression: async () => null,
     };
     const controller = new AdController({
       vscode,
@@ -151,6 +185,7 @@ describe("AdController", () => {
     });
 
     await controller.startGeneration();
+    await vi.advanceTimersByTimeAsync(3000);
 
     expect(seenToken).toBe("tok_abc");
   });

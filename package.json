@@ -13,7 +13,8 @@
     "test": "corepack pnpm@9.12.0 --filter @spinshare/core test && corepack pnpm@9.12.0 --filter @spinshare/web test && corepack pnpm@9.12.0 --filter @spinshare/cli test && corepack pnpm@9.12.0 --filter @spinshare/vscode-extension test",
     "test:e2e": "corepack pnpm@9.12.0 --filter @spinshare/web test:e2e",
     "lint": "corepack pnpm@9.12.0 --filter @spinshare/core lint && corepack pnpm@9.12.0 --filter @spinshare/web lint && corepack pnpm@9.12.0 --filter @spinshare/cli lint && corepack pnpm@9.12.0 --filter @spinshare/vscode-extension lint",
-    "emulators": "firebase emulators:start --only firestore"
+    "emulators": "npx --yes firebase-tools emulators:start --only firestore",
+    "deploy:indexes": "npx --yes firebase-tools deploy --only firestore:indexes"
   },
   "devDependencies": {
     "@types/node": "^22.5.0",

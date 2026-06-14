@@ -1,4 +1,6 @@
-import type { AdResponse, TrackResponse } from "@spinshare/core";
+import type { AdResponse, AdResponseAvailable, TrackResponse } from "@spinshare/core";
+
+const VIEWABILITY_MIN_MS = 3_000;
 
 /**
  * Ad controller for the SpinShare VSCode extension.
@@ -7,8 +9,8 @@ import type { AdResponse, TrackResponse } from "@spinshare/core";
  *   1. On generation start: fetch an ad (`GET /api/ad`).
  *   2. If an ad is available: show its text in a bottom-right progress
  *      notification via `vscode.window.withProgress({ location:
- *      ProgressLocation.Notification })`, and report **exactly one** impression
- *      (`POST /api/track`).
+ *      ProgressLocation.Notification })`, then report **exactly one**
+ *      impression only after it remains visible for 3 seconds.
  *   3. On generation complete: resolve the progress task so the notification is
  *      dismissed within 1 second.
  *
@@ -55,6 +57,16 @@ export interface WindowLike {
       token: CancellationTokenLike,
     ) => Thenable<R>,
   ): Thenable<R>;
+  /**
+   * Optional: show a dismissible information message with action buttons,
+   * resolving to the chosen item's label (or `undefined`). Used to surface a
+   * clickable "Open" CTA for ads carrying a click-through URL. Optional so
+   * test doubles need not implement it.
+   */
+  showInformationMessage?(
+    message: string,
+    ...items: string[]
+  ): Thenable<string | undefined>;
 }
 
 /** The `vscode` namespace subset this controller depends on. */
@@ -69,6 +81,7 @@ export interface AdClientLike {
   getAd(token?: string): Promise<AdResponse>;
   reportImpression(
     campaignId: string,
+    viewDurationMs: number,
     token?: string,
   ): Promise<TrackResponse | null>;
 }
@@ -83,6 +96,12 @@ export interface AdControllerDeps {
   getToken?: () => string | undefined;
   /** Optional sink for non-fatal errors (e.g. logging). */
   onError?: (error: unknown) => void;
+  /**
+   * Optional sink that opens an external URL (the ad's click-through). Wired in
+   * the extension to `vscode.env.openExternal(vscode.Uri.parse(url))`. When
+   * absent, ads are shown but not clickable.
+   */
+  openUrl?: (url: string) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -92,6 +111,8 @@ export interface AdControllerDeps {
 interface ActiveGeneration {
   /** Resolves the `withProgress` task, dismissing the notification. */
   finish: () => void;
+  /** Pending 3-second viewability timer. */
+  reportTimer: ReturnType<typeof setTimeout> | null;
 }
 
 /**
@@ -108,6 +129,7 @@ export class AdController {
   private readonly client: AdClientLike;
   private readonly getToken: () => string | undefined;
   private readonly onError: (error: unknown) => void;
+  private readonly openUrl: (url: string) => void;
 
   private active: ActiveGeneration | null = null;
   /** Guards against overlapping start calls while an ad fetch is in flight. */
@@ -118,6 +140,7 @@ export class AdController {
     this.client = deps.client;
     this.getToken = deps.getToken ?? (() => undefined);
     this.onError = deps.onError ?? (() => {});
+    this.openUrl = deps.openUrl ?? (() => {});
   }
 
   /** True while a generation's notification is showing. */
@@ -126,8 +149,8 @@ export class AdController {
   }
 
   /**
-   * Begin a generation: fetch an ad, show it in a notification, and report
-   * exactly one impression.
+   * Begin a generation: fetch an ad, show it in a notification, and schedule
+   * exactly one impression after the 3-second minimum view time.
    *
    * Idempotent while a generation is active or starting — repeat calls return
    * immediately without showing another notification or reporting another
@@ -154,15 +177,23 @@ export class AdController {
       const pending = new Promise<void>((resolve) => {
         finish = resolve;
       });
-      this.active = { finish };
+      const active: ActiveGeneration = { finish, reportTimer: null };
+      active.reportTimer = setTimeout(() => {
+        if (this.active !== active) {
+          return;
+        }
+        active.reportTimer = null;
+        void this.reportOnce(ad.campaignId, VIEWABILITY_MIN_MS, token);
+      }, VIEWABILITY_MIN_MS);
+      this.active = active;
 
       // Show the ad text in a bottom-right progress notification. We do not
       // await this promise here — it stays pending and resolves when the
       // generation completes.
       void this.showProgress(ad.adText, pending);
+      // If the ad has a click-through URL, surface a clickable "Open" action.
+      this.maybeShowClickThrough(ad);
 
-      // Report exactly one impression for this generation.
-      await this.reportOnce(ad.campaignId, token);
     } catch (error) {
       this.onError(error);
     } finally {
@@ -181,6 +212,9 @@ export class AdController {
       return;
     }
     this.active = null;
+    if (current.reportTimer !== null) {
+      clearTimeout(current.reportTimer);
+    }
     current.finish();
   }
 
@@ -192,8 +226,30 @@ export class AdController {
     this.completeGeneration();
   }
 
-  private showProgress(adText: string, pending: Promise<void>): Thenable<void> {
-    return this.vscode.window.withProgress<void>(
+  /**
+   * When the displayed ad carries a click-through URL, surface a dismissible
+   * "Open" action so the developer can click the ad. Fire-and-forget and fully
+   * optional: it no-ops unless the host provides `showInformationMessage`, so
+   * the core progress flow (and its property test) is unaffected.
+   */
+  private maybeShowClickThrough(ad: AdResponseAvailable): void {
+    const url = ad.destinationUrl;
+    const show = this.vscode.window.showInformationMessage;
+    if (!url || url.length === 0 || typeof show !== "function") {
+      return;
+    }
+    const label = ad.brandName ? `Open ${ad.brandName}` : "Open";
+    void Promise.resolve(show.call(this.vscode.window, ad.adText, label)).then(
+      (choice) => {
+        if (choice === label) {
+          this.openUrl(url);
+        }
+      },
+      (error) => this.onError(error),
+    );
+  }
+
+  private showProgress(adText: string, pending: Promise<void>): Thenable<void> {    return this.vscode.window.withProgress<void>(
       {
         location: this.vscode.ProgressLocation.Notification,
         title: adText,
@@ -203,9 +259,13 @@ export class AdController {
     );
   }
 
-  private async reportOnce(campaignId: string, token: string | undefined): Promise<void> {
+  private async reportOnce(
+    campaignId: string,
+    viewDurationMs: number,
+    token: string | undefined,
+  ): Promise<void> {
     try {
-      await this.client.reportImpression(campaignId, token);
+      await this.client.reportImpression(campaignId, viewDurationMs, token);
     } catch (error) {
       // A failed report must not crash the editor or the generation flow.
       this.onError(error);

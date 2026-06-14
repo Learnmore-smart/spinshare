@@ -29,6 +29,25 @@ Verifies sign-in role query parsing.
 - Keep tests focused on pure exported state/helpers, not interactive React state.
 - Keep the money-stream assertions aligned with the visual requirement that the sign-in page is filled with moving money rows, not sparse lines.
 
+## Planned Regression: Clean Split Sign-In Layout
+
+Update sign-in tests before implementation so they require:
+
+- Large left-side balance headline copy.
+- Supporting private-dashboard copy.
+- The right-side auth panel label.
+- Developer and advertiser role labels.
+- No dependency on the dense money-stream background export.
+
+## Implemented Regression: Clean Split Sign-In Layout
+
+The sign-in test now imports `SIGNIN_PAGE_COPY`, keeps the role parsing coverage, and verifies the visible clean split sign-in copy contract.
+
+## Verification: Clean Split Sign-In Layout
+
+- Red: focused sign-in test failed before implementation because `SIGNIN_PAGE_COPY` was missing.
+- Green: focused sign-in test passed after implementation.
+
 ## Bug Fixes
 
 | Date | Bug | Cause | Fix |
@@ -60,3 +79,5 @@ The test imports `MONEY_STREAM_ROWS`, requires at least eight rows, at least twe
 | 2026-06-13 | Documented money-stream row regression test before editing tests. | Codex |
 | 2026-06-13 | Documented `🤑` stream icon assertion before editing tests. | Codex |
 | 2026-06-13 | Synced docs with final money-stream row regression assertions. | Codex |
+| 2026-06-13 | Documented clean split sign-in layout regression before editing tests. | Codex |
+| 2026-06-13 | Synced clean split sign-in layout regression with red-green verification. | Codex |

@@ -40,6 +40,20 @@ const SPINNER_FILLER = /[\r ]/g;
 /** ANSI "erase to end of line" — clears stale characters from a longer prior ad. */
 const ERASE_TO_EOL = "\u001b[K";
 
+/**
+ * Wrap `text` in an OSC 8 terminal hyperlink pointing at `url`, making the ad
+ * clickable in hyperlink-aware terminals (iTerm2, Windows Terminal, GNOME
+ * Terminal, VTE, kitty, …). Terminals without OSC 8 support simply render the
+ * plain `text` and ignore the escape, so this degrades gracefully.
+ *
+ * Sequence: `ESC ] 8 ; ; URL BEL  text  ESC ] 8 ; ; BEL`.
+ */
+export function osc8Hyperlink(url: string, text: string): string {
+  const OSC = "\u001b]8;;";
+  const BEL = "\u0007";
+  return `${OSC}${url}${BEL}${text}${OSC}${BEL}`;
+}
+
 /** Normalize a chunk to a UTF-8 string for classification/inspection. */
 function toStr(chunk: string | Buffer): string {
   return typeof chunk === "string" ? chunk : chunk.toString("utf8");
@@ -99,6 +113,13 @@ export interface RendererOptions {
    */
   getAdText: () => string | null | undefined;
   /**
+   * Optional getter for the ad's click-through URL. When it returns a non-empty
+   * URL while a spinner is active, the rendered ad text is wrapped in an OSC 8
+   * terminal hyperlink so the developer can click the ad. When absent or empty,
+   * the ad is rendered as plain text.
+   */
+  getAdUrl?: () => string | null | undefined;
+  /**
    * When true (default), append an ANSI "erase to end of line" after the ad so
    * a shorter ad fully overwrites a longer previous one on the shared line.
    */
@@ -115,10 +136,12 @@ export interface RendererOptions {
  */
 export class SpinnerRenderer {
   private readonly getAdText: () => string | null | undefined;
+  private readonly getAdUrl: () => string | null | undefined;
   private readonly eraseLine: boolean;
 
   constructor(options: RendererOptions) {
     this.getAdText = options.getAdText;
+    this.getAdUrl = options.getAdUrl ?? (() => undefined);
     this.eraseLine = options.eraseLine ?? true;
   }
 
@@ -126,14 +149,18 @@ export class SpinnerRenderer {
    * Transform a single chunk.
    *
    * - Spinner-only frame → suppress its bytes; emit `\r<ad>[erase]` on the
-   *   shared updating line (or nothing when no ad is available).
+   *   shared updating line (or nothing when no ad is available). When the ad has
+   *   a click-through URL, the text is wrapped in an OSC 8 hyperlink so it is
+   *   clickable in supporting terminals.
    * - Anything else → forward the original bytes unmodified.
    */
   render(chunk: string | Buffer): RenderResult {
     if (isSpinnerFrame(chunk)) {
       const ad = this.getAdText();
       if (ad && ad.length > 0) {
-        const line = "\r" + ad + (this.eraseLine ? ERASE_TO_EOL : "");
+        const url = this.getAdUrl();
+        const display = url && url.length > 0 ? osc8Hyperlink(url, ad) : ad;
+        const line = "\r" + display + (this.eraseLine ? ERASE_TO_EOL : "");
         return { output: Buffer.from(line, "utf8"), spinner: true };
       }
       // No ad to show: suppress the spinner entirely.

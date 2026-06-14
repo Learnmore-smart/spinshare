@@ -84,6 +84,12 @@ function parseAdResponse(value: unknown): AdResponse {
         adAvailable: true,
         campaignId: obj.campaignId,
         adText: obj.adText,
+        ...(typeof obj.destinationUrl === "string"
+          ? { destinationUrl: obj.destinationUrl }
+          : {}),
+        ...(typeof obj.brandName === "string"
+          ? { brandName: obj.brandName }
+          : {}),
         cpmCents: obj.cpmCents,
         cpmUsd: obj.cpmUsd,
       };
@@ -221,17 +227,20 @@ export class AdApiClient {
   }
 
   /**
-   * Report a single impression to `POST /api/track`.
+   * Report a single eligible impression to `POST /api/track`.
    *
    * Resolves to the parsed {@link TrackResponse} on success, or `null` on any
    * network error, non-OK status, or malformed payload. Callers must invoke
-   * this at most once per generation to preserve the one-impression invariant.
+   * this at most once per generation after the viewability floor is reached to
+   * preserve the one-impression invariant.
    *
    * @param campaignId Campaign the impression is attributed to.
+   * @param viewDurationMs Client-observed ad display duration in milliseconds.
    * @param token Optional bearer token overriding the instance default.
    */
   async reportImpression(
     campaignId: string,
+    viewDurationMs: number,
     token?: string,
   ): Promise<TrackResponse | null> {
     try {
@@ -242,7 +251,7 @@ export class AdApiClient {
           Accept: "application/json",
           ...this.authHeaders(token),
         },
-        body: JSON.stringify({ campaignId }),
+        body: JSON.stringify({ campaignId, viewDurationMs }),
       });
       if (!res.ok) {
         return null;

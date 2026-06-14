@@ -15,7 +15,7 @@
  * handed up via {@link onCreated} and the form resets.
  */
 
-import { type FormEvent, useState } from "react";
+import { type ChangeEvent, type FormEvent, useState } from "react";
 import { AD_TEXT_MAX_LENGTH } from "@spinshare/core";
 
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,26 @@ import {
 
 import { adTextState, validateCpmDollars, type CampaignView } from "./lib";
 
+const ICON_MAX_BYTES = 64 * 1024;
+const ICON_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+      } else {
+        reject(new Error("Could not read image file."));
+      }
+    });
+    reader.addEventListener("error", () =>
+      reject(new Error("Could not read image file.")),
+    );
+    reader.readAsDataURL(file);
+  });
+}
+
 /** Props for {@link CampaignBuilder}. */
 export interface CampaignBuilderProps {
   /** Bearer `Device_Auth_Token` for the authenticated advertiser. */
@@ -39,6 +59,10 @@ export interface CampaignBuilderProps {
 
 export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
   const [adText, setAdText] = useState("");
+  const [destinationUrl, setDestinationUrl] = useState("");
+  const [brandName, setBrandName] = useState("");
+  const [brandIconDataUrl, setBrandIconDataUrl] = useState<string | null>(null);
+  const [publicOnLeaderboard, setPublicOnLeaderboard] = useState(true);
   const [cpm, setCpm] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +74,33 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
     : text.remaining <= 10
       ? "text-yellow-400"
       : "text-muted-foreground";
+
+  async function handleIconChange(
+    event: ChangeEvent<HTMLInputElement>,
+  ): Promise<void> {
+    setError(null);
+    const file = event.target.files?.[0];
+    if (!file) {
+      setBrandIconDataUrl(null);
+      return;
+    }
+    if (!ICON_TYPES.has(file.type)) {
+      setError("Brand icon must be a PNG, JPG, or WebP image.");
+      event.target.value = "";
+      return;
+    }
+    if (file.size > ICON_MAX_BYTES) {
+      setError("Brand icon must be 64 KB or smaller.");
+      event.target.value = "";
+      return;
+    }
+    try {
+      setBrandIconDataUrl(await readFileAsDataUrl(file));
+    } catch {
+      setError("Could not read the brand icon. Try another image.");
+      event.target.value = "";
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
@@ -63,6 +114,11 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
           ? "Ad text is required."
           : `Ad text must be at most ${AD_TEXT_MAX_LENGTH} characters.`,
       );
+      return;
+    }
+    const trimmedUrl = destinationUrl.trim();
+    if (trimmedUrl.length > 0 && !/^https:\/\//i.test(trimmedUrl)) {
+      setError("Destination URL must start with https://");
       return;
     }
     const cpmResult = validateCpmDollars(cpm);
@@ -79,13 +135,26 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
           "content-type": "application/json",
           authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ adText, cpmCents: cpmResult.cents }),
+        body: JSON.stringify({
+          adText,
+          cpmCents: cpmResult.cents,
+          ...(trimmedUrl.length > 0 ? { destinationUrl: trimmedUrl } : {}),
+          ...(brandName.trim().length > 0
+            ? { brandName: brandName.trim() }
+            : {}),
+          ...(brandIconDataUrl ? { brandIconDataUrl } : {}),
+          publicOnLeaderboard,
+        }),
       });
 
       if (response.status === 201) {
         const created = (await response.json()) as CampaignView;
         onCreated(created);
         setAdText("");
+        setDestinationUrl("");
+        setBrandName("");
+        setBrandIconDataUrl(null);
+        setPublicOnLeaderboard(true);
         setCpm("");
         setSuccess("Campaign created. Add funds below to start bidding.");
         return;
@@ -144,6 +213,71 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
               className="spinshare-input px-3 py-2 text-sm"
             />
           </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="destinationUrl" className="text-sm font-medium">
+              Destination URL
+            </label>
+            <input
+              id="destinationUrl"
+              name="destinationUrl"
+              type="url"
+              value={destinationUrl}
+              onChange={(event) => setDestinationUrl(event.target.value)}
+              placeholder="https://acme.dev/ci"
+              className="spinshare-input px-3 py-2 text-sm"
+            />
+            <p className="text-xs text-muted-foreground">
+              Where the ad links to. Must start with https://. Leave blank for a
+              non-clickable ad.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="brandName" className="text-sm font-medium">
+              Brand name
+            </label>
+            <input
+              id="brandName"
+              name="brandName"
+              type="text"
+              value={brandName}
+              onChange={(event) => setBrandName(event.target.value)}
+              placeholder="Acme"
+              className="spinshare-input px-3 py-2 text-sm"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="brandIcon" className="text-sm font-medium">
+              Brand icon
+            </label>
+            <input
+              id="brandIcon"
+              name="brandIcon"
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={handleIconChange}
+              className="spinshare-input px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-muted file:px-2 file:py-1 file:text-xs"
+            />
+            <p className="text-xs text-muted-foreground">
+              {brandIconDataUrl
+                ? "Icon ready."
+                : "Optional. PNG, JPG, or WebP up to 64 KB."}
+            </p>
+          </div>
+
+          <label className="flex cursor-pointer items-center justify-between gap-3 text-sm font-medium">
+            <span>Show on the public leaderboard</span>
+            <input
+              type="checkbox"
+              checked={publicOnLeaderboard}
+              onChange={(event) =>
+                setPublicOnLeaderboard(event.target.checked)
+              }
+              className="h-4 w-4"
+            />
+          </label>
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="cpm" className="text-sm font-medium">

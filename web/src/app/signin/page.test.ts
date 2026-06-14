@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { MONEY_STREAM_ROWS, resolveInitialRole } from "./page";
+import { resolveInitialRole, SIGNIN_PAGE_COPY } from "./page";
 
 describe("resolveInitialRole", () => {
   it("uses advertiser when role=advertiser", () => {
@@ -17,21 +17,17 @@ describe("resolveInitialRole", () => {
   });
 });
 
-describe("MONEY_STREAM_ROWS", () => {
-  it("fills the sign-in background with alternating moving money rows", () => {
-    expect(MONEY_STREAM_ROWS.length).toBeGreaterThanOrEqual(8);
-
-    MONEY_STREAM_ROWS.forEach((row, index) => {
-      expect(row.icons.length).toBeGreaterThanOrEqual(12);
-      expect(row.icons.every((icon) => icon === "🤑")).toBe(true);
-
-      if (index > 0) {
-        const previousRow = MONEY_STREAM_ROWS[index - 1];
-        expect(previousRow).toBeDefined();
-        if (previousRow) {
-          expect(row.direction).not.toBe(previousRow.direction);
-        }
-      }
-    });
+describe("SIGNIN_PAGE_COPY", () => {
+  it("describes the clean split sign-in page", () => {
+    expect(SIGNIN_PAGE_COPY.eyebrow).toBe("User earnings portal");
+    expect(SIGNIN_PAGE_COPY.headline).toBe(
+      "Sign in to see your SpinShare balance",
+    );
+    expect(SIGNIN_PAGE_COPY.body).toBe(
+      "Your private dashboard shows credited events, payout status, and recent activity from the extension.",
+    );
+    expect(SIGNIN_PAGE_COPY.panelLabel).toBe("Start with SpinShare");
+    expect(SIGNIN_PAGE_COPY.developerRole).toBe("Developer");
+    expect(SIGNIN_PAGE_COPY.advertiserRole).toBe("Advertiser");
   });
 });

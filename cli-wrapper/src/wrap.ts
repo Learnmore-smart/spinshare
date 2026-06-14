@@ -1,79 +1,89 @@
 /**
- * @spinshare/cli — child-process wrapper with impression reporting (task 13.4).
+ * @spinshare/cli child-process wrapper with impression reporting.
  *
- * Responsibilities (design "CLI Wrapper" + Requirements 5.1, 5.2, 5.5, 5.6, 5.7):
- *   - Spawn the target command as a child process (`child_process.spawn`) with
- *     stdin **inherited** so the developer's input flows straight through.
- *   - Pipe the child's stdout through the pure {@link SpinnerRenderer} and write
- *     the rendered bytes to the real stdout; pass stderr through unmodified.
- *   - Detect wait-state start/end from the per-frame spinner classification and
- *     send EXACTLY ONE `POST /api/track` per wait state (debounced across the
- *     many spinner frames that occur within one contiguous wait state).
- *   - Use a prefetched/cached ad from `GET /api/ad`; when no ad is available show
- *     a neutral fallback (the renderer simply suppresses the spinner) and record
- *     NO impression.
- *   - Exit with the child's exit code; if the child is killed by a signal, exit
- *     `128 + signal` number.
- *
- * The wait-state/impression logic and the exit-code mapping are extracted as
- * PURE, injectable units ({@link WaitStateTracker}, {@link exitCodeFor}) so the
- * property tests in tasks 13.5 ("exactly one impression per wait state") and
- * 13.6 ("exit-code passthrough") can drive them with no real processes. The
- * spawning code is kept as a thin shell around these units.
+ * The wrapper intercepts spinner-only stdout frames, shows a cached ad through
+ * the renderer, and reports one impression only after a contiguous wait state
+ * has stayed active for the 3-second viewability minimum.
  */
 
 import { spawn } from "node:child_process";
 import * as os from "node:os";
-import { SpinnerRenderer } from "./renderer.js";
-import { CliApiClient } from "./api-client.js";
+
 import type { AdResponse } from "@spinshare/core";
+
+import { CliApiClient } from "./api-client.js";
+import { SpinnerRenderer } from "./renderer.js";
+
+const VIEWABILITY_MIN_MS = 3_000;
 
 // ---------------------------------------------------------------------------
 // Pure unit 1: wait-state tracking / impression debounce
 // ---------------------------------------------------------------------------
 
-/** Classification of a single output frame, as produced by {@link SpinnerRenderer}. */
+/** Classification of a single output frame, as produced by SpinnerRenderer. */
 export interface FrameClassification {
-  /** True when the frame was a spinner-only (wait-state) frame. */
+  /** True when the frame was a spinner-only wait-state frame. */
   spinner: boolean;
+  /** Optional timestamp used by pure tests. */
+  atMs?: number;
 }
 
-/** Result of feeding one frame to a {@link WaitStateTracker}. */
+/** Result of feeding one frame to a WaitStateTracker. */
 export interface WaitStateStep {
-  /**
-   * True on exactly the frame that STARTS a new wait state — the single frame on
-   * which one impression should be reported for this contiguous spinner run.
-   */
+  /** True exactly once when the active wait state reaches the viewability floor. */
   impression: boolean;
   /** True while the tracker is currently inside a wait state. */
   inWaitState: boolean;
+  /** Milliseconds elapsed in the current wait state. */
+  viewDurationMs: number;
 }
 
 /**
- * Pure state machine that maps a sequence of frame classifications to
- * impression-trigger events, emitting `impression: true` exactly once per
- * contiguous run of spinner frames.
+ * Pure state machine for contiguous spinner wait states.
  *
  * A wait state begins at the first spinner frame and ends as soon as a
- * non-spinner frame resumes. Multiple spinner frames inside one wait state
- * trigger a single impression (debounced).
- *
- * Holds no I/O; deterministic for a fixed input sequence — directly drivable by
- * the Property 22 test (task 13.5).
+ * non-spinner frame resumes. It emits one impression only after the active run
+ * reaches the configured minimum duration.
  */
 export class WaitStateTracker {
   private inWaitState = false;
+  private waitStartedAtMs = 0;
+  private reported = false;
 
-  /** Feed one frame; returns whether it starts a wait state and the new state. */
-  observe(frame: FrameClassification): WaitStateStep {
+  constructor(private readonly minViewMs = VIEWABILITY_MIN_MS) {}
+
+  /** Feed one frame; returns whether it qualifies for an impression. */
+  observe(frame: FrameClassification, nowMs = Date.now()): WaitStateStep {
     if (frame.spinner) {
-      const impression = !this.inWaitState; // first spinner frame of the run
-      this.inWaitState = true;
-      return { impression, inWaitState: true };
+      if (!this.inWaitState) {
+        this.inWaitState = true;
+        this.waitStartedAtMs = nowMs;
+        this.reported = false;
+        return { impression: false, inWaitState: true, viewDurationMs: 0 };
+      }
+      return this.qualify(nowMs);
     }
-    // Non-spinner output ends any active wait state.
-    this.inWaitState = false;
-    return { impression: false, inWaitState: false };
+
+    this.reset();
+    return { impression: false, inWaitState: false, viewDurationMs: 0 };
+  }
+
+  /**
+   * Evaluate the currently active wait state without requiring another stdout
+   * frame. This is used by the runtime timer so quiet long waits still count.
+   */
+  qualify(nowMs = Date.now()): WaitStateStep {
+    if (!this.inWaitState) {
+      return { impression: false, inWaitState: false, viewDurationMs: 0 };
+    }
+
+    const viewDurationMs = Math.max(0, nowMs - this.waitStartedAtMs);
+    const impression = !this.reported && viewDurationMs >= this.minViewMs;
+    if (impression) {
+      this.reported = true;
+    }
+
+    return { impression, inWaitState: true, viewDurationMs };
   }
 
   /** True while inside a contiguous spinner run. */
@@ -81,22 +91,25 @@ export class WaitStateTracker {
     return this.inWaitState;
   }
 
-  /** Reset to the initial (no wait state) state. */
+  /** Reset to the initial no-wait-state state. */
   reset(): void {
     this.inWaitState = false;
+    this.waitStartedAtMs = 0;
+    this.reported = false;
   }
 }
 
-/**
- * Convenience pure helper: count how many impressions a frame sequence would
- * trigger. Equal to the number of contiguous spinner runs. Useful for the
- * Property 22 test.
- */
-export function countImpressions(frames: ReadonlyArray<FrameClassification>): number {
+/** Count qualifying impressions for a timestamped frame sequence. */
+export function countImpressions(
+  frames: ReadonlyArray<FrameClassification>,
+): number {
   const tracker = new WaitStateTracker();
   let count = 0;
-  for (const frame of frames) {
-    if (tracker.observe(frame).impression) {
+  for (let i = 0; i < frames.length; i++) {
+    const frame = frames[i];
+    if (frame === undefined) continue;
+    const nowMs = frame.atMs ?? i;
+    if (tracker.observe(frame, nowMs).impression) {
       count += 1;
     }
   }
@@ -107,17 +120,6 @@ export function countImpressions(frames: ReadonlyArray<FrameClassification>): nu
 // Pure unit 2: exit-code mapping
 // ---------------------------------------------------------------------------
 
-/**
- * Map a child process's `(code, signal)` termination outcome to the exit code
- * the wrapper should exit with.
- *
- * - Normal exit: pass through the child's numeric exit code (`code ?? 0`).
- * - Signal termination: `128 + <signal number>` (POSIX convention), looked up
- *   from `signalNumbers` (defaults to `os.constants.signals`). Unknown signal
- *   names fall back to `128`.
- *
- * Pure and injectable — the Property 23 test (task 13.6) drives it directly.
- */
 export function exitCodeFor(
   code: number | null,
   signal: NodeJS.Signals | string | null,
@@ -134,34 +136,31 @@ export function exitCodeFor(
 // Thin spawning shell around the pure units
 // ---------------------------------------------------------------------------
 
-/** Options for {@link runWrap}, all injectable for testability. */
+/** Options for runWrap, all injectable for testability. */
 export interface RunWrapOptions {
   /** Target command to spawn. */
   target: string;
   /** Arguments forwarded to the target command. */
   args: string[];
-  /** API client; defaults to a {@link CliApiClient} reading env config. */
+  /** API client; defaults to a CliApiClient reading env config. */
   client?: Pick<CliApiClient, "getAd" | "reportImpression">;
-  /** Real stdout sink; defaults to `process.stdout`. */
+  /** Real stdout sink; defaults to process.stdout. */
   stdout?: NodeJS.WritableStream;
-  /** Real stderr sink; defaults to `process.stderr`. */
+  /** Real stderr sink; defaults to process.stderr. */
   stderr?: NodeJS.WritableStream;
-  /**
-   * Spawner; defaults to `child_process.spawn`. Injectable so unit tests can
-   * substitute a fake child without launching a real process.
-   */
+  /** Spawner for tests. */
   spawnImpl?: typeof spawn;
 }
 
-/** Holds the currently cached ad and exposes the renderer's ad-text getter. */
 interface AdCache {
   current: AdResponse;
 }
 
+type TimerHandle = ReturnType<typeof setTimeout>;
+
 /**
- * Spawn the target, intercept its stdout through the renderer, report exactly
- * one impression per wait state (only when an ad is available), and resolve with
- * the exit code the wrapper should use.
+ * Spawn the target, intercept stdout through the renderer, report exactly one
+ * eligible impression per wait state, and resolve with the child exit code.
  */
 export async function runWrap(options: RunWrapOptions): Promise<number> {
   const {
@@ -173,45 +172,86 @@ export async function runWrap(options: RunWrapOptions): Promise<number> {
     spawnImpl = spawn,
   } = options;
 
-  // Prefetch an ad once up front; refreshed on each wait-state start below.
   const adCache: AdCache = { current: { adAvailable: false } };
   adCache.current = await client.getAd();
 
   const renderer = new SpinnerRenderer({
     getAdText: () =>
       adCache.current.adAvailable ? adCache.current.adText : null,
+    getAdUrl: () =>
+      adCache.current.adAvailable ? adCache.current.destinationUrl : null,
   });
   const tracker = new WaitStateTracker();
+  let reportTimer: TimerHandle | null = null;
+
+  function clearReportTimer(): void {
+    if (reportTimer !== null) {
+      clearTimeout(reportTimer);
+      reportTimer = null;
+    }
+  }
+
+  function reportIfEligible(): void {
+    reportTimer = null;
+    const step = tracker.qualify();
+    if (step.impression && adCache.current.adAvailable) {
+      void client.reportImpression(
+        adCache.current.campaignId,
+        step.viewDurationMs,
+      );
+    }
+  }
+
+  function scheduleReport(): void {
+    clearReportTimer();
+    if (!adCache.current.adAvailable) {
+      return;
+    }
+    reportTimer = setTimeout(reportIfEligible, VIEWABILITY_MIN_MS);
+  }
 
   const child = spawnImpl(target, args, {
     stdio: ["inherit", "pipe", "pipe"],
   });
 
-  // Forward stderr unmodified.
   child.stderr?.on("data", (chunk: Buffer) => {
     stderr.write(chunk);
   });
 
-  // Pipe stdout through the renderer; debounce one impression per wait state.
   child.stdout?.on("data", (chunk: Buffer) => {
     const { output, spinner } = renderer.render(chunk);
     if (output.length > 0) {
       stdout.write(output);
     }
+
+    const wasActive = tracker.active;
     const step = tracker.observe({ spinner });
+
+    if (spinner && !wasActive) {
+      scheduleReport();
+    }
+
+    if (!spinner) {
+      clearReportTimer();
+      return;
+    }
+
     if (step.impression && adCache.current.adAvailable) {
-      // Exactly one POST /api/track per wait state. Fire-and-forget so we never
-      // block the output stream; failures degrade silently (no credit).
-      void client.reportImpression(adCache.current.campaignId);
+      clearReportTimer();
+      void client.reportImpression(
+        adCache.current.campaignId,
+        step.viewDurationMs,
+      );
     }
   });
 
   return await new Promise<number>((resolve, reject) => {
     child.on("error", (err) => {
+      clearReportTimer();
       reject(err);
     });
-    // `close` fires after stdio streams have flushed (vs. `exit`).
     child.on("close", (code, signal) => {
+      clearReportTimer();
       resolve(exitCodeFor(code, signal));
     });
   });

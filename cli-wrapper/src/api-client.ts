@@ -239,6 +239,12 @@ export function parseAdResponse(value: unknown): AdResponse {
       adAvailable: true,
       campaignId: obj.campaignId,
       adText: obj.adText,
+      ...(typeof obj.destinationUrl === "string"
+        ? { destinationUrl: obj.destinationUrl }
+        : {}),
+      ...(typeof obj.brandName === "string"
+        ? { brandName: obj.brandName }
+        : {}),
       cpmCents: obj.cpmCents,
       cpmUsd: obj.cpmUsd,
     };
@@ -364,14 +370,16 @@ export class CliApiClient implements DeviceAuthApi {
   }
 
   /**
-   * Report a single impression to `POST /api/track`.
+   * Report a single eligible impression to `POST /api/track`.
    *
    * Resolves to the parsed {@link TrackResponse} on success, or `null` on any
    * network error, non-OK status, or malformed payload. Callers must invoke this
-   * at most once per wait state to preserve the one-impression invariant.
+   * at most once per wait state after the viewability floor is reached to
+   * preserve the one-impression invariant.
    */
   async reportImpression(
     campaignId: string,
+    viewDurationMs: number,
     token?: string,
   ): Promise<TrackResponse | null> {
     const bearer = token ?? this.tokenProvider();
@@ -383,7 +391,7 @@ export class CliApiClient implements DeviceAuthApi {
           Accept: "application/json",
           ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}),
         },
-        body: JSON.stringify({ campaignId }),
+        body: JSON.stringify({ campaignId, viewDurationMs }),
       });
       if (!res.ok) {
         return null;

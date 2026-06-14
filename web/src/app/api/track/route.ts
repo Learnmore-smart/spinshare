@@ -3,10 +3,11 @@
  *
  * Records a single impression and returns the developer payout. The handler is
  * a thin HTTP adapter over the {@link recordImpression ledger service}: it
- * parses + Zod-validates the JSON body, extracts the bearer
- * `Device_Auth_Token`, delegates the money math + velocity/shadow-ban logic to
- * the service (wired from the composition-root {@link getContainer container}),
- * and maps the typed result to the `POST /api/track` API contract:
+ * parses + Zod-validates the JSON body (including the 3-second minimum
+ * `viewDurationMs` rule), extracts the bearer `Device_Auth_Token`, delegates
+ * the money math + velocity/shadow-ban logic to the service (wired from the
+ * composition-root {@link getContainer container}), and maps the typed result
+ * to the `POST /api/track` API contract:
  *
  *   - `400 Bad Request` — malformed JSON or a body that fails
  *     {@link trackRequestSchema} (no mutation).

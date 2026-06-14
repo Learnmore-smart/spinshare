@@ -115,12 +115,25 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // 3. Create the campaign owned by the advertiser, starting at zero budget
-  //    (R9.1), and return it.
+  //    (R9.1), and return it. Optional rich fields (destination URL, brand,
+  //    leaderboard visibility) match the public homepage checkout form.
   const { campaigns } = getContainer();
   const campaign = await campaigns.create({
     advertiserId,
     adText: parsed.data.adText,
     cpmCents: parsed.data.cpmCents,
+    ...(parsed.data.destinationUrl !== undefined
+      ? { destinationUrl: parsed.data.destinationUrl }
+      : {}),
+    ...(parsed.data.brandName !== undefined
+      ? { brandName: parsed.data.brandName }
+      : {}),
+    ...(parsed.data.brandIconDataUrl !== undefined
+      ? { brandIconDataUrl: parsed.data.brandIconDataUrl }
+      : {}),
+    ...(parsed.data.publicOnLeaderboard !== undefined
+      ? { publicOnLeaderboard: parsed.data.publicOnLeaderboard }
+      : {}),
   });
 
   return Response.json(toCampaignView(campaign), { status: 201 });

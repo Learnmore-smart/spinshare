@@ -35,8 +35,21 @@ HTTP adapter for `POST /api/track` impression tracking.
 Backend validation will require the shared `viewDurationMs >= 3000` tracking
 contract. The route should keep delegating only after schema validation passes.
 
+## Implemented Change
+
+The route continues to delegate only after `trackRequestSchema` validation, and
+that shared schema now requires `viewDurationMs` to be an integer at least 3000.
+Below-threshold requests return `400` before ledger mutation.
+
+## Verification
+
+- Red: focused track route coverage failed while a 2999 ms request was still accepted.
+- Green: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/track/route.test.ts src/app/page.test.tsx src/app/dashboard/advertiser/advertiser-dashboard.test.tsx` passed.
+- Full workspace tests and lint passed.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-13 | Created doc before adding track route viewability contract coverage. | Codex |
+| 2026-06-13 | Synced docs with track route 3-second validation contract. | Codex |

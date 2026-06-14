@@ -1,0 +1,398 @@
+/* =====================================================================
+   Home Page — Animations
+   ===================================================================== */
+
+@keyframes pulse-slow {
+  0%, 100% {
+    transform: scale(1) translate(0, 0);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.12) translate(2%, 3%);
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 10s ease-in-out infinite;
+}
+
+@keyframes marquee {
+  0%   { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+/* =====================================================================
+   Home Page — Decorative Blobs
+   ===================================================================== */
+
+.spinshare-blob-1 {
+  background: var(--blob-1);
+}
+
+.spinshare-blob-2 {
+  background: var(--blob-2);
+}
+
+/* =====================================================================
+   Shared — Liquid Glass Surface
+   ===================================================================== */
+
+.liquid-glass {
+  position: relative;
+  background:
+    linear-gradient(180deg, var(--surface-glass) 0%, var(--surface-glass-mid) 50%, var(--surface-glass-end) 100%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    inset 0 1px 0 0 var(--shadow-inner-highlight),
+    inset 0 2px 12px 0 var(--shadow-inner-glow),
+    inset 0 -4px 16px 0 var(--shadow-inner-depth),
+    inset 0 -1px 2px 0 rgba(16, 185, 129, 0.06),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.4),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.2),
+    var(--shadow-elevation-sm),
+    var(--shadow-elevation-md),
+    var(--shadow-elevation-lg);
+  transition: var(--transition-glass);
+}
+
+.liquid-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 50%);
+  opacity: 0.7;
+  mix-blend-mode: screen;
+}
+
+.liquid-glass:hover {
+  background:
+    linear-gradient(180deg, var(--surface-glass-hover) 0%, var(--surface-glass-hover-mid) 50%, var(--surface-glass-hover-end) 100%);
+  border-color: var(--border-accent-hover);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.95),
+    inset 0 2px 14px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -4px 16px 0 rgba(15, 23, 42, 0.04),
+    inset 0 -1px 2px 0 rgba(16, 185, 129, 0.08),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.55),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.3),
+    0 2px 4px 0 rgba(15, 23, 42, 0.04),
+    0 14px 32px -4px rgba(15, 23, 42, 0.1),
+    0 28px 64px -8px rgba(15, 23, 42, 0.08);
+  transform: translateY(-2px);
+}
+
+.liquid-glass:hover::before {
+  opacity: 1;
+}
+
+/* Dark mode liquid glass */
+.dark .liquid-glass {
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.55) 0%, rgba(15, 23, 42, 0.42) 50%, rgba(15, 23, 42, 0.38) 100%);
+  border-color: var(--border-accent);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.18),
+    inset 0 2px 12px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -4px 16px 0 rgba(0, 0, 0, 0.5),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.08),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.05),
+    0 10px 30px 0 rgba(0, 0, 0, 0.4);
+}
+
+.dark .liquid-glass:hover {
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.58) 50%, rgba(15, 23, 42, 0.55) 100%);
+  border-color: var(--border-accent-hover);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.25),
+    inset 0 2px 14px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -4px 16px 0 rgba(0, 0, 0, 0.6),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.12),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.06),
+    0 18px 48px 0 rgba(0, 0, 0, 0.6);
+}
+
+/* =====================================================================
+   Home Page — Black Glass Surface
+   ===================================================================== */
+
+.liquid-glass-black {
+  position: relative;
+  background: var(--surface-black);
+  border-radius: 16px;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
+    inset 0 2px 8px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -4px 16px 0 rgba(0, 0, 0, 0.6),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.06),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.03),
+    0 20px 52px 0 rgba(0, 0, 0, 0.35);
+  transition: var(--transition-glass);
+}
+
+.liquid-glass-black::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 50%);
+  opacity: 0.8;
+  mix-blend-mode: screen;
+}
+
+.liquid-glass-black:hover {
+  background: var(--surface-black-hover);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.22),
+    inset 0 2px 10px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -4px 16px 0 rgba(0, 0, 0, 0.7),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.1),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.05),
+    0 24px 64px 0 rgba(0, 0, 0, 0.45);
+  transform: translateY(-2px);
+}
+
+/* =====================================================================
+   Home Page — Light Green Glass Surface
+   ===================================================================== */
+
+.liquid-glass-light-green {
+  position: relative;
+  background:
+    linear-gradient(180deg, var(--surface-glass-light-green) 0%, var(--surface-glass-light-green-mid) 50%, var(--surface-glass-light-green-end) 100%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.9),
+    inset 0 2px 12px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -4px 16px 0 rgba(16, 185, 129, 0.1),
+    inset 0 -1px 2px 0 rgba(16, 185, 129, 0.08),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.5),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.3),
+    0 8px 32px 0 rgba(6, 78, 59, 0.04),
+    0 4px 8px -2px rgba(6, 78, 59, 0.02);
+  transition: var(--transition-glass);
+}
+
+.liquid-glass-light-green::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 50%);
+  opacity: 0.7;
+  mix-blend-mode: screen;
+}
+
+.liquid-glass-light-green:hover {
+  background:
+    linear-gradient(180deg, var(--surface-glass-light-green-hover) 0%, var(--surface-glass-light-green-hover-mid) 50%, var(--surface-glass-light-green-hover-end) 100%);
+  border-color: rgba(16, 185, 129, 0.38);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.95),
+    inset 0 2px 14px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -4px 16px 0 rgba(16, 185, 129, 0.15),
+    inset 0 -1px 2px 0 rgba(16, 185, 129, 0.1),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.6),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.35),
+    0 16px 48px 0 rgba(6, 78, 59, 0.08),
+    0 8px 16px -4px rgba(6, 78, 59, 0.04);
+  transform: translateY(-2px);
+}
+
+.liquid-glass-light-green:hover::before {
+  opacity: 1;
+}
+
+/* =====================================================================
+   Shared — Primary Button
+   ===================================================================== */
+
+.spinshare-btn-primary {
+  position: relative;
+  background-color: var(--color-primary-600);
+  color: var(--text-inverse);
+  font-weight: 800;
+  border-radius: 12px;
+  transition: var(--transition-smooth);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.35),
+    inset 0 2px 4px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -2px 6px 0 rgba(6, 78, 59, 0.25),
+    0 4px 12px var(--shadow-accent-btn);
+}
+
+.spinshare-btn-primary:hover {
+  background-color: var(--color-primary-400);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.6),
+    inset 0 2px 6px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -2px 6px 0 rgba(6, 78, 59, 0.15),
+    0 8px 24px var(--shadow-accent-btn-hover);
+}
+
+.spinshare-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* =====================================================================
+   Home Page — Outline / Secondary Button
+   ===================================================================== */
+
+.spinshare-btn-outline {
+  position: relative;
+  background-color: var(--surface-white);
+  color: var(--text-secondary);
+  font-weight: 700;
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  transition: var(--transition-smooth);
+  box-shadow:
+    inset 0 1px 0 0 #ffffff,
+    inset 0 2px 4px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 6px 0 rgba(15, 23, 42, 0.06),
+    0 4px 12px rgba(15, 23, 42, 0.04);
+}
+
+.spinshare-btn-outline:hover:not(:disabled) {
+  background-color: var(--surface-white);
+  border-color: var(--color-primary-500);
+  color: var(--color-primary-700);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 0 #ffffff,
+    inset 0 2px 6px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -2px 6px 0 rgba(16, 185, 129, 0.08),
+    0 8px 20px var(--shadow-accent-outline-hover);
+}
+
+.spinshare-btn-outline:active {
+  transform: translateY(0);
+}
+
+/* =====================================================================
+   Shared — Inputs
+   ===================================================================== */
+
+.spinshare-input,
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"] {
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-input);
+  background-color: var(--surface-input);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--text-primary);
+  outline: none;
+  transition: var(--transition-smooth);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.spinshare-input:focus,
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+  border-color: var(--border-input-focus);
+  background-color: var(--surface-input-focus);
+  box-shadow: 0 0 0 3px var(--ring-accent), inset 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.dark .spinshare-input,
+.dark input[type="text"],
+.dark input[type="number"],
+.dark input[type="email"],
+.dark input[type="password"] {
+  background-color: var(--surface-input);
+  border-color: var(--border-input);
+  color: var(--text-primary);
+}
+
+.dark .spinshare-input:focus,
+.dark input[type="text"]:focus,
+.dark input[type="number"]:focus,
+.dark input[type="email"]:focus,
+.dark input[type="password"]:focus {
+  border-color: var(--border-input-focus);
+  background-color: var(--surface-input-focus);
+  box-shadow: 0 0 0 3px var(--ring-accent);
+}
+
+/* =====================================================================
+   Shared — Static modifier (removes hover lift/sheen)
+   ===================================================================== */
+
+.liquid-glass.spinshare-static:hover {
+  transform: none;
+  background:
+    linear-gradient(180deg, var(--surface-glass) 0%, var(--surface-glass-mid) 50%, var(--surface-glass-end) 100%);
+  border-color: var(--border-accent);
+  box-shadow:
+    inset 0 1px 0 0 var(--shadow-inner-highlight),
+    inset 0 2px 12px 0 var(--shadow-inner-glow),
+    inset 0 -4px 16px 0 var(--shadow-inner-depth),
+    inset 0 -1px 2px 0 rgba(16, 185, 129, 0.06),
+    inset 1px 0 0 0 rgba(255, 255, 255, 0.4),
+    inset -1px 0 0 0 rgba(255, 255, 255, 0.2),
+    var(--shadow-elevation-sm),
+    var(--shadow-elevation-md),
+    var(--shadow-elevation-lg);
+}
+
+.liquid-glass.spinshare-static:hover::before {
+  opacity: 0.7;
+}
+
+/* =====================================================================
+   Shared — Animated Gradient Highlight Text Effect
+   Continuous leftward green gradient sweep — truly seamless loop.
+   With background-size: 200%, the visible window at position 0% shows
+   gradient[0–50%] and at position 100% shows gradient[50–100%].
+   Both halves are identical, so the loop point is invisible.
+   ===================================================================== */
+
+@keyframes spinshare-gradient-sweep {
+  from { background-position: 0% 50%; }
+  to   { background-position: 100% 50%; }
+}
+
+.spinshare-hero-highlight-3d {
+  background-image: linear-gradient(
+    110deg,
+    var(--color-primary-700) 0%,
+    var(--color-primary-500) 12.5%,
+    var(--color-primary-400) 25%,
+    var(--color-primary-500) 37.5%,
+    var(--color-primary-700) 50%,
+    var(--color-primary-500) 62.5%,
+    var(--color-primary-400) 75%,
+    var(--color-primary-500) 87.5%,
+    var(--color-primary-700) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--color-primary-600);
+  animation: spinshare-gradient-sweep 3s linear infinite;
+  display: inline-block;
+}

@@ -61,7 +61,7 @@ const LOCAL_E2E_ENV: Record<string, string> = {
   SPINSHARE_MODE: "local",
   STRIPE_MODE: "mock",
   AUTH_MODE: "mock",
-  SPINSHARE_REDIS: "memory",
+  SPINSHARE_COUNTER: "memory",
 };
 
 /** A started Next.js server plus the means to address and tear it down. */

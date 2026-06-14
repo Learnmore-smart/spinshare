@@ -55,6 +55,12 @@ Add `advertiserCheckoutSchema` for the public homepage form:
 
 Added public advertiser checkout validation for email, HTTPS destination URL, optional brand metadata, leaderboard visibility, CPM cents, and block count. Added `getAdvertiserCheckoutAmountCents()` to derive the Stripe checkout amount as `cpmCents * blockCount`.
 
+## Implemented Change: 3-Second Viewability
+
+Added `VIEWABILITY_MIN_MS = 3000` and required `viewDurationMs` in
+`trackRequestSchema`. Tracking payloads below 3000 ms, missing the field, or
+using non-integer durations now fail validation before backend ledger logic.
+
 ## Change History
 
 | Date | Change | Author |
@@ -62,3 +68,4 @@ Added public advertiser checkout validation for email, HTTPS destination URL, op
 | 2026-06-13 | Created doc before adding public advertiser checkout schema. | Codex |
 | 2026-06-13 | Synced doc with implemented advertiser checkout schema and amount helper. | Codex |
 | 2026-06-13 | Documented 3-second viewability tracking contract before editing schema. | Codex |
+| 2026-06-13 | Synced doc with implemented 3-second `viewDurationMs` schema. | Codex |

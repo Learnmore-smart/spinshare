@@ -49,6 +49,8 @@ export default function AdvertiserCheckoutForm() {
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [error, setError] = useState<string | null>(null);
 
+  const [adLineShake, setAdLineShake] = useState(false);
+
   const text = adTextState(adText);
   const cpm = validateCpmDollars(bidPerBlock);
   const blocks = parseBlockCount(blockCount);
@@ -90,11 +92,12 @@ export default function AdvertiserCheckoutForm() {
     setError(null);
 
     if (!text.valid) {
-      setError(
-        text.isEmpty
-          ? "Ad line is required."
-          : `Ad line must be at most ${AD_TEXT_MAX_LENGTH} characters.`,
-      );
+      if (text.isEmpty) {
+        setAdLineShake(true);
+        setTimeout(() => setAdLineShake(false), 500);
+      } else {
+        setError(`Ad line must be at most ${AD_TEXT_MAX_LENGTH} characters.`);
+      }
       return;
     }
     if (!cpm.ok) {
@@ -214,7 +217,7 @@ export default function AdvertiserCheckoutForm() {
                   type="url"
                   value={destinationUrl}
                   onChange={(event) => setDestinationUrl(event.target.value)}
-                  placeholder="https://linear.app/"
+                  placeholder="https://www.learnx.pro"
                   className="spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal"
                 />
               </label>
@@ -231,9 +234,9 @@ export default function AdvertiserCheckoutForm() {
                 type="text"
                 value={adText}
                 maxLength={AD_TEXT_MAX_LENGTH}
-                onChange={(event) => setAdText(event.target.value)}
+                onChange={(event) => { setAdText(event.target.value); if (adLineShake) setAdLineShake(false); }}
                 placeholder="LearnX - Know exactly what to study"
-                className="spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal"
+                className={`spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal${adLineShake ? " !border-red-500 !ring-2 !ring-red-300 animate-shake" : ""}`}
               />
             </label>
 

@@ -12,7 +12,7 @@ import { GET } from "./route";
 
 const ENV_KEYS = [
   "SPINSHARE_MODE",
-  "SPINSHARE_REDIS",
+  "SPINSHARE_COUNTER",
   "FIRESTORE_EMULATOR_HOST",
   "STRIPE_MODE",
   "AUTH_MODE",
@@ -23,7 +23,7 @@ let savedEnv: Record<string, string | undefined>;
 beforeEach(() => {
   savedEnv = Object.fromEntries(ENV_KEYS.map((key) => [key, process.env[key]]));
   process.env.SPINSHARE_MODE = "local";
-  process.env.SPINSHARE_REDIS = "memory";
+  process.env.SPINSHARE_COUNTER = "memory";
   delete process.env.FIRESTORE_EMULATOR_HOST;
   process.env.STRIPE_MODE = "mock";
   process.env.AUTH_MODE = "mock";

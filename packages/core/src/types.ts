@@ -140,6 +140,15 @@ export interface AdResponseAvailable {
   campaignId: string;
   /** Winning campaign ad text. */
   adText: string;
+  /**
+   * Optional HTTPS click-through destination for the winning campaign. When
+   * present, click-capable clients (CLI terminal hyperlink, VSCode "Open"
+   * action) make the displayed ad clickable; when absent the ad is shown as
+   * plain text. Absent for legacy campaigns created before destination URLs.
+   */
+  destinationUrl?: string;
+  /** Optional advertiser brand name, shown alongside the ad text when present. */
+  brandName?: string;
   /** Winning campaign CPM in integer cents (authoritative). */
   cpmCents: number;
   /** Winning campaign CPM formatted as a USD string for display, e.g. "30.00". */
@@ -162,6 +171,8 @@ export type AdResponse = AdResponseAvailable | AdResponseUnavailable;
 export interface TrackRequest {
   /** Campaign the impression is attributed to. */
   campaignId: string;
+  /** Client-observed ad display duration in milliseconds. */
+  viewDurationMs: number;
 }
 
 /**

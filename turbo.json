@@ -3,7 +3,8 @@
   "globalEnv": [
     "SPINSHARE_MODE",
     "FIRESTORE_EMULATOR_HOST",
-    "SPINSHARE_REDIS",
+    "SPINSHARE_COUNTER",
+    "FIREBASE_DATABASE_URL",
     "STRIPE_MODE",
     "AUTH_MODE"
   ],

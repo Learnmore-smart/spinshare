@@ -52,6 +52,11 @@ These fields support a public homepage checkout funnel without changing ad selec
 
 `Campaign` now accepts optional public advertiser metadata: contact email, destination URL, brand name, brand icon data URL, and `publicOnLeaderboard`. The fields are optional so existing tests, seed data, and Firestore documents remain compatible.
 
+## Implemented Change: Tracking Duration
+
+`TrackRequest` now requires `viewDurationMs` so typed clients and API contracts
+carry the client-observed display duration alongside `campaignId`.
+
 ## Change History
 
 | Date | Change | Author |
@@ -59,3 +64,4 @@ These fields support a public homepage checkout funnel without changing ad selec
 | 2026-06-13 | Created doc before adding public advertiser checkout campaign metadata. | Codex |
 | 2026-06-13 | Synced doc with implemented optional campaign metadata fields. | Codex |
 | 2026-06-13 | Documented required track view duration field before editing shared types. | Codex |
+| 2026-06-13 | Synced doc with required `TrackRequest.viewDurationMs`. | Codex |

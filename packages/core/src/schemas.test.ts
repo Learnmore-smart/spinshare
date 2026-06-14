@@ -157,14 +157,40 @@ describe("advertiserCheckoutSchema", () => {
 });
 
 describe("trackRequestSchema", () => {
-  it("accepts a non-empty campaign id", () => {
-    expect(trackRequestSchema.safeParse({ campaignId: "cmp_1" }).success).toBe(
-      true,
-    );
+  it("accepts a non-empty campaign id with a 3-second view duration", () => {
+    expect(
+      trackRequestSchema.safeParse({
+        campaignId: "cmp_1",
+        viewDurationMs: 3000,
+      }).success,
+    ).toBe(true);
   });
 
   it("rejects a missing or empty campaign id", () => {
-    expect(trackRequestSchema.safeParse({}).success).toBe(false);
-    expect(trackRequestSchema.safeParse({ campaignId: "" }).success).toBe(false);
+    expect(trackRequestSchema.safeParse({ viewDurationMs: 3000 }).success).toBe(
+      false,
+    );
+    expect(
+      trackRequestSchema.safeParse({ campaignId: "", viewDurationMs: 3000 })
+        .success,
+    ).toBe(false);
+  });
+
+  it("rejects impressions below the 3-second minimum", () => {
+    expect(
+      trackRequestSchema.safeParse({
+        campaignId: "cmp_1",
+        viewDurationMs: 2999,
+      }).success,
+    ).toBe(false);
+  });
+
+  it("requires an integer view duration", () => {
+    for (const viewDurationMs of [undefined, 3000.5, Number.NaN, "3000"]) {
+      expect(
+        trackRequestSchema.safeParse({ campaignId: "cmp_1", viewDurationMs })
+          .success,
+      ).toBe(false);
+    }
   });
 });

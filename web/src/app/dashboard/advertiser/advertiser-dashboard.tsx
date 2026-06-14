@@ -93,6 +93,9 @@ export function AdvertiserDashboard({ token }: AdvertiserDashboardProps) {
           Create campaigns, fund their budgets, and reach developers inside their
           tools.
         </p>
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          3-second minimum views
+        </p>
       </header>
 
       <CampaignBuilder token={token} onCreated={handleCreated} />

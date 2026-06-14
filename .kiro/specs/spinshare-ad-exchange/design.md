@@ -587,7 +587,8 @@ This is the critical enabler given missing production credentials. The provider 
 ```
 SPINSHARE_MODE=local
 FIRESTORE_EMULATOR_HOST=127.0.0.1:8080   # local Firestore via emulator
-SPINSHARE_REDIS=memory                    # "memory" | "ioredis-mock" | upstash url
+SPINSHARE_COUNTER=memory                  # "memory" | "rtdb" (Firebase Realtime Database)
+FIREBASE_DATABASE_URL=                    # RTDB url; required when SPINSHARE_COUNTER=rtdb
 STRIPE_MODE=mock                          # "mock" | "test" | "live"
 AUTH_MODE=mock                            # "mock" | "oauth"
 ```

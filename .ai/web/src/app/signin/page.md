@@ -1,6 +1,6 @@
-# page.tsx
+﻿# page.tsx
 
-> Last updated: 2026-06-13 | Protection: STANDARD
+> Last updated: 2026-06-14 | Protection: STANDARD
 
 ## Purpose
 
@@ -17,7 +17,7 @@ Renders the client-side sign-in page for developer and advertiser entry.
   prefill button, clearly labelled as local-only.
 - Surfaces an inline error on bad credentials (`redirect: false` flow).
 - Preserves callback URLs so users land on the correct dashboard.
-- Renders a decorative, `aria-hidden` diagonal money-stream background.
+- Uses a clean split sign-in layout with marketing copy on the left and the auth panel on the right.
 - Uses plain ASCII helper text in the password placeholder and local test account line to avoid encoding glitches in the sign-in form.
 
 ## Public API
@@ -25,7 +25,7 @@ Renders the client-side sign-in page for developer and advertiser entry.
 | Name | Type | Description |
 |------|------|-------------|
 | `resolveInitialRole` | function | Resolves `role=advertiser` to advertiser; defaults everything else to developer. |
-| `MONEY_STREAM_ROWS` | `MoneyStreamRow[]` | Precomputed ambient background rows (≥8 rows, ≥12 glyphs each, alternating direction). |
+| `SIGNIN_PAGE_COPY` | object | Shared sign-in page copy used by tests and visible layout. |
 | `SignInPage` | React component | App Router page component. |
 
 ## Dependencies
@@ -37,9 +37,59 @@ Renders the client-side sign-in page for developer and advertiser entry.
 
 - Default to developer when the role query is missing or invalid.
 - Keep callback behavior role-specific when no explicit `callbackUrl` exists.
-- Credentials sign-in must validate against defined accounts only — never accept
+- Credentials sign-in must validate against defined accounts only 鈥?never accept
   an arbitrary id. The provider is local-only (off in production).
-- Keep the money-stream background non-interactive (`aria-hidden`).
+- Keep the sign-in page focused on account access; do not add fake account creation actions that are not wired.
+- Keep the money icon as a restrained product cue, not a dense full-page background.
+
+## Planned Change: Clean Split Sign-In Page
+
+User correction on 2026-06-13: the requested clean reference should apply to the sign-up/sign-in page, not the public homepage.
+
+Planned changes:
+
+- Replace the centered single auth container with a split first viewport.
+- Put large balance-focused text on the left: `Sign in to see your SpinShare balance.`
+- Keep the right-side auth panel dedicated to role selection, OAuth, and email/password sign-in.
+- Remove the dense moving money-stream background and keep the money emoji as a small badge/CTA cue.
+- Preserve role query parsing, callback behavior, OAuth handlers, credentials sign-in, local test-account helper, and back-to-home navigation.
+
+## Implemented Change: Clean Split Sign-In Page
+
+- Replaced the centered auth card over moving money streams with a split layout.
+- Added large left-side copy: `Sign in to see your SpinShare balance.`
+- Added a focused right-side auth panel labeled `Start with SpinShare`.
+- Kept developer/advertiser role selection, Google/GitHub OAuth, email/password sign-in, local test account prefill, and callback handling.
+- Kept the money emoji as a small badge/CTA cue instead of a dense page background.
+
+## Verification: Clean Split Sign-In Page
+
+- Red: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/signin/page.test.ts` failed before implementation because `SIGNIN_PAGE_COPY` was missing.
+- Green: the same focused sign-in test passed after implementation.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed after implementation.
+
+## Planned Enhancement: Stronger 3D Sign-In Container
+
+User feedback on 2026-06-14: the sign-in form container should have a better 3D effect.
+
+Fix strategy:
+
+- Replace the inline auth panel surface classes with the shared `.spinshare-signin-card` class.
+- Keep the form layout, inputs, role tabs, OAuth buttons, and callback behavior unchanged.
+- Move the visual depth into `theme.css` so the panel can use layered glass, bevel, and shadow effects without adding extra DOM.
+
+## Implemented Enhancement: Stronger 3D Sign-In Container
+
+- Replaced the auth panel's inline glass, border, and shadow utilities with the shared `.spinshare-signin-card` class.
+- Preserved the sign-in page layout, role switcher, OAuth buttons, credentials form, local account helper, and callback behavior.
+- Verified the rendered page still includes the intended panel class at `/signin?role=developer`.
+
+## Verification: Stronger 3D Sign-In Container
+
+- `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/signin/page.test.ts` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+- Local dev server returned `200` for `/signin?role=developer` and the response included `.spinshare-signin-card`.
+- Browser screenshot smoke check confirmed the auth card renders with the stronger raised glass effect and no obvious control overlap.
 
 ## Bug Fixes
 
@@ -60,7 +110,7 @@ Fix strategy:
 
 Follow-up requirement:
 
-- Use `🤑` as the repeated money icon in the stream rows.
+- Use `馃` as the repeated money icon in the stream rows.
 
 ## Planned Adjustment: Sign-In Glass Layout
 
@@ -86,7 +136,11 @@ Fix strategy:
 |------|--------|--------|
 | 2026-06-13 | Created documentation for sign-in role initialization fix. | Codex |
 | 2026-06-13 | Documented diagonal money-stream sign-in enhancement before editing code. | Codex |
-| 2026-06-13 | Documented requested `🤑` stream icon replacement. | Codex |
+| 2026-06-13 | Documented requested `馃` stream icon replacement. | Codex |
 | 2026-06-13 | Replaced the "type any id" mock box with an official email/password form validated against defined local test accounts; implemented `MONEY_STREAM_ROWS` background. | Kiro |
 | 2026-06-13 | Documented requested sign-in card backdrop and top-left 3D home button adjustment. | Codex |
-| 2026-06-13 | Synced docs with final `🤑` money stream, ASCII form helper cleanup, and verification. | Codex |
+| 2026-06-13 | Documented clean split sign-in page redesign before editing code. | Codex |
+| 2026-06-13 | Synced docs with final `馃` money stream, ASCII form helper cleanup, and verification. | Codex |
+| 2026-06-13 | Synced docs with clean split sign-in implementation and verification. | Codex |
+| 2026-06-14 | Documented stronger 3D auth container enhancement before editing code. | Codex |
+| 2026-06-14 | Synced docs with stronger 3D auth container implementation and verification. | Codex |

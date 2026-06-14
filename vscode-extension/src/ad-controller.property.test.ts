@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import fc from "fast-check";
 import {
   AdController,
@@ -13,11 +13,12 @@ import type { AdResponse, TrackResponse } from "@spinshare/core";
  *
  * The VSCode extension must request the ad from `GET /api/ad` and report
  * **exactly one** impression to `POST /api/track` per generation that displays
- * an ad. Concretely, across an arbitrary lifecycle of start/complete signals
+ * an ad and reaches the 3-second minimum viewability floor. Concretely, across
+ * an arbitrary lifecycle of start/complete signals
  * (including duplicate starts, overlapping starts, and starts with no
  * completes):
  *
- *   - Every generation that fetched an *available* ad reports exactly one
+ *   - Every eligible generation that fetched an *available* ad reports exactly one
  *     impression (one per displayed ad — no campaign id repeats).
  *   - Duplicate/overlapping `startGeneration` calls while a generation is
  *     active never produce a second impression.
@@ -104,7 +105,7 @@ function makeMockClient(availability: ReadonlyArray<boolean>): {
       }
       return { adAvailable: false };
     },
-    reportImpression: async (campaignId: string) => {
+    reportImpression: async (campaignId: string, _viewDurationMs: number) => {
       impressions.push(campaignId);
       return TRACK;
     },
@@ -178,7 +179,12 @@ const availabilityArb: fc.Arbitrary<boolean[]> = fc.array(fc.boolean(), {
 });
 
 describe("Property 24: one impression per generation", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("reports exactly one impression per displayed ad across arbitrary lifecycles", async () => {
+    vi.useFakeTimers();
     await fc.assert(
       fc.asyncProperty(opsArb, availabilityArb, async (ops, availability) => {
         const { vscode, progressCalls } = makeMockVscode();
@@ -188,6 +194,7 @@ describe("Property 24: one impression per generation", () => {
         for (const op of ops) {
           if (op === "start") {
             await controller.startGeneration();
+            await vi.advanceTimersByTimeAsync(3000);
           } else {
             controller.completeGeneration();
           }
@@ -209,6 +216,7 @@ describe("Property 24: one impression per generation", () => {
   });
 
   it("never reports a second impression for duplicate/overlapping starts while active", async () => {
+    vi.useFakeTimers();
     // availability all-true so every fresh generation displays an ad.
     const dupStartsArb = fc.array(fc.integer({ min: 1, max: 5 }), {
       minLength: 1,
@@ -227,6 +235,7 @@ describe("Property 24: one impression per generation", () => {
           for (let i = 0; i < burst; i++) {
             await controller.startGeneration();
           }
+          await vi.advanceTimersByTimeAsync(3000);
           expected += 1; // exactly one impression for this active generation
           expect(impressions).toHaveLength(expected);
           controller.completeGeneration();
@@ -240,13 +249,14 @@ describe("Property 24: one impression per generation", () => {
   });
 
   it("reports zero impressions and shows nothing when no ad is available", async () => {
+    vi.useFakeTimers();
     await fc.assert(
       fc.asyncProperty(opsArb, async (ops) => {
         const { vscode, progressCalls } = makeMockVscode();
         // availability all-false → getAd always returns { adAvailable: false }.
         const client: AdClientLike = {
           getAd: async () => ({ adAvailable: false }),
-          reportImpression: async (campaignId: string) => {
+          reportImpression: async (campaignId: string, _viewDurationMs: number) => {
             // Should never be called when no ad is available.
             throw new Error(`unexpected impression for ${campaignId}`);
           },
@@ -254,9 +264,9 @@ describe("Property 24: one impression per generation", () => {
         const impressions: string[] = [];
         const wrapped: AdClientLike = {
           getAd: client.getAd,
-          reportImpression: async (id, token) => {
+          reportImpression: async (id, viewDurationMs, token) => {
             impressions.push(id);
-            return client.reportImpression(id, token);
+            return client.reportImpression(id, viewDurationMs, token);
           },
         };
         const controller = new AdController({ vscode, client: wrapped });
@@ -264,6 +274,7 @@ describe("Property 24: one impression per generation", () => {
         for (const op of ops) {
           if (op === "start") {
             await controller.startGeneration();
+            await vi.advanceTimersByTimeAsync(3000);
           } else {
             controller.completeGeneration();
           }
@@ -278,6 +289,7 @@ describe("Property 24: one impression per generation", () => {
   });
 
   it("concurrent overlapping starts (unawaited) still yield exactly one impression", async () => {
+    vi.useFakeTimers();
     await fc.assert(
       fc.asyncProperty(
         fc.integer({ min: 2, max: 8 }),
@@ -293,6 +305,7 @@ describe("Property 24: one impression per generation", () => {
               controller.startGeneration(),
             ),
           );
+          await vi.advanceTimersByTimeAsync(3000);
 
           expect(impressions).toHaveLength(1);
           expect(progressCalls).toHaveLength(1);

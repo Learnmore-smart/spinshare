@@ -1,0 +1,58 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - link "SpinShare home" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - img "SpinShare Logo" [ref=e5]
+        - generic [ref=e6]: SpinShare
+      - link "Home" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img [ref=e8]
+        - text: Home
+    - main [ref=e10]:
+      - generic [ref=e11]:
+        - heading "Sign in to see your balance" [level=1] [ref=e12]:
+          - text: Sign in to see your
+          - generic [ref=e13]: balance
+        - paragraph [ref=e14]: Your private dashboard shows credited events, payout status, and recent activity from the extension.
+        - generic [ref=e15]:
+          - generic [ref=e16]:
+            - paragraph [ref=e17]: 60%
+            - paragraph [ref=e18]: revenue share
+          - generic [ref=e19]:
+            - paragraph [ref=e20]: Private
+            - paragraph [ref=e21]: dashboard
+          - generic [ref=e22]:
+            - paragraph [ref=e23]: Live
+            - paragraph [ref=e24]: payout status
+      - region "Start with SpinShare" [ref=e25]:
+        - generic [ref=e26]:
+          - button "Developer" [ref=e27] [cursor=pointer]:
+            - img [ref=e28]
+            - text: Developer
+          - button "Advertiser" [ref=e31] [cursor=pointer]:
+            - img [ref=e32]
+            - text: Advertiser
+        - generic [ref=e36]:
+          - button "Continue with Google" [ref=e37] [cursor=pointer]:
+            - img [ref=e38]
+            - text: Continue with Google
+          - button "Continue with GitHub" [ref=e43] [cursor=pointer]:
+            - img [ref=e44]
+            - text: Continue with GitHub
+        - generic [ref=e49]: or
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - text: Email
+            - textbox "Email" [ref=e52]:
+              - /placeholder: you@example.com
+          - generic [ref=e53]:
+            - text: Password
+            - textbox "Password" [ref=e54]:
+              - /placeholder: password
+          - button "Sign in" [ref=e55] [cursor=pointer]
+        - generic [ref=e56]:
+          - paragraph [ref=e57]: Local test developer account
+          - paragraph [ref=e58]: developer@spinshare.test / spinshare
+          - button "Use this account" [ref=e59] [cursor=pointer]
+  - alert [ref=e60]

@@ -48,10 +48,18 @@ Add failing tests for the public advertiser checkout schema:
 
 Added schema tests for valid public checkout, private leaderboard submissions, HTTPS-only destination URLs, and checkout totals that exceed the funding maximum.
 
+## Implemented Test: 3-Second Viewability
+
+Added schema tests that accept exactly 3000 ms and reject below-minimum,
+missing, non-integer, and non-numeric view durations.
+
 ## Verification
 
 - Initial focused run failed because `advertiserCheckoutSchema` was missing.
 - Final `corepack pnpm@9.12.0 --filter @spinshare/core test` passed: 5 files, 29 tests.
+- Initial viewability focused run failed because `trackRequestSchema` still
+  accepted below-minimum/missing durations.
+- Final root test run passed: core 5 files, 31 tests.
 
 ## Change History
 
@@ -60,3 +68,4 @@ Added schema tests for valid public checkout, private leaderboard submissions, H
 | 2026-06-13 | Created doc before adding advertiser checkout schema tests. | Codex |
 | 2026-06-13 | Synced doc with final advertiser checkout schema tests and verification. | Codex |
 | 2026-06-13 | Documented 3-second tracking schema regression tests before editing tests. | Codex |
+| 2026-06-13 | Synced doc with passing 3-second tracking schema tests. | Codex |

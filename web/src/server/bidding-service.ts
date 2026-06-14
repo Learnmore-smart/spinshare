@@ -68,6 +68,12 @@ export async function selectAd(deps: BiddingServiceDeps): Promise<AdResponse> {
         adAvailable: true,
         campaignId: winner.id,
         adText: winner.adText,
+        ...(winner.destinationUrl !== undefined
+          ? { destinationUrl: winner.destinationUrl }
+          : {}),
+        ...(winner.brandName !== undefined
+          ? { brandName: winner.brandName }
+          : {}),
         cpmCents: winner.cpmCents,
         cpmUsd: formatCentsAsUsd(winner.cpmCents),
       };

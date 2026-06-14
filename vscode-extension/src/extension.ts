@@ -41,6 +41,11 @@ export function activate(context: vscode.ExtensionContext): void {
     client,
     // Synchronous token hook backed by the auth manager's in-memory cache.
     getToken: () => auth.getToken(),
+    // Open the ad's click-through URL in the system browser when the developer
+    // clicks the "Open" action on a clickable ad.
+    openUrl: (url) => {
+      void vscode.env.openExternal(vscode.Uri.parse(url));
+    },
     onError: (error) => console.error("[spinshare] ad error", error),
   });
 

@@ -35,8 +35,15 @@ Typed HTTP client used by the CLI wrapper to fetch ads and report impressions.
 Require callers to pass `viewDurationMs` to `reportImpression` and include it
 in the `POST /api/track` JSON body.
 
+## Implemented Change
+
+`reportImpression(campaignId, viewDurationMs, token?)` now posts both
+`campaignId` and `viewDurationMs`, preserving token behavior and graceful
+failure handling.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-13 | Created doc before adding CLI track duration payload. | Codex |
+| 2026-06-13 | Synced doc with implemented CLI tracking payload duration. | Codex |

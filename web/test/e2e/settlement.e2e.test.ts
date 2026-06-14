@@ -96,7 +96,7 @@ const ENV_KEYS = [
   "SPINSHARE_MODE",
   "STRIPE_MODE",
   "AUTH_MODE",
-  "SPINSHARE_REDIS",
+  "SPINSHARE_COUNTER",
   "FIRESTORE_EMULATOR_HOST",
 ] as const;
 
@@ -132,7 +132,7 @@ function configureLocalMemoryEnv(): void {
   process.env.SPINSHARE_MODE = "local";
   process.env.STRIPE_MODE = "mock";
   process.env.AUTH_MODE = "mock";
-  process.env.SPINSHARE_REDIS = "memory";
+  process.env.SPINSHARE_COUNTER = "memory";
   // No emulator in this environment → force the pure in-memory repos so durable
   // balances/budgets are observable from this process.
   delete process.env.FIRESTORE_EMULATOR_HOST;
@@ -257,7 +257,10 @@ describe("e2e settlement — 60/40 split (Requirement 11)", () => {
           "content-type": "application/json",
           authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ campaignId: campaign.id }),
+        body: JSON.stringify({
+          campaignId: campaign.id,
+          viewDurationMs: 3000,
+        }),
       }),
     );
     expect(trackRes.status).toBe(200);

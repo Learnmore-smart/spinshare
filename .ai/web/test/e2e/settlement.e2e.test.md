@@ -35,6 +35,17 @@ End-to-end settlement verification for the 60/40 money split and `/api/track` bo
 Update in-process successful `/api/track` calls to include
 `viewDurationMs: 3000`, matching the new shared tracking contract.
 
+## Implemented Change
+
+The successful settlement path now sends `viewDurationMs: 3000` with the
+campaign id so the e2e route call matches the shared 3-second viewability
+contract.
+
+## Verification
+
+- Full workspace tests passed with the updated settlement payload:
+  `corepack pnpm@9.12.0 test`.
+
 ## Bug Fixes
 
 | Date | Bug | Cause | Fix |

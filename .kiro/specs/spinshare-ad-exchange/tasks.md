@@ -14,7 +14,7 @@ All money is computed with the integer-cent / micro-cent functions in `@spinshar
     - Create `pnpm-workspace.yaml` listing `["web", "cli-wrapper", "vscode-extension", "packages/*"]`
     - Create `turbo.json` with `build` (`dependsOn: ["^build"]`), `test`, `test:e2e`, `lint` pipeline + caching
     - Create `tsconfig.base.json` with shared compiler options and path aliases
-    - Create `.env.example` documenting `SPINSHARE_MODE`, `FIRESTORE_EMULATOR_HOST`, `SPINSHARE_REDIS`, `STRIPE_MODE`, `AUTH_MODE`
+    - Create `.env.example` documenting `SPINSHARE_MODE`, `FIRESTORE_EMULATOR_HOST`, `SPINSHARE_COUNTER`, `FIREBASE_DATABASE_URL`, `STRIPE_MODE`, `AUTH_MODE`
     - _Requirements: 1.1, 11.1_
 
 - [x] 2. Build the pure `@spinshare/core` package (foundation for all money/bidding logic)

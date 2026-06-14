@@ -112,7 +112,7 @@ describe("CliApiClient", () => {
     expect(await badClient.getAd()).toEqual({ adAvailable: false });
   });
 
-  it("POST /api/track sends the campaignId and returns the parsed response", async () => {
+  it("POST /api/track sends the campaignId and view duration, then returns the parsed response", async () => {
     let captured: Parameters<FetchLike>[1] | undefined;
     const client = new CliApiClient({
       baseUrl: "https://x.dev",
@@ -126,11 +126,14 @@ describe("CliApiClient", () => {
         });
       },
     });
-    const res = await client.reportImpression("cmp_1");
+    const res = await client.reportImpression("cmp_1", 3000);
     expect(res?.developerCreditCents).toBe(18);
     expect(captured?.method).toBe("POST");
     expect(captured?.headers?.Authorization).toBe("Bearer tok");
-    expect(JSON.parse(captured?.body ?? "{}")).toEqual({ campaignId: "cmp_1" });
+    expect(JSON.parse(captured?.body ?? "{}")).toEqual({
+      campaignId: "cmp_1",
+      viewDurationMs: 3000,
+    });
   });
 
   it("reportImpression resolves to null on failure", async () => {
@@ -138,7 +141,7 @@ describe("CliApiClient", () => {
       baseUrl: "https://x.dev",
       fetchImpl: async () => jsonResponse(401, {}),
     });
-    expect(await client.reportImpression("cmp_1")).toBeNull();
+    expect(await client.reportImpression("cmp_1", 3000)).toBeNull();
   });
 });
 

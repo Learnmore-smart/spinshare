@@ -39,8 +39,21 @@ Write failing tests that prove:
 - `runWrap` sends no request when output resumes before the threshold
 - `runWrap` sends `viewDurationMs` when the threshold is met
 
+## Implemented Test
+
+Tests now use fake timers to prove short waits do not report, 3000 ms waits do
+report once with `viewDurationMs`, no-ad waits still report zero, and exit-code
+mapping is unchanged.
+
+## Verification
+
+- Red run failed before implementation.
+- Final focused CLI run passed: `api-client.test.ts`, `wrap.test.ts`, and
+  `wrap.impressions.property.test.ts`.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-13 | Created doc before adding CLI viewability regression tests. | Codex |
+| 2026-06-13 | Synced doc with passing CLI viewability tests. | Codex |

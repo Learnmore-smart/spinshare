@@ -32,8 +32,20 @@ Property tests for the VS Code extension ad controller impression invariant.
 Update the property wording and model so an impression is counted only after a
 displayed ad remains active for the 3000 ms minimum.
 
+## Implemented Change
+
+The property model advances fake time for eligible started generations and keeps
+the invariant that every displayed ad can produce no more than one impression.
+No-ad generations still produce zero impressions.
+
+## Verification
+
+- Green: `corepack pnpm@9.12.0 --filter @spinshare/vscode-extension test -- src/api-client.test.ts src/ad-controller.test.ts src/ad-controller.property.test.ts` passed.
+- Full workspace test run also passed.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-13 | Created doc before updating VS Code property tests for viewability. | Codex |
+| 2026-06-13 | Synced docs with VS Code property-test viewability model. | Codex |

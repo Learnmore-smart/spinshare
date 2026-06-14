@@ -46,7 +46,7 @@ const WEBHOOK_SECRET = "whsec_mock_spinshare_local";
 
 const ENV_KEYS = [
   "SPINSHARE_MODE",
-  "SPINSHARE_REDIS",
+  "SPINSHARE_COUNTER",
   "FIRESTORE_EMULATOR_HOST",
   "STRIPE_MODE",
   "AUTH_MODE",
@@ -58,7 +58,7 @@ beforeEach(() => {
   savedEnv = Object.fromEntries(ENV_KEYS.map((k) => [k, process.env[k]]));
   // Force the credential-free local adapters regardless of the ambient env.
   process.env.SPINSHARE_MODE = "local";
-  process.env.SPINSHARE_REDIS = "memory";
+  process.env.SPINSHARE_COUNTER = "memory";
   delete process.env.FIRESTORE_EMULATOR_HOST;
   process.env.STRIPE_MODE = "mock";
   process.env.AUTH_MODE = "mock";

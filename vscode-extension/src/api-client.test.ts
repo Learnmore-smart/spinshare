@@ -70,18 +70,20 @@ describe("AdApiClient.getAd", () => {
 });
 
 describe("AdApiClient.reportImpression", () => {
-  it("POSTs {baseUrl}/api/track with the campaignId and parses the response", async () => {
+  it("POSTs {baseUrl}/api/track with the campaignId and view duration, then parses the response", async () => {
     const { fetchImpl, calls } = makeFetch(() =>
       jsonResponse({ recorded: true, developerCreditCents: 18, developerCreditUsd: "0.18" }),
     );
     const client = new AdApiClient({ baseUrl: "https://x.test", fetchImpl });
 
-    const res = await client.reportImpression("cmp_9", "tok2");
+    const res = await client.reportImpression("cmp_9", 3000, "tok2");
 
     expect(calls[0].url).toBe("https://x.test/api/track");
     expect(calls[0].method).toBe("POST");
     expect(calls[0].headers?.Authorization).toBe("Bearer tok2");
-    expect(calls[0].body).toBe(JSON.stringify({ campaignId: "cmp_9" }));
+    expect(calls[0].body).toBe(
+      JSON.stringify({ campaignId: "cmp_9", viewDurationMs: 3000 }),
+    );
     expect(res).toEqual({ recorded: true, developerCreditCents: 18, developerCreditUsd: "0.18" });
   });
 
@@ -89,6 +91,6 @@ describe("AdApiClient.reportImpression", () => {
     const { fetchImpl } = makeFetch(() => jsonResponse({}, false, 401));
     const client = new AdApiClient({ baseUrl: "https://x.test", fetchImpl });
 
-    expect(await client.reportImpression("cmp_9")).toBeNull();
+    expect(await client.reportImpression("cmp_9", 3000)).toBeNull();
   });
 });

@@ -7,7 +7,7 @@ import { ArrowRight, RefreshCw } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 import AdvertiserCheckoutForm from "./advertiser-checkout-form";
-import LoadingStatus, { LOADING_ICONS } from "@/components/LoadingStatus";
+import LoadingStatus, { LOADING_ICONS, LOADING_VERBS } from "@/components/LoadingStatus";
 
 const DEVELOPER_SIGNIN_HREF =
   "/signin?role=developer&callbackUrl=%2Fdashboard%2Fdeveloper";
@@ -71,12 +71,13 @@ function MoneyIcon({ className = "" }: { className?: string }) {
   );
 }
 
-const CLAUDE_STATES = [
-  { action: "Conjuring", category: "Bash", duration: 3.1 },
-  { action: "Noodling", category: "Glob", duration: 1.4 },
-  { action: "Baking", category: "Write", duration: 0.9 },
-  { action: "Thinking", category: "Read", duration: 2.2 },
-] as const;
+const CLAUDE_CATEGORIES = ["Bash", "Glob", "Write", "Read"] as const;
+
+const CLAUDE_STATES = LOADING_VERBS.map((verb, i) => ({
+  action: verb,
+  category: CLAUDE_CATEGORIES[i % CLAUDE_CATEGORIES.length],
+  duration: Math.max(3.0, 1.0 + ((i * 7 + 3) % 25) / 10),
+}));
 
 function getCampaignStats(campaignId: string) {
   let hash = 0;
@@ -171,7 +172,7 @@ export default function HomePage() {
   const [leftTimer, setLeftTimer] = useState<number>(0.0);
   const [rightTimer, setRightTimer] = useState<number>(0.0);
 
-  const currentClaudeState = CLAUDE_STATES[claudeStateIndex] ?? CLAUDE_STATES[0];
+  const currentClaudeState = CLAUDE_STATES[claudeStateIndex] ?? CLAUDE_STATES[0]!;
 
   const leftElapsedMs = Math.round(leftTimer * 1000);
   const leftIconIndex = Math.floor(leftElapsedMs / 250) % LOADING_ICONS.length;
@@ -208,10 +209,10 @@ export default function HomePage() {
     const interval = window.setInterval(() => {
       setLiveEarnings((prev) => {
         if (prev === 0) return startVal;
-        const increment = 0.01 + Math.random() * 0.02;
+        const increment = 0.03 + Math.random() * 0.06;
         return prev + increment;
       });
-    }, 500);
+    }, 333);
 
     return () => {
       window.clearInterval(interval);
@@ -701,6 +702,9 @@ export default function HomePage() {
                 <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
                   Credited impressions flow to your ledger with payout limits and fraud review protecting the exchange.
                 </p>
+                <p className="mt-2 text-xs font-black uppercase tracking-[0.14em] text-emerald-700">
+                  3-second minimum views
+                </p>
               </div>
             </div>
           </div>
@@ -742,11 +746,14 @@ export default function HomePage() {
           </div>
           <p>&copy; 2026 SpinShare. Paid wait states for AI coding tools.</p>
           <div className="flex gap-5">
-            <Link href={ADVERTISER_SIGNIN_HREF} className="transition hover:text-emerald-700">
-              Advertisers
-            </Link>
-            <Link href="/signin?role=developer" className="transition hover:text-emerald-700">
+            <Link href="/signin?role=developer" className="text-slate-500">
               Login
+            </Link>
+            <Link href="/privacy" className="text-slate-500">
+              Privacy
+            </Link>
+            <Link href="/terms" className="text-slate-500">
+              Terms
             </Link>
           </div>
         </div>
