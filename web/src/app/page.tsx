@@ -715,7 +715,7 @@ export default function HomePage() {
       </main>
 
       <footer className="spinshare-home-footer px-4 py-8 sm:px-6">
-        <div className="liquid-glass mx-auto flex max-w-7xl flex-col gap-4 rounded-[20px] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="liquid-glass spinshare-static mx-auto flex max-w-7xl flex-col gap-4 rounded-[20px] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <Image
               src="/logo/spinshare-logo.png"

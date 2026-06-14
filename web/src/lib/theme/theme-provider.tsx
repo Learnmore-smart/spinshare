@@ -26,13 +26,20 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+function readResolvedFromDom(): "light" | "dark" {
+  if (typeof document === "undefined") return "light";
+  if (document.documentElement.classList.contains("dark")) return "dark";
+  if (document.documentElement.classList.contains("light")) return "light";
+  return resolveTheme("auto");
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [preference, setPreferenceState] = useState<ThemePreference>("auto");
-  const [resolved, setResolved] = useState<"light" | "dark">("light");
+  const [resolved, setResolved] = useState<"light" | "dark">(readResolvedFromDom);
 
   useEffect(() => {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
-    if (isThemePreference(stored)) {
+    if (isThemePreference(stored) && stored !== "auto") {
       setPreferenceState(stored);
     }
   }, []);
@@ -41,7 +48,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const next = resolveTheme(preference);
     setResolved(next);
     applyResolvedTheme(next);
-    localStorage.setItem(THEME_STORAGE_KEY, preference);
+    if (preference === "auto") {
+      localStorage.removeItem(THEME_STORAGE_KEY);
+    } else {
+      localStorage.setItem(THEME_STORAGE_KEY, preference);
+    }
   }, [preference]);
 
   useEffect(() => {

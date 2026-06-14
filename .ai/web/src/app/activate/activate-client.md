@@ -33,3 +33,4 @@
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-13 | Created interactive approve/deny client | Kiro |
+| 2026-06-14 | Dark theme: `dark:` text/surface classes on all status states | Codex |

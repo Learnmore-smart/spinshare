@@ -38,7 +38,6 @@
 
 .spinshare-home-hero {
   position: relative;
-  overflow: hidden;
   border-bottom: 1px solid var(--border-subtle);
   background-color: var(--bg-page);
 }
@@ -169,11 +168,6 @@
 
 .spinshare-home-footer a {
   color: var(--text-muted);
-  transition: color 0.2s ease;
-}
-
-.spinshare-home-footer a:hover {
-  color: var(--text-accent);
 }
 
 .spinshare-home-strong {

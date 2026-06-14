@@ -49,7 +49,7 @@ export function ActivatePageClient({
         </Link>
         <Link
           href="/"
-          className="inline-flex h-10 items-center gap-2 rounded-full border border-white/70 bg-white/60 px-4 text-sm font-black text-slate-500 shadow-[0_10px_30px_rgba(15,23,42,0.05)] backdrop-blur transition hover:text-emerald-700"
+          className="inline-flex h-10 items-center gap-2 rounded-full border border-white/70 bg-white/60 px-4 text-sm font-black text-slate-500 shadow-[0_10px_30px_rgba(15,23,42,0.05)] backdrop-blur transition hover:text-emerald-700 dark:border-emerald-900/25 dark:bg-white/5 dark:text-slate-300 dark:hover:text-emerald-300"
         >
           <ArrowLeft className="h-4 w-4" />
           {t.nav.home}
@@ -59,10 +59,10 @@ export function ActivatePageClient({
       <main className="relative z-10 mx-auto flex min-h-[calc(100vh-76px)] max-w-lg items-center justify-center py-10">
         <div className="w-full">
           <div className="mb-6 text-center">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-800/60">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-800/60 dark:text-emerald-400/70">
               {t.activate.deviceAuth}
             </p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950 dark:text-emerald-50 sm:text-4xl">
               {t.activate.titlePrefix}{" "}
               <span className="spinshare-hero-highlight-3d">{t.activate.titleHighlight}</span>
             </h1>
@@ -72,7 +72,7 @@ export function ActivatePageClient({
             {signedIn ? (
               <Suspense
                 fallback={
-                  <p className="text-center text-sm font-semibold text-slate-600">
+                  <p className="text-center text-sm font-semibold text-slate-600 dark:text-slate-300">
                     {t.activate.approvingDevice}
                   </p>
                 }
@@ -81,7 +81,7 @@ export function ActivatePageClient({
               </Suspense>
             ) : (
               <div className="space-y-5 text-center">
-                <p className="text-sm font-semibold leading-relaxed text-slate-600">
+                <p className="text-sm font-semibold leading-relaxed text-slate-600 dark:text-slate-300">
                   {t.activate.signedOutBody(userCode || null)}
                 </p>
                 <Link
@@ -94,7 +94,7 @@ export function ActivatePageClient({
             )}
           </section>
 
-          <p className="mt-6 text-center text-xs font-semibold leading-relaxed text-slate-500">
+          <p className="mt-6 text-center text-xs font-semibold leading-relaxed text-slate-500 dark:text-slate-400">
             {t.activate.footerHint}
           </p>
         </div>

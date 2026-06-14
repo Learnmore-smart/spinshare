@@ -29,10 +29,12 @@ VS Code extension manifest and build scripts for local `.vsix` packaging and Mar
 - Run `pnpm build` in `vscode-extension` before `vsce package`.
 - Local install: Extensions panel → `...` → Install from VSIX.
 
-## Planned Changes (2026-06-14)
+## Change History
 
-- Rename `name` from `@spinshare/vscode-extension` to `spinshare` for vsce compatibility.
-- Move `@spinshare/core` to `devDependencies`.
-- Add `.vscodeignore` for lean VSIX output.
-- Add `media/icon.png`, README (en/zh-cn/fr-fr), `icon` + `repository` fields.
-- Auto sign-in prompt on activation via `extension.ts`.
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-14 | Workspace `.vscode/settings.json` `spinshare.baseUrl` → `https://spinshare.dev` (was localhost override for dev) | Codex |
+
+## Notes
+
+- Extension default `spinshare.baseUrl` in `package.json` is `https://www.spinshare.dev`; workspace settings override when running Extension Development Host.

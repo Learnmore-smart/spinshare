@@ -172,6 +172,7 @@ Planned changes:
 
 | Date | Bug | Cause | Fix |
 |------|-----|-------|-----|
+| 2026-06-14 | Hero highlight text clipped at top | `.spinshare-home-hero { overflow: hidden }` in `home.css` | Remove `overflow: hidden` from hero section |
 
 ## Planned Change: Public Advertiser Checkout Form
 
@@ -199,10 +200,15 @@ Screenshot review on 2026-06-13 showed the full-width line under the fixed navba
 
 Follow-up screenshot review clarified the blur should belong to the rounded navbar container, not the whole fixed header section. Move the backdrop treatment from the full-width header wrapper to the inner navbar capsule.
 
+## Planned Change (2026-06-14)
+
+- Footer `liquid-glass` panel: add `spinshare-static` so it does not animate on hover.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-14 | Footer glass panel uses `spinshare-static` (no hover lift) | Cursor |
 | 2026-06-14 | Homepage dark mode: `spinshare-home*` classes consume `theme.css` tokens; removed hardcoded `#e8f6ed` backgrounds | Cursor |
 | 2026-06-13 | Documented money-forward homepage redesign plan before editing code | Codex |
 | 2026-06-13 | Documented responsive fixes for hero proof panels and bid table overflow | Codex |

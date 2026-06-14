@@ -98,13 +98,13 @@ export function ActivateClient({
   if (!resolvedCode) {
     return (
       <div className="space-y-4 text-center">
-        <p className="text-sm font-semibold text-slate-600">
+        <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
           {t.activate.missingCodeBody}
         </p>
         <div className="space-y-2 text-left">
           <label
             htmlFor="user_code"
-            className="block text-xs font-black uppercase tracking-wider text-emerald-900/80"
+            className="block text-xs font-black uppercase tracking-wider text-emerald-900/80 dark:text-emerald-300/80"
           >
             {t.activate.pasteCodeLabel}
           </label>
@@ -119,7 +119,7 @@ export function ActivateClient({
           />
         </div>
         {status.kind === "error" ? (
-          <p role="alert" className="text-sm font-semibold text-red-600">
+          <p role="alert" className="text-sm font-semibold text-red-600 dark:text-red-400">
             {status.message}
           </p>
         ) : null}
@@ -138,12 +138,12 @@ export function ActivateClient({
   if (status.kind === "submitting") {
     return (
       <div className="space-y-2 text-center" role="status" aria-live="polite">
-        <p className="text-sm font-semibold text-slate-600">
+        <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
           {status.decision === "approve"
             ? t.activate.approvingDevice
             : t.activate.decliningRequest}
         </p>
-        <p className="text-xs text-slate-500">{t.activate.returnToTerminal}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{t.activate.returnToTerminal}</p>
       </div>
     );
   }
@@ -151,11 +151,11 @@ export function ActivateClient({
   if (status.kind === "approved") {
     return (
       <div className="space-y-3 text-center" role="status">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-2xl text-emerald-700">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-2xl text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-950/40 dark:text-emerald-300">
           ✓
         </div>
-        <h2 className="text-lg font-black text-slate-950">{t.activate.approvedTitle}</h2>
-        <p className="text-sm font-semibold text-slate-600">{t.activate.approvedBody}</p>
+        <h2 className="text-lg font-black text-slate-950 dark:text-emerald-50">{t.activate.approvedTitle}</h2>
+        <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">{t.activate.approvedBody}</p>
       </div>
     );
   }
@@ -163,11 +163,11 @@ export function ActivateClient({
   if (status.kind === "denied") {
     return (
       <div className="space-y-3 text-center" role="status">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-2xl text-slate-500">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-2xl text-slate-500 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400">
           ✕
         </div>
-        <h2 className="text-lg font-black text-slate-950">{t.activate.deniedTitle}</h2>
-        <p className="text-sm font-semibold text-slate-600">{t.activate.deniedBody}</p>
+        <h2 className="text-lg font-black text-slate-950 dark:text-emerald-50">{t.activate.deniedTitle}</h2>
+        <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">{t.activate.deniedBody}</p>
       </div>
     );
   }
@@ -175,9 +175,9 @@ export function ActivateClient({
   return (
     <div className="space-y-5">
       {email ? (
-        <p className="text-center text-xs font-black uppercase tracking-wider text-emerald-900/70">
+        <p className="text-center text-xs font-black uppercase tracking-wider text-emerald-900/70 dark:text-emerald-300/80">
           {t.activate.signedInAs}{" "}
-          <span className="font-mono normal-case tracking-normal text-emerald-800">
+          <span className="font-mono normal-case tracking-normal text-emerald-800 dark:text-emerald-200">
             {email}
           </span>
         </p>
@@ -186,7 +186,7 @@ export function ActivateClient({
       <div className="space-y-2">
         <label
           htmlFor="user_code"
-          className="block text-xs font-black uppercase tracking-wider text-emerald-900/80"
+          className="block text-xs font-black uppercase tracking-wider text-emerald-900/80 dark:text-emerald-300/80"
         >
           {t.activate.deviceCode}
         </label>
@@ -200,13 +200,13 @@ export function ActivateClient({
           disabled={submitting}
           className="spinshare-input w-full px-4 py-3 text-center font-mono text-xl font-black tracking-[0.25em]"
         />
-        <p className="text-center text-xs font-semibold text-slate-500">
+        <p className="text-center text-xs font-semibold text-slate-500 dark:text-slate-400">
           {t.activate.codeHint}
         </p>
       </div>
 
       {status.kind === "error" ? (
-        <p role="alert" className="text-center text-sm font-semibold text-red-600">
+        <p role="alert" className="text-center text-sm font-semibold text-red-600 dark:text-red-400">
           {status.message}
         </p>
       ) : null}
