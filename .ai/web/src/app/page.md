@@ -203,6 +203,7 @@ Follow-up screenshot review clarified the blur should belong to the rounded navb
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-14 | Homepage dark mode: `spinshare-home*` classes consume `theme.css` tokens; removed hardcoded `#e8f6ed` backgrounds | Cursor |
 | 2026-06-13 | Documented money-forward homepage redesign plan before editing code | Codex |
 | 2026-06-13 | Documented responsive fixes for hero proof panels and bid table overflow | Codex |
 | 2026-06-13 | Synced documentation after homepage money-market redesign and verification | Codex |

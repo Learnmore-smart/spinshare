@@ -20,5 +20,6 @@ Pill-shaped language switcher with globe icon. Opens a dropdown with **Auto** (b
 ## Change History
 | Date | Change |
 |------|--------|
+| 2026-06-14 | Trigger uses `.spinshare-lang-trigger` + theme.css `--surface-control*` tokens for dark mode |
 | 2026-06-14 | Auto option at top; removed header hint text |
 | 2026-06-14 | Smooth enter/exit dropdown animation |

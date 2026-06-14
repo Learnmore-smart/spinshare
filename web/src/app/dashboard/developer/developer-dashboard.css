@@ -1,13 +1,15 @@
 /* Developer dashboard — SpinShare money terminal */
 
 .dev-dash {
-  --dev-bg: #e8f6ed;
-  --dev-ink: #0f172a;
-  --dev-muted: #64748b;
-  --dev-line: rgba(16, 185, 129, 0.14);
-  --dev-glow: rgba(16, 185, 129, 0.35);
+  --dev-bg: var(--bg-page);
+  --dev-ink: var(--text-primary);
+  --dev-muted: var(--text-secondary);
+  --dev-line: var(--border-accent);
+  --dev-glow: var(--shadow-accent-glow);
   --dev-rail-width: 4rem;
-  --dev-rail-mobile-height: 4.25rem;
+  --dev-rail-mobile-height: 3.25rem;
+  --dev-rail-mobile-pad-y: 0.375rem;
+  --dev-rail-mobile-btn: 2.5rem;
   min-height: 100dvh;
   background:
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(16, 185, 129, 0.22), transparent 55%),
@@ -16,11 +18,6 @@
 }
 
 .dark .dev-dash {
-  --dev-bg: #0a100e;
-  --dev-ink: #ecfdf5;
-  --dev-muted: #94a3b8;
-  --dev-line: rgba(16, 185, 129, 0.2);
-  --dev-glow: rgba(52, 211, 153, 0.25);
   background:
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(16, 185, 129, 0.12), transparent 55%),
     var(--dev-bg);
@@ -43,13 +40,9 @@
   width: var(--dev-rail-width);
   height: 100dvh;
   border-right: 1px solid var(--dev-line);
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--surface-rail);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-}
-
-.dark .dev-dash-rail {
-  background: rgba(10, 16, 14, 0.88);
 }
 
 .dev-dash-rail-top,
@@ -60,16 +53,9 @@
   padding: 0.75rem 0.5rem;
 }
 
-.dev-dash-rail-settings {
+.dev-dash-rail-bottom {
   margin-top: auto;
-}
-
-@media (min-width: 640px) {
-  .dev-dash-rail-settings {
-    align-self: stretch;
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--dev-line);
-  }
+  border-top: 1px solid var(--dev-line);
 }
 
 .dev-dash-rail-logo {
@@ -95,7 +81,6 @@
 
 .dev-dash-rail-nav {
   display: flex;
-  flex: 1;
   flex-direction: column;
   align-items: center;
   gap: 0.375rem;
@@ -156,19 +141,16 @@
     inset: auto 0 0 0;
     top: auto;
     flex-direction: row;
-    align-items: stretch;
+    align-items: center;
     width: 100%;
     height: calc(var(--dev-rail-mobile-height) + env(safe-area-inset-bottom, 0px));
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding: var(--dev-rail-mobile-pad-y) 0.5rem;
+    padding-bottom: calc(var(--dev-rail-mobile-pad-y) + env(safe-area-inset-bottom, 0px));
     border-right: none;
     border-top: 1px solid var(--dev-line);
-    background: #ffffff;
+    background: var(--surface-rail);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-  }
-
-  .dark .dev-dash-rail {
-    background: #0a100e;
   }
 
   .dev-dash-rail-top {
@@ -176,25 +158,32 @@
   }
 
   .dev-dash-rail-nav {
-    flex: 1;
+    flex: 3;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-    gap: 0;
-    padding: 0 0.25rem;
+    justify-content: space-around;
+    gap: 0.25rem;
+    padding: 0;
   }
 
-  .dev-dash-rail-settings {
+  .dev-dash-rail-bottom {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-top: 0;
+    padding: 0;
+    border-top: none;
   }
 
   .dev-dash-rail-link {
     flex: 1;
-    width: auto;
-    max-width: none;
-    height: 100%;
-    min-height: var(--dev-rail-mobile-height);
-    border-radius: 0;
+    width: var(--dev-rail-mobile-btn);
+    max-width: var(--dev-rail-mobile-btn);
+    height: var(--dev-rail-mobile-btn);
+    min-height: 0;
+    margin-inline: auto;
+    border-radius: 0.75rem;
   }
 
   .dev-dash-main-inner {
@@ -203,21 +192,66 @@
 }
 
 .dev-dash-settings-credentials {
-  border-color: rgba(16, 185, 129, 0.15);
+  border-color: var(--border-callout);
+  background: var(--surface-callout);
 }
 
-.dark .dev-dash-settings-credentials {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(16, 185, 129, 0.15);
+.dev-dash-section-title {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--dev-ink);
 }
 
-.dark .dev-dash-panel {
-  background: rgba(15, 23, 42, 0.45);
+.dev-dash-section-body {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.625;
+  color: var(--dev-muted);
 }
 
-.dark .dev-dash-stat,
-.dark .dev-dash-activity-card {
-  background: rgba(15, 23, 42, 0.55);
+.dev-dash-section-caption {
+  margin-top: 0.5rem;
+  text-align: center;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--dev-muted);
+}
+
+.dev-dash-callout {
+  display: flex;
+  flex-direction: column;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-callout);
+  background: var(--surface-callout);
+  padding: 1rem;
+}
+
+.dev-dash-empty {
+  display: flex;
+  min-height: 16rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  border: 1px dashed var(--border-empty);
+  background: var(--surface-empty);
+  padding: 1rem;
+  text-align: center;
+}
+
+.dev-dash-empty-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--dev-ink);
+}
+
+.dev-dash-empty-body {
+  max-width: 20rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--dev-muted);
 }
 
 .dev-dash-hero {
@@ -260,10 +294,10 @@
 .dev-dash-panel {
   border-radius: 1rem;
   border: 1px solid var(--dev-line);
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--surface-white);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 10px 32px rgba(15, 23, 42, 0.05);
+  box-shadow: var(--shadow-elevation-md);
 }
 
 .dev-dash-stat-scroll {
@@ -287,7 +321,7 @@
   padding: 0.875rem 1rem;
   border-radius: 0.875rem;
   border: 1px solid var(--dev-line);
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--surface-glass-hover-end);
 }
 
 .dev-dash-limit-track {
@@ -307,7 +341,7 @@
 .dev-dash-activity-card {
   border-radius: 0.875rem;
   border: 1px solid var(--dev-line);
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--surface-glass-hover);
   padding: 0.875rem 1rem;
 }
 

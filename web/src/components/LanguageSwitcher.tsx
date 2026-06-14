@@ -160,14 +160,12 @@ export function LanguageSwitcher({
         aria-controls={menuId}
         aria-label={`${t.common.languageLabel}: ${triggerLabel}`}
         onClick={() => setOpen((v) => !v)}
-        className="group inline-flex h-9 items-center gap-2 rounded-full border border-white/70 bg-white/55 px-3 text-xs font-black text-slate-600 shadow-[0_8px_20px_rgba(15,23,42,0.05)] backdrop-blur-xl transition hover:border-emerald-200 hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-300/60"
+        className="spinshare-lang-trigger group"
       >
-        <Globe className="h-3.5 w-3.5 text-emerald-700/80 transition group-hover:text-emerald-700" />
+        <Globe className="spinshare-lang-trigger-icon h-3.5 w-3.5" aria-hidden="true" />
         <span>{triggerLabel}</span>
         <ChevronDown
-          className={`h-3.5 w-3.5 text-slate-400 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] ${
-            open ? "rotate-180 text-emerald-700" : ""
-          }`}
+          className={`spinshare-lang-trigger-chevron h-3.5 w-3.5${open ? " spinshare-lang-trigger-chevron--open" : ""}`}
         />
       </button>
 
@@ -177,13 +175,13 @@ export function LanguageSwitcher({
           role="listbox"
           aria-labelledby={buttonId}
           onAnimationEnd={handleMenuAnimationEnd}
-          className={`spinshare-lang-menu absolute z-50 w-56 overflow-hidden rounded-2xl border border-emerald-900/10 bg-white p-1.5 shadow-[0_16px_40px_rgba(15,23,42,0.14)] dark:border-emerald-900/25 dark:bg-[#0f1613] ${
+          className={`spinshare-lang-menu absolute z-50 w-56 overflow-hidden rounded-2xl border p-1.5 ${
             placement === "bottom"
               ? "spinshare-lang-menu--anchor-bottom left-0 top-full mt-2 origin-top-left"
               : "spinshare-lang-menu--anchor-top right-0 bottom-full mb-2 origin-bottom-right"
           } ${menuClosing ? "spinshare-lang-menu--exit" : "spinshare-lang-menu--enter"}`}
         >
-          <p className="px-3 pb-1.5 pt-2 text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
+          <p className="px-3 pb-1.5 pt-2 text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">
             {t.common.languageLabel}
           </p>
           <ul className="flex flex-col">{renderOptions()}</ul>

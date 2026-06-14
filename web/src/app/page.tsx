@@ -280,7 +280,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#e8f6ed] text-slate-950">
+    <div className="spinshare-home min-h-screen">
       <header className="fixed top-0 left-0 right-0 z-50 bg-transparent">
         {/* Infinite scrolling ticker banner displaying latest bids */}
         {bids.length > 0 && (
@@ -312,7 +312,7 @@ export default function HomePage() {
           </div>
         )}
 
-        <div className="liquid-glass spinshare-static relative mx-auto mt-3 flex h-16 max-w-7xl items-center justify-between rounded-[20px] bg-white/55 px-4 backdrop-blur-2xl [backdrop-filter:blur(24px)_saturate(180%)] [-webkit-backdrop-filter:blur(24px)_saturate(180%)] sm:px-6">
+        <div className="liquid-glass spinshare-static spinshare-home-nav-bar relative mx-auto mt-3 flex h-16 max-w-7xl items-center justify-between rounded-[20px] px-4 backdrop-blur-2xl [backdrop-filter:blur(24px)_saturate(180%)] [-webkit-backdrop-filter:blur(24px)_saturate(180%)] sm:px-6">
           <Link href="/" className="flex items-center gap-3" aria-label="SpinShare home">
             <Image
               src="/logo/spinshare-logo.png"
@@ -324,14 +324,14 @@ export default function HomePage() {
             <SpinShareWordmark className="text-xl" />
           </Link>
 
-          <nav className="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-10 text-sm font-bold text-slate-600 lg:pointer-events-auto lg:flex xl:gap-16">
-            <a href="#money" className="transition hover:text-emerald-700">
+          <nav className="spinshare-home-nav pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-10 text-sm font-bold lg:pointer-events-auto lg:flex xl:gap-16">
+            <a href="#money">
               {t.nav.money}
             </a>
-            <a href="#bid-market" className="transition hover:text-emerald-700">
+            <a href="#bid-market">
               {t.nav.marketDepth}
             </a>
-            <a href="#how-it-pays" className="transition hover:text-emerald-700">
+            <a href="#how-it-pays">
               {t.nav.howItPays}
             </a>
           </nav>
@@ -343,7 +343,7 @@ export default function HomePage() {
       </header>
 
       <main>
-        <section id="money" className="relative overflow-hidden border-b border-emerald-900/10 bg-[#e8f6ed]">
+        <section id="money" className="spinshare-home-hero">
           <div className="spinshare-blob-1 pointer-events-none absolute -left-40 -top-40 h-96 w-96 rounded-full blur-3xl animate-pulse-slow" />
           <div className="spinshare-blob-2 pointer-events-none absolute -right-40 -bottom-40 h-96 w-96 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: "-5s" }} />
           <div className="relative mx-auto max-w-7xl px-4 pt-32 pb-12 sm:px-6 sm:pt-36 sm:pb-16 lg:pt-40 lg:pb-20">
@@ -358,9 +358,9 @@ export default function HomePage() {
                 </span>
               </h1>
 
-              <div className="mx-auto mt-6 max-w-2xl text-lg font-semibold leading-8 text-slate-600">
+              <div className="spinshare-home-body mx-auto mt-6 max-w-2xl text-lg font-semibold leading-8">
                 <p>{t.home.heroSub}</p>
-                <p className="font-black text-emerald-700">
+                <p className="font-black text-[var(--text-accent-strong)]">
                   {t.home.heroShare(DEVELOPER_SHARE_PERCENT)}
                 </p>
               </div>
@@ -368,7 +368,7 @@ export default function HomePage() {
 
             <div className="mx-auto mt-11 grid max-w-5xl items-center gap-6 lg:grid-cols-[1fr_auto_1fr]">
               <div className="min-w-0">
-                <p className="mb-3 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
+                <p className="spinshare-home-label mb-3 text-xs font-black uppercase tracking-[0.16em]">
                   {t.home.stockClaude}
                 </p>
                 <div className="liquid-glass-black border border-zinc-800 p-5 text-left">
@@ -393,7 +393,7 @@ export default function HomePage() {
               </div>
 
               <div className="min-w-0">
-                <p className="mb-3 text-xs font-black uppercase tracking-[0.16em] text-emerald-700">
+                <p className="spinshare-home-label-accent mb-3 text-xs font-black uppercase tracking-[0.16em]">
                   {t.home.withSpinShare}
                 </p>
                 <div className="liquid-glass-black border border-emerald-900/35 p-5 text-left">
@@ -427,7 +427,7 @@ export default function HomePage() {
                 href={DEVELOPER_SIGNIN_HREF}
                 className="spinshare-btn-primary group flex w-full max-w-3xl flex-col items-stretch gap-3 rounded-full p-3 text-white sm:flex-row sm:items-center"
               >
-                <span className="liquid-glass-light-green grid h-14 w-14 shrink-0 place-items-center rounded-full text-3xl text-emerald-700">
+                <span className="liquid-glass-light-green grid h-14 w-14 shrink-0 place-items-center rounded-full text-3xl text-[var(--text-accent-strong)]">
                   <MoneyIcon />
                 </span>
                 <span className="min-w-0 flex-1 px-1 text-left">
@@ -438,18 +438,18 @@ export default function HomePage() {
                     {t.home.ctaInstallSub}
                   </span>
                 </span>
-                <span className="liquid-glass-light-green inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full px-5 text-sm font-black text-emerald-800">
+                <span className="liquid-glass-light-green inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full px-5 text-sm font-black text-[var(--text-accent-strong)]">
                   {monthlyEstimateLabel}
                   <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
                 </span>
               </Link>
             </div>
 
-            <div className="mx-auto mt-4 flex max-w-3xl flex-col items-center justify-center gap-2 text-sm font-bold text-slate-500 sm:flex-row">
+            <div className="spinshare-home-body mx-auto mt-4 flex max-w-3xl flex-col items-center justify-center gap-2 text-sm font-bold sm:flex-row">
               <span>{t.home.creditedRevenue(DEVELOPER_SHARE_PERCENT)}</span>
               <Link
                 href={ADVERTISER_SIGNIN_HREF}
-                className="spinshare-btn-outline inline-flex items-center gap-2 px-4 py-2 text-emerald-700"
+                className="spinshare-btn-outline inline-flex items-center gap-2 px-4 py-2 text-[var(--text-accent-strong)]"
               >
                 {t.home.advertisersBidCta}
                 <ArrowRight className="h-4 w-4" />
@@ -458,16 +458,16 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="bid-market" className="bg-[#f8fbf9] px-4 py-16 sm:px-6 lg:py-20">
+        <section id="bid-market" className="spinshare-home-section-alt px-4 py-16 sm:px-6 lg:py-20">
           <div className="mx-auto max-w-7xl">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
+              <p className="spinshare-home-label-accent text-xs font-black uppercase tracking-[0.18em]">
                 {t.nav.marketDepth}
               </p>
               <h2 className="mt-3 max-w-2xl text-4xl font-black tracking-tight sm:text-6xl">
                 {t.market.title}
               </h2>
-              <p className="mt-4 max-w-xl text-base font-semibold leading-7 text-slate-600">
+              <p className="spinshare-home-body mt-4 max-w-xl text-base font-semibold leading-7">
                 {t.market.subtitle}
               </p>
             </div>
@@ -478,35 +478,31 @@ export default function HomePage() {
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-6 pt-6 pb-2">
                   <div className="flex items-baseline gap-2">
                     <span className="text-xs font-black uppercase tracking-[0.16em] text-blue-600">{t.market.bidMarket}</span>
-                    <span className="text-3xl font-black text-slate-950">${topBidPrice.toFixed(2)}</span>
-                    <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">{t.market.perThousandImps}</span>
+                    <span className="spinshare-home-strong text-3xl font-black">${topBidPrice.toFixed(2)}</span>
+                    <span className="spinshare-home-label text-[10px] font-bold tracking-wider uppercase">{t.market.perThousandImps}</span>
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <div className="inline-flex rounded-lg bg-slate-100 p-0.5 text-xs font-bold text-slate-600">
+                    <div className="spinshare-home-timeframe">
                       <button
                         onClick={() => setTimeframe("24h")}
-                        className={`rounded-md px-3 py-1.5 transition-all ${
-                          timeframe === "24h"
-                            ? "bg-white text-emerald-800 shadow-sm font-black"
-                            : "hover:text-slate-950"
+                        className={`spinshare-home-timeframe__btn ${
+                          timeframe === "24h" ? "spinshare-home-timeframe__btn--active" : ""
                         }`}
                       >
                         {t.market.timeframe24h}
                       </button>
                       <button
                         onClick={() => setTimeframe("all")}
-                        className={`rounded-md px-3 py-1.5 transition-all ${
-                          timeframe === "all"
-                            ? "bg-white text-emerald-800 shadow-sm font-black"
-                            : "hover:text-slate-950"
+                        className={`spinshare-home-timeframe__btn ${
+                          timeframe === "all" ? "spinshare-home-timeframe__btn--active" : ""
                         }`}
                       >
                         {t.market.timeframeAll}
                       </button>
                     </div>
 
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-black uppercase text-emerald-700 border border-emerald-600/10">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-callout)] bg-[var(--surface-callout)] px-2.5 py-1 text-xs font-black uppercase text-[var(--text-accent-strong)]">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       {t.market.adsLive(market?.summary.liveCampaigns ?? 0)}
                     </span>
@@ -516,7 +512,7 @@ export default function HomePage() {
                 {/* Chart Section */}
                 <div className="relative px-6 py-2">
                   {/* Floating Badge */}
-                  <div className="absolute top-4 right-8 z-10 rounded-full border border-slate-100 bg-white/95 backdrop-blur px-3 py-1 text-xs font-mono font-bold text-slate-600 shadow-sm flex items-center gap-2">
+                  <div className="spinshare-home-chart-badge absolute top-4 right-8 z-10 backdrop-blur">
                     {t.market.impsPerMinFleet(fleetRate)}
                   </div>
                   {/* Chart */}
@@ -567,16 +563,15 @@ export default function HomePage() {
                         </AreaChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-full w-full bg-slate-50 animate-pulse rounded-xl" />
+                      <div className="h-full w-full animate-pulse rounded-xl bg-[var(--surface-empty)]" />
                     )}
                   </div>
                 </div>
 
                 {/* Table Section */}
-                <div className="overflow-x-auto border-t border-emerald-900/10">
+                <div className="overflow-x-auto border-t border-[var(--border-subtle)]">
                   <div className="min-w-[700px] p-6">
-                    {/* Table Header */}
-                    <div className="grid grid-cols-[40px_1fr_180px_240px] gap-4 border-b border-emerald-900/10 pb-3 text-xs font-black uppercase tracking-wider text-slate-400">
+                    <div className="spinshare-home-table-head grid grid-cols-[40px_1fr_180px_240px] gap-4 pb-3">
                       <div>#</div>
                       <div>{t.market.campaign}</div>
                       <div>{t.market.bidPerThousand}</div>
@@ -585,7 +580,7 @@ export default function HomePage() {
 
                     {/* Table Body */}
                     {visibleRows.length > 0 ? (
-                      <div className="divide-y divide-emerald-900/5">
+                      <div className="divide-y divide-[var(--border-subtle)]">
                         {visibleRows.map((row) => {
                           const stats = getCampaignStats(row.id);
                           const servedLabel = formatImpressionsCount(stats.served);
@@ -594,13 +589,13 @@ export default function HomePage() {
 
                           return (
                             <div key={row.id} className="grid grid-cols-[40px_1fr_180px_240px] gap-4 py-3.5 items-center text-sm">
-                              <div className="font-bold text-slate-400">{row.rank}</div>
-                              <div className="font-semibold text-slate-900 truncate" title={row.adText}>{row.adText}</div>
-                              <div className="font-black text-slate-950">{row.bidLabel}</div>
+                              <div className="font-bold text-[var(--text-muted)]">{row.rank}</div>
+                              <div className="truncate font-semibold text-[var(--text-primary)]" title={row.adText}>{row.adText}</div>
+                              <div className="spinshare-home-strong font-black">{row.bidLabel}</div>
                               <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-slate-500 w-16 tabular-nums">{servedLabel} / {targetLabel}</span>
+                                <span className="w-16 text-xs font-bold tabular-nums text-[var(--text-muted)]">{servedLabel} / {targetLabel}</span>
                                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                                <div className="h-1.5 w-24 rounded-full bg-slate-100 overflow-hidden">
+                                <div className="spinshare-home-progress-track">
                                   <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${pct * 100}%` }} />
                                 </div>
                               </div>
@@ -610,14 +605,14 @@ export default function HomePage() {
                       </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center text-center py-16">
-                        <p className="text-sm font-black text-slate-950">
+                        <p className="spinshare-home-strong text-sm font-black">
                           {marketStatus === "loading"
                             ? t.market.loadingLiveBids
                             : marketStatus === "error"
                               ? t.market.bidMarketUnavailable
                               : t.market.noFundedBids}
                         </p>
-                        <p className="mt-1 text-xs font-semibold text-slate-500 max-w-sm">
+                        <p className="spinshare-home-body mt-1 max-w-sm text-xs font-semibold">
                           {t.market.fundedCampaignsAppear}
                         </p>
                       </div>
@@ -631,16 +626,16 @@ export default function HomePage() {
 
             <div className="mt-12 liquid-glass-light-green p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="font-black text-emerald-950">
+                <p className="spinshare-home-market-cta-title">
                   {t.market.advertisersMoveMarket}
                 </p>
-                <p className="mt-1 text-sm font-semibold text-emerald-800">
+                <p className="spinshare-home-market-cta-body">
                   {t.market.addBudgetCpm}
                 </p>
               </div>
               <Link
                 href={ADVERTISER_SIGNIN_HREF}
-                className="liquid-glass inline-flex min-h-12 items-center justify-center gap-2 rounded-[14px] px-5 text-sm font-black text-slate-950"
+                className="liquid-glass spinshare-home-strong inline-flex min-h-12 items-center justify-center gap-2 rounded-[14px] px-5 text-sm font-black"
               >
                 {t.market.openAdvertiserPortal}
                 <ArrowRight className="h-4 w-4" />
@@ -649,13 +644,10 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section
-          id="how-it-pays"
-          className="border-y border-emerald-900/10 bg-[#eef9f3] px-4 py-16 text-slate-950 sm:px-6 lg:py-20"
-        >
+        <section id="how-it-pays" className="spinshare-home-section-warm px-4 py-16 sm:px-6 lg:py-20">
           <div className="mx-auto max-w-7xl">
             <div className="mx-auto max-w-3xl text-center">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
+              <p className="spinshare-home-label-accent text-xs font-black uppercase tracking-[0.18em]">
                 {t.nav.howItPays}
               </p>
               <h2 className="mt-3 text-4xl font-black tracking-tight sm:text-6xl">
@@ -665,34 +657,34 @@ export default function HomePage() {
 
             <div className="mt-10 grid gap-4 md:grid-cols-3">
               <div className="liquid-glass p-6">
-                <div className="grid h-11 w-11 place-items-center rounded-[8px] bg-emerald-50 text-2xl">
+                <div className="spinshare-home-step-icon">
                   <MoneyIcon />
                 </div>
                 <h3 className="mt-5 text-xl font-black">{t.howItPaysSection.step1Title}</h3>
-                <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
+                <p className="spinshare-home-body mt-2 text-sm font-semibold leading-6">
                   {t.howItPaysSection.step1Body}
                 </p>
               </div>
 
               <div className="liquid-glass p-6">
-                <div className="grid h-11 w-11 place-items-center rounded-[8px] bg-emerald-50 text-2xl">
+                <div className="spinshare-home-step-icon">
                   <MoneyIcon />
                 </div>
                 <h3 className="mt-5 text-xl font-black">{t.howItPaysSection.step2Title}</h3>
-                <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
+                <p className="spinshare-home-body mt-2 text-sm font-semibold leading-6">
                   {t.howItPaysSection.step2Body}
                 </p>
               </div>
 
               <div className="liquid-glass p-6">
-                <div className="grid h-11 w-11 place-items-center rounded-[8px] bg-emerald-50 text-2xl">
+                <div className="spinshare-home-step-icon">
                   <MoneyIcon />
                 </div>
                 <h3 className="mt-5 text-xl font-black">{t.howItPaysSection.step3Title(DEVELOPER_SHARE_PERCENT)}</h3>
-                <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
+                <p className="spinshare-home-body mt-2 text-sm font-semibold leading-6">
                   {t.howItPaysSection.step3Body}
                 </p>
-                <p className="mt-2 text-xs font-black uppercase tracking-[0.14em] text-emerald-700">
+                <p className="spinshare-home-label-accent mt-2 text-xs font-black uppercase tracking-[0.14em]">
                   {t.howItPaysSection.minViewSeconds}
                 </p>
               </div>
@@ -700,10 +692,10 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="bg-[#edf7f0] px-4 py-16 sm:px-6 lg:py-20">
+        <section className="spinshare-home-section-muted px-4 py-16 sm:px-6 lg:py-20">
           <div className="mx-auto flex max-w-5xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
+              <p className="spinshare-home-label-accent text-xs font-black uppercase tracking-[0.18em]">
                 {t.bottomCta.eyebrow}
               </p>
               <h2 className="mt-2 max-w-2xl text-4xl font-black tracking-tight sm:text-6xl">
@@ -722,7 +714,7 @@ export default function HomePage() {
         </section>
       </main>
 
-      <footer className="border-t border-emerald-900/10 px-4 py-8 text-sm font-semibold text-slate-500 sm:px-6">
+      <footer className="spinshare-home-footer px-4 py-8 sm:px-6">
         <div className="liquid-glass mx-auto flex max-w-7xl flex-col gap-4 rounded-[20px] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <Image
@@ -736,13 +728,13 @@ export default function HomePage() {
           </div>
           <p>&copy; 2026 SpinShare. {t.home.footerCopy}</p>
           <div className="flex flex-wrap items-center gap-5">
-            <Link href="/signin?role=developer" className="text-slate-500">
+            <Link href="/signin?role=developer">
               {t.nav.userLogin}
             </Link>
-            <Link href="/privacy" className="text-slate-500">
+            <Link href="/privacy">
               {t.footer.privacy}
             </Link>
-            <Link href="/terms" className="text-slate-500">
+            <Link href="/terms">
               {t.footer.terms}
             </Link>
             <LanguageSwitcher />

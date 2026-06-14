@@ -83,30 +83,30 @@ export function DeveloperOverviewView() {
 
       <section className="dev-dash-stat-scroll dev-dash-rise">
         <div className="dev-dash-stat" data-testid="kpi-today">
-          <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">{t.developerDashboard.todayUtc}</p>
+          <p className="text-[10px] font-black uppercase tracking-wider text-[var(--dev-muted)]">{t.developerDashboard.todayUtc}</p>
           <p className="mt-1 text-xl font-black tabular-nums">${todayEarningsUsd}</p>
         </div>
         <div className="dev-dash-stat" data-testid="kpi-month">
-          <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">{t.developerDashboard.monthUtc}</p>
+          <p className="text-[10px] font-black uppercase tracking-wider text-[var(--dev-muted)]">{t.developerDashboard.monthUtc}</p>
           <p className="mt-1 text-xl font-black tabular-nums">${monthEarningsUsd}</p>
         </div>
         <div className="dev-dash-stat">
-          <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">{t.developerDashboard.hourlyCap}</p>
+          <p className="text-[10px] font-black uppercase tracking-wider text-[var(--dev-muted)]">{t.developerDashboard.hourlyCap}</p>
           <p className="mt-1 text-xl font-black tabular-nums">{money(hourlyEarningsCents)}</p>
-          <p className="mt-0.5 text-[10px] font-bold text-slate-400">
+          <p className="mt-0.5 text-[10px] font-bold text-[var(--dev-muted)]">
             {t.developerDashboard.ofLimit(money(DEVELOPER_HOURLY_EARNING_LIMIT_CENTS))}
           </p>
         </div>
         <div className="dev-dash-stat" data-testid="kpi-impressions">
-          <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">{t.developerDashboard.events}</p>
+          <p className="text-[10px] font-black uppercase tracking-wider text-[var(--dev-muted)]">{t.developerDashboard.events}</p>
           <p className="mt-1 text-xl font-black tabular-nums">{impressionCount}</p>
         </div>
       </section>
 
       <section className="dev-dash-panel dev-dash-rise grid gap-5 p-4 sm:grid-cols-2 sm:p-5">
         <div>
-          <h2 className="text-sm font-black text-slate-900">{t.developerDashboard.earningCaps}</h2>
-          <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-500">
+          <h2 className="dev-dash-section-title">{t.developerDashboard.earningCaps}</h2>
+          <p className="dev-dash-section-body">
             {t.developerDashboard.earningCapsBody(VELOCITY_THRESHOLD)}
           </p>
           <div className="mt-4 space-y-4">
@@ -125,19 +125,19 @@ export function DeveloperOverviewView() {
           </div>
         </div>
 
-        <div className="flex flex-col rounded-xl border border-emerald-200/60 bg-emerald-50/50 p-4">
-          <h2 className="text-sm font-black text-slate-900">{t.developerDashboard.getPaid}</h2>
-          <p className="mt-1 text-xs font-semibold text-slate-600">
+        <div className="dev-dash-callout">
+          <h2 className="dev-dash-section-title">{t.developerDashboard.getPaid}</h2>
+          <p className="dev-dash-section-body">
             {t.developerDashboard.getPaidBody(money(MINIMUM_PAYOUT_CENTS))}
           </p>
           <button
             type="button"
             disabled={!payoutEligible}
-            className="spinshare-btn-primary mt-4 min-h-11 w-full justify-center text-sm disabled:cursor-not-allowed disabled:opacity-40"
+            className="spinshare-btn-primary mt-4 min-h-11 w-full justify-center rounded-full text-sm disabled:cursor-not-allowed disabled:opacity-40"
           >
             {t.developerDashboard.connectPayouts}
           </button>
-          <p className="mt-2 text-center text-[11px] font-semibold text-slate-500">
+          <p className="dev-dash-section-caption">
             {payoutEligible
               ? t.developerDashboard.payoutAboveMinimum
               : t.developerDashboard.payoutBelowMinimum(money(payoutRemainingCents))}

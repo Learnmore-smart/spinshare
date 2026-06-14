@@ -48,30 +48,30 @@
 }
 
 /*
- * Cyberpunk theme under .dark — neon green on near-black.
+ * Dark mode — aligned with theme.css emerald palette (not neon cyberpunk).
  */
 .dark {
-  --background: 240 30% 3%;
-  --foreground: 120 100% 50%;
-  --card: 240 30% 5%;
-  --card-foreground: 120 100% 50%;
-  --popover: 240 30% 5%;
-  --popover-foreground: 120 100% 50%;
-  --primary: 120 100% 50%;
-  --primary-foreground: 0 0% 2%;
-  --secondary: 0 0% 10%;
-  --secondary-foreground: 120 100% 50%;
-  --muted: 0 0% 12%;
-  --muted-foreground: 120 25% 65%;
-  --accent: 120 100% 50%;
-  --accent-foreground: 0 0% 2%;
+  --background: 160 20% 6%;
+  --foreground: 150 60% 96%;
+  --card: 160 15% 10%;
+  --card-foreground: 150 60% 96%;
+  --popover: 160 15% 10%;
+  --popover-foreground: 150 60% 96%;
+  --primary: 160 84% 39%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 160 12% 14%;
+  --secondary-foreground: 150 50% 90%;
+  --muted: 160 10% 16%;
+  --muted-foreground: 215 16% 65%;
+  --accent: 160 84% 39%;
+  --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
-  --border: 120 40% 18%;
-  --input: 120 40% 18%;
-  --ring: 120 100% 50%;
-  --neon: 120 100% 50%;
-  --neon-dim: 120 60% 35%;
+  --border: 160 30% 18%;
+  --input: 160 30% 18%;
+  --ring: 160 84% 39%;
+  --neon: 160 84% 39%;
+  --neon-dim: 160 60% 28%;
 }
 
 * {

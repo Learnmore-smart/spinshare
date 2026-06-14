@@ -1,7 +1,63 @@
 /* Language switcher dropdown — fade + slide + scale from anchor. */
+
+.spinshare-lang-trigger {
+  display: inline-flex;
+  height: 2.25rem;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-control);
+  background: var(--surface-control);
+  padding: 0 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-control);
+  box-shadow: var(--shadow-elevation-sm);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: var(--transition-smooth);
+}
+
+.spinshare-lang-trigger:hover {
+  border-color: var(--border-accent-hover);
+  background: var(--surface-control-hover);
+  color: var(--text-control-hover);
+}
+
+.spinshare-lang-trigger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ring-accent);
+}
+
+.spinshare-lang-trigger-icon {
+  color: var(--text-accent);
+  transition: color 0.2s ease;
+}
+
+.spinshare-lang-trigger:hover .spinshare-lang-trigger-icon {
+  color: var(--text-accent-strong);
+}
+
+.spinshare-lang-trigger-chevron {
+  color: var(--text-muted);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0.24, 1), color 0.2s ease;
+}
+
+.spinshare-lang-trigger-chevron--open {
+  transform: rotate(180deg);
+  color: var(--text-accent);
+}
+
 .spinshare-lang-menu {
   animation-fill-mode: both;
   will-change: opacity, transform;
+  border-color: var(--border-accent);
+  background: var(--surface-white);
+  box-shadow: var(--shadow-elevation-lg);
+}
+
+.dark .spinshare-lang-menu {
+  background: var(--bg-page-muted);
 }
 
 .spinshare-lang-menu--anchor-bottom {

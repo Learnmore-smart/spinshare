@@ -60,10 +60,10 @@ export default function AdvertiserCheckoutForm() {
   const amountCents = cpm.ok && blocks !== null ? cpm.cents * blocks : 0;
   const estimatedTotal = useMemo(() => formatUsd(amountCents), [amountCents]);
   const counterClass = text.overLimit
-    ? "text-red-600"
+    ? "text-red-400"
     : text.remaining <= 10
-      ? "text-amber-600"
-      : "text-slate-400";
+      ? "text-amber-400"
+      : "text-[var(--text-muted)]";
 
   async function handleIconChange(event: ChangeEvent<HTMLInputElement>) {
     setError(null);
@@ -155,49 +155,49 @@ export default function AdvertiserCheckoutForm() {
       <div className="liquid-glass spinshare-static overflow-hidden p-5 sm:p-7">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,0.82fr)_minmax(360px,1fr)] lg:items-start">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600">
+            <p className="spinshare-home-label-accent text-xs font-black uppercase tracking-[0.18em]">
               {t.nav.advertisers}
             </p>
-            <h3 className="mt-2 max-w-2xl text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+            <h3 className="spinshare-home-strong mt-2 max-w-2xl text-3xl font-black tracking-tight sm:text-4xl">
               {t.advertiser.title}
             </h3>
-            <p className="mt-3 max-w-xl text-sm font-semibold leading-6 text-slate-600">
+            <p className="spinshare-home-body mt-3 max-w-xl text-sm font-semibold leading-6">
               {t.advertiser.body}
             </p>
 
-            <div className="mt-6 rounded-[14px] border border-emerald-500/20 bg-emerald-50/60 p-4">
+            <div className="spinshare-checkout-summary">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.14em] text-emerald-700">
+                  <p className="spinshare-checkout-summary-label">
                     {t.advertiser.estimatedTotal}
                   </p>
-                  <p className="mt-1 text-sm font-bold text-emerald-950">
+                  <p className="spinshare-checkout-summary-meta">
                     {t.advertiser.blocksAtPrice(
                       blocks ?? 0,
                       cpm.ok ? formatUsd(cpm.cents) : "$0.00",
                     )}
                   </p>
                 </div>
-                <p className="shrink-0 text-4xl font-black tracking-tight text-slate-950">
+                <p className="spinshare-checkout-summary-total">
                   {estimatedTotal}
                 </p>
               </div>
               <div className="mt-4 grid gap-2 sm:grid-cols-3">
-                <div className="rounded-[10px] bg-white/75 p-3">
-                  <p className="text-lg font-black text-slate-950">
+                <div className="spinshare-checkout-stat">
+                  <p className="spinshare-checkout-stat-value">
                     {cpm.ok ? formatUsd(cpm.cents) : "$0.00"}
                   </p>
-                  <p className="text-xs font-bold text-slate-500">{t.advertiser.perBlock}</p>
+                  <p className="spinshare-checkout-stat-label">{t.advertiser.perBlock}</p>
                 </div>
-                <div className="rounded-[10px] bg-white/75 p-3">
-                  <p className="text-lg font-black text-slate-950">{blocks ?? 0}</p>
-                  <p className="text-xs font-bold text-slate-500">{t.advertiser.blocks}</p>
+                <div className="spinshare-checkout-stat">
+                  <p className="spinshare-checkout-stat-value">{blocks ?? 0}</p>
+                  <p className="spinshare-checkout-stat-label">{t.advertiser.blocks}</p>
                 </div>
-                <div className="rounded-[10px] bg-white/75 p-3">
-                  <p className="text-lg font-black text-slate-950">
+                <div className="spinshare-checkout-stat">
+                  <p className="spinshare-checkout-stat-value">
                     {((blocks ?? 0) * 1000).toLocaleString("en-US")}
                   </p>
-                  <p className="text-xs font-bold text-slate-500">{t.advertiser.totalViews}</p>
+                  <p className="spinshare-checkout-stat-label">{t.advertiser.totalViews}</p>
                 </div>
               </div>
             </div>
@@ -205,7 +205,7 @@ export default function AdvertiserCheckoutForm() {
 
           <form onSubmit={handleSubmit} className="grid gap-4" noValidate>
             <div className="grid gap-4 sm:grid-cols-2">
-              <label className="grid gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+              <label className="spinshare-checkout-field-label">
                 {t.advertiser.email}
                 <input
                   type="email"
@@ -215,7 +215,7 @@ export default function AdvertiserCheckoutForm() {
                   className="spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal"
                 />
               </label>
-              <label className="grid gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+              <label className="spinshare-checkout-field-label">
                 {t.advertiser.destinationUrl}
                 <input
                   type="url"
@@ -227,7 +227,7 @@ export default function AdvertiserCheckoutForm() {
               </label>
             </div>
 
-            <label className="grid gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+            <label className="spinshare-checkout-field-label">
               <span className="flex items-center justify-between gap-3">
                 <span>{t.advertiser.adLine}</span>
                 <span className={`tabular-nums ${counterClass}`}>
@@ -245,7 +245,7 @@ export default function AdvertiserCheckoutForm() {
             </label>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <label className="grid gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+              <label className="spinshare-checkout-field-label">
                 {t.advertiser.brandName}
                 <input
                   type="text"
@@ -256,9 +256,9 @@ export default function AdvertiserCheckoutForm() {
                 />
               </label>
 
-              <label className="grid gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+              <label className="spinshare-checkout-field-label">
                 {t.advertiser.brandIcon}
-                <span className="spinshare-input flex min-h-[42px] cursor-pointer items-center justify-between gap-3 px-3 py-2.5 text-sm font-semibold normal-case tracking-normal text-slate-500">
+                <span className="spinshare-input flex min-h-[42px] cursor-pointer items-center justify-between gap-3 px-3 py-2.5 text-sm font-semibold normal-case tracking-normal text-[var(--text-secondary)]">
                   <span className="flex min-w-0 items-center gap-2">
                     {brandIconDataUrl ? (
                       <ImagePlus className="h-4 w-4 shrink-0 text-emerald-700" />
@@ -279,9 +279,9 @@ export default function AdvertiserCheckoutForm() {
               </label>
             </div>
 
-            <label className="flex cursor-pointer items-center justify-between gap-4 rounded-[12px] border border-emerald-500/20 bg-white/60 px-3 py-2.5 text-sm font-bold text-slate-700">
+            <label className="spinshare-checkout-toggle">
               <span className="flex min-w-0 items-center gap-2">
-                <Lock className="h-4 w-4 shrink-0 text-emerald-700" />
+                <Lock className="h-4 w-4 shrink-0 text-[var(--text-accent-strong)]" />
                 <span>{t.advertiser.showOnLeaderboard}</span>
               </span>
               <span className="relative shrink-0">
@@ -291,14 +291,14 @@ export default function AdvertiserCheckoutForm() {
                   onChange={(event) => setPublicOnLeaderboard(event.target.checked)}
                   className="peer sr-only"
                 />
-                <span className="flex h-6 w-6 items-center justify-center rounded-[7px] border border-slate-300 bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(15,23,42,0.06)] transition peer-checked:border-emerald-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-400/50 peer-focus-visible:ring-offset-2">
-                  <Check className="h-3.5 w-3.5 opacity-0 transition peer-checked:opacity-100" />
+                <span className="spinshare-checkout-toggle-box peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-400/50 peer-focus-visible:ring-offset-2">
+                  <Check className="h-3.5 w-3.5" />
                 </span>
               </span>
             </label>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <label className="grid gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+              <label className="spinshare-checkout-field-label">
                 {t.advertiser.bidPerBlock}
                 <input
                   type="number"
@@ -311,7 +311,7 @@ export default function AdvertiserCheckoutForm() {
                   className="spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal"
                 />
               </label>
-              <label className="grid gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+              <label className="spinshare-checkout-field-label">
                 {t.advertiser.numberOfBlocks}
                 <input
                   type="number"
@@ -326,7 +326,7 @@ export default function AdvertiserCheckoutForm() {
             </div>
 
             {error !== null && (
-              <p className="rounded-[10px] bg-red-50 px-3 py-2 text-sm font-bold text-red-700" role="alert">
+              <p className="spinshare-checkout-error" role="alert">
                 {error}
               </p>
             )}

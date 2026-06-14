@@ -90,10 +90,15 @@ Planned changes:
 - `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
 - Browser screenshot smoke check confirmed the sign-in auth card renders with the intended 3D depth and readable controls.
 
-## Bug Fixes
+## Bug fix (2026-06-14): dark mode tokens
 
-| Date | Bug | Cause | Fix |
-|------|-----|-------|-----|
+**Symptom:** Dark mode UI (e.g. settings language pill) looked wrong — gray translucent pill, harsh neon `#00FF00` text tokens.
+
+**Fix:** Replace cyberpunk neon `.dark` overrides with emerald-tinted slate palette matching the developer dashboard. Add `--surface-control*` / `--text-control*` tokens for pill controls. Style `.spinshare-lang-trigger` via `language-switcher.css` using theme variables.
+
+**Fix (2026-06-14, round 2):** `--text-inverse` was `#0f172a` in dark mode, making primary buttons render dark text on emerald. Set to `#ffffff`. Add `--surface-callout*` tokens for accent highlight cards (payout panel).
+
+**Fix (2026-06-14, round 3):** Dashboard was not consuming theme tokens — it used parallel `--dev-*` vars and hardcoded Tailwind. Aliased `--dev-*` → `theme.css` vars; added segment/empty/rail tokens; wired `segment-slider.css` and earnings empty state to theme variables.
 
 ## Planned Change: Brand Wordmark Colors
 

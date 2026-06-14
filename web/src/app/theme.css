@@ -118,19 +118,46 @@
   --radius-xl:  18px;
   --radius-full: 9999px;
 
+  /* ── Control surfaces (pills, dropdown triggers) ── */
+  --surface-control:        rgba(255, 255, 255, 0.55);
+  --surface-control-hover:  rgba(255, 255, 255, 0.72);
+  --border-control:         rgba(255, 255, 255, 0.7);
+  --text-control:           var(--text-secondary);
+  --text-control-hover:     var(--color-primary-700);
+
+  /* ── Accent callout surfaces (highlight cards, payout panel) ── */
+  --surface-callout:        rgba(209, 250, 229, 0.45);
+  --border-callout:         rgba(16, 185, 129, 0.28);
+
+  /* ── Empty / placeholder panels ── */
+  --surface-empty:          rgba(255, 255, 255, 0.5);
+  --border-empty:           rgba(16, 185, 129, 0.35);
+
+  /* ── Dashboard rail ── */
+  --surface-rail:           rgba(255, 255, 255, 0.72);
+
+  /* ── Segment slider ── */
+  --surface-segment-track-top:    #ecfdf5;
+  --surface-segment-track-bottom: #d1fae5;
+  --surface-segment-thumb-top:    #ffffff;
+  --surface-segment-thumb-bottom: #f0fdf4;
+  --text-segment:           #64748b;
+  --text-segment-hover:     #0f172a;
+  --text-segment-active:    #047857;
+
   /* ── Transitions ── */
   --transition-smooth: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   --transition-glass: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* =====================================================================
-   Dark mode overrides (cyberpunk neon-green on near-black)
+   Dark mode — emerald-tinted slate (matches developer dashboard)
    ===================================================================== */
 .dark {
-  --bg-page: #05060f;
-  --bg-page-alt: #05060f;
-  --bg-page-warm: #05060f;
-  --bg-page-muted: #05060f;
+  --bg-page:        #0a100e;
+  --bg-page-alt:    #0a100e;
+  --bg-page-warm:   #0d1512;
+  --bg-page-muted:  #0f1613;
 
   --surface-white:  rgba(15, 23, 42, 0.55);
   --surface-glass:  rgba(15, 23, 42, 0.55);
@@ -139,37 +166,84 @@
   --surface-glass-hover: rgba(15, 23, 42, 0.7);
   --surface-glass-hover-mid: rgba(15, 23, 42, 0.58);
   --surface-glass-hover-end: rgba(15, 23, 42, 0.55);
-
-  --text-primary:   #00FF00;
-  --text-secondary: rgba(0, 255, 0, 0.65);
-  --text-muted:     rgba(0, 255, 0, 0.4);
-  --text-inverse:   #05060f;
-  --text-accent:    #00FF00;
-  --text-accent-strong: #00FF00;
-
-  --border-default: rgba(0, 255, 0, 0.18);
-  --border-accent:  rgba(0, 255, 0, 0.15);
-  --border-accent-hover: rgba(0, 255, 0, 0.3);
-  --border-input:  rgba(0, 255, 0, 0.2);
-  --border-input-focus: #00FF00;
-
-  --shadow-accent-glow: rgba(0, 255, 0, 0.15);
-  --shadow-inner-highlight: rgba(255, 255, 255, 0.18);
-  --shadow-inner-glow: rgba(255, 255, 255, 0.1);
-  --shadow-inner-depth: rgba(0, 0, 0, 0.5);
-
-  --ring-accent: rgba(0, 255, 0, 0.15);
-
+  --surface-glass-light-green: rgba(16, 185, 129, 0.08);
+  --surface-glass-light-green-mid: rgba(16, 185, 129, 0.06);
+  --surface-glass-light-green-end: rgba(16, 185, 129, 0.05);
+  --surface-glass-light-green-hover: rgba(16, 185, 129, 0.14);
+  --surface-glass-light-green-hover-mid: rgba(16, 185, 129, 0.1);
+  --surface-glass-light-green-hover-end: rgba(16, 185, 129, 0.08);
+  --surface-glass-green: rgba(6, 78, 59, 0.45);
+  --surface-glass-green-mid: rgba(6, 78, 59, 0.38);
+  --surface-glass-green-end: rgba(6, 78, 59, 0.32);
+  --surface-glass-green-hover: rgba(6, 78, 59, 0.55);
+  --surface-glass-green-hover-mid: rgba(6, 78, 59, 0.48);
+  --surface-glass-green-hover-end: rgba(6, 78, 59, 0.42);
+  --surface-black:  #141415;
+  --surface-black-hover: #1a1a1b;
   --surface-input:  rgba(15, 23, 42, 0.6);
   --surface-input-focus: rgba(15, 23, 42, 0.85);
   --surface-btn-glass: rgba(15, 23, 42, 0.55);
   --surface-btn-glass-hover: rgba(15, 23, 42, 0.7);
 
-  --ticker-bg: #0a0a0b;
-  --ticker-badge-bg: rgba(0, 255, 0, 0.15);
-  --ticker-badge-text: #00FF00;
+  --text-primary:   #ecfdf5;
+  --text-secondary: #94a3b8;
+  --text-muted:     #64748b;
+  --text-inverse:   #ffffff;
+  --text-accent:    #34d399;
+  --text-accent-strong: #6ee7b7;
 
-  --chart-stroke: #00FF00;
-  --chart-fill-start: rgba(0, 255, 0, 0.1);
-  --chart-fill-end: rgba(0, 255, 0, 0);
+  --border-default: rgba(16, 185, 129, 0.2);
+  --border-accent:  rgba(16, 185, 129, 0.15);
+  --border-accent-hover: rgba(16, 185, 129, 0.3);
+  --border-accent-strong: rgba(16, 185, 129, 0.35);
+  --border-accent-strong-hover: rgba(16, 185, 129, 0.5);
+  --border-input:  rgba(16, 185, 129, 0.22);
+  --border-input-focus: var(--color-primary-400);
+  --border-subtle: rgba(16, 185, 129, 0.1);
+
+  --shadow-accent-glow: rgba(16, 185, 129, 0.2);
+  --shadow-accent-btn:  rgba(5, 150, 105, 0.25);
+  --shadow-accent-btn-hover: rgba(16, 185, 129, 0.35);
+  --shadow-accent-outline-hover: rgba(16, 185, 129, 0.15);
+  --shadow-inner-highlight: rgba(255, 255, 255, 0.08);
+  --shadow-inner-glow: rgba(255, 255, 255, 0.05);
+  --shadow-inner-depth: rgba(0, 0, 0, 0.35);
+  --shadow-elevation-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
+  --shadow-elevation-md: 0 8px 24px -4px rgba(0, 0, 0, 0.35);
+  --shadow-elevation-lg: 0 20px 48px -8px rgba(0, 0, 0, 0.4);
+
+  --ring-accent: rgba(16, 185, 129, 0.25);
+
+  --blob-1: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0) 70%);
+  --blob-2: radial-gradient(circle, rgba(52, 211, 153, 0.08) 0%, rgba(52, 211, 153, 0) 70%);
+
+  --chart-stroke: var(--color-primary-400);
+  --chart-fill-start: rgba(16, 185, 129, 0.12);
+  --chart-fill-end: rgba(16, 185, 129, 0);
+
+  --ticker-bg: #0a0a0b;
+  --ticker-badge-bg: rgba(16, 185, 129, 0.15);
+  --ticker-badge-text: var(--color-primary-400);
+
+  --surface-control:        rgba(255, 255, 255, 0.06);
+  --surface-control-hover:  rgba(255, 255, 255, 0.1);
+  --border-control:         rgba(16, 185, 129, 0.22);
+  --text-control:           #cbd5e1;
+  --text-control-hover:     #6ee7b7;
+
+  --surface-callout:        rgba(16, 185, 129, 0.08);
+  --border-callout:         rgba(16, 185, 129, 0.22);
+
+  --surface-empty:          rgba(15, 23, 42, 0.45);
+  --border-empty:           rgba(16, 185, 129, 0.25);
+
+  --surface-rail:           rgba(10, 16, 14, 0.88);
+
+  --surface-segment-track-top:    rgba(15, 23, 42, 0.55);
+  --surface-segment-track-bottom: rgba(10, 16, 14, 0.75);
+  --surface-segment-thumb-top:    rgba(30, 41, 59, 0.95);
+  --surface-segment-thumb-bottom: rgba(15, 23, 42, 0.9);
+  --text-segment:           var(--text-muted);
+  --text-segment-hover:     var(--text-primary);
+  --text-segment-active:    var(--text-accent);
 }

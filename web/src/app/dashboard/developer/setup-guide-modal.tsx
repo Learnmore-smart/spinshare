@@ -252,7 +252,7 @@ export function SetupGuideLinkButton({ className = "" }: { className?: string })
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-emerald-600/25 bg-white px-4 text-xs font-black text-emerald-800 shadow-[0_8px_24px_rgba(16,185,129,0.12)] transition hover:border-emerald-500/40 hover:bg-emerald-50 ${className}`}
+        className={`spinshare-btn-outline inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full px-4 text-xs ${className}`}
       >
         <Terminal className="h-3.5 w-3.5" aria-hidden />
         {t.setupGuide.howToSetUp}

@@ -85,17 +85,19 @@ export function DashboardShell({ children }: DashboardShellProps) {
               <Icon className="h-[1.125rem] w-[1.125rem]" aria-hidden />
             </Link>
           ))}
+        </nav>
 
+        <div className="dev-dash-rail-bottom">
           <Link
             href={SETTINGS_HREF}
-            className={`dev-dash-rail-link dev-dash-rail-settings${settingsActive ? " dev-dash-rail-link--active" : ""}`}
+            className={`dev-dash-rail-link${settingsActive ? " dev-dash-rail-link--active" : ""}`}
             aria-label={navLabel(t, SETTINGS_HREF)}
             aria-current={settingsActive ? "page" : undefined}
             title={navLabel(t, SETTINGS_HREF)}
           >
             <Settings className="h-[1.125rem] w-[1.125rem]" aria-hidden />
           </Link>
-        </nav>
+        </div>
       </aside>
 
       <div className="dev-dash-main">

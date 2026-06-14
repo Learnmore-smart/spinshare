@@ -38,15 +38,15 @@ export function LimitMeter({
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between gap-2 text-sm">
-        <span className="font-bold text-slate-700">{label}</span>
-        <span className="tabular-nums text-xs font-bold text-slate-500">
+        <span className="font-bold text-[var(--dev-ink)]">{label}</span>
+        <span className="tabular-nums text-xs font-bold text-[var(--dev-muted)]">
           {money(usedCents)} / {money(limitCents)}
         </span>
       </div>
       <div className="dev-dash-limit-track" role="progressbar" aria-valuenow={usedCents} aria-valuemax={limitCents}>
         <div className="dev-dash-limit-fill" style={{ width: `${pct(usedCents, limitCents)}%` }} />
       </div>
-      <p className="text-[11px] font-semibold text-slate-400">{reset}</p>
+      <p className="text-[11px] font-semibold text-[var(--dev-muted)]">{reset}</p>
     </div>
   );
 }

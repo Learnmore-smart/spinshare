@@ -54,5 +54,6 @@ Refine the form visuals after screenshot review:
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-14 | Checkout summary + form labels use `spinshare-checkout-*` theme.css tokens for dark mode | Cursor |
 | 2026-06-13 | Created doc before implementing homepage checkout form. | Codex |
 | 2026-06-13 | Synced doc with implemented homepage checkout form and verification. | Codex |
