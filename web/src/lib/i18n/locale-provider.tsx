@@ -11,6 +11,10 @@ import {
 } from "react";
 import { DEFAULT_LOCALE, LOCALES, STORAGE_KEY, type Dictionary, type Locale } from "./types";
 import { dictionaries } from "./dictionaries";
+import { detectLocaleFromAcceptLanguage } from "./detect-locale";
+
+/** Mirror of the cookie name used in `src/middleware.ts`. */
+export const COOKIE_KEY = "spinshare.locale";
 
 interface LocaleContextValue {
   /** Active locale. */
@@ -39,19 +43,47 @@ export function LocaleProvider({ initialLocale, children }: LocaleProviderProps)
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
   const [hydrated, setHydrated] = useState(false);
 
-  // On mount: prefer localStorage over the server-detected locale.
-  // This lets the user's explicit choice win on subsequent visits.
+  // On mount: pick the best locale in priority order.
+  //   1. localStorage — the user's explicit, persistent choice.
+  //   2. navigator.language — the browser's preferred UI language
+  //      (more reliable than the SSR'd Accept-Language header, which
+  //      proxies and privacy extensions can strip).
+  //   3. initialLocale — what the server detected from Accept-Language.
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (isLocale(stored) && stored !== initialLocale) {
-        setLocaleState(stored);
+      if (isLocale(stored)) {
+        if (stored !== locale) {
+          setLocaleState(stored);
+        }
+        setHydrated(true);
+        return;
       }
     } catch {
-      /* localStorage unavailable — keep server locale */
+      /* localStorage unavailable — fall through to navigator check */
     }
+
+    try {
+      const navLang =
+        window.navigator?.language ??
+        // Older WebKit fallback.
+        (window.navigator as { userLanguage?: string } | undefined)?.userLanguage ??
+        null;
+      if (navLang) {
+        const detected = detectLocaleFromAcceptLanguage(navLang);
+        if (detected !== locale) {
+          setLocaleState(detected);
+        }
+      }
+    } catch {
+      /* navigator unavailable — keep server locale */
+    }
+
     setHydrated(true);
-  }, [initialLocale]);
+    // Intentionally run once on mount; subsequent prop changes shouldn't
+    // override the user's manual selection.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Keep <html lang="..."> in sync with the active locale so AT and search
   // engines see the right language.
@@ -77,6 +109,16 @@ export function LocaleProvider({ initialLocale, children }: LocaleProviderProps)
     setLocaleState(next);
     try {
       window.localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      /* ignore */
+    }
+    // Mirror the choice to a cookie so the middleware (and any future
+    // server-side rendering) sees the user's preference on the very next
+    // request, with no flash of the wrong language.
+    try {
+      // 1 year, root path, Lax for sane defaults.
+      const oneYearSeconds = 60 * 60 * 24 * 365;
+      document.cookie = `${COOKIE_KEY}=${encodeURIComponent(next)}; Path=/; Max-Age=${oneYearSeconds}; SameSite=Lax`;
     } catch {
       /* ignore */
     }

@@ -322,7 +322,7 @@ export default function HomePage() {
             <span className="text-xl font-black tracking-tight">SpinShare</span>
           </Link>
 
-          <nav className="hidden items-center gap-2 text-xs font-bold text-slate-600 lg:flex">
+          <nav className="hidden items-center gap-6 text-sm font-bold text-slate-600 lg:flex">
             <a href="#money" className="transition hover:text-emerald-700">
               {t.nav.money}
             </a>

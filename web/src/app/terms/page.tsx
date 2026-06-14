@@ -1,15 +1,13 @@
-import type { Metadata } from "next";
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
-
-export const metadata: Metadata = {
-  title: "Terms of Service · SpinShare",
-  description:
-    "Terms governing your use of the SpinShare VS Code extension, CLI wrapper, and spinshare.dev website.",
-};
+import { SiteFooter } from "@/components/SiteFooter";
+import { useT } from "@/lib/i18n/locale-provider";
 
 export default function TermsPage() {
+  const t = useT();
   return (
     <div className="min-h-screen bg-[linear-gradient(115deg,#e9f8ef_0%,#f3faf5_48%,#e1f5e9_100%)] text-slate-950">
       <header className="fixed top-0 left-0 right-0 z-50 bg-transparent">
@@ -27,19 +25,19 @@ export default function TermsPage() {
 
           <nav className="hidden items-center gap-6 text-sm font-bold text-slate-600 md:flex">
             <Link href="/#money" className="transition hover:text-emerald-700">
-              Money
+              {t.nav.money}
             </Link>
             <Link href="/#bid-market" className="transition hover:text-emerald-700">
-              Market depth
+              {t.nav.marketDepth}
             </Link>
             <Link href="/#how-it-pays" className="transition hover:text-emerald-700">
-              How it pays
+              {t.nav.howItPays}
             </Link>
             <Link
               href="/signin?role=advertiser"
               className="transition hover:text-emerald-700"
             >
-              Advertisers
+              {t.nav.advertisers}
             </Link>
           </nav>
 
@@ -48,7 +46,7 @@ export default function TermsPage() {
             className="spinshare-btn-primary inline-flex h-10 items-center gap-2 px-5 text-sm"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Home
+            {t.common.backToHome}
           </Link>
         </div>
       </header>
@@ -56,14 +54,14 @@ export default function TermsPage() {
       <main className="mx-auto max-w-3xl px-4 pt-28 pb-24 sm:px-6 sm:pt-32">
         <div className="mb-10">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
-            Legal · Version 1.0
+            {t.terms.eyebrow}
           </p>
           <h1 className="mt-2 text-4xl font-black leading-[1.05] tracking-tight sm:text-5xl">
-            <span className="spinshare-hero-highlight-3d">Terms</span>{" "}
-            <span className="text-slate-950">of Service</span>
+            <span className="spinshare-hero-highlight-3d">{t.terms.titlePrefix}</span>{" "}
+            <span className="text-slate-950">{t.terms.titleSuffix}</span>
           </h1>
           <p className="mt-3 text-sm font-semibold text-slate-500">
-            Last updated: June 13, 2026
+            {t.terms.lastUpdated("June 13, 2026")}
           </p>
           <p className="mt-4 rounded-xl border border-emerald-100 bg-white/60 p-4 text-sm leading-6 text-slate-700">
             An Advertising Marketplace and Earnings Program for AI Wait-States
@@ -1305,17 +1303,19 @@ export default function TermsPage() {
             href="/privacy"
             className="spinshare-btn-outline inline-flex h-11 items-center gap-2 px-5 text-sm"
           >
-            Read the Privacy Policy
+            {t.terms.readPrivacy}
           </Link>
           <Link
             href="/"
             className="spinshare-btn-outline inline-flex h-11 items-center gap-2 px-5 text-sm"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Home
+            {t.common.backToHome}
           </Link>
         </div>
       </main>
+
+      <SiteFooter />
     </div>
   );
 }

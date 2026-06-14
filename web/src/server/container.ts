@@ -159,6 +159,21 @@ function buildDurableRepos(
     Boolean(env.FIRESTORE_EMULATOR_HOST) ||
     hasFirebaseServiceAccount(env);
 
+  if (
+    useFirestore &&
+    mode === "production" &&
+    !env.FIRESTORE_EMULATOR_HOST &&
+    !hasFirebaseServiceAccount(env)
+  ) {
+    throw new Error(
+      'SPINSHARE_MODE="production" requires FIREBASE_CLIENT_EMAIL and ' +
+        "FIREBASE_PRIVATE_KEY in .env (or set FIRESTORE_EMULATOR_HOST for the " +
+        "local emulator). Without them the Admin SDK falls back to Application " +
+        "Default Credentials, which fails locally and the developer dashboard " +
+        "shows a generic load error.",
+    );
+  }
+
   if (useFirestore) {
     return {
       campaigns: new FirestoreCampaignRepo(),

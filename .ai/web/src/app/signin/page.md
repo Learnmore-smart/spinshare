@@ -130,10 +130,17 @@ Fix strategy:
 - `corepack pnpm@9.12.0 --filter @spinshare/web build` passed after allowing the configured Google font fetch.
 - Playwright loaded `/signin?role=developer` and confirmed the dense money-stream rows are present behind the form.
 
+## Copy Correction: Per-Impression, Not Per-Second
+
+User correction on 2026-06-14: sign-in marketing copy must not claim payment for every second of AI thinking. SpinShare pays per ad impression that stays visible for at least 3 seconds.
+
+Fix: update `web/src/lib/i18n/dictionaries.ts` `signin.body` in all locales.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-14 | Corrected sign-in body copy to describe 3-second ad impressions instead of per-second AI thinking. | Codex |
 | 2026-06-13 | Created documentation for sign-in role initialization fix. | Codex |
 | 2026-06-13 | Documented diagonal money-stream sign-in enhancement before editing code. | Codex |
 | 2026-06-13 | Documented requested `馃` stream icon replacement. | Codex |

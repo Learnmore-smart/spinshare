@@ -8,6 +8,8 @@ import Image from "next/image";
 import { ArrowLeft, Code, Layers } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useT } from "@/lib/i18n/locale-provider";
 import "./signin.css";
 
 type SignInRole = "developer" | "advertiser";
@@ -49,6 +51,7 @@ function MoneyIcon({ className = "" }: { className?: string }) {
 
 function SignInForm() {
   const searchParams = useSearchParams();
+  const t = useT();
   const [role, setRole] = useState<SignInRole>(() => resolveInitialRole(searchParams));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -119,50 +122,53 @@ function SignInForm() {
           </span>
         </Link>
 
-        <Link
-          href="/"
-          className="inline-flex h-10 items-center gap-2 rounded-full border border-white/70 bg-white/60 px-4 text-sm font-black text-slate-500 shadow-[0_10px_30px_rgba(15,23,42,0.05)] backdrop-blur transition hover:text-emerald-700"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Home
-        </Link>
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher />
+          <Link
+            href="/"
+            className="inline-flex h-10 items-center gap-2 rounded-full border border-white/70 bg-white/60 px-4 text-sm font-black text-slate-500 shadow-[0_10px_30px_rgba(15,23,42,0.05)] backdrop-blur transition hover:text-emerald-700"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {t.common.backToHome}
+          </Link>
+        </div>
       </header>
 
       <main className="relative z-10 mx-auto grid min-h-[calc(100vh-76px)] max-w-7xl gap-10 py-10 lg:grid-cols-[minmax(0,1fr)_410px] lg:items-center">
         <section className="max-w-3xl">
           <h1 className="max-w-4xl text-5xl font-black leading-[0.92] tracking-tight text-slate-950 sm:text-7xl lg:text-8xl">
-            Sign in to see your{" "}
-            <span className="spinshare-hero-highlight-3d">balance</span>
+            {t.signin.headlinePrefix}{" "}
+            <span className="spinshare-hero-highlight-3d">{t.signin.headlineHighlight}</span>
           </h1>
 
           <p className="mt-6 max-w-2xl text-lg font-semibold leading-8 text-slate-600 sm:text-xl">
-            {SIGNIN_PAGE_COPY.body}
+            {t.signin.body}
           </p>
 
           <div className="mt-9 grid max-w-2xl gap-3 sm:grid-cols-3">
             <div className="rounded-[16px] border border-white/70 bg-white/48 p-4 shadow-[0_18px_46px_rgba(15,23,42,0.05)] backdrop-blur-xl">
               <p className="text-2xl font-black text-slate-950">60%</p>
               <p className="mt-1 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
-                revenue share
+                {t.signin.cardRevenue}
               </p>
             </div>
             <div className="rounded-[16px] border border-white/70 bg-white/48 p-4 shadow-[0_18px_46px_rgba(15,23,42,0.05)] backdrop-blur-xl">
               <p className="text-2xl font-black text-slate-950">Private</p>
               <p className="mt-1 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
-                dashboard
+                {t.signin.cardDashboard}
               </p>
             </div>
             <div className="rounded-[16px] border border-white/70 bg-white/48 p-4 shadow-[0_18px_46px_rgba(15,23,42,0.05)] backdrop-blur-xl">
               <p className="text-2xl font-black text-slate-950">Live</p>
               <p className="mt-1 text-xs font-black uppercase tracking-[0.12em] text-slate-500">
-                payout status
+                {t.signin.cardPayout}
               </p>
             </div>
           </div>
         </section>
 
         <section
-          aria-label={SIGNIN_PAGE_COPY.panelLabel}
+          aria-label={t.signin.panelLabel}
           className="spinshare-signin-card p-5 sm:p-6"
         >
           <div className="spinshare-role-slider" data-role={role}>
@@ -176,7 +182,7 @@ function SignInForm() {
               }`}
             >
               <Code className="h-4 w-4" />
-              {SIGNIN_PAGE_COPY.developerRole}
+              {t.signin.roleDeveloper}
             </button>
             <button
               type="button"
@@ -188,7 +194,7 @@ function SignInForm() {
               }`}
             >
               <Layers className="h-4 w-4" />
-              {SIGNIN_PAGE_COPY.advertiserRole}
+              {t.signin.roleAdvertiser}
             </button>
           </div>
 
@@ -205,7 +211,7 @@ function SignInForm() {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
               </svg>
-              {loading === "google" ? "Signing in..." : "Continue with Google"}
+              {loading === "google" ? t.signin.submitting : t.signin.submit}
             </Button>
 
             <Button
@@ -217,7 +223,7 @@ function SignInForm() {
               <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24">
                 <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.577.688.479C19.138 20.164 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
               </svg>
-              {loading === "github" ? "Signing in..." : "Continue with GitHub"}
+              {loading === "github" ? t.signin.submitting : t.signin.submit}
             </Button>
           </div>
 
@@ -274,7 +280,7 @@ function SignInForm() {
               disabled={loading !== null}
               className="spinshare-btn-primary min-h-12 w-full justify-center rounded-[12px] text-sm"
             >
-              {loading === "credentials" ? "Signing in..." : "Sign in"}
+              {loading === "credentials" ? t.signin.submitting : t.signin.submit}
             </Button>
           </form>
 

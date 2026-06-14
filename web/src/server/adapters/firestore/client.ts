@@ -59,6 +59,8 @@ function resolveCredential() {
   return undefined;
 }
 
+let cachedDb: Firestore | undefined;
+
 /**
  * Returns the shared SpinShare Admin app, initializing it once.
  *
@@ -67,6 +69,9 @@ function resolveCredential() {
  * a second Admin instance. When `FIREBASE_DATABASE_URL` is present it is wired
  * into the app config so `getDatabase(app)` (RTDB) resolves without any extra
  * credential setup.
+ *
+ * Note: during `next dev`, adding `FIREBASE_*` creds to `.env` after the first
+ * request does not replace a credential-less cached app — restart `pnpm dev`.
  */
 export function getAdminApp(): App {
   const existing = getApps().find((a) => a.name === APP_NAME);
@@ -87,8 +92,6 @@ export function getAdminApp(): App {
     APP_NAME,
   );
 }
-
-let cachedDb: Firestore | undefined;
 
 /**
  * Returns the shared Firestore instance. When `FIRESTORE_EMULATOR_HOST` is set

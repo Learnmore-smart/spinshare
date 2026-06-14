@@ -44,7 +44,12 @@ export default async function DeveloperDashboardPage() {
     const entries = await getContainer().ledger.listByDeveloper(developerId);
     const summary = summarizeLedger(entries);
     return <DeveloperDashboardView summary={summary} />;
-  } catch {
-    return <DeveloperDashboardError />;
+  } catch (err) {
+    console.error("[developer-dashboard] ledger load failed:", err);
+    const devHint =
+      process.env.NODE_ENV === "development" && err instanceof Error
+        ? `${err.message} If you just added Firebase secrets, restart \`pnpm dev\` and sign in again.`
+        : undefined;
+    return <DeveloperDashboardError message={devHint} />;
   }
 }

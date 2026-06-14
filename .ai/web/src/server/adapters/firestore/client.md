@@ -20,9 +20,9 @@ app is now also reused for Realtime Database (RTDB).
 - `getAdminApp` initializes the app with `databaseURL` from
   `FIREBASE_DATABASE_URL` when present, so `getDatabase(app)` (RTDB) works
   without a second app/credential set. Emulator/ADC otherwise.
-
-## Change History
-
-| Date | Change | Author |
-|------|--------|--------|
+- **Hot-reload trap:** the Admin app and Firestore client are cached module
+  singletons. If the dev server handled a request *before* `FIREBASE_*` creds
+  were in `.env`, the first init uses ADC (no creds). Next.js env hot-reload
+  does not clear that cache — later requests still use the credential-less app
+  until the process restarts (`pnpm dev` again).
 | 2026-06-13 | Export `getAdminApp`; add `databaseURL` for RTDB reuse | Kiro |

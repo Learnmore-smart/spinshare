@@ -213,3 +213,4 @@ Follow-up screenshot review clarified the blur should belong to the rounded navb
 | 2026-06-13 | Documented navbar border removal and stronger backdrop filter before editing code | Codex |
 | 2026-06-13 | Documented moving header blur from full-width wrapper to navbar container | Codex |
 | 2026-06-13 | Documented homepage 3-second minimum views copy before editing. | Codex |
+| 2026-06-14 | Fix homepage navbar link spacing: increase nav `gap` from `gap-2` to `gap-6` and `text-sm` to match other site pages. | Codex |

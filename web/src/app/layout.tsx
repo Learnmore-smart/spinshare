@@ -5,7 +5,8 @@ import "./globals.css";
 import "./theme.css";
 import "./home.css";
 import { LocaleProvider } from "@/lib/i18n/locale-provider";
-import { detectLocaleFromHeaders } from "@/lib/i18n/detect-locale";
+import { detectLocaleFromAcceptLanguage } from "@/lib/i18n/detect-locale";
+import { DEFAULT_LOCALE, LOCALES, type Locale } from "@/lib/i18n/types";
 
 export const metadata: Metadata = {
   title: "SpinShare",
@@ -15,15 +16,28 @@ export const metadata: Metadata = {
   },
 };
 
+function isLocale(value: unknown): value is Locale {
+  return typeof value === "string" && (LOCALES as readonly string[]).includes(value);
+}
+
 export default async function RootLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  // Server-detect the user's preferred locale from the Accept-Language header.
-  // The client provider can later override this with a localStorage value
-  // (or the user's manual selection from the switcher).
-  const initialLocale = detectLocaleFromHeaders(headers());
+  const headerList = await headers();
+
+  // Priority: middleware-set header > Accept-Language > DEFAULT_LOCALE.
+  // The middleware always sets `x-spinshare-locale` for non-static routes,
+  // taking the cookie (user choice) or the Accept-Language header into
+  // account. We still re-validate against Accept-Language here as a
+  // belt-and-braces fallback in case middleware didn't run (e.g. static
+  // assets in dev).
+  const middlewareLocale = headerList.get("x-spinshare-locale");
+  const acceptLanguage = headerList.get("accept-language");
+  const initialLocale: Locale = isLocale(middlewareLocale)
+    ? middlewareLocale
+    : detectLocaleFromAcceptLanguage(acceptLanguage) ?? DEFAULT_LOCALE;
 
   return (
     <html lang={initialLocale} className="light" suppressHydrationWarning>

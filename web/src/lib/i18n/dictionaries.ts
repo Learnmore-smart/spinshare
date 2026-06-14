@@ -28,7 +28,7 @@ const en: Dictionary = {
   signin: {
     headlinePrefix: "Sign in to see your",
     headlineHighlight: "balance",
-    body: "SpinShare pays you for every second your AI spends thinking. Sign in to see your balance, watch live bid activity, and withdraw earnings.",
+    body: "SpinShare pays you for each ad shown for at least 3 seconds during AI wait states. Sign in to see your balance, watch live bid activity, and withdraw earnings.",
     cardRevenue: "revenue share",
     cardDashboard: "dashboard",
     cardPayout: "payout status",
@@ -92,7 +92,7 @@ const zh: Dictionary = {
   signin: {
     headlinePrefix: "登录查看你的",
     headlineHighlight: "收益余额",
-    body: "AI 每思考一秒,SpinShare 就付你一份钱。登录后查看余额、实时竞价动态,并提取收益。",
+    body: "SpinShare 按展示满 3 秒的广告计费。登录后查看余额、实时竞价动态，并提取收益。",
     cardRevenue: "分成比例",
     cardDashboard: "隐私面板",
     cardPayout: "实时到账",
@@ -156,7 +156,7 @@ const fr: Dictionary = {
   signin: {
     headlinePrefix: "Connectez-vous pour voir votre",
     headlineHighlight: "solde",
-    body: "SpinShare vous paie pour chaque seconde où votre IA réfléchit. Connectez-vous pour voir votre solde, suivre les enchères en direct et retirer vos gains.",
+    body: "SpinShare vous paie pour chaque annonce affichée au moins 3 secondes pendant les temps d'attente de l'IA. Connectez-vous pour voir votre solde, suivre les enchères en direct et retirer vos gains.",
     cardRevenue: "part des revenus",
     cardDashboard: "tableau de bord privé",
     cardPayout: "paiements en direct",
