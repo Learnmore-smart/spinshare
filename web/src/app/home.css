@@ -371,24 +371,20 @@ input[type="password"]:focus {
    ===================================================================== */
 
 @keyframes spinshare-gradient-sweep {
-  from { background-position: 0% 50%; }
-  to   { background-position: 100% 50%; }
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
 }
 
 .spinshare-hero-highlight-3d {
   background-image: linear-gradient(
-    110deg,
-    var(--color-primary-700) 0%,
-    var(--color-primary-500) 12.5%,
-    var(--color-primary-400) 25%,
-    var(--color-primary-500) 37.5%,
-    var(--color-primary-700) 50%,
-    var(--color-primary-500) 62.5%,
-    var(--color-primary-400) 75%,
-    var(--color-primary-500) 87.5%,
-    var(--color-primary-700) 100%
+    90deg,
+    var(--color-primary-500) 0%,
+    var(--color-primary-300) 25%,
+    var(--color-primary-500) 50%,
+    var(--color-primary-300) 75%,
+    var(--color-primary-500) 100%
   );
-  background-size: 200% 100%;
+  background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

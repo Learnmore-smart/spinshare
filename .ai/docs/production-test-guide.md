@@ -8,6 +8,12 @@ Small operator guide for manually testing CLI ads, payment funding, and end-to-e
 ## What It Does
 
 - Lists commands for automated verification.
+- Calls out production-mode flags and the required RTDB URL.
+- Points users at the reusable production env verifier.
+- Documents that RTDB Management API must be enabled and visible to the deploy/service identity.
+- Uses the root `deploy:indexes` script instead of raw Firebase CLI args.
+- Calls out that `NEXTAUTH_URL` and `AUTH_VERIFICATION_URI` must use deployed public origins, not localhost.
+- Calls out that `STRIPE_MODE` must match the Stripe key prefix.
 - Describes how to confirm the CLI displays ads.
 - Describes how to test Stripe Checkout and webhook budget crediting.
 - Describes how to check health, market, and tracking endpoints.
@@ -41,3 +47,8 @@ Small operator guide for manually testing CLI ads, payment funding, and end-to-e
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-14 | Created documentation plan for production self-test guide. | Codex |
+| 2026-06-14 | Updated guide to use `npx.cmd` on PowerShell, spinner-only CLI frames, and production-mode env flags. | Codex |
+| 2026-06-14 | Added `verify:prod-env` guidance. | Codex |
+| 2026-06-14 | Added Firebase RTDB API/IAM setup note. | Codex |
+| 2026-06-14 | Updated index deploy guidance to use the repo-local wrapper. | Codex |
+| 2026-06-14 | Clarified deployed auth URLs, Stripe key mode matching, and built-app e2e command. | Codex |

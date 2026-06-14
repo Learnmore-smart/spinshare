@@ -67,3 +67,56 @@
   position: relative;
   z-index: 1;
 }
+
+/* =====================================================================
+   Sign-In Page — 3D Role Slider (Developer / Advertiser)
+   ===================================================================== */
+
+.spinshare-role-slider {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(6, 78, 59, 0.16) 0%, rgba(6, 78, 59, 0.04) 100%),
+    linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(6, 78, 59, 0.22),
+    inset 0 6px 10px -4px rgba(6, 78, 59, 0.18),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 1px 0 rgba(255, 255, 255, 0.7);
+  isolation: isolate;
+}
+
+.spinshare-role-slider::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 6px;
+  width: calc(50% - 6px);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -1px 0 rgba(6, 78, 59, 0.08),
+    0 1px 2px rgba(6, 78, 59, 0.14),
+    0 4px 10px -2px rgba(6, 78, 59, 0.22),
+    0 10px 24px -8px rgba(6, 78, 59, 0.28);
+  transition: transform 220ms cubic-bezier(0.32, 0.72, 0.24, 1), box-shadow 220ms ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.spinshare-role-slider[data-role="advertiser"]::before {
+  transform: translateX(100%);
+}
+
+.spinshare-role-slider > button {
+  position: relative;
+  z-index: 1;
+}

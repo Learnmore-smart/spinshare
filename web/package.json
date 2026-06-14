@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "node ./scripts/clean-next.mjs && next build",
-    "dev": "node ./scripts/clean-next.mjs && next dev",
+    "dev": "node ./scripts/clean-next.mjs && next dev --turbo",
     "start": "next start",
     "test": "vitest run --passWithNoTests",
     "test:e2e": "vitest run --config vitest.e2e.config.ts --passWithNoTests",

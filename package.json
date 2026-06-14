@@ -14,7 +14,8 @@
     "test:e2e": "corepack pnpm@9.12.0 --filter @spinshare/web test:e2e",
     "lint": "corepack pnpm@9.12.0 --filter @spinshare/core lint && corepack pnpm@9.12.0 --filter @spinshare/web lint && corepack pnpm@9.12.0 --filter @spinshare/cli lint && corepack pnpm@9.12.0 --filter @spinshare/vscode-extension lint",
     "emulators": "npx --yes firebase-tools emulators:start --only firestore",
-    "deploy:indexes": "npx --yes firebase-tools deploy --only firestore:indexes"
+    "deploy:indexes": "node web/scripts/deploy-firestore-indexes.mjs",
+    "verify:prod-env": "node web/scripts/verify-prod-env.mjs --strict-production"
   },
   "devDependencies": {
     "@types/node": "^22.5.0",

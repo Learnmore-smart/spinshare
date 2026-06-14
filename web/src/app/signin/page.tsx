@@ -165,13 +165,13 @@ function SignInForm() {
           aria-label={SIGNIN_PAGE_COPY.panelLabel}
           className="spinshare-signin-card p-5 sm:p-6"
         >
-          <div className="grid grid-cols-2 gap-1.5 rounded-[12px] bg-emerald-50/80 p-1.5">
+          <div className="spinshare-role-slider" data-role={role}>
             <button
               type="button"
               onClick={() => setRole("developer")}
-              className={`flex min-h-11 items-center justify-center gap-2 rounded-[10px] text-sm font-black transition-all ${
+              className={`flex min-h-11 items-center justify-center gap-2 rounded-[10px] text-sm font-black transition-colors ${
                 role === "developer"
-                  ? "bg-white text-emerald-700 shadow-sm"
+                  ? "text-emerald-700"
                   : "text-slate-500 hover:text-slate-950"
               }`}
             >
@@ -181,9 +181,9 @@ function SignInForm() {
             <button
               type="button"
               onClick={() => setRole("advertiser")}
-              className={`flex min-h-11 items-center justify-center gap-2 rounded-[10px] text-sm font-black transition-all ${
+              className={`flex min-h-11 items-center justify-center gap-2 rounded-[10px] text-sm font-black transition-colors ${
                 role === "advertiser"
-                  ? "bg-white text-emerald-700 shadow-sm"
+                  ? "text-emerald-700"
                   : "text-slate-500 hover:text-slate-950"
               }`}
             >

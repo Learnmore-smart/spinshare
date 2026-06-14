@@ -12,6 +12,9 @@
  * browser device flow and stores the Device_Auth_Token (task 13.7).
  */
 
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { runWrap } from "./wrap.js";
 import { runLogin } from "./login.js";
 import { CliApiClient } from "./api-client.js";
@@ -84,8 +87,19 @@ export async function main(argv: string[]): Promise<number> {
   }
 }
 
+/** True when this module is the process entrypoint rather than a test import. */
+export function isDirectExecution(
+  moduleUrl: string = import.meta.url,
+  argv1: string | undefined = process.argv[1],
+): boolean {
+  if (argv1 === undefined) {
+    return false;
+  }
+  return fileURLToPath(moduleUrl) === resolve(argv1);
+}
+
 // Only execute when run as a binary, not when imported by tests.
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isDirectExecution()) {
   main(process.argv.slice(2))
     .then((code) => {
       process.exitCode = code;

@@ -9,7 +9,7 @@ Root workspace manifest and command entrypoint for the SpinShare monorepo.
 ## What It Does
 
 - Declares the workspace name, package manager, Node engine, and root dev dependencies.
-- Provides root commands for build, dev, test, e2e, lint, Firestore emulator startup, and Firestore index deployment.
+- Provides root commands for build, dev, test, e2e, lint, Firestore emulator startup, Firestore index deployment, and production env verification.
 
 ## Public API
 
@@ -20,7 +20,8 @@ Root workspace manifest and command entrypoint for the SpinShare monorepo.
 | `test:e2e` | script | Runs the web e2e suite. |
 | `lint` | script | Runs package TypeScript checks. |
 | `emulators` | script | Starts the Firestore emulator when Firebase CLI is installed. |
-| `deploy:indexes` | script | Deploys the Firestore index manifest through Firebase CLI. |
+| `deploy:indexes` | script | Deploys the Firestore index manifest through a repo-local wrapper that reads `FIREBASE_PROJECT_ID`. |
+| `verify:prod-env` | script | Runs strict read-only checks for production env/provider readiness. |
 
 ## Dependencies
 
@@ -33,6 +34,7 @@ Root workspace manifest and command entrypoint for the SpinShare monorepo.
 - Root scripts must be runnable through `corepack pnpm@9.12.0 <script>`.
 - Keep package build order so `@spinshare/core` is built before consumers.
 - Firebase CLI commands should not require a global `firebase` binary.
+- Production verification must not print secrets or mutate live provider data.
 
 ## Bug Fixes
 
@@ -46,3 +48,5 @@ Root workspace manifest and command entrypoint for the SpinShare monorepo.
 |------|--------|--------|
 | 2026-06-13 | Created documentation for root script fix. | Codex |
 | 2026-06-14 | Planned Firebase CLI scripts through `npx --yes firebase-tools` for emulator and index deploy portability. | Codex |
+| 2026-06-14 | Planned `verify:prod-env` root script for repeatable live-provider readiness checks. | Codex |
+| 2026-06-14 | Planned repo-local Firestore index deploy wrapper to avoid PowerShell/pnpm argument forwarding issues. | Codex |
