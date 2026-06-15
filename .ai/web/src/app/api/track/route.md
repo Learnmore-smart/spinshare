@@ -35,6 +35,24 @@ HTTP adapter for `POST /api/track` impression tracking.
 Backend validation will require the shared `viewDurationMs >= 3000` tracking
 contract. The route should keep delegating only after schema validation passes.
 
+## Planned Change (2026-06-15)
+
+Record aggregate campaign telemetry for track outcomes: below-minimum view
+duration, invalid token, invalid/out-of-budget campaign, credited impression,
+shadow-ban suppression, earning-cap suppression, and duplicate suppression.
+Do not expose suppression details to the public response body.
+
+## Implemented Change (2026-06-15)
+
+The route now increments aggregate campaign telemetry for invalid viewability
+requests, auth failures, invalid/out-of-budget campaigns, credited impressions,
+shadow-ban suppression, earning-cap suppression, and duplicate suppression.
+
+## Verification (2026-06-15)
+
+- `corepack pnpm@9.12.0 --filter @spinshare/web test` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+
 ## Implemented Change
 
 The route continues to delegate only after `trackRequestSchema` validation, and

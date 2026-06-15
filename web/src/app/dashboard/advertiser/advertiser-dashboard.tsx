@@ -25,7 +25,14 @@ import { useT } from "@/lib/i18n/locale-provider";
 
 import { CampaignBuilder } from "./campaign-builder";
 import { CampaignList } from "./campaign-list";
-import { formatUsd, type CampaignView } from "./lib";
+import {
+  formatCount,
+  formatCtr,
+  formatUsd,
+  nonCreditTotal,
+  sumCampaignTelemetry,
+  type CampaignView,
+} from "./lib";
 
 /** Props for {@link AdvertiserDashboard}. */
 export interface AdvertiserDashboardProps {
@@ -89,6 +96,11 @@ export function AdvertiserDashboard({ token }: AdvertiserDashboardProps) {
     () => campaigns.reduce((sum, c) => sum + c.budgetCents, 0),
     [campaigns],
   );
+  const totalTelemetry = useMemo(
+    () => sumCampaignTelemetry(campaigns),
+    [campaigns],
+  );
+  const totalUncredited = nonCreditTotal(totalTelemetry);
 
   return (
     <>
@@ -101,18 +113,36 @@ export function AdvertiserDashboard({ token }: AdvertiserDashboardProps) {
         </p>
       </section>
 
-      {state.status === "ready" && campaigns.length > 0 && (
-        <section className="adv-dash-stat-scroll adv-dash-rise" data-testid="adv-dash-stats">
-          <div className="adv-dash-stat">
-            <p className="adv-dash-stat-label">{t.advertiserDashboard.yourCampaigns}</p>
-            <p className="adv-dash-stat-value">{t.advertiserDashboard.campaignCount(campaigns.length)}</p>
-          </div>
-          <div className="adv-dash-stat">
-            <p className="adv-dash-stat-label">{t.advertiserDashboard.totalBudget}</p>
-            <p className="adv-dash-stat-value">{formatUsd(totalBudgetCents)}</p>
-          </div>
-        </section>
-      )}
+      <section className="adv-dash-stat-scroll adv-dash-rise" data-testid="adv-dash-stats">
+        <div className="adv-dash-stat">
+          <p className="adv-dash-stat-label">{t.advertiserDashboard.yourCampaigns}</p>
+          <p className="adv-dash-stat-value">{t.advertiserDashboard.campaignCount(campaigns.length)}</p>
+        </div>
+        <div className="adv-dash-stat">
+          <p className="adv-dash-stat-label">{t.advertiserDashboard.totalBudget}</p>
+          <p className="adv-dash-stat-value">{formatUsd(totalBudgetCents)}</p>
+        </div>
+        <div className="adv-dash-stat">
+          <p className="adv-dash-stat-label">{t.advertiserDashboard.totalShows}</p>
+          <p className="adv-dash-stat-value">{formatCount(totalTelemetry.shows)}</p>
+        </div>
+        <div className="adv-dash-stat">
+          <p className="adv-dash-stat-label">{t.advertiserDashboard.totalServed}</p>
+          <p className="adv-dash-stat-value">{formatCount(totalTelemetry.credited)}</p>
+        </div>
+        <div className="adv-dash-stat">
+          <p className="adv-dash-stat-label">{t.advertiserDashboard.clicks}</p>
+          <p className="adv-dash-stat-value">{formatCount(totalTelemetry.clicks)}</p>
+        </div>
+        <div className="adv-dash-stat">
+          <p className="adv-dash-stat-label">{t.advertiserDashboard.ctr}</p>
+          <p className="adv-dash-stat-value">{formatCtr(totalTelemetry.clicks, totalTelemetry.shows)}</p>
+        </div>
+        <div className="adv-dash-stat">
+          <p className="adv-dash-stat-label">{t.advertiserDashboard.uncredited}</p>
+          <p className="adv-dash-stat-value">{formatCount(totalUncredited)}</p>
+        </div>
+      </section>
 
       <div className="adv-dash-grid adv-dash-rise">
         <CampaignBuilder token={token} onCreated={handleCreated} />

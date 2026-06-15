@@ -17,6 +17,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@homebridge/node-pty-prebuilt-multiarch": "^0.13.1",
     "@spinshare/core": "workspace:*"
   },
   "optionalDependencies": {

@@ -15,4 +15,17 @@ describe("AdvertiserDashboard", () => {
     expect(html).toContain("Advertiser dashboard");
     expect(html).toContain("3-second minimum views");
   });
+
+  it("renders zero-value telemetry containers before campaign data loads", () => {
+    Object.assign(globalThis, { React });
+
+    const html = renderToStaticMarkup(
+      React.createElement(AdvertiserDashboard, { token: "tok_123" }),
+    );
+
+    expect(html).toContain("Total shows");
+    expect(html).toContain("Served");
+    expect(html).toContain("Clicks");
+    expect(html).toContain(">0<");
+  });
 });

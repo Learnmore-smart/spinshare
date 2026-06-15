@@ -32,9 +32,12 @@ import {
 import type {
   ApplyImpressionInput,
   ApplyImpressionResult,
+  CampaignTelemetry,
+  CampaignTelemetryMetric,
   CounterStore,
   PendingBatch,
 } from "../../ports/counter-store";
+import { zeroCampaignTelemetry } from "../../ports/counter-store";
 import {
   RandomIdGenerator,
   SystemClock,
@@ -87,6 +90,7 @@ export class MemoryCounterStore implements CounterStore {
   private readonly earnDay = new Map<string, EarningWindow>();
   /** Active shadow-bans: user id → epoch millis at which the ban expires. */
   private readonly shadowBans = new Map<string, number>();
+  private readonly campaignTelemetry = new Map<string, CampaignTelemetry>();
   /** In-flight drained batches keyed by `batchToken`. */
   private readonly inflight = new Map<string, InflightBatch>();
 
@@ -190,6 +194,27 @@ export class MemoryCounterStore implements CounterStore {
 
   async setShadowBan(userId: string, ttlSeconds: number): Promise<void> {
     this.shadowBans.set(userId, this.clock.nowMs() + ttlSeconds * 1000);
+  }
+
+  async incrementCampaignTelemetry(
+    campaignId: string,
+    metric: CampaignTelemetryMetric,
+  ): Promise<void> {
+    const current = this.campaignTelemetry.get(campaignId) ?? zeroCampaignTelemetry();
+    current[metric] += 1;
+    this.campaignTelemetry.set(campaignId, current);
+  }
+
+  async getCampaignTelemetry(
+    campaignIds: string[],
+  ): Promise<Record<string, CampaignTelemetry>> {
+    const result: Record<string, CampaignTelemetry> = {};
+    for (const campaignId of new Set(campaignIds)) {
+      result[campaignId] = {
+        ...(this.campaignTelemetry.get(campaignId) ?? zeroCampaignTelemetry()),
+      };
+    }
+    return result;
   }
 
   private pruneExpiredVelocity(nowMs: number): void {

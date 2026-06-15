@@ -48,16 +48,29 @@ corepack pnpm@9.12.0 deploy:indexes
 
 1. Start the web app against the environment you want to test.
 2. Create and fund at least one campaign so `/api/ad` returns `adAvailable: true`.
-3. Point the CLI at the app and run a command that emits spinner-style output for at least 3 seconds:
+3. Log in once. This is the device-flow approval step: the CLI prints a code, opens `/activate`, and polls until you approve it in the browser.
+4. Point the CLI at the app and run a command that emits spinner-style output for at least 3 seconds:
 
 ```powershell
 $env:SPINSHARE_API_URL = "http://localhost:3000"
-$env:SPINSHARE_TOKEN = "<device-auth-token>"
 corepack pnpm@9.12.0 --filter @spinshare/cli build
+node .\cli-wrapper\dist\index.js login
 node .\cli-wrapper\dist\index.js node -e "let i=0; setInterval(() => process.stdout.write('\r' + ['|','/','-','\\'][i++%4]), 100); setTimeout(() => process.exit(0), 4500)"
 ```
 
 The wrapped command must emit spinner-only frames for the CLI to replace them. You should see the ad text appear during the wait state. After 3 seconds, one impression should be reported to `/api/track`.
+
+## Confirm Extension Auto-Wrap
+
+The VS Code extension only changes **new integrated terminals** opened after the extension activates or after `SpinShare: Rebuild Terminal Shims` runs. It does not rewrite external shells.
+
+1. Install the VSIX.
+2. Run `SpinShare: Sign In` and approve the device in the browser.
+3. If testing locally, set `spinshare.baseUrl` to `http://localhost:3000`.
+4. Run `SpinShare: Rebuild Terminal Shims`.
+5. Open a new integrated terminal and run a configured agent command such as `claude`.
+
+The packaged extension bundles the SpinShare CLI wrapper. For external terminals, use the standalone CLI command explicitly.
 
 ## Test Payment
 
@@ -73,7 +86,28 @@ Use a `sk_test_...` secret key for this pass. Create a campaign from the adverti
 /api/webhooks/stripe
 ```
 
+For local testing, keep the app running and forward Stripe events with the Stripe CLI:
+
+```powershell
+stripe listen --forward-to http://localhost:3000/api/webhooks/stripe
+```
+
+Copy the printed `whsec_...` value into `STRIPE_WEBHOOK_SECRET`, restart the app, then complete Checkout.
+
 Expected result: the campaign budget increases by the Checkout amount exactly once. Redelivering the same Stripe event should not increase it again.
+
+In `STRIPE_MODE=mock`, public homepage checkout settles immediately and redirects back to `/?checkout=success#bid-market`. In `STRIPE_MODE=test` or `live`, campaigns only become biddable after the Stripe webhook is received.
+
+## Test Payout Onboarding
+
+Stripe Connect must be enabled on the platform account before this flow works in `STRIPE_MODE=test` or `live`.
+
+1. Sign in as a developer with at least `$5.00` available for payout.
+2. Open the developer payout panel and choose the connect-with-Stripe action.
+3. Expected API result: `/api/payouts/connect` returns an onboarding URL instead of a generic 500.
+4. Expected Stripe result: a new Accounts v2 recipient account is created with Express dashboard access and Stripe-hosted requirements collection.
+
+If Stripe rejects the request, check the server log for `requestId` and `providerStatus`, then look up that request in the Stripe Dashboard logs.
 
 ## End-To-End System Check
 

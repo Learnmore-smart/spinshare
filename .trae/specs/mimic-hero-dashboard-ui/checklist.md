@@ -1,0 +1,8 @@
+- [x] Hero 区域在桌面端呈现左右双栏布局
+- [x] 右侧 `HeroDashboardCard` 正确渲染，包含收益金额、微型图表、统计行
+- [x] 收益金额文字使用 `spinshare-hero-highlight-3d` 渐变动画样式
+- [x] 仪表盘卡片使用现有 `liquid-glass` 或 `liquid-glass-light-green`，无新颜色
+- [x] 现有的 Claude 状态 ↔ 广告展示流程面板已下移至 Hero 下方独立 section
+- [x] Hero 下方 section 包含标题 "等待过程，如何变现"
+- [x] 移动端布局垂直堆叠，无横向溢出
+- [x] `npm run build 2>&1` 构建通过，无报错

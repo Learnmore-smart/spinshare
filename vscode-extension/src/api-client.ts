@@ -58,6 +58,18 @@ export interface AdApiClientOptions {
 /** Default SpinShare web base URL; overridable via extension settings. */
 export const DEFAULT_BASE_URL = "https://www.spinshare.dev";
 
+/** Normalize known production aliases while preserving localhost/custom URLs. */
+export function normalizeBaseUrl(baseUrl: string): string {
+  const trimmed = baseUrl.trim().replace(/\/+$/, "");
+  if (
+    trimmed === "https://spinshare.dev" ||
+    trimmed === "http://spinshare.dev"
+  ) {
+    return DEFAULT_BASE_URL;
+  }
+  return trimmed;
+}
+
 function resolveDefaultFetch(): FetchLike {
   const globalFetch = (globalThis as { fetch?: unknown }).fetch;
   if (typeof globalFetch !== "function") {
@@ -191,7 +203,7 @@ export class AdApiClient {
 
   constructor(options: AdApiClientOptions) {
     // Trim a single trailing slash so URL joining is predictable.
-    this.baseUrl = options.baseUrl.replace(/\/+$/, "");
+    this.baseUrl = normalizeBaseUrl(options.baseUrl);
     this.token = options.token;
     this.fetchImpl = options.fetchImpl ?? resolveDefaultFetch();
   }

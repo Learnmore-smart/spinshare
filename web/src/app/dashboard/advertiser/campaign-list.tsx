@@ -19,7 +19,15 @@ import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n/locale-provider";
 import { translateValidationError } from "@/lib/i18n/translate-validation-error";
 
-import { formatUsd, validateFundingDollars, type CampaignView } from "./lib";
+import {
+  campaignTelemetry,
+  formatCount,
+  formatCtr,
+  formatUsd,
+  nonCreditTotal,
+  validateFundingDollars,
+  type CampaignView,
+} from "./lib";
 
 /** Props for {@link CampaignList}. */
 export interface CampaignListProps {
@@ -74,6 +82,9 @@ function CampaignCard({
   const [amount, setAmount] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const telemetry = campaignTelemetry(campaign);
+  const uncredited = nonCreditTotal(telemetry);
+  const antiAbuse = telemetry.shadowBanned + telemetry.earningCapped;
 
   async function addFunds(): Promise<void> {
     setError(null);
@@ -135,6 +146,46 @@ function CampaignCard({
           </span>
           <span className={statusClass(campaign.status)}>{campaign.status}</span>
         </div>
+      </div>
+
+      <div className="adv-dash-campaign-telemetry" aria-label="Campaign telemetry">
+        <div>
+          <span>Shows</span>
+          <strong>{formatCount(telemetry.shows)}</strong>
+        </div>
+        <div>
+          <span>Served</span>
+          <strong>{formatCount(telemetry.credited)}</strong>
+        </div>
+        <div>
+          <span>Clicks</span>
+          <strong>{formatCount(telemetry.clicks)}</strong>
+        </div>
+        <div>
+          <span>CTR</span>
+          <strong>{formatCtr(telemetry.clicks, telemetry.shows)}</strong>
+        </div>
+      </div>
+
+      <div className="adv-dash-campaign-diagnostics" aria-label="Campaign diagnostics">
+        <span>
+          Not credited <strong>{formatCount(uncredited)}</strong>
+        </span>
+        <span>
+          Too short <strong>{formatCount(telemetry.tooShort)}</strong>
+        </span>
+        <span>
+          Auth issues <strong>{formatCount(telemetry.invalidToken)}</strong>
+        </span>
+        <span>
+          Out of budget <strong>{formatCount(telemetry.invalidCampaign)}</strong>
+        </span>
+        <span>
+          Anti-abuse <strong>{formatCount(antiAbuse)}</strong>
+        </span>
+        <span>
+          Duplicate <strong>{formatCount(telemetry.duplicate)}</strong>
+        </span>
       </div>
 
       <div className="adv-dash-campaign-funds">

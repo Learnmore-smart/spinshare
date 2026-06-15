@@ -32,6 +32,15 @@ describe("resolveBaseUrl", () => {
     );
     expect(resolveBaseUrl(undefined, {})).toBe(DEFAULT_BASE_URL);
   });
+
+  it("canonicalizes the SpinShare production apex host to avoid POST redirects", () => {
+    expect(resolveBaseUrl("https://spinshare.dev/", {})).toBe(
+      "https://www.spinshare.dev",
+    );
+    expect(
+      resolveBaseUrl(undefined, { SPINSHARE_BASE_URL: "https://spinshare.dev/" }),
+    ).toBe("https://www.spinshare.dev");
+  });
 });
 
 describe("parseAdResponse / parseTrackResponse", () => {

@@ -8,7 +8,7 @@ Focused Vitest coverage for the LearnX loading status timing contract.
 
 ## What It Does
 
-- Verifies the ping-pong icon sequence and exact 1-second loop math.
+- Verifies the six-frame icon sequence and exact 1080ms loop math.
 - Verifies the 1-second ellipsis cycle and formatting with a space before visible dots.
 - Verifies verb selection excludes the current verb when switching cycles.
 - Verifies the component renders the required LearnX brand text and Claude clay styling hooks.
@@ -57,5 +57,6 @@ Add failing tests before implementation for icon sequence, loop durations, ellip
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Kept the test as the source of truth for six icon frames at 180ms each. | Codex |
 | 2026-06-13 | Created documentation for loading status test coverage | Codex |
 | 2026-06-13 | Added focused Vitest coverage for LoadingStatus timing and rendering | Codex |

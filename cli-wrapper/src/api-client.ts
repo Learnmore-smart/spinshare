@@ -66,6 +66,18 @@ export interface CliApiClientOptions {
 /** Default SpinShare web base URL; overridable via env/config. */
 export const DEFAULT_BASE_URL = "https://www.spinshare.dev";
 
+/** Normalize known production aliases while preserving localhost/custom URLs. */
+export function normalizeBaseUrl(baseUrl: string): string {
+  const trimmed = baseUrl.trim().replace(/\/+$/, "");
+  if (
+    trimmed === "https://spinshare.dev" ||
+    trimmed === "http://spinshare.dev"
+  ) {
+    return DEFAULT_BASE_URL;
+  }
+  return trimmed;
+}
+
 /**
  * Resolve the API base URL from explicit option → environment → default.
  * Reads `SPINSHARE_API_URL`, then `SPINSHARE_BASE_URL`.
@@ -75,7 +87,7 @@ export function resolveBaseUrl(
   env: NodeJS.ProcessEnv = process.env,
 ): string {
   const fromEnv = env.SPINSHARE_API_URL ?? env.SPINSHARE_BASE_URL;
-  return (explicit ?? fromEnv ?? DEFAULT_BASE_URL).replace(/\/+$/, "");
+  return normalizeBaseUrl(explicit ?? fromEnv ?? DEFAULT_BASE_URL);
 }
 
 /**

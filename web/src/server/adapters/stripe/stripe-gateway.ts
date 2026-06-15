@@ -22,9 +22,11 @@ import Stripe from "stripe";
 
 import type {
   CheckoutInput,
+  CheckoutSessionResult,
   PaymentGateway,
   StripeEvent,
 } from "../../ports/payment-gateway";
+import { createStripeClient } from "./stripe-config";
 
 /** Minimal read-only view of the environment the gateway depends on. */
 export type StripeGatewayEnv = Record<string, string | undefined>;
@@ -55,7 +57,7 @@ export class StripeGateway implements PaymentGateway {
             "sessions, or use STRIPE_MODE=mock for local development.",
         );
       }
-      this.client = new Stripe(secretKey);
+      this.client = createStripeClient(secretKey);
     }
     return this.client;
   }
@@ -74,7 +76,7 @@ export class StripeGateway implements PaymentGateway {
 
   async createCheckoutSession(
     input: CheckoutInput,
-  ): Promise<{ url: string; sessionId: string }> {
+  ): Promise<CheckoutSessionResult> {
     const client = this.getClient();
 
     const session = await client.checkout.sessions.create({

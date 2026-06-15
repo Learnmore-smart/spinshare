@@ -23,7 +23,14 @@
 import { trackRequestSchema } from "@spinshare/core";
 
 import { getContainer } from "@/server/container";
-import { recordImpression } from "@/server/ledger-service";
+import {
+  recordImpression,
+  type ImpressionSettlement,
+} from "@/server/ledger-service";
+import type {
+  CampaignTelemetryMetric,
+  CounterStore,
+} from "@/server/ports/counter-store";
 
 /** Always evaluate at request time; impression accounting is per request. */
 export const dynamic = "force-dynamic";
@@ -47,6 +54,56 @@ function extractBearerToken(request: Request): string | null {
   return header.slice(BEARER_PREFIX.length).trim();
 }
 
+function extractCampaignId(rawBody: unknown): string | null {
+  if (rawBody === null || typeof rawBody !== "object") {
+    return null;
+  }
+  const campaignId = (rawBody as { campaignId?: unknown }).campaignId;
+  return typeof campaignId === "string" && campaignId.trim().length > 0
+    ? campaignId
+    : null;
+}
+
+function telemetryMetricForSettlement(
+  settlement: ImpressionSettlement,
+): CampaignTelemetryMetric {
+  switch (settlement) {
+    case "credited":
+      return "credited";
+    case "shadowBanned":
+      return "shadowBanned";
+    case "earningCapped":
+      return "earningCapped";
+    case "duplicate":
+      return "duplicate";
+  }
+}
+
+async function recordCampaignTelemetry(
+  counters: CounterStore,
+  campaignId: string | null,
+  metric: CampaignTelemetryMetric,
+): Promise<void> {
+  if (campaignId === null) {
+    return;
+  }
+  try {
+    await counters.incrementCampaignTelemetry(campaignId, metric);
+  } catch {
+    // Telemetry must never block the public tracking contract.
+  }
+}
+
+async function recordInvalidBodyTelemetry(
+  campaignId: string | null,
+): Promise<void> {
+  try {
+    await recordCampaignTelemetry(getContainer().counters, campaignId, "tooShort");
+  } catch {
+    // Preserve the 400 response even if the counter backend is unavailable.
+  }
+}
+
 export async function POST(request: Request): Promise<Response> {
   // 1. Parse + Zod-validate the body. Malformed JSON and schema violations both
   //    surface as 400 with no mutation.
@@ -59,6 +116,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const parsed = trackRequestSchema.safeParse(rawBody);
   if (!parsed.success) {
+    await recordInvalidBodyTelemetry(extractCampaignId(rawBody));
     return Response.json(
       { error: parsed.error.issues[0]?.message ?? "invalid_request_body" },
       { status: 400 },
@@ -77,7 +135,17 @@ export async function POST(request: Request): Promise<Response> {
 
   // 4. Map the typed result to the HTTP contract.
   if (result.ok) {
+    await recordCampaignTelemetry(
+      counters,
+      parsed.data.campaignId,
+      telemetryMetricForSettlement(result.settlement),
+    );
     return Response.json(result.response, { status: 200 });
   }
+  await recordCampaignTelemetry(
+    counters,
+    parsed.data.campaignId,
+    result.status === 401 ? "invalidToken" : "invalidCampaign",
+  );
   return Response.json({ error: result.error }, { status: result.status });
 }

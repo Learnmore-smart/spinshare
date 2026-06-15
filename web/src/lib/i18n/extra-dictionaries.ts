@@ -173,7 +173,7 @@ export const extraEn: ExtraDictionary = {
     eyebrow: "Start earning",
     title: "Connect SpinShare",
     subtitle:
-      "Pick how you run AI — the extension for Cursor / VS Code, or the CLI wrapper for terminal agents. Ads must show for 3+ seconds to credit.",
+      "Pick how you run AI: the extension wraps new integrated terminals; the standalone CLI wraps external terminals. Ads must show for 3+ seconds to credit.",
     closeAria: "Close setup guide",
     setupMethodAria: "Setup method",
     pathExtension: "IDE extension",
@@ -195,9 +195,9 @@ export const extraEn: ExtraDictionary = {
     extStep2Title: "Sign in from the editor",
     extStep2Body:
       "Run command palette → SpinShare: Sign In. Your browser opens; approve the device with the same Google/GitHub account you used here.",
-    extStep3Title: "Trigger a real AI wait state",
+    extStep3Title: "Open a new integrated terminal",
     extStep3Body:
-      "Use Claude Code, Codex, or any supported agent. When the spinner / progress line appears for at least 3 seconds, SpinShare swaps in an ad and credits your account.",
+      "After sign-in, open a fresh integrated terminal and run a configured agent such as Claude Code. Existing terminals keep their old PATH and will not be wrapped.",
     extStep4Title: "Confirm on this dashboard",
     extStep4Body:
       "Refresh this page — you should see impressions under Recent credit and your balance tick up.",
@@ -205,7 +205,7 @@ export const extraEn: ExtraDictionary = {
     cliStep1Body: "From the repo root, build the wrapper package:",
     cliStep2Title: "Log in (device flow)",
     cliStep2Body:
-      "Run login — it prints a code and opens your browser. Approve at /activate while signed in here.",
+      "Run login. It prints a code, opens /activate in your browser, and waits until you approve that device while signed in here.",
     cliStep3Title: "Wrap your AI command",
     cliStep3Body:
       "Prefix any command that shows a terminal spinner. SpinShare replaces the spinner with ad text and reports impressions after 3+ seconds.",
@@ -308,6 +308,11 @@ export const extraEn: ExtraDictionary = {
     redirecting: "Redirecting…",
     amountRejected: "The amount was rejected.",
     checkoutError: (status) => `Could not start checkout (error ${status}).`,
+    totalShows: "Total shows",
+    totalServed: "Served",
+    clicks: "Clicks",
+    ctr: "CTR",
+    uncredited: "Uncredited",
   },
   errors: {
     iconType: "Brand icon must be a PNG, JPG, or WebP image.",
@@ -417,7 +422,7 @@ export const extraZh: ExtraDictionary = {
     eyebrow: "开始赚钱",
     title: "连接 SpinShare",
     subtitle:
-      "选择你运行 AI 的方式 — Cursor / VS Code 插件，或终端 CLI 包装器。广告需展示满 3 秒以上才计入收益。",
+      "选择你运行 AI 的方式：插件会包装新的集成终端；独立 CLI 用于外部终端。广告需展示满 3 秒以上才计入收益。",
     closeAria: "关闭设置指南",
     setupMethodAria: "设置方式",
     pathExtension: "IDE 插件",
@@ -438,16 +443,16 @@ export const extraZh: ExtraDictionary = {
     extStep2Title: "在编辑器中登录",
     extStep2Body:
       "打开命令面板 → SpinShare: Sign In。浏览器会打开；使用与此处相同的 Google/GitHub 账号批准设备。",
-    extStep3Title: "触发真实的 AI 等待状态",
+    extStep3Title: "打开新的集成终端",
     extStep3Body:
-      "使用 Claude Code、Codex 或任何支持的 agent。当 spinner / 进度条显示至少 3 秒时，SpinShare 会替换为广告并计入你的账户。",
+      "登录后，打开一个新的集成终端并运行已配置的 agent，例如 Claude Code。已打开的终端会保留旧 PATH，不会被自动包装。",
     extStep4Title: "在此看板确认",
     extStep4Body: "刷新此页面 — 你应在「最近入账」中看到展示，余额也会上升。",
     cliStep1Title: "安装 CLI",
     cliStep1Body: "在仓库根目录构建包装器包：",
     cliStep2Title: "登录（设备流程）",
     cliStep2Body:
-      "运行 login — 会打印验证码并在浏览器打开。在此登录状态下访问 /activate 批准。",
+      "运行 login。它会打印验证码，在浏览器打开 /activate，并等待你在此登录状态下批准该设备。",
     cliStep3Title: "包装你的 AI 命令",
     cliStep3Body:
       "为任何显示终端 spinner 的命令添加前缀。SpinShare 会用广告文案替换 spinner，3 秒以上后上报展示。",
@@ -545,6 +550,11 @@ export const extraZh: ExtraDictionary = {
     redirecting: "跳转中…",
     amountRejected: "金额被拒绝。",
     checkoutError: (status) => `无法启动结账（错误 ${status}）。`,
+    totalShows: "总展示",
+    totalServed: "已送达",
+    clicks: "点击",
+    ctr: "点击率",
+    uncredited: "未计费",
   },
   errors: {
     iconType: "品牌图标须为 PNG、JPG 或 WebP 格式。",
@@ -659,7 +669,7 @@ export const extraFr: ExtraDictionary = {
     eyebrow: "Commencer à gagner",
     title: "Connecter SpinShare",
     subtitle:
-      "Choisissez comment vous exécutez l'IA — extension Cursor / VS Code, ou wrapper CLI pour les agents terminal. Les annonces doivent s'afficher 3+ secondes pour être créditées.",
+      "Choisissez comment vous exécutez l'IA : l'extension enveloppe les nouveaux terminaux intégrés ; le CLI autonome enveloppe les terminaux externes. Les annonces doivent s'afficher 3+ secondes pour être créditées.",
     closeAria: "Fermer le guide d'installation",
     setupMethodAria: "Méthode d'installation",
     pathExtension: "Extension IDE",
@@ -681,9 +691,9 @@ export const extraFr: ExtraDictionary = {
     extStep2Title: "Se connecter depuis l'éditeur",
     extStep2Body:
       "Palette de commandes → SpinShare: Sign In. Le navigateur s'ouvre ; approuvez l'appareil avec le même compte Google/GitHub.",
-    extStep3Title: "Déclencher une vraie attente IA",
+    extStep3Title: "Ouvrir un nouveau terminal intégré",
     extStep3Body:
-      "Utilisez Claude Code, Codex ou tout agent pris en charge. Quand le spinner apparaît au moins 3 secondes, SpinShare affiche une annonce et crédite votre compte.",
+      "Après connexion, ouvrez un nouveau terminal intégré et lancez un agent configuré comme Claude Code. Les terminaux déjà ouverts gardent leur ancien PATH.",
     extStep4Title: "Confirmer sur ce tableau de bord",
     extStep4Body:
       "Rafraîchissez cette page — vous devriez voir les impressions sous Crédits récents et votre solde augmenter.",
@@ -691,7 +701,7 @@ export const extraFr: ExtraDictionary = {
     cliStep1Body: "Depuis la racine du dépôt, compilez le package wrapper :",
     cliStep2Title: "Se connecter (flux appareil)",
     cliStep2Body:
-      "Lancez login — un code s'affiche et le navigateur s'ouvre. Approuvez sur /activate une fois connecté ici.",
+      "Lancez login. Il affiche un code, ouvre /activate dans le navigateur et attend votre approbation de l'appareil.",
     cliStep3Title: "Encapsuler votre commande IA",
     cliStep3Body:
       "Préfixez toute commande avec spinner terminal. SpinShare remplace le spinner par du texte pub après 3+ secondes.",
@@ -799,6 +809,11 @@ export const extraFr: ExtraDictionary = {
     redirecting: "Redirection…",
     amountRejected: "Le montant a été rejeté.",
     checkoutError: (status) => `Impossible de démarrer le paiement (erreur ${status}).`,
+    totalShows: "Affichages totaux",
+    totalServed: "Délivrés",
+    clicks: "Clics",
+    ctr: "CTR",
+    uncredited: "Non crédités",
   },
   errors: {
     iconType: "L'icône doit être PNG, JPG ou WebP.",

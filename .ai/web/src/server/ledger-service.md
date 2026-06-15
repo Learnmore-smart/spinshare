@@ -23,6 +23,23 @@ Records one impression for `POST /api/track`: validates token, loads campaign, a
 - Suppressed impressions (banned OR capped) MUST NOT move money and MUST NOT count toward caps.
 - Earning caps close the bot-farming hole: velocity alone allows ~1,800 imp/hr; caps bound credited earnings to $20/hr, $300/day per developer.
 
+## Planned Change (2026-06-15)
+
+Return an internal settlement reason on success so the route can increment
+aggregate telemetry without changing the public response body. The reason must
+distinguish credited, shadow-banned, earning-capped, and duplicate outcomes.
+
+## Implemented Change (2026-06-15)
+
+`recordImpression` now returns an internal `settlement` value on successful
+results while preserving the public `TrackResponse` body. Duplicate idempotency
+outcomes no longer add earned cents.
+
+## Verification (2026-06-15)
+
+- `corepack pnpm@9.12.0 --filter @spinshare/web test` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+
 ## Bug Fixes / Changes
 | Date | Change |
 |------|--------|

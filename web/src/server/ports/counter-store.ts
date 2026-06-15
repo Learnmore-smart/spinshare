@@ -15,6 +15,47 @@
 
 import type { LedgerEntry, Split } from "@spinshare/core";
 
+export const CAMPAIGN_TELEMETRY_METRICS = [
+  "shows",
+  "clicks",
+  "credited",
+  "tooShort",
+  "invalidToken",
+  "invalidCampaign",
+  "shadowBanned",
+  "earningCapped",
+  "duplicate",
+] as const;
+
+export type CampaignTelemetryMetric =
+  (typeof CAMPAIGN_TELEMETRY_METRICS)[number];
+
+export interface CampaignTelemetry {
+  shows: number;
+  clicks: number;
+  credited: number;
+  tooShort: number;
+  invalidToken: number;
+  invalidCampaign: number;
+  shadowBanned: number;
+  earningCapped: number;
+  duplicate: number;
+}
+
+export function zeroCampaignTelemetry(): CampaignTelemetry {
+  return {
+    shows: 0,
+    clicks: 0,
+    credited: 0,
+    tooShort: 0,
+    invalidToken: 0,
+    invalidCampaign: 0,
+    shadowBanned: 0,
+    earningCapped: 0,
+    duplicate: 0,
+  };
+}
+
 /**
  * Inputs to an atomic impression application.
  *
@@ -117,6 +158,15 @@ export interface CounterStore {
   isShadowBanned(userId: string): Promise<boolean>;
   /** Sets a shadow-ban for the user that expires after `ttlSeconds`. */
   setShadowBan(userId: string, ttlSeconds: number): Promise<void>;
+
+  // Campaign telemetry
+  incrementCampaignTelemetry(
+    campaignId: string,
+    metric: CampaignTelemetryMetric,
+  ): Promise<void>;
+  getCampaignTelemetry(
+    campaignIds: string[],
+  ): Promise<Record<string, CampaignTelemetry>>;
 
   // Reconciliation support
   /** Drains up to `maxEntries` pending entries + aggregate deltas as one batch. */

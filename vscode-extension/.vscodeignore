@@ -7,4 +7,5 @@ src/**
 vitest.config.ts
 scripts/**
 node_modules/**
+!cli-wrapper/node_modules/**
 .turbo/**

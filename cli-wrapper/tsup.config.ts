@@ -11,7 +11,7 @@ export default defineConfig({
   outDir: "dist",
   target: "node20",
   platform: "node",
-  // keytar is an optional native dependency loaded lazily at runtime; never
-  // bundle it so its absence cannot break the build or the binary.
-  external: ["keytar"],
+  // Native dependencies are loaded lazily at runtime; never bundle them because
+  // the installed extension must ship their native files next to the CLI.
+  external: ["keytar", "@homebridge/node-pty-prebuilt-multiarch"],
 });

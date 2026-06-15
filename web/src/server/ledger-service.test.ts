@@ -140,6 +140,7 @@ describe("recordImpression", () => {
 
     expect(result).toEqual({
       ok: true,
+      settlement: "credited",
       response: {
         recorded: true,
         developerCreditCents: split.developerCreditCents,
@@ -172,6 +173,7 @@ describe("recordImpression", () => {
     });
     expect(r31).toEqual({
       ok: true,
+      settlement: "shadowBanned",
       response: {
         recorded: true,
         developerCreditCents: split.developerCreditCents,

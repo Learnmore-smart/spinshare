@@ -1,6 +1,6 @@
 # vscode-extension/package.json
 
-> Last updated: 2026-06-14 | Protection: STANDARD
+> Last updated: 2026-06-15 | Protection: STANDARD
 
 ## Purpose
 
@@ -32,11 +32,45 @@ VS Code extension manifest and build scripts for local `.vsix` packaging and Mar
 - Run `pnpm build` in `vscode-extension` before `vsce package`.
 - Local install: Extensions panel, `...`, Install from VSIX.
 - The terminal auto-wrap command list must stay explicit; do not attempt to intercept every executable in `PATH`.
+- A packaged extension must include `cli-wrapper/dist`, otherwise terminal shims can only work for developers who separately installed a global `spinshare` command.
+- The packaged extension root must remain CommonJS-compatible for `out/extension.js`; put CLI ESM metadata under `cli-wrapper/package.json`, not the root manifest.
+
+## Bug Fixes
+
+| Date | Bug | Cause | Fix |
+|------|-----|-------|-----|
+| 2026-06-15 | Installed extension emitted Node's module-type warning when the bundled CLI ran. | The nested CLI bundle lacked its own package manifest, while the root extension manifest cannot be marked as ESM without breaking extension activation. | Package a nested `cli-wrapper/package.json` with `"type": "module"`. |
+
+## Planned Fix (2026-06-15)
+
+Update package scripts so the CLI wrapper is built and copied into the extension before packaging. Keep extension `build` usable after the root build has already produced `cli-wrapper/dist`; make `package` build the CLI explicitly.
+
+## Planned Packaging Fix (2026-06-15)
+
+The VSIX packaging script currently calls bare `vsce`, which fails on Windows when no global `vsce` command exists. Add the official local `@vscode/vsce` devDependency and invoke it via `corepack pnpm@9.12.0 exec vsce`.
+
+## Implemented Packaging Fix
+
+- Added `@vscode/vsce` as a local devDependency.
+- Updated the `package` script to invoke `corepack pnpm@9.12.0 exec vsce package`.
+
+## Verification
+
+- `corepack pnpm@9.12.0 --filter ./vscode-extension package` passed.
+- The generated VSIX includes `extension/cli-wrapper/dist/index.js`.
+- 2026-06-15: Rebuilt `spinshare-0.2.0.vsix` after production base URL canonicalization; package output includes rebuilt `out/api-client.js`, `out/extension.js`, and bundled `cli-wrapper/dist/index.js`.
+- 2026-06-15: Rebuilt `spinshare-0.2.0.vsix` after terminal passthrough and CLI ESM metadata fixes; package output includes `extension/cli-wrapper/package.json`.
 
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Rebuilt `spinshare-0.2.0.vsix` with terminal passthrough and nested CLI ESM metadata. | Codex |
+| 2026-06-15 | Rebuilt `spinshare-0.2.0.vsix` with canonical production base URL handling. | Codex |
+| 2026-06-15 | Verified VSIX packaging includes the bundled CLI wrapper. | Codex |
+| 2026-06-15 | Added local `@vscode/vsce` packager and pnpm exec package command. | Codex |
+| 2026-06-15 | Planned local VSCE dependency and package-script fix. | Codex |
+| 2026-06-15 | Documented CLI bundle packaging fix. | Codex |
 | 2026-06-14 | Add terminal auto-wrap settings and rebuild command so configured agents like `claude` are intercepted in new integrated terminals. | Codex |
 | 2026-06-14 | Workspace `.vscode/settings.json` `spinshare.baseUrl` changed to `https://spinshare.dev` from a localhost dev override. | Codex |
 

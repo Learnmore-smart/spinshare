@@ -34,12 +34,112 @@
   min-height: 100vh;
   background-color: var(--bg-page);
   color: var(--text-primary);
+  overflow-x: hidden;
+}
+
+.spinshare-home-frame {
+  width: min(100% - 1.5rem, 1120px);
+  margin: 0 auto;
+  padding-bottom: 3rem;
 }
 
 .spinshare-home-hero {
   position: relative;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 0;
   background-color: var(--bg-page);
+}
+
+.spinshare-frame-section {
+  margin-top: 1.25rem;
+  border-radius: var(--radius-xl);
+}
+
+.spinshare-hero-layout {
+  position: relative;
+  display: grid;
+  gap: 1rem;
+  padding: 10.5rem 0 2.5rem;
+}
+
+.spinshare-hero-left {
+  min-width: 0;
+}
+
+.spinshare-hero-copy {
+  min-width: 0;
+}
+
+.spinshare-hero-dashboard {
+  min-width: 0;
+}
+
+.spinshare-process-panel {
+  min-width: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(180deg, var(--surface-glass) 0%, var(--surface-glass-end) 100%);
+  padding: 1rem;
+  box-shadow: var(--shadow-elevation-md);
+}
+
+.spinshare-hero-proof-rail {
+  min-width: 0;
+}
+
+.spinshare-market-proof-grid {
+  display: grid;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.spinshare-proof-card-row {
+  align-items: stretch;
+}
+
+@media (min-width: 1024px) {
+  .spinshare-hero-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+    column-gap: 2rem;
+    align-items: center;
+  }
+
+  .spinshare-hero-left {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .spinshare-hero-dashboard {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .spinshare-hero-primary-cta,
+  .spinshare-hero-secondary-cta {
+    margin-left: 0;
+    margin-right: 0;
+    justify-content: flex-start;
+  }
+
+  .spinshare-market-proof-grid {
+    grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
+    align-items: start;
+  }
+
+  .spinshare-market-proof-grid > #advertiser-checkout,
+  .spinshare-market-proof-grid > .liquid-glass-light-green {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 1023px) {
+  .spinshare-home-frame {
+    width: min(100% - 1rem, 760px);
+  }
+
+  .spinshare-hero-layout {
+    padding-top: 9.5rem;
+  }
 }
 
 .spinshare-home-section-alt {

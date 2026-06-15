@@ -6,6 +6,12 @@
 
 Claude-style LearnX loading status component for AI wait states.
 
+## Current Contract
+
+- Icon animation is a six-frame loop over exactly 1080ms: middle dot, asterisk, four-point star, six-point star, teardrop star, heavy teardrop star.
+- Icons and brand separator must stay Unicode-escaped in source to avoid mojibake.
+- `ICON_FRAME_MS` is 180ms and `ICON_LOOP_MS` is 1080ms.
+
 ## What It Does
 
 - Renders a compact status row with an animated Unicode icon on the left and LearnX branding on the right.
@@ -65,6 +71,7 @@ Refactor the existing component to replace corrupted icon and middle-dot literal
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Restored the documented six-frame 1080ms icon contract after the component drifted to eight frames. | Codex |
 | 2026-06-14 | Correct `LOADING_ICONS` to Claude Code sequence `· * ✢ ✶ ✻ ✽` (1080ms loop). | Codex |
 | 2026-06-14 | Align `LOADING_ICONS` with Claude Code sequence `✶ * ✢ · ✻ ✢ ✽` (1260ms loop). | Codex |
 | 2026-06-14 | Slow Claude Unicode icon frame interval to 180ms (1440ms full loop). | Codex |

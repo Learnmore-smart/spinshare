@@ -36,6 +36,7 @@ Reusable production environment verifier for SpinShare live provider configurati
 - **External:** Node `fetch` - OAuth and Google API endpoint probes.
 - **External:** Node `crypto` - service-account JWT signing for Google API probes.
 - **Internal:** `firebase.json` and `firestore.indexes.json` - Firestore deployment config validation.
+- **Internal:** `verify-prod-env-core.mjs` - import-safe strict-mode validation helpers.
 
 ## Important Notes / NEVER Change
 
@@ -48,6 +49,8 @@ Reusable production environment verifier for SpinShare live provider configurati
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Move strict-mode validation into `verify-prod-env-core.mjs` so the CLI and tests share dependency-free logic. | Codex |
+| 2026-06-15 | Replace corrupted localhost warning text with ASCII strings so the ESM script parses consistently in Vitest. | Codex |
 | 2026-06-14 | Created production env verifier design. | Codex |
 | 2026-06-14 | Added RTDB Management API visibility check for clearer Firebase setup/IAM diagnosis. | Codex |
 | 2026-06-14 | Exported import-safe strict-mode helper and added localhost `AUTH_VERIFICATION_URI` validation. | Codex |

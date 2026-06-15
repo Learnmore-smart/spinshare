@@ -30,6 +30,21 @@ Static render tests for advertiser dashboard messaging.
 
 Add a failing static-render test that requires "3-second minimum views".
 
+## Planned Change (2026-06-15)
+
+Add static-render coverage for always-visible telemetry containers. The
+dashboard should show zero values before campaigns or traffic are loaded.
+
+## Implemented Change (2026-06-15)
+
+Static render coverage now asserts the telemetry containers and zero values are
+present before campaign data loads.
+
+## Verification (2026-06-15)
+
+- `corepack pnpm@9.12.0 --filter @spinshare/web test` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+
 ## Implemented Change
 
 The dashboard static-render test now asserts the advertiser dashboard contains
@@ -45,3 +60,5 @@ the visible `3-second minimum views` policy text.
 |------|--------|--------|
 | 2026-06-13 | Created doc before adding advertiser dashboard copy test. | Codex |
 | 2026-06-13 | Synced docs with advertiser dashboard copy test. | Codex |
+| 2026-06-15 | Planned zero-state telemetry container coverage. | Codex |
+| 2026-06-15 | Implemented zero-state telemetry container coverage. | Codex |

@@ -26,9 +26,16 @@ Public homepage endpoint that creates an advertiser campaign and starts Stripe c
 
 ## Important Notes / NEVER Change
 
-- Campaign creation happens before Stripe, but the campaign starts at zero budget.
-- A campaign becomes biddable only after the existing Stripe webhook credits budget.
+- Campaign creation happens before Stripe.
+- Real Stripe checkout remains webhook-settled: a campaign becomes biddable only after the existing Stripe webhook credits budget.
+- Mock/local checkout may settle immediately when the gateway explicitly marks the session as settled.
 - This route is public; validation must reject malformed payloads before mutation.
+
+## Planned Fix (2026-06-15)
+
+Bug: in local/mock mode, public checkout returns `200` but the campaign stays hidden after reload because the mock checkout never emits a funding webhook.
+
+Fix: after creating a checkout session, credit the campaign budget only if the gateway result includes an explicit immediate-settlement marker. Return the funded campaign object in the response for local/mock mode; keep real Stripe mode webhook-settled.
 
 ## Planned Change
 
@@ -48,5 +55,6 @@ Added `POST /api/advertiser-checkout`. It validates the public form payload, cre
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Documented immediate mock-settlement plan for public checkout. | Codex |
 | 2026-06-13 | Created doc before implementing public advertiser checkout endpoint. | Codex |
 | 2026-06-13 | Synced doc with implemented public advertiser checkout route and verification. | Codex |

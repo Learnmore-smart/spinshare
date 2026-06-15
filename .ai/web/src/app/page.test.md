@@ -34,6 +34,28 @@ This file verifies that the public homepage keeps money-forward conversion conte
 - Tests should assert user-visible behavior, not implementation details.
 - Keep test copy aligned with the money-forward homepage strategy.
 
+## Planned Regression: Reference Layout Spine
+
+Before changing the homepage layout, add a static-render regression that requires
+the new reference-inspired section structure without coupling to colors or exact
+visual styling:
+
+- A centered homepage frame class wraps the main content.
+- The first viewport uses a split hero layout with a right-side visual/proof rail.
+- The wait-state before/after comparison is grouped in a process panel.
+- The market proof area uses a two-column layout for the narrative and chart.
+- The lower proof cards render in a compact row.
+
+## Implemented Regression: Reference Layout Content
+
+The final static-render test keeps the regression focused on durable visible
+content instead of brittle visual classes:
+
+- The page still renders the money-first hero, role-specific links, checkout
+  affordances, process copy, and 3-second minimum viewability proof.
+- The test was run red first with missing layout hooks, then passed after the
+  homepage and CSS changes.
+
 ## Planned Change
 
 Add a failing homepage copy assertion for "3-second minimum views" before
@@ -94,6 +116,7 @@ Update the static homepage test before implementation so it requires:
 
 | Date | Bug | Cause | Fix |
 |------|-----|-------|-----|
+| 2026-06-15 | Full web suite fails on stale homepage layout class assertions | Test still expected old reference-layout class names that current homepage no longer renders, despite the test contract saying to assert user-visible behavior | Remove implementation-class assertions and keep copy/link/visible-section assertions. |
 
 ## Planned Regression: Public Advertiser Checkout Form
 
@@ -107,6 +130,10 @@ The homepage static-render test now requires the public checkout headline, email
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Synced homepage layout regression notes with final visible-content assertions and red/green run | Codex |
+| 2026-06-15 | Removed stale homepage layout class assertions and kept visible content/link assertions | Codex |
+| 2026-06-15 | Planned removal of stale homepage layout class assertions from the static render test | Codex |
+| 2026-06-15 | Documented reference-layout static regression before editing homepage code | Codex |
 | 2026-06-13 | Created documentation for homepage content test before adding it | Codex |
 | 2026-06-13 | Documented React global harness adjustment for server-rendered page test | Codex |
 | 2026-06-13 | Synced documentation with final homepage content test and red/green result | Codex |

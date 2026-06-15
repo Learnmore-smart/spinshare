@@ -15,6 +15,9 @@ import { DEFAULT_LOCALE, LOCALES, type Locale } from "@/lib/i18n/types";
 export const metadata: Metadata = {
   title: "SpinShare",
   description: "Your AI is thinking. You should be earning.",
+  openGraph: {
+    images: ["/spinshare-OG.png"],
+  },
   appleWebApp: {
     title: "MyWebSite",
   },

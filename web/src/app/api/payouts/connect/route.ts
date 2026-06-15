@@ -23,6 +23,34 @@ export const dynamic = "force-dynamic";
 
 const DASHBOARD_PATH = "/dashboard/developer";
 
+function providerFailureBody(error: unknown): Record<string, unknown> {
+  const stripeError = error as
+    | {
+        requestId?: unknown;
+        statusCode?: unknown;
+        code?: unknown;
+        type?: unknown;
+        rawType?: unknown;
+        message?: unknown;
+      }
+    | undefined;
+
+  return {
+    error: "payout_connect_failed",
+    message:
+      "Stripe Connect rejected the payout onboarding request. Check the request id in Stripe logs.",
+    ...(typeof stripeError?.requestId === "string"
+      ? { requestId: stripeError.requestId }
+      : {}),
+    ...(typeof stripeError?.statusCode === "number"
+      ? { providerStatus: stripeError.statusCode }
+      : {}),
+    ...(typeof stripeError?.code === "string"
+      ? { providerCode: stripeError.code }
+      : {}),
+  };
+}
+
 export async function POST(request: Request): Promise<Response> {
   // CSRF: this creates a Stripe account + onboarding link off a session cookie,
   // so reject cross-origin / origin-less requests before any side effect.
@@ -38,29 +66,34 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const { users, payouts } = getContainer();
-  const user = await users.getById(developerId);
-  const email = user?.email ?? session.user?.email ?? undefined;
+  try {
+    const { users, payouts } = getContainer();
+    const user = await users.getById(developerId);
+    const email = user?.email ?? session.user?.email ?? undefined;
 
-  // Create or reuse the developer's connected account, then persist its id.
-  const { accountId } = await payouts.ensureConnectedAccount({
-    userId: developerId,
-    ...(email !== undefined ? { email } : {}),
-    ...(user?.stripeConnectAccountId !== undefined
-      ? { existingAccountId: user.stripeConnectAccountId }
-      : {}),
-  });
-  await users.setConnectAccount(developerId, {
-    stripeConnectAccountId: accountId,
-    payoutsEnabled: user?.payoutsEnabled ?? false,
-  });
+    // Create or reuse the developer's connected account, then persist its id.
+    const { accountId } = await payouts.ensureConnectedAccount({
+      userId: developerId,
+      ...(email !== undefined ? { email } : {}),
+      ...(user?.stripeConnectAccountId !== undefined
+        ? { existingAccountId: user.stripeConnectAccountId }
+        : {}),
+    });
+    await users.setConnectAccount(developerId, {
+      stripeConnectAccountId: accountId,
+      payoutsEnabled: user?.payoutsEnabled ?? false,
+    });
 
-  const origin = new URL(request.url).origin;
-  const { url } = await payouts.createOnboardingLink({
-    accountId,
-    returnUrl: `${origin}${DASHBOARD_PATH}?payouts=connected`,
-    refreshUrl: `${origin}${DASHBOARD_PATH}?payouts=refresh`,
-  });
+    const origin = new URL(request.url).origin;
+    const { url } = await payouts.createOnboardingLink({
+      accountId,
+      returnUrl: `${origin}${DASHBOARD_PATH}?payouts=connected`,
+      refreshUrl: `${origin}${DASHBOARD_PATH}?payouts=refresh`,
+    });
 
-  return Response.json({ url }, { status: 200 });
+    return Response.json({ url }, { status: 200 });
+  } catch (error) {
+    console.error("[spinshare] payout connect failed", providerFailureBody(error));
+    return Response.json(providerFailureBody(error), { status: 502 });
+  }
 }

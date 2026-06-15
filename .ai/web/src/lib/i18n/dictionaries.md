@@ -21,5 +21,7 @@ SpinShare web UI copy for `en`, `zh`, and `fr`. All user-visible strings must re
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-14 | Added `signin.bullet*` strings for denser sign-in fact list. | Auto |
+| 2026-06-15 | Planned market delivery and setup-guide copy clarification. | Codex |
 | 2026-06-14 | Full privacy + terms legal body en/zh/fr | AI |
 | 2026-06-14 | i18n earn-vs-pay copy fix + landing/advertiser strings | AI |

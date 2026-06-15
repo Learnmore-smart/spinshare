@@ -168,7 +168,7 @@ export function LocaleProvider({ initialLocale, children }: LocaleProviderProps)
 
   return (
     <LocaleContext.Provider value={value}>
-      <div data-locale-hydrated={hydrated ? "true" : "false"} data-locale={locale} className="contents">
+      <div data-locale-hydrated={hydrated ? "true" : "false"} data-locale={locale} className="w-full">
         {children}
       </div>
     </LocaleContext.Provider>

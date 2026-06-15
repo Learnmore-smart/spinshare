@@ -144,10 +144,24 @@ if (!process.env.SPINSHARE_API_URL) {
   process.env.SPINSHARE_API_URL = process.env.SPINSHARE_BASE_URL;
 }
 
+function exitWithResult(result, errorMessage) {
+  if (result.error) {
+    console.error(errorMessage + result.error.message);
+    process.exit(1);
+  }
+
+  if (result.signal) {
+    const signalNumber = os.constants.signals[result.signal] || 0;
+    process.exit(128 + signalNumber);
+  }
+
+  process.exit(result.status == null ? 1 : result.status);
+}
+
 const cliCandidates = [
   process.env.SPINSHARE_CLI_PATH,
-  path.resolve(extensionRoot, "..", "cli-wrapper", "dist", "index.js"),
   path.resolve(extensionRoot, "cli-wrapper", "dist", "index.js"),
+  path.resolve(extensionRoot, "..", "cli-wrapper", "dist", "index.js"),
 ].filter(Boolean);
 
 let command = "spinshare";
@@ -166,22 +180,11 @@ const result = spawnSync(command, [...commandArgs, agent, ...args], {
   env: process.env,
   windowsHide: false,
 });
-
-if (result.error) {
-  console.error(
-    "spinshare terminal launcher: could not start SpinShare CLI. " +
-      "For local development, build cli-wrapper first or set SPINSHARE_CLI_PATH. " +
-      result.error.message,
-  );
-  process.exit(1);
-}
-
-if (result.signal) {
-  const signalNumber = os.constants.signals[result.signal] || 0;
-  process.exit(128 + signalNumber);
-}
-
-process.exit(result.status == null ? 1 : result.status);
+exitWithResult(
+  result,
+  "spinshare terminal launcher: could not start SpinShare CLI. " +
+    "For local development, build cli-wrapper first or set SPINSHARE_CLI_PATH. ",
+);
 `;
 }
 

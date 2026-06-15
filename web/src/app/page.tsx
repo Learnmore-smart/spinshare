@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, RefreshCw } from "lucide-react";
+import { ArrowRight, Clock, PieChart, RefreshCw } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { SegmentSlider } from "@/components/SegmentSlider";
@@ -18,6 +18,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SiteNavAuth } from "@/components/SiteNavAuth";
 import { SpinShareWordmark } from "@/components/SpinShareWordmark";
 import { useT } from "@/lib/i18n/locale-provider";
+import { HeroDashboardCard } from "@/components/HeroDashboardCard";
 
 const DEVELOPER_SIGNIN_HREF =
   "/signin?role=developer&callbackUrl=%2Fdashboard%2Fdeveloper";
@@ -270,6 +271,37 @@ function MoneyIcon({ className = "" }: { className?: string }) {
   );
 }
 
+function Smile60Icon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      width="100%"
+      height="100%"
+      viewBox="0 0 32 32"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <text
+        x="16"
+        y="13"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize="11"
+        fontWeight="800"
+        fill="currentColor"
+        stroke="none"
+        fontFamily="system-ui, -apple-system, sans-serif"
+      >
+        60%
+      </text>
+      <path d="M 8 20 Q 16 26 24 20" />
+    </svg>
+  );
+}
+
 const CLAUDE_CATEGORIES = ["Bash", "Glob", "Write", "Read"] as const;
 
 const CLAUDE_STATES = LOADING_VERBS.map((verb, i) => ({
@@ -326,16 +358,16 @@ export default function HomePage() {
   }, [claudeStateIndex, currentClaudeState.duration]);
 
   useEffect(() => {
-    const startVal = 20 + Math.random() * 5;
+    const startVal = 42.5;
     setLiveEarnings(startVal);
 
     const interval = window.setInterval(() => {
       setLiveEarnings((prev) => {
         if (prev === 0) return startVal;
-        const increment = 0.015 + Math.random() * 0.03;
+        const increment = 0.01 + Math.random() * 0.02;
         return prev + increment;
       });
-    }, 333);
+    }, 150);
 
     return () => {
       window.clearInterval(interval);
@@ -384,6 +416,7 @@ export default function HomePage() {
 
   const rows = market?.rows ?? [];
   const visibleRows = rows.slice(0, 12);
+  const marketPreviewRows = visibleRows.slice(0, 3);
   const topBid = rows[0];
   const sponsorLetter = topBid?.adText ? topBid.adText.trim().charAt(0).toUpperCase() : "R";
   const monthlyEstimateLabel = `${moneyFormatter.format(liveEarnings)}${t.home.monthlyEstimateSuffix}`;
@@ -407,7 +440,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="spinshare-home min-h-screen">
+    <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-transparent">
         {/* Infinite scrolling ticker banner displaying latest bids */}
         {bids.length > 0 && (
@@ -469,23 +502,23 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main>
+      <div className="spinshare-home min-h-screen">
+        <main className="spinshare-home-frame">
         <section id="money" className="spinshare-home-hero">
           <div className="spinshare-blob-1 pointer-events-none absolute -left-40 -top-40 h-96 w-96 rounded-full blur-3xl animate-pulse-slow" />
           <div className="spinshare-blob-2 pointer-events-none absolute -right-40 -bottom-40 h-96 w-96 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: "-5s" }} />
-          <div className="relative mx-auto max-w-7xl px-4 pt-32 pb-12 sm:px-6 sm:pt-36 sm:pb-16 lg:pt-40 lg:pb-20">
-            <div className="mx-auto max-w-5xl text-center">
-
-
-              <h1 className="mx-auto mt-0 max-w-5xl text-5xl font-black leading-[0.9] tracking-tight sm:text-7xl lg:text-8xl">
+          <div className="spinshare-hero-layout">
+            <div className="spinshare-hero-left">
+              <div className="spinshare-hero-copy">
+              <h1 className="mt-0 max-w-3xl text-5xl font-black leading-[0.92] tracking-tight sm:text-6xl lg:text-7xl">
                 <span className="block">{t.home.heroLine1}</span>
-                <span className="mt-2 flex flex-wrap items-center justify-center gap-4">
+                <span className="mt-2 flex flex-wrap items-center gap-4">
                   <span className="spinshare-hero-highlight-3d">{t.home.heroHighlight}</span>
-                  <MoneyIcon className="text-6xl sm:text-7xl lg:text-8xl" />
+                  <MoneyIcon className="text-5xl sm:text-6xl lg:text-7xl" />
                 </span>
               </h1>
 
-              <div className="spinshare-home-body mx-auto mt-6 max-w-2xl text-lg font-semibold leading-8">
+              <div className="spinshare-home-body mt-6 max-w-xl text-lg font-semibold leading-8">
                 <p>{t.home.heroSub}</p>
                 <p className="font-black text-[var(--text-accent-strong)]">
                   {t.home.heroShare(DEVELOPER_SHARE_PERCENT)}
@@ -493,7 +526,63 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="mx-auto mt-11 grid max-w-5xl items-center gap-6 lg:grid-cols-[1fr_auto_1fr]">
+            <div className="spinshare-hero-primary-cta mt-11 flex justify-center lg:justify-start">
+              <Link
+                href={DEVELOPER_SIGNIN_HREF}
+                className="spinshare-btn-primary group flex w-full max-w-3xl flex-col items-stretch gap-3 rounded-full p-3 text-white sm:flex-row sm:items-center"
+              >
+                <span className="liquid-glass-light-green grid h-14 w-14 shrink-0 place-items-center rounded-full text-3xl text-[var(--text-accent-strong)]">
+                  <MoneyIcon />
+                </span>
+                <span className="min-w-0 flex-1 px-1 text-left">
+                  <span className="block text-xl font-black leading-tight">
+                    {t.home.ctaInstall}
+                  </span>
+                  <span className="mt-1 block text-sm font-bold text-emerald-50">
+                    {t.home.ctaInstallSub}
+                  </span>
+                </span>
+                <span className="liquid-glass-light-green inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full px-5 text-sm font-black text-[var(--text-accent-strong)]">
+                  {monthlyEstimateLabel}
+                  <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                </span>
+              </Link>
+            </div>
+
+            <div className="spinshare-hero-secondary-cta spinshare-home-body mx-auto mt-4 flex max-w-3xl flex-col items-center justify-center gap-2 text-sm font-bold sm:flex-row lg:mx-0 lg:justify-start">
+              <span>{t.home.creditedRevenue(DEVELOPER_SHARE_PERCENT)}</span>
+              <Link
+                href={ADVERTISER_SIGNIN_HREF}
+                className="spinshare-btn-outline inline-flex items-center gap-2 px-4 py-2 text-[var(--text-accent-strong)]"
+              >
+                {t.home.advertisersBidCta}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+
+          <div className="spinshare-hero-dashboard">
+            <HeroDashboardCard
+              monthlyEstimate={liveEarnings}
+              liveCampaigns={market?.summary.liveCampaigns}
+              totalImpressions={market?.rows.reduce((sum, row) => sum + row.servedImpressions, 0)}
+            />
+          </div>
+        </div>
+      </section>
+
+      <section id="how-it-works" className="spinshare-frame-section spinshare-home-section-alt px-4 py-16 sm:px-6 lg:py-20">
+        <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="spinshare-home-label-accent text-xs font-black uppercase tracking-[0.18em]">
+              {t.nav.howItPays}
+            </p>
+            <h2 className="mt-3 text-4xl font-black tracking-tight sm:text-6xl">
+              等待过程，如何变现
+            </h2>
+          </div>
+
+          <div className="spinshare-process-panel spinshare-hero-proof-rail mt-11 grid items-center gap-6 lg:grid-cols-[1fr_auto_1fr]">
               <div className="min-w-0">
                 <p className="spinshare-home-label mb-3 text-xs font-black uppercase tracking-[0.16em]">
                   {t.home.stockClaude}
@@ -548,59 +637,24 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-
-            <div className="mt-11 flex justify-center">
-              <Link
-                href={DEVELOPER_SIGNIN_HREF}
-                className="spinshare-btn-primary group flex w-full max-w-3xl flex-col items-stretch gap-3 rounded-full p-3 text-white sm:flex-row sm:items-center"
-              >
-                <span className="liquid-glass-light-green grid h-14 w-14 shrink-0 place-items-center rounded-full text-3xl text-[var(--text-accent-strong)]">
-                  <MoneyIcon />
-                </span>
-                <span className="min-w-0 flex-1 px-1 text-left">
-                  <span className="block text-xl font-black leading-tight">
-                    {t.home.ctaInstall}
-                  </span>
-                  <span className="mt-1 block text-sm font-bold text-emerald-50">
-                    {t.home.ctaInstallSub}
-                  </span>
-                </span>
-                <span className="liquid-glass-light-green inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full px-5 text-sm font-black text-[var(--text-accent-strong)]">
-                  {monthlyEstimateLabel}
-                  <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-                </span>
-              </Link>
-            </div>
-
-            <div className="spinshare-home-body mx-auto mt-4 flex max-w-3xl flex-col items-center justify-center gap-2 text-sm font-bold sm:flex-row">
-              <span>{t.home.creditedRevenue(DEVELOPER_SHARE_PERCENT)}</span>
-              <Link
-                href={ADVERTISER_SIGNIN_HREF}
-                className="spinshare-btn-outline inline-flex items-center gap-2 px-4 py-2 text-[var(--text-accent-strong)]"
-              >
-                {t.home.advertisersBidCta}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
           </div>
         </section>
 
-        <section id="bid-market" className="spinshare-home-section-alt px-4 py-16 sm:px-6 lg:py-20">
-          <div className="mx-auto max-w-7xl">
-            <div>
-              <p className="spinshare-home-label-accent text-xs font-black uppercase tracking-[0.18em]">
-                {t.nav.marketDepth}
-              </p>
-              <h2 className="mt-3 max-w-2xl text-4xl font-black tracking-tight sm:text-6xl">
-                {t.market.title}
-              </h2>
-              <p className="spinshare-home-body mt-4 max-w-xl text-base font-semibold leading-7">
-                {t.market.subtitle}
-              </p>
-            </div>
+      <section id="bid-market" className="spinshare-frame-section spinshare-home-section-alt px-4 py-16 sm:px-6 lg:py-20">
+        <div className="mx-auto max-w-7xl">
+          <p className="spinshare-home-label-accent text-xs font-black uppercase tracking-[0.18em]">
+            {t.nav.marketDepth}
+          </p>
+          <h2 className="mt-3 max-w-2xl text-4xl font-black tracking-tight sm:text-6xl">
+            {t.market.title}
+          </h2>
+          <p className="spinshare-home-body mt-4 max-w-xl text-base font-semibold leading-7">
+            {t.market.subtitle}
+          </p>
+        </div>
 
-            <div className="mt-8">
-              <div className="liquid-glass overflow-hidden flex flex-col">
+        <div className="mt-10">
+          <div className="liquid-glass overflow-hidden flex flex-col">
                 {/* Header Row */}
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-6 pt-6 pb-4">
                   <div className="flex items-baseline gap-2">
@@ -795,58 +849,66 @@ export default function HomePage() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
-          </div>
         </section>
 
-        <section id="how-it-pays" className="spinshare-home-section-warm px-4 py-16 sm:px-6 lg:py-20">
+        <section id="how-it-pays" className="spinshare-frame-section spinshare-home-section-warm px-4 py-16 sm:px-6 lg:py-20">
           <div className="mx-auto max-w-7xl">
             <div className="mx-auto max-w-3xl text-center">
-              <p className="spinshare-home-label-accent text-xs font-black uppercase tracking-[0.18em]">
-                {t.nav.howItPays}
-              </p>
-              <h2 className="mt-3 text-4xl font-black tracking-tight sm:text-6xl">
+              <h2 className="text-3xl font-black tracking-tight sm:text-4xl text-[var(--text-primary)]">
                 {t.howItPaysSection.title}
               </h2>
             </div>
 
-            <div className="mt-10 grid gap-4 md:grid-cols-3">
-              <div className="liquid-glass p-6">
-                <div className="spinshare-home-step-icon">
-                  <MoneyIcon />
+            <div className="mt-10 grid gap-5 md:grid-cols-3">
+              {/* Card 1: Clock / Waiting */}
+              <div className="rounded-2xl border border-[var(--border-default)] bg-[var(--surface-white)] p-6 shadow-sm flex items-start gap-4">
+                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-100/30">
+                  <Clock className="h-10 w-10" />
                 </div>
-                <h3 className="mt-5 text-xl font-black">{t.howItPaysSection.step1Title}</h3>
-                <p className="spinshare-home-body mt-2 text-sm font-semibold leading-6">
-                  {t.howItPaysSection.step1Body}
-                </p>
+                <div className="space-y-1 min-w-0">
+                  <h3 className="text-base font-black text-[var(--text-primary)] leading-tight">
+                    {t.howItPaysSection.step1Title}
+                  </h3>
+                  <p className="text-xs font-semibold leading-5 text-[var(--text-secondary)]">
+                    {t.howItPaysSection.step1Body}
+                  </p>
+                </div>
               </div>
 
-              <div className="liquid-glass p-6">
-                <div className="spinshare-home-step-icon">
-                  <MoneyIcon />
+              {/* Card 2: Smile 60% */}
+              <div className="rounded-2xl border border-[var(--border-default)] bg-[var(--surface-white)] p-6 shadow-sm flex items-start gap-4">
+                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-100/30">
+                  <Smile60Icon className="h-14 w-14" />
                 </div>
-                <h3 className="mt-5 text-xl font-black">{t.howItPaysSection.step2Title}</h3>
-                <p className="spinshare-home-body mt-2 text-sm font-semibold leading-6">
-                  {t.howItPaysSection.step2Body}
-                </p>
+                <div className="space-y-1 min-w-0">
+                  <h3 className="text-base font-black text-[var(--text-primary)] leading-tight">
+                    {t.howItPaysSection.step2Title(DEVELOPER_SHARE_PERCENT)}
+                  </h3>
+                  <p className="text-xs font-semibold leading-5 text-[var(--text-secondary)]">
+                    {t.howItPaysSection.step2Body(DEVELOPER_SHARE_PERCENT)}
+                  </p>
+                </div>
               </div>
 
-              <div className="liquid-glass p-6">
-                <div className="spinshare-home-step-icon">
-                  <MoneyIcon />
+              {/* Card 3: Pie Chart */}
+              <div className="rounded-2xl border border-[var(--border-default)] bg-[var(--surface-white)] p-6 shadow-sm flex items-start gap-4">
+                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-100/30">
+                  <PieChart className="h-10 w-10" />
                 </div>
-                <h3 className="mt-5 text-xl font-black">{t.howItPaysSection.step3Title(DEVELOPER_SHARE_PERCENT)}</h3>
-                <p className="spinshare-home-body mt-2 text-sm font-semibold leading-6">
-                  {t.howItPaysSection.step3Body}
-                </p>
-                <p className="spinshare-home-label-accent mt-2 text-xs font-black uppercase tracking-[0.14em]">
-                  {t.howItPaysSection.minViewSeconds}
-                </p>
+                <div className="space-y-1 min-w-0">
+                  <h3 className="text-base font-black text-[var(--text-primary)] leading-tight">
+                    {t.howItPaysSection.step3Title}
+                  </h3>
+                  <p className="text-xs font-semibold leading-5 text-[var(--text-secondary)]">
+                    {t.howItPaysSection.step3Body}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="spinshare-home-section-muted px-4 py-16 sm:px-6 lg:py-20">
+        <section className="spinshare-frame-section spinshare-home-section-muted px-4 py-16 sm:px-6 lg:py-20">
           <div className="mx-auto flex max-w-5xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="spinshare-home-label-accent text-xs font-black uppercase tracking-[0.18em]">
@@ -896,5 +958,6 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
+    </>
   );
 }

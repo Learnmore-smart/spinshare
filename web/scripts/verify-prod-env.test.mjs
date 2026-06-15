@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { checkStrictModes } from "./verify-prod-env.mjs";
+import { checkStrictModes } from "./verify-prod-env-core.mjs";
 
 describe("checkStrictModes", () => {
   test("warns (not fails) on localhost NEXTAUTH_URL", () => {
@@ -15,7 +15,7 @@ describe("checkStrictModes", () => {
 
     expect(result.ok).toBe(true);
     expect(result.warnings).toContain(
-      "NEXTAUTH_URL is localhost — set https://www.spinshare.dev in Cloud Run variables for production",
+      "NEXTAUTH_URL is localhost - set https://www.spinshare.dev in Cloud Run variables for production",
     );
   });
 
@@ -31,7 +31,7 @@ describe("checkStrictModes", () => {
 
     expect(result.ok).toBe(true);
     expect(result.warnings).toContain(
-      "AUTH_VERIFICATION_URI is localhost — set https://www.spinshare.dev/activate in Cloud Run variables for production",
+      "AUTH_VERIFICATION_URI is localhost - set https://www.spinshare.dev/activate in Cloud Run variables for production",
     );
   });
 

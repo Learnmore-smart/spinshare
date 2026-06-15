@@ -11,7 +11,7 @@ import { useT } from "@/lib/i18n/locale-provider";
 export default function TermsPage() {
   const t = useT();
   return (
-    <div className="min-h-screen bg-[linear-gradient(115deg,#e9f8ef_0%,#f3faf5_48%,#e1f5e9_100%)] text-slate-950">
+    <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-transparent">
         <div className="liquid-glass spinshare-static mx-auto mt-3 flex h-16 max-w-7xl items-center justify-between rounded-[20px] bg-white/55 px-4 backdrop-blur-2xl [backdrop-filter:blur(24px)_saturate(180%)] [-webkit-backdrop-filter:blur(24px)_saturate(180%)] sm:px-6">
           <Link href="/" className="flex items-center gap-3" aria-label="SpinShare home">
@@ -53,7 +53,8 @@ export default function TermsPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 pt-28 pb-24 sm:px-6 sm:pt-32">
+      <div className="min-h-screen bg-[linear-gradient(115deg,#e9f8ef_0%,#f3faf5_48%,#e1f5e9_100%)] text-slate-950">
+        <main className="mx-auto max-w-3xl px-4 pt-28 pb-24 sm:px-6 sm:pt-32">
         <div className="mb-10">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
             {t.terms.eyebrow}
@@ -113,5 +114,6 @@ export default function TermsPage() {
 
       <SiteFooter />
     </div>
+    </>
   );
 }

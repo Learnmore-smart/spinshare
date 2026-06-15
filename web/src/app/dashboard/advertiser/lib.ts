@@ -19,6 +19,30 @@ import {
   formatCentsAsUsd,
 } from "@spinshare/core";
 
+export interface CampaignTelemetryView {
+  shows: number;
+  clicks: number;
+  credited: number;
+  tooShort: number;
+  invalidToken: number;
+  invalidCampaign: number;
+  shadowBanned: number;
+  earningCapped: number;
+  duplicate: number;
+}
+
+export const ZERO_CAMPAIGN_TELEMETRY: CampaignTelemetryView = {
+  shows: 0,
+  clicks: 0,
+  credited: 0,
+  tooShort: 0,
+  invalidToken: 0,
+  invalidCampaign: 0,
+  shadowBanned: 0,
+  earningCapped: 0,
+  duplicate: 0,
+};
+
 /**
  * A {@link Campaign} enriched with the USD display strings the
  * `/api/campaigns` route returns (`cpmUsd`, `remainingBudgetUsd`). This is the
@@ -29,6 +53,8 @@ export interface CampaignView extends Campaign {
   cpmUsd: string;
   /** Remaining budget formatted as USD, e.g. `"125.00"`. */
   remainingBudgetUsd: string;
+  /** Aggregate, campaign-scoped telemetry counters. */
+  telemetry?: CampaignTelemetryView;
 }
 
 /** Result of validating a user-entered dollar amount against a bound. */
@@ -138,4 +164,54 @@ export function adTextState(text: string): AdTextState {
 /** Formats integer cents as a `$`-prefixed USD string, e.g. `3000 → "$30.00"`. */
 export function formatUsd(cents: number): string {
   return `$${formatCentsAsUsd(cents)}`;
+}
+
+export function campaignTelemetry(
+  campaign: CampaignView,
+): CampaignTelemetryView {
+  return { ...ZERO_CAMPAIGN_TELEMETRY, ...(campaign.telemetry ?? {}) };
+}
+
+export function sumCampaignTelemetry(
+  campaigns: readonly CampaignView[],
+): CampaignTelemetryView {
+  return campaigns.reduce<CampaignTelemetryView>(
+    (total, campaign) => {
+      const telemetry = campaignTelemetry(campaign);
+      return {
+        shows: total.shows + telemetry.shows,
+        clicks: total.clicks + telemetry.clicks,
+        credited: total.credited + telemetry.credited,
+        tooShort: total.tooShort + telemetry.tooShort,
+        invalidToken: total.invalidToken + telemetry.invalidToken,
+        invalidCampaign: total.invalidCampaign + telemetry.invalidCampaign,
+        shadowBanned: total.shadowBanned + telemetry.shadowBanned,
+        earningCapped: total.earningCapped + telemetry.earningCapped,
+        duplicate: total.duplicate + telemetry.duplicate,
+      };
+    },
+    { ...ZERO_CAMPAIGN_TELEMETRY },
+  );
+}
+
+export function nonCreditTotal(telemetry: CampaignTelemetryView): number {
+  return (
+    telemetry.tooShort +
+    telemetry.invalidToken +
+    telemetry.invalidCampaign +
+    telemetry.shadowBanned +
+    telemetry.earningCapped +
+    telemetry.duplicate
+  );
+}
+
+export function formatCount(value: number): string {
+  return new Intl.NumberFormat("en-US").format(value);
+}
+
+export function formatCtr(clicks: number, shows: number): string {
+  if (shows <= 0) {
+    return "0.0%";
+  }
+  return `${((clicks / shows) * 100).toFixed(1)}%`;
 }

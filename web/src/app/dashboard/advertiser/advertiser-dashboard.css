@@ -471,6 +471,71 @@
   font-variant-numeric: tabular-nums;
 }
 
+.adv-dash-campaign-telemetry {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid var(--adv-line);
+  background: var(--surface-glass-hover);
+}
+
+@media (min-width: 640px) {
+  .adv-dash-campaign-telemetry {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.adv-dash-campaign-telemetry div {
+  min-width: 0;
+}
+
+.adv-dash-campaign-telemetry span,
+.adv-dash-campaign-diagnostics span {
+  display: block;
+  color: var(--adv-muted);
+}
+
+.adv-dash-campaign-telemetry span {
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.adv-dash-campaign-telemetry strong {
+  display: block;
+  margin-top: 0.125rem;
+  overflow-wrap: anywhere;
+  font-size: 1rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: var(--adv-ink);
+}
+
+.adv-dash-campaign-diagnostics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--adv-line);
+  background: var(--surface-white);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+.adv-dash-campaign-diagnostics span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.adv-dash-campaign-diagnostics strong {
+  color: var(--adv-accent-strong);
+  font-variant-numeric: tabular-nums;
+}
+
 .adv-dash-status {
   display: inline-flex;
   align-items: center;

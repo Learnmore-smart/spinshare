@@ -8,7 +8,7 @@ Unit tests for the production environment verifier's pure validation logic.
 ## What It Does
 
 - Imports verifier helpers without running live provider probes.
-- Verifies strict production mode rejects local-only auth URLs.
+- Verifies strict production mode warns on local-only auth URLs.
 
 ## Public API
 
@@ -24,7 +24,7 @@ Unit tests for the production environment verifier's pure validation logic.
 
 ## Dependencies
 
-- **Internal:** `web/scripts/verify-prod-env.mjs` - verifier helper under test.
+- **Internal:** `web/scripts/verify-prod-env-core.mjs` - verifier helper under test.
 - **External:** `vitest` - test runner.
 
 ## Important Notes / NEVER Change
@@ -36,4 +36,6 @@ Unit tests for the production environment verifier's pure validation logic.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Import `checkStrictModes` from the dependency-free core verifier module. | Codex |
+| 2026-06-15 | Use ASCII warning expectations to avoid parser failures from corrupted smart punctuation. | Codex |
 | 2026-06-14 | Planned strict-mode regression test for localhost `AUTH_VERIFICATION_URI`. | Codex |

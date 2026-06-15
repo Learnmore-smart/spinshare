@@ -50,8 +50,14 @@ import {
 import type {
   ApplyImpressionInput,
   ApplyImpressionResult,
+  CampaignTelemetry,
+  CampaignTelemetryMetric,
   CounterStore,
   PendingBatch,
+} from "../../ports/counter-store";
+import {
+  CAMPAIGN_TELEMETRY_METRICS,
+  zeroCampaignTelemetry,
 } from "../../ports/counter-store";
 import {
   RandomIdGenerator,
@@ -205,6 +211,35 @@ export class RealtimeDbCounterStore implements CounterStore {
     await this.root
       .child(`shadowban/${userId}`)
       .set(this.clock.nowMs() + ttlSeconds * 1000);
+  }
+
+  async incrementCampaignTelemetry(
+    campaignId: string,
+    metric: CampaignTelemetryMetric,
+  ): Promise<void> {
+    await this.root.update({
+      [`campaignTelemetry/${campaignId}/${metric}`]: ServerValue.increment(1),
+    });
+  }
+
+  async getCampaignTelemetry(
+    campaignIds: string[],
+  ): Promise<Record<string, CampaignTelemetry>> {
+    const result: Record<string, CampaignTelemetry> = {};
+    await Promise.all(
+      [...new Set(campaignIds)].map(async (campaignId) => {
+        const snap = await this.root.child(`campaignTelemetry/${campaignId}`).get();
+        const raw = (snap.val() ?? {}) as Partial<
+          Record<CampaignTelemetryMetric, number>
+        >;
+        const telemetry = zeroCampaignTelemetry();
+        for (const metric of CAMPAIGN_TELEMETRY_METRICS) {
+          telemetry[metric] = Number(raw[metric] ?? 0);
+        }
+        result[campaignId] = telemetry;
+      }),
+    );
+    return result;
   }
 
   // --- Earning caps -------------------------------------------------------

@@ -1,7 +1,7 @@
 {
   "name": "spinshare",
   "displayName": "SpinShare",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
   "description": "SpinShare extension: wraps terminal AI agents and shows ads during AI generation wait states. Compatible with VSCode, Trae, and Cursor.",
   "publisher": "spinshare",
@@ -79,16 +79,18 @@
     }
   },
   "scripts": {
-    "build": "tsc -p ./",
+    "build": "tsc -p ./ && corepack pnpm@9.12.0 bundle:cli",
+    "bundle:cli": "node ./scripts/bundle-cli.mjs",
     "dev": "tsc -p ./ --watch",
     "test": "vitest run --passWithNoTests",
     "lint": "tsc --noEmit",
-    "package": "pnpm build && vsce package --allow-missing-repository && node ./scripts/fix-vsix-readme.mjs"
+    "package": "corepack pnpm@9.12.0 --filter @spinshare/cli build && corepack pnpm@9.12.0 build && corepack pnpm@9.12.0 exec vsce package --allow-missing-repository && node ./scripts/fix-vsix-readme.mjs"
   },
   "devDependencies": {
     "@spinshare/core": "workspace:*",
     "@types/node": "^22.5.0",
     "@types/vscode": "^1.75.0",
+    "@vscode/vsce": "^3.6.0",
     "adm-zip": "^0.5.16",
     "fast-check": "^3.22.0",
     "typescript": "^5.6.0",

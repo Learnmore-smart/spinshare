@@ -1,4 +1,5 @@
 import * as path from "node:path";
+import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
@@ -60,6 +61,44 @@ describe("buildTerminalAutoWrapPlan", () => {
     expect(launcher).toContain("index.js");
   });
 
+  it("prefers the CLI bundled inside the installed extension", () => {
+    const plan = buildTerminalAutoWrapPlan({
+      baseUrl: "https://spinshare.dev",
+      extensionRoot: "/installed/spinshare",
+      storageRoot: "/tmp/spinshare",
+    });
+    const launcher = plan.files.find(
+      (file) => path.basename(file.filePath) === "spinshare-terminal-launcher.cjs",
+    )?.content;
+
+    expect(launcher).toBeDefined();
+    const bundled = 'path.resolve(extensionRoot, "cli-wrapper", "dist", "index.js")';
+    const repoLocal = 'path.resolve(extensionRoot, "..", "cli-wrapper", "dist", "index.js")';
+
+    expect(launcher).toContain("process.env.SPINSHARE_CLI_PATH");
+    expect(launcher).toContain(bundled);
+    expect(launcher).toContain(repoLocal);
+    expect(launcher!.indexOf(bundled)).toBeLessThan(
+      launcher!.indexOf(repoLocal),
+    );
+  });
+
+  it("routes zero-argument interactive agent launches through SpinShare", () => {
+    const plan = buildTerminalAutoWrapPlan({
+      baseUrl: "https://www.spinshare.dev",
+      extensionRoot: "/installed/spinshare",
+      storageRoot: "/tmp/spinshare",
+    });
+    const launcher = plan.files.find(
+      (file) => path.basename(file.filePath) === "spinshare-terminal-launcher.cjs",
+    )?.content;
+
+    expect(launcher).toBeDefined();
+    expect(launcher).not.toContain("if (args.length === 0)");
+    expect(launcher).not.toContain("spawnSync(agent, args");
+    expect(launcher).toContain("[...commandArgs, agent, ...args]");
+  });
+
   it("uses the configured agent list for shim filenames", () => {
     const plan = buildTerminalAutoWrapPlan({
       agents: ["claude", "codex"],
@@ -79,6 +118,30 @@ describe("buildTerminalAutoWrapPlan", () => {
         "codex",
       ]),
     );
+  });
+});
+
+describe("bundle-cli script", () => {
+  it("writes a nested package manifest that marks the bundled CLI as ESM", () => {
+    const script = readFileSync(
+      path.join(process.cwd(), "scripts", "bundle-cli.mjs"),
+      "utf8",
+    );
+
+    expect(script).toContain('join(extensionRoot, "cli-wrapper", "package.json")');
+    expect(script).toContain('"type": "module"');
+  });
+
+  it("copies the PTY native runtime into the bundled CLI node_modules", () => {
+    const script = readFileSync(
+      path.join(process.cwd(), "scripts", "bundle-cli.mjs"),
+      "utf8",
+    );
+
+    expect(script).toContain("@homebridge");
+    expect(script).toContain("node-pty-prebuilt-multiarch");
+    expect(script).toContain("realpath");
+    expect(script).toContain('join(extensionRoot, "cli-wrapper", "node_modules")');
   });
 });
 

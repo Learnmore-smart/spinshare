@@ -31,4 +31,5 @@ Next.js application configuration for the SpinShare web app.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Set `turbopack.root` to monorepo root so Turbopack resolves `next` in pnpm workspace. | Cursor |
 | 2026-06-14 | Load repo-root `.env` in config; remove need for `web/.env` link. | Cursor |

@@ -16,11 +16,16 @@ import {
 } from "@spinshare/core";
 
 import {
+  ZERO_CAMPAIGN_TELEMETRY,
   adTextState,
   formatUsd,
+  formatCtr,
+  nonCreditTotal,
   parseDollarsToCents,
+  sumCampaignTelemetry,
   validateCpmDollars,
   validateFundingDollars,
+  type CampaignView,
 } from "./lib";
 
 describe("parseDollarsToCents", () => {
@@ -137,5 +142,47 @@ describe("formatUsd", () => {
     expect(formatUsd(3000)).toBe("$30.00");
     expect(formatUsd(1)).toBe("$0.01");
     expect(formatUsd(0)).toBe("$0.00");
+  });
+});
+
+describe("campaign telemetry helpers", () => {
+  it("sums zero telemetry for an empty campaign list", () => {
+    expect(sumCampaignTelemetry([])).toEqual(ZERO_CAMPAIGN_TELEMETRY);
+  });
+
+  it("sums telemetry across campaigns and formats CTR", () => {
+    const campaigns = [
+      {
+        id: "cmp_1",
+        advertiserId: "adv_1",
+        adText: "Ad",
+        cpmCents: 3000,
+        cpmUsd: "30.00",
+        budgetCents: 1000,
+        remainingBudgetUsd: "10.00",
+        status: "active",
+        createdAtMs: 0,
+        telemetry: {
+          shows: 100,
+          clicks: 5,
+          credited: 80,
+          tooShort: 7,
+          invalidToken: 3,
+          invalidCampaign: 2,
+          shadowBanned: 6,
+          earningCapped: 1,
+          duplicate: 1,
+        },
+      },
+    ] satisfies CampaignView[];
+
+    const total = sumCampaignTelemetry(campaigns);
+
+    expect(total.shows).toBe(100);
+    expect(total.clicks).toBe(5);
+    expect(total.credited).toBe(80);
+    expect(nonCreditTotal(total)).toBe(20);
+    expect(formatCtr(total.clicks, total.shows)).toBe("5.0%");
+    expect(formatCtr(0, 0)).toBe("0.0%");
   });
 });

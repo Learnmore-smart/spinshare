@@ -1,6 +1,6 @@
 # wrap.test.ts
 
-> Last updated: 2026-06-13 | Protection: STANDARD
+> Last updated: 2026-06-15 | Protection: STANDARD
 
 ## Purpose
 
@@ -29,6 +29,30 @@ Unit and integration-style tests for the CLI wrapper wait-state logic.
 
 - Tests should not spawn real child processes.
 - Tests should use fake time or injected clocks for viewability behavior.
+- PTY behavior should be tested with injected fake PTY objects, not native terminal processes.
+
+## Planned Change (2026-06-15)
+
+Write failing tests proving `runWrap` uses an injected PTY runner when present,
+forwards user input into the PTY, classifies PTY output through the ad renderer,
+reports impressions after the viewability threshold, and preserves the PTY exit
+code.
+
+These tests must not spawn a real terminal. They should use a fake PTY object
+with `onData`, `onExit`, and `write` hooks.
+
+## Implemented Test (2026-06-15)
+
+Added a fake PTY test proving `runWrap` uses the injected PTY path, forwards
+stdin into the PTY, replaces `Pollinating...` with ad output, reports one
+eligible impression after 3000 ms, forwards normal output, and resolves with the
+PTY exit code.
+
+## Verification (2026-06-15)
+
+- Red focused CLI run failed on the new PTY assertion.
+- Green focused CLI run passed with 31 focused tests.
+- Full CLI test run passed with 77 tests.
 
 ## Planned Change
 
@@ -61,6 +85,8 @@ execution and POSIX platforms do not force shell execution.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Added PTY wrapper regression coverage. | Codex |
+| 2026-06-15 | Planned PTY-backed wrapper tests for interactive CLI compatibility. | Codex |
 | 2026-06-14 | Add regression coverage for Windows `.cmd` spawn options used by extension terminal shims. | Codex |
 | 2026-06-13 | Created doc before adding CLI viewability regression tests. | Codex |
 | 2026-06-13 | Synced doc with passing CLI viewability tests. | Codex |

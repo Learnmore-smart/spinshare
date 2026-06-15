@@ -20,9 +20,16 @@ describe("isSpinnerFrame", () => {
     expect(isSpinnerFrame("\u001b[36m/\u001b[0m")).toBe(true);
   });
 
+  it("recognizes Claude-style loading status lines", () => {
+    expect(isSpinnerFrame("\r\u2022 Pollinating\u2026")).toBe(true);
+    expect(isSpinnerFrame("\u001b[31m\u00b7 Pollinating...\u001b[0m")).toBe(true);
+    expect(isSpinnerFrame("\rThinking...")).toBe(true);
+  });
+
   it("rejects real text output", () => {
     expect(isSpinnerFrame("Building project...")).toBe(false);
     expect(isSpinnerFrame("done\n")).toBe(false);
+    expect(isSpinnerFrame("Loading config...")).toBe(false);
   });
 
   it("rejects empty / whitespace-only / ansi-only chunks", () => {
@@ -53,6 +60,16 @@ describe("SpinnerRenderer", () => {
     expect(out).toContain("Buy SpinShare Pro");
     // none of the original spinner glyphs leak through
     expect(out).not.toContain("|");
+  });
+
+  it("replaces loading status lines with ad text", () => {
+    const r = new SpinnerRenderer({ getAdText: () => "Buy SpinShare Pro" });
+    const res = r.render("\r\u2022 Pollinating\u2026");
+
+    expect(res.spinner).toBe(true);
+    const out = res.output.toString("utf8");
+    expect(out).toContain("Buy SpinShare Pro");
+    expect(out).not.toContain("Pollinating");
   });
 
   it("suppresses spinner frames entirely when no ad is available", () => {

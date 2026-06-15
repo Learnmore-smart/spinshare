@@ -10,6 +10,8 @@ import {
   runWrap,
   spawnOptionsForPlatform,
   type FrameClassification,
+  type PtyProcessLike,
+  type PtySpawnLike,
 } from "./wrap.js";
 
 describe("WaitStateTracker", () => {
@@ -114,8 +116,49 @@ class FakeChild extends EventEmitter {
   stderr = new EventEmitter();
 }
 
+class FakePty implements PtyProcessLike {
+  readonly writes: string[] = [];
+  private readonly dataHandlers: Array<(data: string) => void> = [];
+  private readonly exitHandlers: Array<(event: { exitCode: number; signal?: number }) => void> =
+    [];
+
+  onData(handler: (data: string) => void): void {
+    this.dataHandlers.push(handler);
+  }
+
+  onExit(handler: (event: { exitCode: number; signal?: number }) => void): void {
+    this.exitHandlers.push(handler);
+  }
+
+  write(data: string): void {
+    this.writes.push(data);
+  }
+
+  emitData(data: string): void {
+    for (const handler of this.dataHandlers) {
+      handler(data);
+    }
+  }
+
+  emitExit(exitCode: number, signal?: number): void {
+    for (const handler of this.exitHandlers) {
+      handler({ exitCode, signal });
+    }
+  }
+}
+
 function fakeSpawn(child: FakeChild) {
   return (() => child) as unknown as typeof import("node:child_process").spawn;
+}
+
+function fakePtySpawn(
+  pty: FakePty,
+  calls: Array<{ file: string; args: string[] }>,
+): PtySpawnLike {
+  return ((file: string, args: string[]) => {
+    calls.push({ file, args });
+    return pty;
+  }) as PtySpawnLike;
 }
 
 function flush(): Promise<void> {
@@ -220,6 +263,55 @@ describe("runWrap", () => {
     expect(joined).toContain("starting\n");
     expect(joined).toContain("done\n");
     expect(joined).not.toContain("|");
+  });
+
+  it("uses an injected PTY so interactive status output can be replaced with ads", async () => {
+    vi.useFakeTimers();
+    const pty = new FakePty();
+    const ptyCalls: Array<{ file: string; args: string[] }> = [];
+    const stdin = new EventEmitter() as NodeJS.ReadableStream;
+    stdin.resume = vi.fn();
+    const reported: Array<{ campaignId: string; viewDurationMs: number }> = [];
+    const out: Buffer[] = [];
+    const client = {
+      getAd: async () => AD,
+      reportImpression: async (campaignId: string, viewDurationMs: number) => {
+        reported.push({ campaignId, viewDurationMs });
+        return TRACK;
+      },
+    };
+    const stdout = {
+      write: (chunk: Buffer | string) => {
+        out.push(Buffer.from(chunk));
+        return true;
+      },
+    } as unknown as NodeJS.WritableStream;
+
+    const promise = runWrap({
+      target: "claude",
+      args: [],
+      client,
+      stdin,
+      stdout,
+      stderr: { write: () => true } as unknown as NodeJS.WritableStream,
+      ptySpawnImpl: fakePtySpawn(pty, ptyCalls),
+    });
+
+    await flush();
+    stdin.emit("data", Buffer.from("hi"));
+    pty.emitData("\r\u2022 Pollinating\u2026");
+    await vi.advanceTimersByTimeAsync(3000);
+    pty.emitData("done\n");
+    pty.emitExit(7);
+
+    expect(await promise).toBe(7);
+    expect(ptyCalls).toHaveLength(1);
+    expect(pty.writes).toEqual(["hi"]);
+    expect(reported).toEqual([{ campaignId: "cmp_1", viewDurationMs: 3000 }]);
+    const joined = Buffer.concat(out).toString("utf8");
+    expect(joined).toContain("Buy SpinShare Pro");
+    expect(joined).not.toContain("Pollinating");
+    expect(joined).toContain("done\n");
   });
 
   it("records no impression when no ad is available (neutral fallback)", async () => {

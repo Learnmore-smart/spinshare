@@ -140,10 +140,23 @@ User correction on 2026-06-14: sign-in marketing copy must not claim payment for
 
 Fix: update `web/src/lib/i18n/dictionaries.ts` `signin.body` in all locales.
 
+## Planned Change: Denser Neutral Sign-In (2026-06-14)
+
+User feedback: increase information density on the entry page, reduce AI-stylized icons, and use colorless frosted glass (no green tint in blur surfaces).
+
+Fix strategy:
+
+- Tighten left-column typography and spacing so more product facts fit above the fold.
+- Add a compact two-column bullet list under the stat cards (share %, min view, no upload, IDE support).
+- Remove decorative role-tab icons (`Code`, `Layers`) and the unused money emoji helper.
+- Replace green-tinted glass gradients on the auth card, stat tiles, and back button with neutral white `backdrop-filter` only.
+- Soften the page background to a neutral gradient without emerald radial washes.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-14 | Denser left column, neutral glass, no role-tab icons. | Auto |
 | 2026-06-14 | Removed email/password form from sign-in card; OAuth-only panel. | Auto |
 | 2026-06-14 | Corrected sign-in body copy to describe 3-second ad impressions instead of per-second AI thinking. | Codex |
 | 2026-06-13 | Created documentation for sign-in role initialization fix. | Codex |

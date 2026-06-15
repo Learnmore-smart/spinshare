@@ -1,42 +1,48 @@
 # SpinShare for VS Code
 
-Earn while your AI works. SpinShare shows unobtrusive, context-aware ads during AI generation wait states in VS Code, Cursor, and Trae.
+Earn while your AI works. SpinShare wraps supported terminal AI agents and shows sponsored messages during eligible wait states in VS Code, Cursor, and Trae.
 
 ## Features
 
-- **Wait-state monetization** — Ads appear in a progress notification while your AI agent is thinking.
-- **Browser sign-in** — One-time device flow; your token is stored securely in the editor.
-- **Click-through support** — Open advertiser links directly from the notification.
-- **Compatible editors** — Built on stable VS Code APIs; works in VS Code, Cursor, and Trae.
+- **Terminal auto-wrap** - New integrated terminals route configured agent commands through the bundled SpinShare CLI wrapper.
+- **Browser sign-in** - One-time device flow; your token is stored securely in the editor.
+- **Progress notification ads** - Host integrations can trigger the notification-based ad flow directly.
+- **Click-through support** - Open advertiser links directly from the notification.
+- **Compatible editors** - Built on stable VS Code APIs; works in VS Code, Cursor, and Trae.
 
 ## Getting started
 
-1. Install the extension (from VSIX locally, or from the Marketplace when published).
-2. On first launch you will be prompted to **Sign in** — approve the device in your browser.
-3. When an AI generation wait state begins, SpinShare may show a sponsored message in the bottom-right progress area.
+1. Install the extension from VSIX locally, or from the Marketplace when published.
+2. Sign in when prompted, or run `SpinShare: Sign In` from the command palette. Approve the device in your browser.
+3. Open a **new integrated terminal** after sign-in. Existing terminals keep their old `PATH`.
+4. Run `claude` or another configured agent normally. SpinShare's shim wraps it through the bundled CLI.
+5. When the agent emits a spinner-style wait state for at least 3 seconds and a funded ad is available, the spinner is replaced with ad text and an impression is credited.
 
-### Commands
+## Commands
 
 | Command | Description |
 |---------|-------------|
 | `SpinShare: Sign In` | Start the browser device authorization flow |
 | `SpinShare: Sign Out` | Remove your stored token |
-| `SpinShare: Start Generation (show ad)` | Manually trigger the ad flow (for testing) |
-| `SpinShare: Complete Generation (dismiss ad)` | Dismiss the active ad notification |
+| `SpinShare: Start Generation (show ad)` | Manually trigger the notification ad flow for testing |
+| `SpinShare: Complete Generation (dismiss ad)` | Dismiss the active notification ad |
+| `SpinShare: Rebuild Terminal Shims` | Recreate terminal shims after changing base URL or agent command settings |
 
 ## Configuration
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `spinshare.baseUrl` | `https://www.spinshare.dev` | SpinShare web app base URL (use `http://localhost:3000` for local dev) |
+| `spinshare.baseUrl` | `https://www.spinshare.dev` | SpinShare web app base URL. Use `http://localhost:3000` for local dev. |
+| `spinshare.terminalAutoWrap` | `true` | Prepends SpinShare shims to new integrated terminals. |
+| `spinshare.terminalAgents` | `["claude"]` | Command names to auto-wrap in new integrated terminals. |
+
+## Standalone CLI
+
+The extension bundles the CLI wrapper for new integrated terminals. For external terminals, install or run the standalone `@spinshare/cli` wrapper separately.
 
 ## Privacy
 
-Authentication uses a device code flow. Impressions are reported only when an ad is actually displayed. See [spinshare.dev/privacy](https://spinshare.dev/privacy).
-
-## Related products
-
-SpinShare also offers a **CLI wrapper** (`@spinshare/cli`) for terminal-based AI tools — a separate install, not bundled with this extension.
+Authentication uses a device code flow. Impressions are reported only when an ad is actually displayed for the required duration. See [spinshare.dev/privacy](https://spinshare.dev/privacy).
 
 ## Support
 

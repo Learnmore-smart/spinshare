@@ -66,13 +66,19 @@ export async function POST(request: Request): Promise<Response> {
     successUrl: `${origin}/?checkout=success#bid-market`,
     cancelUrl: `${origin}/?checkout=cancelled#advertiser-checkout`,
   });
+  const responseCampaign = { ...campaign };
+
+  if (checkout.settled === true) {
+    await campaigns.applyBudgetDeltaCents(campaign.id, amountCents);
+    responseCampaign.budgetCents += amountCents;
+  }
 
   return Response.json(
     {
       ...checkout,
       amountCents,
       amountUsd: `$${formatCentsAsUsd(amountCents)}`,
-      campaign,
+      campaign: responseCampaign,
     },
     { status: 200 },
   );

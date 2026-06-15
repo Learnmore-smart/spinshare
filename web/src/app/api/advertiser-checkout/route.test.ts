@@ -6,6 +6,7 @@ import {
 } from "@/server/container";
 
 import { POST } from "./route";
+import { GET as getMarket } from "../market/route";
 
 const ENV_KEYS = [
   "SPINSHARE_MODE",
@@ -57,18 +58,18 @@ afterEach(() => {
 });
 
 describe("POST /api/advertiser-checkout", () => {
-  it("creates a zero-budget campaign with private leaderboard metadata and returns checkout", async () => {
+  it("settles mock checkout immediately and preserves private leaderboard metadata", async () => {
     const response = await POST(request(validPayload));
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.url).toMatch(/^https:\/\/mock\.spinshare\.local\/checkout\//);
+    expect(body.url).toBe("https://spinshare.test/?checkout=success#bid-market");
     expect(body.sessionId).toMatch(/^cs_/);
     expect(body.amountCents).toBe(1500);
     expect(body.campaign).toMatchObject({
       adText: validPayload.adText,
       cpmCents: validPayload.cpmCents,
-      budgetCents: 0,
+      budgetCents: 1500,
       contactEmail: "ads@example.com",
       destinationUrl: "https://linear.app/",
       brandName: "Linear",
@@ -79,8 +80,32 @@ describe("POST /api/advertiser-checkout", () => {
     expect(stored).toMatchObject({
       contactEmail: "ads@example.com",
       publicOnLeaderboard: false,
-      budgetCents: 0,
+      budgetCents: 1500,
     });
+  });
+
+  it("shows a public mock checkout campaign in the market immediately after purchase", async () => {
+    const response = await POST(
+      request({ ...validPayload, publicOnLeaderboard: true }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+
+    const marketResponse = await getMarket();
+    const market = await marketResponse.json();
+
+    expect(marketResponse.status).toBe(200);
+    expect(market.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: body.campaign.id,
+          adText: validPayload.adText,
+          remainingBudgetCents: 1500,
+          targetImpressions: 3000,
+        }),
+      ]),
+    );
   });
 
   it("rejects invalid payloads before creating a checkout", async () => {

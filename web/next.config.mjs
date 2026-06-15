@@ -13,6 +13,9 @@ loadEnvConfig(repoRoot, process.env.NODE_ENV !== "production", console, true);
 const nextConfig = {
   reactStrictMode: true,
   output: "standalone",
+  turbopack: {
+    root: repoRoot,
+  },
 };
 
 export default nextConfig;

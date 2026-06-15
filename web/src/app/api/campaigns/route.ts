@@ -27,6 +27,11 @@ import {
 } from "@spinshare/core";
 
 import { getContainer } from "@/server/container";
+import type { CounterStore, LedgerRepository } from "@/server/ports";
+import {
+  type CampaignTelemetry,
+  zeroCampaignTelemetry,
+} from "@/server/ports/counter-store";
 
 /** Always evaluate at request time; campaign data is per-advertiser and live. */
 export const dynamic = "force-dynamic";
@@ -71,15 +76,50 @@ function unauthorized(): Response {
  * Enriches a {@link Campaign} with USD display strings for its remaining budget
  * and CPM so the advertiser dashboard can render without re-deriving money math.
  */
-function toCampaignView(campaign: Campaign): Campaign & {
+function toCampaignView(
+  campaign: Campaign,
+  telemetry: CampaignTelemetry = zeroCampaignTelemetry(),
+  durableImpressions = 0,
+): Campaign & {
   cpmUsd: string;
   remainingBudgetUsd: string;
+  telemetry: CampaignTelemetry;
 } {
+  const normalizedTelemetry = {
+    ...zeroCampaignTelemetry(),
+    ...telemetry,
+    credited: Math.max(telemetry.credited, durableImpressions),
+  };
   return {
     ...campaign,
     cpmUsd: formatCentsAsUsd(campaign.cpmCents),
     remainingBudgetUsd: formatCentsAsUsd(campaign.budgetCents),
+    telemetry: normalizedTelemetry,
   };
+}
+
+async function readCampaignTelemetry(
+  counters: CounterStore,
+  campaignIds: string[],
+): Promise<Record<string, CampaignTelemetry>> {
+  try {
+    return await counters.getCampaignTelemetry(campaignIds);
+  } catch {
+    return Object.fromEntries(
+      campaignIds.map((id) => [id, zeroCampaignTelemetry()]),
+    );
+  }
+}
+
+async function readDurableImpressions(
+  ledger: LedgerRepository,
+  campaignIds: string[],
+): Promise<Record<string, number>> {
+  try {
+    return await ledger.countByCampaignIds(campaignIds);
+  } catch {
+    return Object.fromEntries(campaignIds.map((id) => [id, 0]));
+  }
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -147,11 +187,24 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   // 2. List the advertiser's campaigns with remaining budget + CPM (R9.5).
-  const { campaigns } = getContainer();
+  const { campaigns, counters, ledger } = getContainer();
   const owned = await campaigns.listByAdvertiser(advertiserId);
+  const campaignIds = owned.map((campaign) => campaign.id);
+  const [telemetry, durableImpressions] = await Promise.all([
+    readCampaignTelemetry(counters, campaignIds),
+    readDurableImpressions(ledger, campaignIds),
+  ]);
 
   return Response.json(
-    { campaigns: owned.map(toCampaignView) },
+    {
+      campaigns: owned.map((campaign) =>
+        toCampaignView(
+          campaign,
+          telemetry[campaign.id],
+          durableImpressions[campaign.id] ?? 0,
+        ),
+      ),
+    },
     { status: 200 },
   );
 }

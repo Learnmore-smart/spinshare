@@ -1,6 +1,6 @@
 # terminal-auto-wrap.test.ts
 
-> Last updated: 2026-06-14 | Protection: STANDARD
+> Last updated: 2026-06-15 | Protection: STANDARD
 
 ## Purpose
 
@@ -35,3 +35,47 @@ Unit tests for the SpinShare terminal auto-wrap shim planner.
 
 - Initial red run failed loading `./terminal-auto-wrap`.
 - Final focused run passed: 5 tests.
+
+## Planned Fix (2026-06-15)
+
+Add red assertions that the generated launcher prefers the bundled extension CLI path before repo-local fallback paths, so a packaged VSIX install can auto-wrap new integrated terminals without a separate CLI install.
+
+## Planned Fix (2026-06-15)
+
+Replace the prior zero-argument bypass assertion with a regression test proving
+the launcher does not bypass SpinShare for plain `claude`. The interactive TTY
+compatibility belongs in the CLI wrapper PTY path, not in the extension launcher.
+
+## Implemented Test (2026-06-15)
+
+Superseded: the zero-argument bypass test must be removed because it hides ads
+for interactive agent sessions.
+
+## Implemented Test (2026-06-15)
+
+Replaced the bypass assertion with a test proving the launcher does not contain
+the `args.length === 0` branch and still passes `[...commandArgs, agent,
+...args]` to SpinShare. Added a bundling-script assertion for the PTY runtime
+copy.
+
+## Verification (2026-06-15)
+
+- Red focused extension run failed on the bypass branch and missing PTY copy.
+- Green focused extension run passed with 9 tests.
+- Full extension test run passed with 35 tests.
+
+## Verification (2026-06-15)
+
+- Red: `src/terminal-auto-wrap.test.ts` failed on the missing passthrough branch.
+- Green: focused terminal auto-wrap test passed with 8 tests.
+- Full extension test suite passed with 34 tests.
+
+## Change History
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-15 | Added launcher/no-bypass and PTY packaging regression coverage. | Codex |
+| 2026-06-15 | Planned removal of zero-argument bypass regression test. | Codex |
+| 2026-06-15 | Added regression coverage for zero-argument interactive passthrough. | Codex |
+| 2026-06-15 | Planned regression coverage for zero-argument interactive passthrough. | Codex |
+| 2026-06-15 | Documented bundled CLI launcher test plan. | Codex |

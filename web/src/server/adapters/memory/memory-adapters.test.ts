@@ -88,6 +88,76 @@ describe("MemoryCounterStore velocity + shadow-ban", () => {
   });
 });
 
+describe("MemoryCounterStore campaign telemetry", () => {
+  it("returns zero-filled telemetry for campaigns with no activity", async () => {
+    const store = new MemoryCounterStore(
+      new ManualClock(0),
+      new SequentialIdGenerator(),
+    );
+
+    const telemetry = await store.getCampaignTelemetry(["cmp1", "cmp2"]);
+
+    expect(telemetry).toEqual({
+      cmp1: {
+        shows: 0,
+        clicks: 0,
+        credited: 0,
+        tooShort: 0,
+        invalidToken: 0,
+        invalidCampaign: 0,
+        shadowBanned: 0,
+        earningCapped: 0,
+        duplicate: 0,
+      },
+      cmp2: {
+        shows: 0,
+        clicks: 0,
+        credited: 0,
+        tooShort: 0,
+        invalidToken: 0,
+        invalidCampaign: 0,
+        shadowBanned: 0,
+        earningCapped: 0,
+        duplicate: 0,
+      },
+    });
+  });
+
+  it("increments campaign telemetry without moving money", async () => {
+    const store = new MemoryCounterStore(
+      new ManualClock(0),
+      new SequentialIdGenerator(),
+    );
+
+    await store.incrementCampaignTelemetry("cmp1", "shows");
+    await store.incrementCampaignTelemetry("cmp1", "shows");
+    await store.incrementCampaignTelemetry("cmp1", "clicks");
+    await store.incrementCampaignTelemetry("cmp1", "credited");
+    await store.incrementCampaignTelemetry("cmp1", "tooShort");
+    await store.incrementCampaignTelemetry("cmp1", "invalidToken");
+    await store.incrementCampaignTelemetry("cmp1", "invalidCampaign");
+    await store.incrementCampaignTelemetry("cmp1", "shadowBanned");
+    await store.incrementCampaignTelemetry("cmp1", "earningCapped");
+    await store.incrementCampaignTelemetry("cmp1", "duplicate");
+
+    const telemetry = await store.getCampaignTelemetry(["cmp1"]);
+
+    expect(telemetry.cmp1).toEqual({
+      shows: 2,
+      clicks: 1,
+      credited: 1,
+      tooShort: 1,
+      invalidToken: 1,
+      invalidCampaign: 1,
+      shadowBanned: 1,
+      earningCapped: 1,
+      duplicate: 1,
+    });
+    expect(await store.getBalanceCents("dev1")).toBe(0);
+    expect(await store.getBudgetCents("cmp1")).toBe(0);
+  });
+});
+
 describe("MemoryCounterStore drain/ack reconciliation", () => {
   it("drains pending entries then subtracts deltas on ack", async () => {
     const store = new MemoryCounterStore(new ManualClock(0), new SequentialIdGenerator());

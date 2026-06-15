@@ -26,6 +26,11 @@ Defines the payment gateway port for Stripe checkout and webhook verification.
 
 - Webhook parsing must keep campaign id and amount available for idempotent funding.
 - Checkout input should remain adapter-agnostic.
+- Immediate settlement is optional and only for credential-free mock/local gateways; real Stripe checkout must remain webhook-settled.
+
+## Planned Change (2026-06-15)
+
+Add an optional checkout result marker that lets local/mock gateways say a checkout is already settled. Routes can use that to simulate a completed payment without guessing from URL strings or env flags.
 
 ## Planned Change
 
@@ -39,5 +44,6 @@ Add optional `customerEmail` so the public checkout route can pass the homepage 
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Documented optional immediate-settlement checkout result. | Codex |
 | 2026-06-13 | Created doc before adding checkout customer email support. | Codex |
 | 2026-06-13 | Synced doc with checkout customer email field. | Codex |

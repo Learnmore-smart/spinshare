@@ -148,15 +148,16 @@ describe("velocity rate-limiting and shadow-ban properties", () => {
           for (let n = 0; n < bannedImpressions; n++) {
             const result = await track(h.deps, h.token);
 
-            // Identical success shape to a normally-recorded impression.
-            expect(result).toEqual({
-              ok: true,
-              response: {
+            expect(result.ok).toBe(true);
+            if (result.ok) {
+              expect(result.settlement).toBe("shadowBanned");
+              // Public success response stays identical to a recorded impression.
+              expect(result.response).toEqual({
                 recorded: true,
                 developerCreditCents: split.developerCreditCents,
                 developerCreditUsd: formatCentsAsUsd(split.developerCreditCents),
-              },
-            });
+              });
+            }
 
             // No credit to the balance, no decrement to the budget.
             expect(await h.counters.isShadowBanned(DEV)).toBe(true);

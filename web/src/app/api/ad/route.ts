@@ -17,15 +17,32 @@
 
 import { getContainer } from "@/server/container";
 import { selectAd } from "@/server/bidding-service";
+import type { AdResponse } from "@spinshare/core";
 
 /** Always evaluate at request time; ad selection is dynamic per request. */
 export const dynamic = "force-dynamic";
 
-export async function GET(): Promise<Response> {
+function withTrackedClickUrl(request: Request, result: AdResponse): AdResponse {
+  if (!result.adAvailable || result.destinationUrl === undefined) {
+    return result;
+  }
+  const destinationUrl = new URL("/api/click", request.url);
+  destinationUrl.searchParams.set("campaignId", result.campaignId);
+  return { ...result, destinationUrl: destinationUrl.toString() };
+}
+
+export async function GET(request: Request): Promise<Response> {
   try {
-    const { campaigns } = getContainer();
+    const { campaigns, counters } = getContainer();
     const result = await selectAd({ campaigns });
-    return Response.json(result, { status: 200 });
+    if (result.adAvailable) {
+      try {
+        await counters.incrementCampaignTelemetry(result.campaignId, "shows");
+      } catch {
+        // Telemetry must never block ad serving.
+      }
+    }
+    return Response.json(withTrackedClickUrl(request, result), { status: 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";
     return Response.json({ error: message }, { status: 500 });

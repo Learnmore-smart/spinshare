@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 
 import { AdController } from "./ad-controller";
-import { AdApiClient, DEFAULT_BASE_URL } from "./api-client";
+import { AdApiClient, DEFAULT_BASE_URL, normalizeBaseUrl } from "./api-client";
 import { AuthManager, formatSignInFailure } from "./auth";
 import {
   installTerminalAutoWrap,
@@ -27,9 +27,10 @@ import {
  * Requirements: 6.4 (auth prompt before ads), 6.5 (stable-API portability).
  */
 export function activate(context: vscode.ExtensionContext): void {
-  const baseUrl =
+  const baseUrl = normalizeBaseUrl(
     vscode.workspace.getConfiguration("spinshare").get<string>("baseUrl") ??
-    DEFAULT_BASE_URL;
+      DEFAULT_BASE_URL,
+  );
 
   const client = new AdApiClient({ baseUrl });
 
@@ -70,8 +71,9 @@ export function activate(context: vscode.ExtensionContext): void {
     const agents = normalizeTerminalAgents(
       config.get<unknown[]>("terminalAgents"),
     );
-    const terminalBaseUrl =
-      config.get<string>("baseUrl") ?? DEFAULT_BASE_URL;
+    const terminalBaseUrl = normalizeBaseUrl(
+      config.get<string>("baseUrl") ?? DEFAULT_BASE_URL,
+    );
 
     try {
       const plan = await installTerminalAutoWrap({

@@ -37,6 +37,13 @@ const ANSI_PATTERN =
 // eslint-disable-next-line no-control-regex
 const SPINNER_FILLER = /[\r ]/g;
 
+/** Single-word wait messages emitted by interactive AI CLIs. */
+const STATUS_WORD_PATTERN =
+  /^(?:pollinating|thinking|generating|loading|processing|waiting|reasoning|responding|analyzing|searching)(?:[.!…]*)$/i;
+
+/** Leading symbols commonly used before transient status lines. */
+const STATUS_PREFIX_PATTERN = /^[\s\r]*(?:[\u2022\u00b7*]\s*)?/;
+
 /** ANSI "erase to end of line" — clears stale characters from a longer prior ad. */
 const ERASE_TO_EOL = "\u001b[K";
 
@@ -72,6 +79,34 @@ export function stripAnsi(input: string | Buffer): string {
   return toStr(input).replace(ANSI_PATTERN, "");
 }
 
+function isSpinnerGlyphFrame(chunk: string | Buffer): boolean {
+  const stripped = stripAnsi(chunk).replace(SPINNER_FILLER, "");
+  if (stripped.length === 0) {
+    return false; // nothing but CR / spaces / ANSI is not a spinner animation
+  }
+  for (const ch of stripped) {
+    if (!SPINNER_CHARS.has(ch)) {
+      return false; // contains real output, so forward unmodified
+    }
+  }
+  return true;
+}
+
+function isStatusWaitFrame(chunk: string | Buffer): boolean {
+  const stripped = stripAnsi(chunk)
+    .replace(/\u001b\[K/g, "")
+    .replace(/\u00a0/g, " ")
+    .replace(/[\r\n]+/g, " ")
+    .trim();
+
+  if (stripped.length === 0 || stripped.length > 80) {
+    return false;
+  }
+
+  const status = stripped.replace(STATUS_PREFIX_PATTERN, "").trim();
+  return STATUS_WORD_PATTERN.test(status);
+}
+
 /**
  * Pure classifier: is this chunk a spinner-only (wait-state) frame?
  *
@@ -82,6 +117,9 @@ export function stripAnsi(input: string | Buffer): string {
  * is treated as real output.
  */
 export function isSpinnerFrame(chunk: string | Buffer): boolean {
+  if (isSpinnerGlyphFrame(chunk) || isStatusWaitFrame(chunk)) {
+    return true;
+  }
   const stripped = stripAnsi(chunk).replace(SPINNER_FILLER, "");
   if (stripped.length === 0) {
     return false; // nothing but CR / spaces / ANSI — not a spinner animation

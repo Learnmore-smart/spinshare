@@ -23,6 +23,16 @@ export interface CheckoutInput {
   customerEmail?: string;
 }
 
+/** Result of starting a checkout session. */
+export interface CheckoutSessionResult {
+  /** Hosted checkout URL, or a local success URL for settled mock checkouts. */
+  url: string;
+  /** Provider checkout session id. */
+  sessionId: string;
+  /** True only when a mock/local gateway has already settled the payment. */
+  settled?: boolean;
+}
+
 /**
  * A verified, parsed Stripe webhook event. For `checkout.session.completed`,
  * `campaignId` and `amountCents` carry the confirmed funding; `id` is the
@@ -44,7 +54,7 @@ export interface PaymentGateway {
   /** Creates a hosted checkout session, returning its URL and session id. */
   createCheckoutSession(
     input: CheckoutInput,
-  ): Promise<{ url: string; sessionId: string }>;
+  ): Promise<CheckoutSessionResult>;
   /**
    * Verifies the raw webhook body against the signature and parses it.
    * Throws if the signature is invalid (caller returns 400, no mutation).

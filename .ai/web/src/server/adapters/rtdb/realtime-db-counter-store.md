@@ -69,6 +69,22 @@ spinshare/hot
 - RTDB keys come from `entryId`/`userId`/`campaignId` which are already valid
   Firestore doc ids (no `/ . # $ [ ]`), so they are safe as RTDB keys.
 
+## Planned Change (2026-06-15)
+
+Add aggregate campaign telemetry counters under the RTDB hot-path tree. The
+new counters are campaign-scoped only and must not store prompts, request
+content, raw user ids, IP addresses, or other private content.
+
+## Implemented Change (2026-06-15)
+
+Added RTDB-backed `campaignTelemetry/{campaignId}/{metric}` increments and
+zero-filled reads for advertiser dashboard aggregate telemetry.
+
+## Verification (2026-06-15)
+
+- `corepack pnpm@9.12.0 --filter @spinshare/web test` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+
 ## Change History
 
 | Date | Change | Author |

@@ -30,6 +30,10 @@ describe("HomePage", () => {
     expect(html).toContain("Destination URL");
     expect(html).toContain("Show me on the public leaderboard");
     expect(html).toContain("Checkout now on Stripe");
+    expect(html).toContain("Stock Claude Code");
+    expect(html).toContain("With SpinShare");
+    expect(html).toContain("How it pays");
+    expect(html).toContain("Only shown during waits");
     expect(html).toContain("role=developer");
     expect(html).toContain("role=advertiser");
     expect(html).toContain("fixed top-0 left-0 right-0 z-50");

@@ -38,10 +38,17 @@ The route tests mock the container and ledger service to assert:
 - `viewDurationMs: 2999` returns `400` without calling `recordImpression`.
 - `viewDurationMs: 3000` reaches `recordImpression` and returns success.
 
+## Implemented Change (2026-06-15)
+
+Added telemetry bucket coverage for below-minimum view duration, credited
+impressions, and invalid-token failures.
+
 ## Verification
 
 - Red: the below-threshold test failed before the shared schema required duration.
 - Green: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/track/route.test.ts src/app/page.test.tsx src/app/dashboard/advertiser/advertiser-dashboard.test.tsx` passed.
+- Current: `corepack pnpm@9.12.0 --filter @spinshare/web test` passed.
+- Current: `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
 
 ## Change History
 
@@ -49,3 +56,4 @@ The route tests mock the container and ledger service to assert:
 |------|--------|--------|
 | 2026-06-13 | Created doc before adding track route viewability tests. | Codex |
 | 2026-06-13 | Synced docs with track route viewability tests. | Codex |
+| 2026-06-15 | Added track telemetry bucket tests. | Codex |

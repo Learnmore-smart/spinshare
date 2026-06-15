@@ -82,6 +82,11 @@ export interface RecordImpressionInput {
 
 /** Failure status codes the route maps directly to HTTP responses. */
 export type RecordImpressionErrorStatus = 401 | 422;
+export type ImpressionSettlement =
+  | "credited"
+  | "shadowBanned"
+  | "earningCapped"
+  | "duplicate";
 
 /** `422` error code (matches the `POST /api/track` contract body). */
 export const INVALID_CAMPAIGN_ERROR = "invalid_or_insufficient_campaign" as const;
@@ -94,7 +99,7 @@ export const UNAUTHORIZED_ERROR = "unauthorized" as const;
  * `401`/`422` status.
  */
 export type RecordImpressionResult =
-  | { ok: true; response: TrackResponse }
+  | { ok: true; settlement: ImpressionSettlement; response: TrackResponse }
   | { ok: false; status: RecordImpressionErrorStatus; error: string };
 
 /**
@@ -167,20 +172,29 @@ export async function recordImpression(
     hourlyLimitCents: DEVELOPER_HOURLY_EARNING_LIMIT_CENTS,
     dailyLimitCents: DEVELOPER_DAILY_EARNING_LIMIT_CENTS,
   });
-  const suppressed = banned || capExceeded;
 
   // 6. Move money exactly once — only when neither banned nor capped
   // (Requirements 2.4, 2.5, 10.4, 10.5). When suppressed, skip crediting/
   // decrementing/enqueueing entirely and do not count it toward the caps.
-  if (!suppressed) {
-    await counters.applyImpression({
+  let settlement: ImpressionSettlement;
+  if (banned) {
+    settlement = "shadowBanned";
+  } else if (capExceeded) {
+    settlement = "earningCapped";
+  } else {
+    const applied = await counters.applyImpression({
       developerId,
       campaignId: campaign.id,
       entryId: ids.next("entry"),
       split,
       occurredAtMs: nowMs,
     });
-    await counters.addEarnedCents(developerId, split.developerCreditCents, nowMs);
+    if (applied.applied) {
+      await counters.addEarnedCents(developerId, split.developerCreditCents, nowMs);
+      settlement = "credited";
+    } else {
+      settlement = "duplicate";
+    }
   }
 
   // 7. Identical success shape for recorded and shadow-banned (Requirements 2.7,
@@ -190,5 +204,5 @@ export async function recordImpression(
     developerCreditCents: split.developerCreditCents,
     developerCreditUsd: formatCentsAsUsd(split.developerCreditCents),
   };
-  return { ok: true, response };
+  return { ok: true, settlement, response };
 }

@@ -103,14 +103,12 @@ export const LOADING_VERBS = [
 ] as const;
 
 export const LOADING_ICONS = [
-  "\u00b7", // ·
-  "\u002a", // *
-  "\u2736", // ✶
-  "\u2722", // ✢
-  "\u2733", // ✳
-  "\u273b", // ✻
-  "\u273d", // ✽
-  "\u273a", // ✺
+  "\u00b7",
+  "\u002a",
+  "\u2722",
+  "\u2736",
+  "\u273b",
+  "\u273d",
 ] as const;
 
 export type LoadingVerb = (typeof LOADING_VERBS)[number];

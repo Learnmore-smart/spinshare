@@ -31,6 +31,27 @@ Client-side advertiser dashboard shell.
 - Keep authenticated API calls using the provided bearer token.
 - Do not remove loading/error states.
 
+## Planned Change (2026-06-15)
+
+- Summary containers must always render in the ready state, even when every
+  value is zero.
+- Add aggregate telemetry cards: shows, served/credited impressions, clicks,
+  CTR, and non-credit diagnostics.
+- Telemetry must be aggregate campaign data only; no prompts, user content, or
+  private user identifiers.
+
+## Implemented Change (2026-06-15)
+
+The advertiser dashboard now always renders its summary stat containers and
+shows zero values when campaigns or telemetry have not loaded yet. Added
+aggregate cards for total shows, served impressions, clicks, CTR, and
+uncredited totals.
+
+## Verification (2026-06-15)
+
+- `corepack pnpm@9.12.0 --filter @spinshare/web test` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+
 ## Implemented Change (2026-06-14)
 
 - Amber-accent advertiser theme with hero banner, stats row, and two-column layout.

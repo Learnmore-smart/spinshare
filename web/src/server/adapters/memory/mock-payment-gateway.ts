@@ -15,6 +15,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type {
   CheckoutInput,
+  CheckoutSessionResult,
   PaymentGateway,
   StripeEvent,
 } from "../../ports/payment-gateway";
@@ -34,9 +35,13 @@ export class MockPaymentGateway implements PaymentGateway {
 
   async createCheckoutSession(
     input: CheckoutInput,
-  ): Promise<{ url: string; sessionId: string }> {
+  ): Promise<CheckoutSessionResult> {
     const sessionId = this.ids.next("cs");
-    return { sessionId, url: `${CHECKOUT_BASE_URL}/${sessionId}` };
+    return {
+      sessionId,
+      url: input.successUrl ?? `${CHECKOUT_BASE_URL}/${sessionId}`,
+      settled: true,
+    };
   }
 
   verifyAndParseWebhook(rawBody: Buffer, signature: string): StripeEvent {

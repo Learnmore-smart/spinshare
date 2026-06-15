@@ -1,6 +1,6 @@
 # wrap.ts
 
-> Last updated: 2026-06-13 | Protection: STANDARD
+> Last updated: 2026-06-15 | Protection: STANDARD
 
 ## Purpose
 
@@ -10,6 +10,7 @@ with impression reporting.
 ## What It Does
 
 - Spawns a target command and pipes stdout through `SpinnerRenderer`.
+- For interactive agents, runs the target inside a pseudo-terminal so the child still sees TTY semantics while SpinShare observes output.
 - Tracks contiguous spinner wait states.
 - Reports impressions through the injected API client.
 - Preserves child exit-code behavior.
@@ -26,6 +27,7 @@ with impression reporting.
 
 - Internal: `./renderer.js`, `./api-client.js`.
 - External: `node:child_process`, `node:os`, `@spinshare/core` types.
+- External: optional PTY runtime `@homebridge/node-pty-prebuilt-multiarch`.
 
 ## Important Notes / NEVER Change
 
@@ -33,6 +35,39 @@ with impression reporting.
 - No ad means no impression.
 - Child exit code and signal mapping must remain unchanged.
 - On Windows, npm-style `.cmd` agent launchers must be spawnable when the wrapper receives a bare command like `claude`.
+- Interactive CLIs must not be launched through plain pipes; they need a PTY so commands like Claude Code do not switch into non-interactive print behavior.
+
+## Bug Fixes
+
+| Date | Bug | Cause | Fix |
+|------|-----|-------|-----|
+| 2026-06-15 | Claude Code interactive loading (`Pollinating...`) showed no SpinShare ads after the zero-argument passthrough fix. | The passthrough avoided breaking Claude but also skipped the wrapper entirely; the original pipe-based wrapper could observe output but broke TTY-sensitive CLIs. | Add a PTY-backed wrapper path that preserves interactive TTY semantics while still running output through `SpinnerRenderer`. |
+
+## Planned Change (2026-06-15)
+
+Add an injectable PTY runner to `runWrap`. When PTY support is available, use it
+for wrapped agent commands so stdin stays connected, terminal output remains
+interactive, and output can still be classified for ad rendering. Keep the
+existing pipe implementation as a fallback for environments where PTY support is
+unavailable.
+
+## Implemented Change (2026-06-15)
+
+`runWrap` now loads `@homebridge/node-pty-prebuilt-multiarch` by default and
+spawns wrapped commands inside a PTY. PTY output is sent through the same
+renderer/impression tracker as the pipe fallback. PTY stdin is forwarded from
+the wrapper process, TTY raw mode is restored on exit, terminal resize events
+are forwarded when available, and Windows commands are launched through
+`cmd.exe /d /s /c` so `.cmd` agent launchers resolve.
+
+## Verification (2026-06-15)
+
+- Red focused CLI run failed because the injected PTY test still returned the
+  old spawn path exit code.
+- Green focused CLI run passed: `renderer.test.ts` and `wrap.test.ts`, 31 tests.
+- Full CLI tests passed: 10 files, 77 tests.
+- CLI type check passed.
+- Packaged CLI smoke check passed: `node .\vscode-extension\cli-wrapper\dist\index.js --help`.
 
 ## Bug Fixes
 
@@ -75,6 +110,8 @@ while preserving direct spawn behavior on POSIX platforms.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Implemented PTY-backed wrapper path for interactive CLIs. | Codex |
+| 2026-06-15 | Planned PTY-backed interactive wrapper for Claude/Gemini-style CLIs. | Codex |
 | 2026-06-14 | Document Windows `.cmd` spawn support needed by extension terminal shims. | Codex |
 | 2026-06-13 | Created doc before adding CLI 3-second viewability logic. | Codex |
 | 2026-06-13 | Synced doc with implemented CLI delayed viewability reporting. | Codex |

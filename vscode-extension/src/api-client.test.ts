@@ -100,3 +100,30 @@ describe("AdApiClient.reportImpression", () => {
     expect(await client.reportImpression("cmp_9", 3000)).toBeNull();
   });
 });
+
+describe("AdApiClient.startDeviceFlow", () => {
+  it("canonicalizes the production apex host before POSTing device/start", async () => {
+    const { fetchImpl, calls } = makeFetch(() =>
+      jsonResponse({
+        deviceCode: "dc_1",
+        userCode: "WXYZ-1234",
+        verificationUri: "https://www.spinshare.dev/activate",
+        verificationUriComplete:
+          "https://www.spinshare.dev/activate?user_code=WXYZ-1234",
+        intervalSec: 5,
+        expiresInSec: 300,
+      }),
+    );
+    const client = new AdApiClient({
+      baseUrl: "https://spinshare.dev/",
+      fetchImpl,
+    });
+
+    await client.startDeviceFlow();
+
+    expect(calls[0].url).toBe(
+      "https://www.spinshare.dev/api/auth/device/start",
+    );
+    expect(calls[0].method).toBe("POST");
+  });
+});

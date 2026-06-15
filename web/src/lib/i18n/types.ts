@@ -82,11 +82,10 @@ export interface Dictionary {
     title: string;
     step1Title: string;
     step1Body: string;
-    step2Title: string;
-    step2Body: string;
-    step3Title: (pct: number) => string;
+    step2Title: (pct: number) => string;
+    step2Body: (pct: number) => string;
+    step3Title: string;
     step3Body: string;
-    minViewSeconds: string;
   };
   bottomCta: {
     eyebrow: string;
@@ -130,6 +129,10 @@ export interface Dictionary {
     cardDashboard: string;
     cardLive: string;
     cardPayout: string;
+    bulletShare: string;
+    bulletMinView: string;
+    bulletNoUpload: string;
+    bulletExtension: string;
     panelLabel: string;
     roleDeveloper: string;
     roleAdvertiser: string;
@@ -366,6 +369,11 @@ export interface Dictionary {
     redirecting: string;
     amountRejected: string;
     checkoutError: (status: number) => string;
+    totalShows: string;
+    totalServed: string;
+    clicks: string;
+    ctr: string;
+    uncredited: string;
   };
   errors: {
     iconType: string;

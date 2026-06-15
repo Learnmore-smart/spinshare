@@ -38,6 +38,53 @@ This file renders the public SpinShare homepage and polls the live bid market.
 - Keep homepage market values derived from `GET /api/market`, not hardcoded samples.
 - Avoid implying source-code upload or intrusive ad behavior.
 
+## Planned Change (2026-06-15)
+
+Adapt the homepage to the friend's recommended layout structure without copying
+the screenshot's color treatment or UI chrome:
+
+- Keep the existing SpinShare brand palette, glass components, copy, auth links,
+  market polling, bid chart, and public advertiser checkout form.
+- Add a centered landing-page frame so the page reads as a narrow vertical spine
+  rather than disconnected full-width bands.
+- Rebuild the hero as a two-column layout on desktop: money-first copy and CTAs
+  on the left, a compact wait-state product visual with live earning card on the
+  right. Stack cleanly on mobile.
+- Group the Claude-vs-SpinShare before/after demo inside one process panel with
+  a centered heading, arrow, and wide install summary bar below it.
+- Reframe the market-depth section as a two-column proof area: left narrative and
+  live advertiser list, right live CPM chart/table module.
+- Keep the "how it pays" proof cards compact at the bottom of the spine.
+
+## Implemented Change (2026-06-15)
+
+- Added a centered `spinshare-home-frame` main layout so the landing page reads
+  as a narrower vertical spine.
+- Converted the hero into a desktop grid with money-first copy and CTAs on the
+  left and the wait-state comparison panel on the right, stacking on smaller
+  screens.
+- Grouped the Claude-vs-SpinShare comparison with `spinshare-process-panel` and
+  kept the existing animated loading state.
+- Changed the market section container to `spinshare-market-proof-grid`, adding
+  a compact live-bid preview list on the left while preserving the existing live
+  chart, table, advertiser checkout form, and advertiser portal CTA.
+- Added `spinshare-proof-card-row` to keep the lower proof cards aligned.
+
+## Verification (2026-06-15)
+
+- Red test confirmed `page.test.tsx` failed before layout hooks existed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/page.test.tsx`
+  passed after implementation.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+- A later fresh rerun after documentation sync failed because local dependency
+  links were missing (`web/node_modules` only contained `.vite`; packages such
+  as `vitest`, `next`, and `lucide-react` were not resolvable). Offline pnpm
+  relink failed on uncached `@vscode/vsce` metadata, and network install
+  approval was rejected by the app usage limit.
+- Browser visual QA was attempted but blocked by local dev-server launch issues:
+  PowerShell `Start-Process` hit a Windows `Path`/`PATH` environment collision,
+  and the Node runtime spawn path was rejected by the app usage limit.
+
 ## Planned Change (2026-06-14)
 
 Navbar polish:
@@ -282,6 +329,8 @@ Bid-market header timeframe: swap bespoke button group for shared `SegmentSlider
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Implemented friend-reference layout spine, split hero, process panel, and market proof grid | Codex |
+| 2026-06-15 | Planned friend-reference layout adaptation while preserving SpinShare styling and live data | Codex |
 | 2026-06-14 | Bid chart spans full timeframe when history is sparse (padded anchors + numeric X domain) | Cursor |
 | 2026-06-14 | Bid-market timeframe uses `SegmentSlider` mini | Cursor |
 | 2026-06-14 | Fix bid-market chart axis label overlap (margins, axis width, spacing) | Cursor |

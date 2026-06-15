@@ -42,10 +42,22 @@ Small operator guide for manually testing CLI ads, payment funding, and end-to-e
 - Do not include real secrets, tokens, webhook secrets, or account identifiers.
 - Keep the guide short and command-oriented.
 
+## Planned Update (2026-06-15)
+
+Clarify:
+- Stripe test checkout requires a webhook listener such as `stripe listen --forward-to .../api/webhooks/stripe`.
+- The extension auto-wrap affects new integrated terminals after install/sign-in/rebuild.
+- CLI login/device approval is the existing `/activate` polling flow.
+- Local mock checkout settles immediately; real Stripe checkout is webhook-settled.
+- Stripe payout onboarding requires Connect enabled and creates Accounts v2 recipient accounts with Express dashboard access.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Added Stripe Connect payout onboarding test section. | Codex |
+| 2026-06-15 | Planned Stripe Connect payout onboarding test guidance. | Codex |
+| 2026-06-15 | Documented setup-guide/webhook/extension clarification plan. | Codex |
 | 2026-06-14 | Created documentation plan for production self-test guide. | Codex |
 | 2026-06-14 | Updated guide to use `npx.cmd` on PowerShell, spinner-only CLI frames, and production-mode env flags. | Codex |
 | 2026-06-14 | Added `verify:prod-env` guidance. | Codex |

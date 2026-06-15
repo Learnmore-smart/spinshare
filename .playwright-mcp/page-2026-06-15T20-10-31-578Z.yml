@@ -1,0 +1,230 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "SpinShare home" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "SpinShare Logo" [ref=e6]
+          - generic [ref=e7]: SpinShare
+        - navigation [ref=e8]:
+          - link "收益" [ref=e9] [cursor=pointer]:
+            - /url: "#money"
+          - link "竞价深度" [ref=e10] [cursor=pointer]:
+            - /url: "#bid-market"
+          - link "如何结算" [ref=e11] [cursor=pointer]:
+            - /url: "#how-it-pays"
+        - generic [ref=e14]: …
+    - generic [ref=e15]:
+      - main [ref=e16]:
+        - generic [ref=e18]:
+          - generic [ref=e19]:
+            - generic [ref=e20]:
+              - heading "AI 在思考时 你拿钱 money" [level=1] [ref=e21]:
+                - generic [ref=e22]: AI 在思考时
+                - generic [ref=e23]:
+                  - generic [ref=e24]: 你拿钱
+                  - img "money" [ref=e25]: 🤑
+              - generic [ref=e26]:
+                - paragraph [ref=e27]: SpinShare 把 AI 的等待时间变成赚钱时刻。
+                - paragraph [ref=e28]: 60% 的广告收入归你。
+            - link "money 立即安装，顺便赚钱 下一次等待开始，钱就进来 $0.00/月" [ref=e30] [cursor=pointer]:
+              - /url: /signin?role=developer&callbackUrl=%2Fdashboard%2Fdeveloper
+              - img "money" [ref=e32]: 🤑
+              - generic [ref=e33]:
+                - generic [ref=e34]: 立即安装，顺便赚钱
+                - generic [ref=e35]: 下一次等待开始，钱就进来
+              - generic [ref=e36]:
+                - text: $0.00/月
+                - img [ref=e37]
+            - generic [ref=e39]:
+              - generic [ref=e40]: 60% 广告收入计入你的账户。
+              - link "广告主为下一次等待出价" [ref=e41] [cursor=pointer]:
+                - /url: /signin?role=advertiser&callbackUrl=%2Fdashboard%2Fadvertiser
+                - text: 广告主为下一次等待出价
+                - img [ref=e42]
+          - generic [ref=e45]:
+            - generic [ref=e46]:
+              - generic [ref=e47]: 实时收益
+              - generic [ref=e49]:
+                - img [ref=e50]
+                - text: +12%
+            - generic [ref=e53]:
+              - generic [ref=e54]: +$0.00
+              - paragraph [ref=e55]: 本月预估收益
+            - generic [ref=e58]:
+              - generic [ref=e59]:
+                - paragraph [ref=e60]: 广告数
+                - paragraph [ref=e61]: "--"
+              - generic [ref=e63]:
+                - paragraph [ref=e64]: 展示次数
+                - paragraph [ref=e65]: "--"
+        - generic [ref=e67]:
+          - generic [ref=e68]:
+            - paragraph [ref=e69]: 如何结算
+            - heading "等待过程，如何变现" [level=2] [ref=e70]
+          - generic [ref=e71]:
+            - generic [ref=e72]:
+              - paragraph [ref=e73]: 原生 Claude Code
+              - generic [ref=e75]:
+                - generic [ref=e76]:
+                  - generic [ref=e77]: ·
+                  - generic [ref=e78]: Absorbing
+                - generic [ref=e79]: Bash · 0.0s
+            - generic [ref=e81]: »
+            - generic [ref=e82]:
+              - paragraph [ref=e83]: 装上 SpinShare
+              - generic [ref=e85]:
+                - generic [ref=e86]:
+                  - img [ref=e87]
+                  - generic [ref=e88]: LearnX · 精准定位学习内容
+                - generic [ref=e89]: Bash · 0.0s
+        - generic [ref=e90]:
+          - generic [ref=e91]:
+            - paragraph [ref=e92]: 竞价深度
+            - heading "广告主资金排队等候下一次加载。" [level=2] [ref=e93]
+            - paragraph [ref=e94]: 出资最高的 CPM 赢得展示位。你看到的是真金白银，不是黑箱。
+          - generic [ref=e96]:
+            - generic [ref=e97]:
+              - generic [ref=e98]:
+                - generic [ref=e99]: 竞价市场
+                - generic [ref=e100]: $0.00
+                - generic [ref=e101]: 每千次展示
+              - generic [ref=e102]:
+                - tablist "图表时间范围" [ref=e103]:
+                  - tab "24小时" [selected] [ref=e104] [cursor=pointer]:
+                    - generic [ref=e105]: 24小时
+                  - tab "全部" [ref=e106] [cursor=pointer]:
+                    - generic [ref=e107]: 全部
+                - generic [ref=e108]: 0 个广告在线
+            - paragraph [ref=e113]: 正在加载实时出价…
+            - generic [ref=e115]:
+              - generic [ref=e116]:
+                - generic [ref=e117]: "#"
+                - generic [ref=e118]: 活动
+                - generic [ref=e119]: 出价 / 千次展示
+                - generic [ref=e120]: 总付款
+                - generic [ref=e121]: 已展示 / 已购买
+              - generic [ref=e122]:
+                - paragraph [ref=e123]: 正在加载实时出价…
+                - paragraph [ref=e124]: 有预算的广告活动将自动显示在这里。
+          - generic [ref=e127]:
+            - generic [ref=e128]:
+              - paragraph [ref=e129]: 广告主
+              - heading "为最受关注的加载条实时出价。" [level=3] [ref=e130]
+              - paragraph [ref=e131]: 每个区块购买 1,000 次、每次 5 秒的展示。出价越高排名越靠前；私密出价仍会投放，但不会出现在公开市场榜单。
+              - generic [ref=e132]:
+                - generic [ref=e133]:
+                  - generic [ref=e134]:
+                    - paragraph [ref=e135]: 预估总额
+                    - paragraph [ref=e136]: 1 个区块，每区块 $5.00
+                  - paragraph [ref=e137]: $5.00
+                - generic [ref=e138]:
+                  - generic [ref=e139]:
+                    - paragraph [ref=e140]: $5.00
+                    - paragraph [ref=e141]: 每区块
+                  - generic [ref=e142]:
+                    - paragraph [ref=e143]: "1"
+                    - paragraph [ref=e144]: 区块数
+                  - generic [ref=e145]:
+                    - paragraph [ref=e146]: 1,000
+                    - paragraph [ref=e147]: 总展示
+            - generic [ref=e148]:
+              - generic [ref=e149]:
+                - generic [ref=e150]:
+                  - text: 邮箱
+                  - textbox "邮箱" [ref=e151]:
+                    - /placeholder: you@example.com
+                - generic [ref=e152]:
+                  - text: 落地页 URL
+                  - textbox "落地页 URL" [ref=e153]:
+                    - /placeholder: https://www.learnx.pro
+              - generic [ref=e154]:
+                - generic [ref=e155]:
+                  - generic [ref=e156]: 广告文案 · 3-60 字
+                  - generic [ref=e157]: 0/60
+                - textbox "广告文案 · 3-60 字 0/60" [ref=e158]:
+                  - /placeholder: LearnX - 精准定位学习内容
+              - generic [ref=e159]:
+                - generic [ref=e160]:
+                  - text: 品牌名称
+                  - textbox "品牌名称" [ref=e161]:
+                    - /placeholder: LearnX
+                - generic [ref=e162]:
+                  - text: 品牌图标
+                  - generic [ref=e163] [cursor=pointer]:
+                    - generic [ref=e164]:
+                      - img [ref=e166]
+                      - generic [ref=e169]: PNG、JPG、WebP，≤ 64 KB
+                    - button "品牌图标 PNG、JPG、WebP，≤ 64 KB" [ref=e170]
+              - generic [ref=e171] [cursor=pointer]:
+                - generic [ref=e172]:
+                  - img [ref=e173]
+                  - generic [ref=e176]: 在公开排行榜展示我
+                - generic [ref=e177]:
+                  - checkbox "在公开排行榜展示我" [checked] [ref=e178]
+                  - img [ref=e180]
+              - generic [ref=e182]:
+                - generic [ref=e183]:
+                  - text: 每区块出价
+                  - spinbutton "每区块出价" [ref=e184]: "5.00"
+                - generic [ref=e185]:
+                  - text: 区块数量
+                  - spinbutton "区块数量" [ref=e186]: "1"
+              - button "前往 Stripe 结账" [ref=e187] [cursor=pointer]:
+                - text: 前往 Stripe 结账
+                - img [ref=e188]
+          - generic [ref=e190]:
+            - generic [ref=e191]:
+              - paragraph [ref=e192]: 广告主可以推动这个市场。
+              - paragraph [ref=e193]: 增加预算、提高 CPM，赢得下一次等待时的展示位。
+            - link "打开广告主入口" [ref=e194] [cursor=pointer]:
+              - /url: /signin?role=advertiser&callbackUrl=%2Fdashboard%2Fadvertiser
+              - text: 打开广告主入口
+              - img [ref=e195]
+        - generic [ref=e198]:
+          - heading "如何结算" [level=2] [ref=e200]
+          - generic [ref=e201]:
+            - generic [ref=e202]:
+              - img [ref=e204]
+              - generic [ref=e207]:
+                - heading "只在等待时展示" [level=3] [ref=e208]
+                - paragraph [ref=e209]: 仅在 AI 思考/等待期间展示广告，不打断你的使用体验。
+            - generic [ref=e210]:
+              - img [ref=e212]:
+                - generic [ref=e213]: 60%
+              - generic [ref=e215]:
+                - heading "广告收入 60% 归你" [level=3] [ref=e216]
+                - paragraph [ref=e217]: 广告主为每次展示付费，我们把 60% 收入自动归你。
+            - generic [ref=e218]:
+              - img [ref=e220]
+              - generic [ref=e223]:
+                - heading "收益透明结算" [level=3] [ref=e224]
+                - paragraph [ref=e225]: 实时统计，按月结算，支持多种提现方式。
+        - generic [ref=e227]:
+          - generic [ref=e228]:
+            - paragraph [ref=e229]: 下一次有偿等待
+            - heading "让广告主的钱流入你的加载条。" [level=2] [ref=e230]
+          - link "money 开始赚钱" [ref=e231] [cursor=pointer]:
+            - /url: /signin?role=developer&callbackUrl=%2Fdashboard%2Fdeveloper
+            - img "money" [ref=e232]: 🤑
+            - text: 开始赚钱
+            - img [ref=e233]
+      - contentinfo [ref=e235]:
+        - generic [ref=e236]:
+          - generic [ref=e237]:
+            - img "SpinShare Logo" [ref=e238]
+            - generic [ref=e239]: SpinShare
+          - paragraph [ref=e240]: © 2026 SpinShare. 把 AI 编程工具的等待时刻变成入账时刻。
+          - generic [ref=e241]:
+            - link "用户登录" [ref=e242] [cursor=pointer]:
+              - /url: /signin?role=developer
+            - link "隐私" [ref=e243] [cursor=pointer]:
+              - /url: /privacy
+            - link "条款" [ref=e244] [cursor=pointer]:
+              - /url: /terms
+            - 'button "语言: 自动" [ref=e246] [cursor=pointer]':
+              - img [ref=e247]
+              - generic [ref=e250]: 自动
+              - img [ref=e251]
+  - button "Open Next.js Dev Tools" [ref=e258] [cursor=pointer]:
+    - img [ref=e259]
