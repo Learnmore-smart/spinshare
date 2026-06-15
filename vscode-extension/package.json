@@ -3,7 +3,7 @@
   "displayName": "SpinShare",
   "version": "0.1.1",
   "private": true,
-  "description": "SpinShare extension — shows ads in a progress notification during AI generation wait states. Compatible with VSCode, Trae, and Cursor.",
+  "description": "SpinShare extension: wraps terminal AI agents and shows ads during AI generation wait states. Compatible with VSCode, Trae, and Cursor.",
   "publisher": "spinshare",
   "icon": "media/icon.png",
   "repository": {
@@ -45,6 +45,10 @@
       {
         "command": "spinshare.completeGeneration",
         "title": "SpinShare: Complete Generation (dismiss ad)"
+      },
+      {
+        "command": "spinshare.rebuildTerminalShims",
+        "title": "SpinShare: Rebuild Terminal Shims"
       }
     ],
     "configuration": {
@@ -54,6 +58,22 @@
           "type": "string",
           "default": "https://www.spinshare.dev",
           "description": "Base URL of the SpinShare web application."
+        },
+        "spinshare.terminalAutoWrap": {
+          "type": "boolean",
+          "default": true,
+          "description": "When enabled, new integrated terminals resolve configured AI agent commands through SpinShare shims before the real command runs."
+        },
+        "spinshare.terminalAgents": {
+          "type": "array",
+          "default": [
+            "claude"
+          ],
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._-]+$"
+          },
+          "description": "Command names SpinShare should auto-wrap in new integrated terminals."
         }
       }
     }

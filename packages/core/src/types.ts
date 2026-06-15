@@ -48,11 +48,22 @@ export interface User {
   role: UserRole;
   /** Accumulated developer earnings in integer cents. */
   balanceCents: number;
+  /**
+   * Stripe Connect (Express) account id for developer payouts, set once the
+   * developer starts payout onboarding. Absent until they connect.
+   */
+  stripeConnectAccountId?: string;
+  /**
+   * Whether the connected account has finished onboarding and is cleared to
+   * receive payouts (mirrors Stripe's `payouts_enabled`). Absent/false until
+   * onboarding completes.
+   */
+  payoutsEnabled?: boolean;
 }
 
 /**
  * An advertiser campaign. Mirrors `campaigns/{campaignId}`.
- * `cpmCents` is the max CPM bid in cents (1..100000 ⇒ $0.01..$1000.00).
+ * `cpmCents` is the max CPM bid in cents (100..100000 ⇒ $1.00..$1000.00).
  * `budgetCents` is the remaining budget in cents; new campaigns start at 0.
  */
 export interface Campaign {

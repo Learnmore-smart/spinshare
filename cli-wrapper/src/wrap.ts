@@ -6,7 +6,7 @@
  * has stayed active for the 3-second viewability minimum.
  */
 
-import { spawn } from "node:child_process";
+import { spawn, type SpawnOptions } from "node:child_process";
 import * as os from "node:os";
 
 import type { AdResponse } from "@spinshare/core";
@@ -132,6 +132,15 @@ export function exitCodeFor(
   return code ?? 0;
 }
 
+export function spawnOptionsForPlatform(
+  platform: NodeJS.Platform = process.platform,
+): SpawnOptions {
+  return {
+    stdio: ["inherit", "pipe", "pipe"],
+    ...(platform === "win32" ? { shell: true } : {}),
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Thin spawning shell around the pure units
 // ---------------------------------------------------------------------------
@@ -210,9 +219,7 @@ export async function runWrap(options: RunWrapOptions): Promise<number> {
     reportTimer = setTimeout(reportIfEligible, VIEWABILITY_MIN_MS);
   }
 
-  const child = spawnImpl(target, args, {
-    stdio: ["inherit", "pipe", "pipe"],
-  });
+  const child = spawnImpl(target, args, spawnOptionsForPlatform());
 
   child.stderr?.on("data", (chunk: Buffer) => {
     stderr.write(chunk);

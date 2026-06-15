@@ -20,6 +20,34 @@ export function msUntilUtcMidnight(now = Date.now()): number {
   return startOfUtcDayMs(now) + 24 * 60 * 60 * 1000 - now;
 }
 
+/** Milliseconds from `now` until the next UTC hour boundary. */
+export function msUntilNextUtcHour(now = Date.now()): number {
+  const hourStart = Math.floor(now / ROLLING_HOUR_MS) * ROLLING_HOUR_MS;
+  return hourStart + ROLLING_HOUR_MS - now;
+}
+
+/** Length of the dashboard's rolling hourly earning window. */
+export const ROLLING_HOUR_MS = 60 * 60 * 1000;
+
+/**
+ * Milliseconds until the oldest credit still inside the rolling hour window
+ * falls out. Returns `null` when the window is empty.
+ */
+export function msUntilOldestRollingHourCreditExpires(
+  creditTimestampsMs: readonly number[],
+  now = Date.now(),
+): number | null {
+  const windowStart = now - ROLLING_HOUR_MS;
+  let oldest: number | undefined;
+  for (const atMs of creditTimestampsMs) {
+    if (atMs >= windowStart && (oldest === undefined || atMs < oldest)) {
+      oldest = atMs;
+    }
+  }
+  if (oldest === undefined) return null;
+  return Math.max(0, oldest + ROLLING_HOUR_MS - now);
+}
+
 /** `13h 58m` style countdown from a millisecond duration. */
 export function formatDurationShort(ms: number): string {
   const totalMinutes = Math.max(0, Math.floor(ms / 60_000));

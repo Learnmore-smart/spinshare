@@ -31,4 +31,13 @@ export interface UserRepository {
   upsertFromIdentity(identity: ExternalIdentity): Promise<User>;
   /** Applies a signed balance delta (flush reconciliation only). */
   applyBalanceDeltaCents(id: string, deltaCents: number): Promise<void>;
+  /**
+   * Persists the developer's Stripe Connect account id and current payout
+   * eligibility (set during payout onboarding and refreshed from Stripe).
+   * Returns the updated user, or throws if the user does not exist.
+   */
+  setConnectAccount(
+    id: string,
+    input: { stripeConnectAccountId: string; payoutsEnabled: boolean },
+  ): Promise<User>;
 }

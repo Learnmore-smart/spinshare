@@ -41,8 +41,8 @@ const RUNS = { numRuns: 100 } as const;
 const DEV = "dev-1";
 const CAMPAIGN_ID = "cmp-1";
 
-/** Valid CPM range from the design: `cpmCents` 1..100000 ($0.01–$1000.00). */
-const validCpmCentsArb = fc.integer({ min: 1, max: 100000 });
+/** Valid CPM range from the design: `cpmCents` 100..100000 ($1.00–$1000.00). */
+const validCpmCentsArb = fc.integer({ min: 100, max: 100000 });
 
 interface Harness {
   deps: LedgerServiceDeps;

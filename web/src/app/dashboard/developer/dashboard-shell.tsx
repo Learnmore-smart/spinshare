@@ -8,6 +8,8 @@ import { LayoutDashboard, LineChart, ScrollText, Settings } from "lucide-react";
 
 import { useT } from "@/lib/i18n/locale-provider";
 
+import { DashboardRoleSwitcher } from "@/components/DashboardRoleSwitcher";
+
 export interface DashboardShellProps {
   children: ReactNode;
 }
@@ -101,6 +103,10 @@ export function DashboardShell({ children }: DashboardShellProps) {
       </aside>
 
       <div className="dev-dash-main">
+        <div className="dev-dash-topbar">
+          <div className="dev-dash-topbar-spacer" aria-hidden />
+          <DashboardRoleSwitcher />
+        </div>
         <main className="dev-dash-main-inner">{children}</main>
       </div>
     </div>

@@ -13,15 +13,9 @@
  */
 
 import { useState } from "react";
+import { Layers, Wallet } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { useT } from "@/lib/i18n/locale-provider";
 import { translateValidationError } from "@/lib/i18n/translate-validation-error";
 
@@ -39,19 +33,18 @@ export function CampaignList({ token, campaigns }: CampaignListProps) {
   const t = useT();
   if (campaigns.length === 0) {
     return (
-      <Card data-testid="campaigns-empty">
-        <CardHeader>
-          <CardTitle className="text-primary">{t.advertiserDashboard.noCampaignsTitle}</CardTitle>
-          <CardDescription>
-            {t.advertiserDashboard.noCampaignsDesc}
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <div className="adv-dash-empty" data-testid="campaigns-empty">
+        <div className="adv-dash-empty-icon">
+          <Layers className="h-5 w-5" aria-hidden />
+        </div>
+        <p className="adv-dash-empty-title">{t.advertiserDashboard.noCampaignsTitle}</p>
+        <p className="adv-dash-empty-body">{t.advertiserDashboard.noCampaignsDesc}</p>
+      </div>
     );
   }
 
   return (
-    <ul className="flex flex-col gap-4" data-testid="campaigns-list">
+    <ul className="flex flex-col gap-3" data-testid="campaigns-list">
       {campaigns.map((campaign) => (
         <li key={campaign.id}>
           <CampaignCard token={token} campaign={campaign} />
@@ -59,6 +52,14 @@ export function CampaignList({ token, campaigns }: CampaignListProps) {
       ))}
     </ul>
   );
+}
+
+function statusClass(status: string): string {
+  const normalized = status.toLowerCase();
+  if (normalized === "active" || normalized === "bidding") {
+    return "adv-dash-status adv-dash-status--active";
+  }
+  return "adv-dash-status adv-dash-status--paused";
 }
 
 /** A single campaign row with its stats and the "Add Funds" control. */
@@ -99,7 +100,6 @@ function CampaignCard({
 
       if (response.ok) {
         const body = (await response.json()) as { url: string };
-        // Hand off to Stripe's hosted checkout (R9.6).
         window.location.href = body.url;
         return;
       }
@@ -121,71 +121,64 @@ function CampaignCard({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base text-foreground">
-          {campaign.adText}
-        </CardTitle>
-        <CardDescription className="flex flex-wrap gap-x-6 gap-y-1">
+    <article className="adv-dash-campaign-card">
+      <div className="adv-dash-campaign-head">
+        <p className="adv-dash-campaign-text">{campaign.adText}</p>
+        <div className="adv-dash-campaign-meta">
           <span>
             {t.advertiserDashboard.remainingBudget}{" "}
-            <span className="font-medium text-primary tabular-nums">
-              {formatUsd(campaign.budgetCents)}
-            </span>
+            <strong>{formatUsd(campaign.budgetCents)}</strong>
           </span>
           <span>
             {t.advertiserDashboard.maxCpm}{" "}
-            <span className="font-medium text-foreground tabular-nums">
-              {formatUsd(campaign.cpmCents)}
-            </span>
+            <strong>{formatUsd(campaign.cpmCents)}</strong>
           </span>
-          <span className="uppercase tracking-wide text-muted-foreground">
-            {campaign.status}
-          </span>
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col gap-2">
-          <label
-            htmlFor={`funds-${campaign.id}`}
-            className="text-sm font-medium"
-          >
-            {t.advertiserDashboard.addFundsLabel}
-          </label>
-          <div className="flex flex-wrap items-start gap-2">
-            <input
-              id={`funds-${campaign.id}`}
-              type="number"
-              inputMode="decimal"
-              min="1"
-              max="100000"
-              step="0.01"
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
-              placeholder={t.advertiserDashboard.addFundsPlaceholder}
-              className="w-40 spinshare-input px-3 py-2 text-sm"
-            />
-            <Button
-              type="button"
-              variant="outline"
-              disabled={busy}
-              onClick={() => {
-                void addFunds();
-              }}
-            >
-              {busy ? t.advertiserDashboard.redirecting : t.advertiserDashboard.addFunds}
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {t.advertiserDashboard.addFundsHint}
-          </p>
-          {error !== null && (
-            <p className="text-sm text-destructive" role="alert">
-              {error}
-            </p>
-          )}
+          <span className={statusClass(campaign.status)}>{campaign.status}</span>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+
+      <div className="adv-dash-campaign-funds">
+        <label
+          htmlFor={`funds-${campaign.id}`}
+          className="flex items-center gap-2 text-sm font-bold text-foreground"
+        >
+          <Wallet className="h-4 w-4 text-amber-600" aria-hidden />
+          {t.advertiserDashboard.addFundsLabel}
+        </label>
+        <div className="mt-2 flex flex-wrap items-start gap-2">
+          <input
+            id={`funds-${campaign.id}`}
+            type="number"
+            inputMode="decimal"
+            min="1"
+            max="100000"
+            step="0.01"
+            value={amount}
+            onChange={(event) => setAmount(event.target.value)}
+            placeholder={t.advertiserDashboard.addFundsPlaceholder}
+            className="w-full min-w-0 flex-1 spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal sm:max-w-[10rem]"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            disabled={busy}
+            className="border-amber-300/60 font-bold hover:bg-amber-50 dark:hover:bg-amber-950/30"
+            onClick={() => {
+              void addFunds();
+            }}
+          >
+            {busy ? t.advertiserDashboard.redirecting : t.advertiserDashboard.addFunds}
+          </Button>
+        </div>
+        <p className="mt-1.5 text-xs font-semibold text-muted-foreground">
+          {t.advertiserDashboard.addFundsHint}
+        </p>
+        {error !== null && (
+          <p className="mt-2 text-sm font-semibold text-destructive" role="alert">
+            {error}
+          </p>
+        )}
+      </div>
+    </article>
   );
 }

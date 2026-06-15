@@ -6,7 +6,7 @@
  * A client component that lets an authenticated advertiser create a campaign:
  *   - an ad-text field with a **live 60-char counter** that enforces the limit
  *     (R9.1, R9.2) and flags empty/whitespace-only input (R9.3),
- *   - a CPM bid field constrained to $0.01–$1,000.00 (R9.1, R9.4).
+ *   - a CPM bid field constrained to $1.00–$1,000.00 (R9.1, R9.4).
  *
  * On submit it validates locally against the shared core bounds (so the UI
  * never sends a request the API would reject), then `POST`s to `/api/campaigns`
@@ -17,15 +17,9 @@
 
 import { type ChangeEvent, type FormEvent, useState } from "react";
 import { AD_TEXT_MAX_LENGTH } from "@spinshare/core";
+import { Check, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { useT } from "@/lib/i18n/locale-provider";
 import { translateValidationError } from "@/lib/i18n/translate-validation-error";
 
@@ -75,7 +69,7 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
   const counterClass = text.overLimit
     ? "text-destructive"
     : text.remaining <= 10
-      ? "text-yellow-400"
+      ? "text-amber-500"
       : "text-muted-foreground";
 
   async function handleIconChange(
@@ -88,19 +82,19 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
       return;
     }
     if (!ICON_TYPES.has(file.type)) {
-      setError("Brand icon must be a PNG, JPG, or WebP image.");
+      setError(t.errors.iconType);
       event.target.value = "";
       return;
     }
     if (file.size > ICON_MAX_BYTES) {
-      setError("Brand icon must be 64 KB or smaller.");
+      setError(t.errors.iconSize);
       event.target.value = "";
       return;
     }
     try {
       setBrandIconDataUrl(await readFileAsDataUrl(file));
     } catch {
-      setError("Could not read the brand icon. Try another image.");
+      setError(t.errors.iconRead);
       event.target.value = "";
     }
   }
@@ -110,7 +104,6 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
     setError(null);
     setSuccess(null);
 
-    // Validate locally against the shared bounds before hitting the network.
     if (!text.valid) {
       setError(
         text.isEmpty
@@ -182,28 +175,25 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-primary">{t.advertiserDashboard.newCampaign}</CardTitle>
-        <CardDescription>
-          {t.advertiserDashboard.newCampaignDesc}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-baseline justify-between">
-              <label htmlFor="adText" className="text-sm font-medium">
-                {t.advertiserDashboard.adText}
-              </label>
+    <section className="adv-dash-panel">
+      <div className="adv-dash-panel-header">
+        <h2 className="adv-dash-panel-title">{t.advertiserDashboard.newCampaign}</h2>
+        <p className="adv-dash-panel-desc">{t.advertiserDashboard.newCampaignDesc}</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="adv-dash-panel-body flex flex-col gap-6" noValidate>
+        <div className="flex flex-col gap-4">
+          <label className="adv-dash-field-label">
+            <span className="flex items-baseline justify-between gap-3">
+              <span>{t.advertiserDashboard.adText}</span>
               <span
-                className={`text-xs tabular-nums ${counterClass}`}
+                className={`text-xs font-bold tabular-nums ${counterClass}`}
                 aria-live="polite"
                 data-testid="char-counter"
               >
                 {text.length}/{AD_TEXT_MAX_LENGTH}
               </span>
-            </div>
+            </span>
             <input
               id="adText"
               name="adText"
@@ -212,14 +202,12 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
               maxLength={AD_TEXT_MAX_LENGTH}
               onChange={(event) => setAdText(event.target.value)}
               placeholder={t.advertiserDashboard.adTextPlaceholder}
-              className="spinshare-input px-3 py-2 text-sm"
+              className="spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal"
             />
-          </div>
+          </label>
 
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="destinationUrl" className="text-sm font-medium">
-              {t.advertiserDashboard.destinationUrl}
-            </label>
+          <label className="adv-dash-field-label">
+            {t.advertiserDashboard.destinationUrl}
             <input
               id="destinationUrl"
               name="destinationUrl"
@@ -227,97 +215,122 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
               value={destinationUrl}
               onChange={(event) => setDestinationUrl(event.target.value)}
               placeholder={t.advertiserDashboard.destinationPlaceholder}
-              className="spinshare-input px-3 py-2 text-sm"
+              className="spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal"
             />
-            <p className="text-xs text-muted-foreground">
+            <span className="text-xs font-semibold text-muted-foreground">
               {t.advertiserDashboard.destinationHint}
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="brandName" className="text-sm font-medium">
-              {t.advertiserDashboard.brandName}
-            </label>
-            <input
-              id="brandName"
-              name="brandName"
-              type="text"
-              value={brandName}
-              onChange={(event) => setBrandName(event.target.value)}
-              placeholder={t.advertiserDashboard.brandNamePlaceholder}
-              className="spinshare-input px-3 py-2 text-sm"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="brandIcon" className="text-sm font-medium">
-              {t.advertiserDashboard.brandIcon}
-            </label>
-            <input
-              id="brandIcon"
-              name="brandIcon"
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              onChange={handleIconChange}
-              className="spinshare-input px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-muted file:px-2 file:py-1 file:text-xs"
-            />
-            <p className="text-xs text-muted-foreground">
-              {brandIconDataUrl
-                ? t.advertiserDashboard.iconReady
-                : t.advertiserDashboard.iconHint}
-            </p>
-          </div>
-
-          <label className="flex cursor-pointer items-center justify-between gap-3 text-sm font-medium">
-            <span>{t.advertiserDashboard.showOnLeaderboard}</span>
-            <input
-              type="checkbox"
-              checked={publicOnLeaderboard}
-              onChange={(event) =>
-                setPublicOnLeaderboard(event.target.checked)
-              }
-              className="h-4 w-4"
-            />
+            </span>
           </label>
+        </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="cpm" className="text-sm font-medium">
-              {t.advertiserDashboard.maxCpmBid}
+        <div className="flex flex-col gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="adv-dash-field-label">
+              {t.advertiserDashboard.brandName}
+              <input
+                id="brandName"
+                name="brandName"
+                type="text"
+                value={brandName}
+                onChange={(event) => setBrandName(event.target.value)}
+                placeholder={t.advertiserDashboard.brandNamePlaceholder}
+                className="spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal"
+              />
             </label>
+
+            <label className="adv-dash-field-label">
+              {t.advertiserDashboard.brandIcon}
+              <span className="spinshare-input flex h-[42px] cursor-pointer items-center justify-between gap-3 px-3 py-2.5 text-sm font-semibold normal-case tracking-normal text-[var(--text-secondary)]">
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden">
+                    {brandIconDataUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- data URL preview
+                      <img
+                        src={brandIconDataUrl}
+                        alt=""
+                        className="max-h-6 max-w-6 object-contain"
+                      />
+                    ) : (
+                      <Upload className="h-4 w-4 shrink-0" aria-hidden />
+                    )}
+                  </span>
+                  <span className="truncate">
+                    {brandIconDataUrl
+                      ? t.advertiserDashboard.iconReady
+                      : t.advertiserDashboard.iconHint}
+                  </span>
+                </span>
+                <input
+                  id="brandIcon"
+                  name="brandIcon"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={handleIconChange}
+                  className="sr-only"
+                />
+              </span>
+            </label>
+          </div>
+
+          <label className="adv-dash-toggle">
+            <span>{t.advertiserDashboard.showOnLeaderboard}</span>
+            <span className="relative shrink-0">
+              <input
+                type="checkbox"
+                checked={publicOnLeaderboard}
+                onChange={(event) =>
+                  setPublicOnLeaderboard(event.target.checked)
+                }
+                className="peer sr-only"
+              />
+              <span className="adv-dash-toggle-box peer-focus-visible:ring-2 peer-focus-visible:ring-amber-400/50 peer-focus-visible:ring-offset-2">
+                <Check className="h-3.5 w-3.5" />
+              </span>
+            </span>
+          </label>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <label className="adv-dash-field-label">
+            {t.advertiserDashboard.maxCpmBid}
             <input
               id="cpm"
               name="cpm"
               type="number"
               inputMode="decimal"
-              min="0.01"
+              min="1"
               max="1000"
               step="0.01"
               value={cpm}
               onChange={(event) => setCpm(event.target.value)}
               placeholder={t.advertiserDashboard.cpmPlaceholder}
-              className="spinshare-input px-3 py-2 text-sm"
+              className="spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal"
             />
-            <p className="text-xs text-muted-foreground">
+            <span className="text-xs font-semibold text-muted-foreground">
               {t.advertiserDashboard.cpmHint}
-            </p>
-          </div>
+            </span>
+          </label>
+        </div>
 
-          {error !== null && (
-            <p className="text-sm text-destructive" role="alert">
-              {error}
-            </p>
-          )}
-          {success !== null && (
-            <p className="text-sm text-primary" role="status">
-              {success}
-            </p>
-          )}
+        {error !== null && (
+          <p className="text-sm font-semibold text-destructive" role="alert">
+            {error}
+          </p>
+        )}
+        {success !== null && (
+          <p className="text-sm font-semibold text-amber-600 dark:text-amber-400" role="status">
+            {success}
+          </p>
+        )}
 
-          <Button type="submit" disabled={submitting || !text.valid}>
-            {submitting ? t.advertiserDashboard.creating : t.advertiserDashboard.createCampaign}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+        <Button
+          type="submit"
+          disabled={submitting || !text.valid}
+          className="adv-dash-submit-btn w-full bg-amber-600 font-bold shadow-none hover:bg-amber-500 sm:w-auto"
+        >
+          {submitting ? t.advertiserDashboard.creating : t.advertiserDashboard.createCampaign}
+        </Button>
+      </form>
+    </section>
   );
 }

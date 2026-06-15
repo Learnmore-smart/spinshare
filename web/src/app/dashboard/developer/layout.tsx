@@ -18,6 +18,7 @@ import { DashboardShell } from "./dashboard-shell";
 import { DeveloperDashboardProvider } from "./developer-dashboard-data";
 import { DeveloperDashboardError } from "./developer-dashboard-parts";
 import { summarizeLedger } from "./summarize-ledger";
+import "../dashboard-role-switcher.css";
 import "./developer-dashboard.css";
 
 export const dynamic = "force-dynamic";

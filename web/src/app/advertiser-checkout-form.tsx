@@ -1,9 +1,9 @@
 "use client";
 
 import { type ChangeEvent, type FormEvent, useMemo, useState } from "react";
-import { ArrowRight, Check, ImagePlus, Lock, Upload } from "lucide-react";
+import { ArrowRight, Check, Lock, Upload } from "lucide-react";
 
-import { AD_TEXT_MAX_LENGTH } from "@spinshare/core";
+import { AD_TEXT_MAX_LENGTH, advertiserEmailSchema } from "@spinshare/core";
 
 import {
   adTextState,
@@ -15,8 +15,20 @@ import { translateValidationError } from "@/lib/i18n/translate-validation-error"
 
 const ICON_MAX_BYTES = 64 * 1024;
 const ICON_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+const FIELD_SHAKE_MS = 500;
+const SHAKE_INPUT_CLASS =
+  " !border-red-500 !ring-2 !ring-red-300 animate-shake";
 
 type SubmitState = "idle" | "submitting";
+type CheckoutShakeField = "email" | "adLine";
+
+function isEmailValidationMessage(message: string): boolean {
+  const normalized = message.trim().toLowerCase();
+  return (
+    normalized.includes("email") ||
+    normalized === "enter a valid email address"
+  );
+}
 
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -52,7 +64,37 @@ export default function AdvertiserCheckoutForm() {
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [error, setError] = useState<string | null>(null);
 
-  const [adLineShake, setAdLineShake] = useState(false);
+  const [shakingFields, setShakingFields] = useState<
+    Set<CheckoutShakeField>
+  >(new Set());
+
+  function isFieldShaking(field: CheckoutShakeField): boolean {
+    return shakingFields.has(field);
+  }
+
+  function clearFieldShake(field: CheckoutShakeField): void {
+    setShakingFields((previous) => {
+      if (!previous.has(field)) return previous;
+      const next = new Set(previous);
+      next.delete(field);
+      return next;
+    });
+  }
+
+  function triggerFieldShake(field: CheckoutShakeField): void {
+    setShakingFields((previous) => {
+      const next = new Set(previous);
+      next.delete(field);
+      return next;
+    });
+
+    requestAnimationFrame(() => {
+      setShakingFields((previous) => new Set(previous).add(field));
+      window.setTimeout(() => {
+        clearFieldShake(field);
+      }, FIELD_SHAKE_MS);
+    });
+  }
 
   const text = adTextState(adText);
   const cpm = validateCpmDollars(bidPerBlock);
@@ -94,13 +136,12 @@ export default function AdvertiserCheckoutForm() {
     event.preventDefault();
     setError(null);
 
+    if (!advertiserEmailSchema.safeParse(email).success) {
+      triggerFieldShake("email");
+      return;
+    }
     if (!text.valid) {
-      if (text.isEmpty) {
-        setAdLineShake(true);
-        setTimeout(() => setAdLineShake(false), 500);
-      } else {
-        setError(t.errors.adLineMaxLength(AD_TEXT_MAX_LENGTH));
-      }
+      triggerFieldShake("adLine");
       return;
     }
     if (!cpm.ok) {
@@ -138,7 +179,12 @@ export default function AdvertiserCheckoutForm() {
         | null;
 
       if (!response.ok || typeof body?.url !== "string") {
-        setError(body?.error ?? t.errors.checkoutFailed(response.status));
+        const apiError = body?.error ?? t.errors.checkoutFailed(response.status);
+        if (isEmailValidationMessage(apiError)) {
+          triggerFieldShake("email");
+          return;
+        }
+        setError(apiError);
         return;
       }
 
@@ -205,14 +251,21 @@ export default function AdvertiserCheckoutForm() {
 
           <form onSubmit={handleSubmit} className="grid gap-4" noValidate>
             <div className="grid gap-4 sm:grid-cols-2">
-              <label className="spinshare-checkout-field-label">
+              <label
+                className={`spinshare-checkout-field-label${isFieldShaking("email") ? " animate-shake" : ""}`}
+              >
                 {t.advertiser.email}
                 <input
-                  type="email"
+                  type="text"
+                  inputMode="email"
+                  autoComplete="email"
                   value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    if (isFieldShaking("email")) clearFieldShake("email");
+                  }}
                   placeholder={t.advertiser.emailPlaceholder}
-                  className="spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal"
+                  className={`spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal${isFieldShaking("email") ? SHAKE_INPUT_CLASS : ""}`}
                 />
               </label>
               <label className="spinshare-checkout-field-label">
@@ -227,7 +280,9 @@ export default function AdvertiserCheckoutForm() {
               </label>
             </div>
 
-            <label className="spinshare-checkout-field-label">
+            <label
+              className={`spinshare-checkout-field-label${isFieldShaking("adLine") ? " animate-shake" : ""}`}
+            >
               <span className="flex items-center justify-between gap-3">
                 <span>{t.advertiser.adLine}</span>
                 <span className={`tabular-nums ${counterClass}`}>
@@ -238,9 +293,12 @@ export default function AdvertiserCheckoutForm() {
                 type="text"
                 value={adText}
                 maxLength={AD_TEXT_MAX_LENGTH}
-                onChange={(event) => { setAdText(event.target.value); if (adLineShake) setAdLineShake(false); }}
+                onChange={(event) => {
+                  setAdText(event.target.value);
+                  if (isFieldShaking("adLine")) clearFieldShake("adLine");
+                }}
                 placeholder={t.advertiser.adLinePlaceholder}
-                className={`spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal${adLineShake ? " !border-red-500 !ring-2 !ring-red-300 animate-shake" : ""}`}
+                className={`spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal${isFieldShaking("adLine") ? SHAKE_INPUT_CLASS : ""}`}
               />
             </label>
 
@@ -258,13 +316,20 @@ export default function AdvertiserCheckoutForm() {
 
               <label className="spinshare-checkout-field-label">
                 {t.advertiser.brandIcon}
-                <span className="spinshare-input flex min-h-[42px] cursor-pointer items-center justify-between gap-3 px-3 py-2.5 text-sm font-semibold normal-case tracking-normal text-[var(--text-secondary)]">
+                <span className="spinshare-input flex h-[42px] cursor-pointer items-center justify-between gap-3 px-3 py-2.5 text-sm font-semibold normal-case tracking-normal text-[var(--text-secondary)]">
                   <span className="flex min-w-0 items-center gap-2">
-                    {brandIconDataUrl ? (
-                      <ImagePlus className="h-4 w-4 shrink-0 text-emerald-700" />
-                    ) : (
-                      <Upload className="h-4 w-4 shrink-0" />
-                    )}
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden">
+                      {brandIconDataUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- data URL preview
+                        <img
+                          src={brandIconDataUrl}
+                          alt=""
+                          className="max-h-6 max-w-6 object-contain"
+                        />
+                      ) : (
+                        <Upload className="h-4 w-4 shrink-0" aria-hidden />
+                      )}
+                    </span>
                     <span className="truncate">
                       {brandIconDataUrl ? t.advertiser.iconReady : t.advertiser.iconHint}
                     </span>
@@ -302,7 +367,7 @@ export default function AdvertiserCheckoutForm() {
                 {t.advertiser.bidPerBlock}
                 <input
                   type="number"
-                  min="0.01"
+                  min="1"
                   max="1000"
                   step="0.01"
                   inputMode="decimal"

@@ -20,9 +20,18 @@ Footer polish:
 
 - Remove `.spinshare-home-footer a:hover` accent color shift — footer links stay muted with no hover state.
 
+## Planned Change (2026-06-14)
+
+Remove hover lift/shadow on `.liquid-glass-black` — used only by the homepage Claude vs SpinShare demo panels; they are display-only, not interactive.
+
+## Planned Change (2026-06-14)
+
+Homepage bid-market timeframe: replace custom `.spinshare-home-timeframe` buttons with shared `SegmentSlider` (`mini` size) for consistent thumb UI at a smaller footprint.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-14 | Bid-market chart uses `SegmentSlider` mini; remove bespoke timeframe button styles | Cursor |
 | 2026-06-14 | Remove footer link hover color | Cursor |
 | 2026-06-14 | Remove hero `overflow: hidden` to fix headline clipping | Cursor |

@@ -31,7 +31,7 @@ const DEV_ID = "dev-1";
  * Build an arbitrary developer `LedgerEntry`. Mirrors the real money model:
  * `developerCreditCents` is a non-negative integer (60% of revenue rounded to
  * the nearest cent), `revenueMicrocents` equals the CPM in cents
- * (1–100000 ⇒ $0.01–$1000.00), and retention is the conserved remainder. The
+ * (100–100000 ⇒ $1.00–$1000.00), and retention is the conserved remainder. The
  * exact split values do not matter for this property — only that the credit
  * each entry carries is faithfully surfaced — so credit is generated
  * independently across a representative range (including 0).

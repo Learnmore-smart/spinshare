@@ -4,9 +4,16 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, RefreshCw } from "lucide-react";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
+import { SegmentSlider } from "@/components/SegmentSlider";
 import AdvertiserCheckoutForm from "./advertiser-checkout-form";
-import LoadingStatus, { LOADING_ICONS, LOADING_VERBS } from "@/components/LoadingStatus";
+import LoadingStatus, {
+  ELLIPSIS_STEP_MS,
+  ICON_FRAME_MS,
+  LOADING_ICONS,
+  LOADING_VERBS,
+} from "@/components/LoadingStatus";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SiteNavAuth } from "@/components/SiteNavAuth";
 import { SpinShareWordmark } from "@/components/SpinShareWordmark";
@@ -19,6 +26,26 @@ const ADVERTISER_SIGNIN_HREF =
 
 const MARKET_REFRESH_MS = 15_000;
 const DEVELOPER_SHARE_PERCENT = 60;
+const BID_HISTORY_STORAGE_KEY = "spinshare:bid-history";
+const BID_HISTORY_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const BID_HISTORY_MAX_POINTS = 2_000;
+
+interface BidSnapshot {
+  atMs: number;
+  topCpmCents: number;
+}
+
+interface BidChartPoint {
+  atMs: number;
+  time: string;
+  bid: number;
+}
+
+export interface BidChartSeries {
+  points: BidChartPoint[];
+  windowStartMs: number;
+  windowEndMs: number;
+}
 
 interface MarketRow {
   id: string;
@@ -29,6 +56,8 @@ interface MarketRow {
   bidLabel: string;
   remainingBudgetCents: number;
   remainingBudgetUsd: string;
+  servedImpressions: number;
+  targetImpressions: number;
   status: "live";
 }
 
@@ -62,6 +91,173 @@ function formatUpdatedAt(updatedAtMs: number | undefined, loadingLabel: string):
   }).format(updatedAtMs);
 }
 
+function computeCampaignTotalPaidCents(
+  remainingBudgetCents: number,
+  servedImpressions: number,
+  cpmCents: number,
+): number {
+  const spentCents = Math.floor((servedImpressions * cpmCents) / 1000);
+  return remainingBudgetCents + spentCents;
+}
+
+function formatImpressionsCount(val: number): string {
+  if (val === 0) return "0";
+  if (val >= 1000) {
+    const k = val / 1000;
+    return `${k.toFixed(1).replace(".0", "")}k`;
+  }
+  return val.toString();
+}
+
+function loadBidHistory(): BidSnapshot[] {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const raw = window.sessionStorage.getItem(BID_HISTORY_STORAGE_KEY);
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw) as BidSnapshot[];
+    const cutoff = Date.now() - BID_HISTORY_MAX_AGE_MS;
+
+    return parsed
+      .filter(
+        (point) =>
+          typeof point.atMs === "number" &&
+          typeof point.topCpmCents === "number" &&
+          point.atMs >= cutoff,
+      )
+      .slice(-BID_HISTORY_MAX_POINTS);
+  } catch {
+    return [];
+  }
+}
+
+function saveBidHistory(history: BidSnapshot[]): void {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.sessionStorage.setItem(BID_HISTORY_STORAGE_KEY, JSON.stringify(history));
+  } catch {
+    // Ignore quota errors.
+  }
+}
+
+function appendBidSnapshot(
+  history: BidSnapshot[],
+  topCpmCents: number,
+  atMs: number,
+): BidSnapshot[] {
+  const cutoff = atMs - BID_HISTORY_MAX_AGE_MS;
+  const last = history[history.length - 1];
+
+  if (last && last.atMs === atMs && last.topCpmCents === topCpmCents) {
+    return history;
+  }
+
+  return [...history, { atMs, topCpmCents }]
+    .filter((point) => point.atMs >= cutoff)
+    .slice(-BID_HISTORY_MAX_POINTS);
+}
+
+function formatChartTime(atMs: number, timeframe: "24h" | "all"): string {
+  const date = new Date(atMs);
+
+  if (timeframe === "24h") {
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: false,
+    });
+  }
+
+  if (Date.now() - atMs > 24 * 60 * 60 * 1000) {
+    return date.toLocaleDateString("en-US", { weekday: "short" });
+  }
+
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+export function buildBidChartData(
+  history: BidSnapshot[],
+  timeframe: "24h" | "all",
+  nowMs = Date.now(),
+): BidChartSeries | null {
+  const windowMs =
+    timeframe === "24h" ? 24 * 60 * 60 * 1000 : BID_HISTORY_MAX_AGE_MS;
+  const windowStartMs = nowMs - windowMs;
+  const windowEndMs = nowMs;
+  const filtered = history.filter((point) => point.atMs >= windowStartMs);
+
+  if (filtered.length === 0) return null;
+
+  const maxPoints = timeframe === "24h" ? 32 : 48;
+  let samples: Array<{ atMs: number; bid: number }>;
+
+  if (filtered.length <= maxPoints) {
+    samples = filtered.map((point) => ({
+      atMs: point.atMs,
+      bid: point.topCpmCents / 100,
+    }));
+  } else {
+    const bucketMs = windowMs / maxPoints;
+    samples = [];
+
+    for (let i = 0; i < maxPoints; i++) {
+      const bucketStart = windowStartMs + i * bucketMs;
+      const bucketEnd = bucketStart + bucketMs;
+      const inBucket = filtered.filter(
+        (point) => point.atMs >= bucketStart && point.atMs < bucketEnd,
+      );
+
+      if (inBucket.length === 0) continue;
+
+      const last = inBucket[inBucket.length - 1]!;
+      samples.push({
+        atMs: last.atMs,
+        bid: last.topCpmCents / 100,
+      });
+    }
+  }
+
+  if (samples.length === 0) return null;
+
+  const padded: Array<{ atMs: number; bid: number }> = [];
+  const first = samples[0]!;
+  const last = samples[samples.length - 1]!;
+
+  if (first.atMs > windowStartMs) {
+    padded.push({ atMs: windowStartMs, bid: first.bid });
+  }
+
+  for (const sample of samples) {
+    const previous = padded[padded.length - 1];
+    if (previous && previous.atMs === sample.atMs) {
+      padded[padded.length - 1] = sample;
+      continue;
+    }
+    padded.push(sample);
+  }
+
+  const latest = padded[padded.length - 1]!;
+  if (latest.atMs < windowEndMs) {
+    padded.push({ atMs: windowEndMs, bid: last.bid });
+  }
+
+  return {
+    windowStartMs,
+    windowEndMs,
+    points: padded.map((sample) => ({
+      atMs: sample.atMs,
+      bid: sample.bid,
+      time: formatChartTime(sample.atMs, timeframe),
+    })),
+  };
+}
+
 function MoneyIcon({ className = "" }: { className?: string }) {
   return (
     <span
@@ -86,6 +282,14 @@ export default function HomePage() {
   const t = useT();
   const [market, setMarket] = useState<MarketResponse | null>(null);
   const [marketStatus, setMarketStatus] = useState<MarketStatus>("loading");
+  const [timeframe, setTimeframe] = useState<"24h" | "all">("24h");
+  const [bidHistory, setBidHistory] = useState<BidSnapshot[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    setBidHistory(loadBidHistory());
+  }, []);
   const [liveEarnings, setLiveEarnings] = useState<number>(0);
   const [claudeStateIndex, setClaudeStateIndex] = useState<number>(0);
   const [leftTimer, setLeftTimer] = useState<number>(0.0);
@@ -94,11 +298,11 @@ export default function HomePage() {
   const currentClaudeState = CLAUDE_STATES[claudeStateIndex] ?? CLAUDE_STATES[0]!;
 
   const leftElapsedMs = Math.round(leftTimer * 1000);
-  const leftIconIndex = Math.floor(leftElapsedMs / 250) % LOADING_ICONS.length;
-  const leftIcon = LOADING_ICONS[leftIconIndex] ?? "\u2722";
+  const leftIconIndex = Math.floor(leftElapsedMs / ICON_FRAME_MS) % LOADING_ICONS.length;
+  const leftIcon = LOADING_ICONS[leftIconIndex] ?? "\u00b7";
 
   const rightElapsedMs = Math.round(rightTimer * 1000);
-  const sharedDotCount = Math.floor(rightElapsedMs / 250) % 4;
+  const sharedDotCount = Math.floor(rightElapsedMs / ELLIPSIS_STEP_MS) % 4;
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -128,7 +332,7 @@ export default function HomePage() {
     const interval = window.setInterval(() => {
       setLiveEarnings((prev) => {
         if (prev === 0) return startVal;
-        const increment = 0.03 + Math.random() * 0.06;
+        const increment = 0.015 + Math.random() * 0.03;
         return prev + increment;
       });
     }, 333);
@@ -152,6 +356,15 @@ export default function HomePage() {
         if (!cancelled) {
           setMarket(nextMarket);
           setMarketStatus("ready");
+          setBidHistory((prev) => {
+            const next = appendBidSnapshot(
+              prev,
+              nextMarket.summary.topCpmCents,
+              nextMarket.updatedAtMs ?? Date.now(),
+            );
+            saveBidHistory(next);
+            return next;
+          });
         }
       } catch {
         if (!cancelled) {
@@ -177,6 +390,9 @@ export default function HomePage() {
   const lastUpdatedLabel = formatUpdatedAt(market?.updatedAtMs, t.market.loadingLiveBidsShort);
 
   const topBidPrice = topBid?.cpmCents ? topBid.cpmCents / 100 : 0;
+  const chartSeries = buildBidChartData(bidHistory, timeframe);
+  const chartData = chartSeries?.points ?? [];
+  const chartMaxBid = chartData.reduce((max, point) => Math.max(max, point.bid), topBidPrice);
 
   const bids = market?.rows ?? [];
 
@@ -386,7 +602,7 @@ export default function HomePage() {
             <div className="mt-8">
               <div className="liquid-glass overflow-hidden flex flex-col">
                 {/* Header Row */}
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-6 pt-6 pb-2">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-6 pt-6 pb-4">
                   <div className="flex items-baseline gap-2">
                     <span className="text-xs font-black uppercase tracking-[0.16em] text-blue-600">{t.market.bidMarket}</span>
                     <span className="spinshare-home-strong text-3xl font-black">${topBidPrice.toFixed(2)}</span>
@@ -394,6 +610,17 @@ export default function HomePage() {
                   </div>
 
                   <div className="flex items-center gap-4">
+                    <SegmentSlider
+                      ariaLabel={t.developerDashboard.chartTimeRangeAria}
+                      mini
+                      value={timeframe}
+                      onChange={setTimeframe}
+                      options={[
+                        { value: "24h", label: t.market.timeframe24h },
+                        { value: "all", label: t.market.timeframeAll },
+                      ]}
+                    />
+
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-callout)] bg-[var(--surface-callout)] px-2.5 py-1 text-xs font-black uppercase text-[var(--text-accent-strong)]">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       {t.market.adsLive(market?.summary.liveCampaigns ?? 0)}
@@ -401,27 +628,134 @@ export default function HomePage() {
                   </div>
                 </div>
 
+                <div className="relative px-6 pb-4 pt-1">
+                  <div className="h-56 w-full">
+                    {mounted && chartSeries && chartData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart
+                          data={chartData}
+                          margin={{ top: 8, right: 12, left: 0, bottom: 12 }}
+                        >
+                          <defs>
+                            <linearGradient id="colorBid" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#10b981" stopOpacity={0.1} />
+                              <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis
+                            dataKey="atMs"
+                            type="number"
+                            domain={[chartSeries.windowStartMs, chartSeries.windowEndMs]}
+                            scale="time"
+                            tickLine={false}
+                            axisLine={false}
+                            tick={{ fill: "#94a3b8", fontSize: 11 }}
+                            tickMargin={8}
+                            minTickGap={48}
+                            tickFormatter={(value) =>
+                              formatChartTime(
+                                typeof value === "number" ? value : Number(value),
+                                timeframe,
+                              )
+                            }
+                          />
+                          <YAxis
+                            width={54}
+                            tickLine={false}
+                            axisLine={false}
+                            tick={{ fill: "#94a3b8", fontSize: 11 }}
+                            tickMargin={6}
+                            tickCount={5}
+                            domain={[0, (max: number) => Math.max(chartMaxBid * 1.2, 5, Math.ceil(max / 5) * 5)]}
+                            tickFormatter={(val) => `$${val.toFixed(2)}`}
+                          />
+                          <Tooltip
+                            labelFormatter={(value) =>
+                              formatChartTime(
+                                typeof value === "number" ? value : Number(value),
+                                timeframe,
+                              )
+                            }
+                            formatter={(value: number) => [`$${value.toFixed(2)}`, t.market.chartBidLabel]}
+                            contentStyle={{
+                              backgroundColor: "#fff",
+                              border: "1px solid #e2e8f0",
+                              borderRadius: "8px",
+                              fontSize: "12px",
+                            }}
+                          />
+                          <Area
+                            type="stepAfter"
+                            dataKey="bid"
+                            stroke="#10b981"
+                            strokeWidth={2}
+                            fillOpacity={1}
+                            fill="url(#colorBid)"
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex h-full flex-col items-center justify-center rounded-xl bg-[var(--surface-empty)] px-6 text-center">
+                        <p className="spinshare-home-body text-xs font-semibold">
+                          {marketStatus === "loading"
+                            ? t.market.loadingLiveBids
+                            : t.market.chartCollectingHistory}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Table Section */}
                 <div className="overflow-x-auto border-t border-[var(--border-subtle)]">
-                  <div className="min-w-[700px] p-6">
-                    <div className="spinshare-home-table-head grid grid-cols-[40px_1fr_180px_240px] gap-4 pb-3">
+                  <div className="min-w-[720px] p-6">
+                    <div className="spinshare-home-table-head grid grid-cols-[32px_minmax(0,1fr)_140px_100px_minmax(160px,1fr)] gap-x-4 gap-y-1 pb-3 pr-2">
                       <div>#</div>
                       <div>{t.market.campaign}</div>
                       <div>{t.market.bidPerThousand}</div>
-                      <div>{t.market.impressions}</div>
+                      <div>{t.market.totalPaid}</div>
+                      <div>{t.market.delivery}</div>
                     </div>
 
                     {/* Table Body */}
                     {visibleRows.length > 0 ? (
                       <div className="divide-y divide-[var(--border-subtle)]">
-                        {visibleRows.map((row) => (
-                            <div key={row.id} className="grid grid-cols-[40px_1fr_180px_240px] gap-4 py-3.5 items-center text-sm">
+                        {visibleRows.map((row) => {
+                          const totalPaidCents = computeCampaignTotalPaidCents(
+                            row.remainingBudgetCents,
+                            row.servedImpressions,
+                            row.cpmCents,
+                          );
+                          const servedLabel = formatImpressionsCount(row.servedImpressions);
+                          const targetLabel = formatImpressionsCount(row.targetImpressions);
+                          const pct =
+                            row.targetImpressions > 0
+                              ? row.servedImpressions / row.targetImpressions
+                              : 0;
+
+                          return (
+                            <div key={row.id} className="grid grid-cols-[32px_minmax(0,1fr)_140px_100px_minmax(160px,1fr)] gap-x-4 gap-y-1 py-3.5 pr-2 items-center text-sm">
                               <div className="font-bold text-[var(--text-muted)]">{row.rank}</div>
                               <div className="truncate font-semibold text-[var(--text-primary)]" title={row.adText}>{row.adText}</div>
                               <div className="spinshare-home-strong font-black">{row.bidLabel}</div>
-                              <div className="spinshare-home-strong font-black tabular-nums">{row.remainingBudgetUsd}</div>
+                              <div className="spinshare-home-strong font-black tabular-nums">
+                                {formatMoney(totalPaidCents)}
+                              </div>
+                              <div className="flex min-w-0 items-center gap-2">
+                                <span className="shrink-0 whitespace-nowrap text-xs font-bold tabular-nums text-[var(--text-muted)]">
+                                  {servedLabel}/{targetLabel}
+                                </span>
+                                <div className="spinshare-home-progress-track min-w-0 flex-1">
+                                  <div
+                                    className="h-full rounded-full bg-emerald-500"
+                                    style={{ width: `${Math.min(pct * 100, 100)}%` }}
+                                  />
+                                </div>
+                              </div>
                             </div>
-                          ))}
+                          );
+                        })}
                       </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center text-center py-16">

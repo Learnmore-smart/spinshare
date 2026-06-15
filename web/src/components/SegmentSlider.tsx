@@ -20,6 +20,8 @@ export interface SegmentSliderProps<T extends string> {
   className?: string;
   /** Slightly smaller segments for 3–4 options on mobile. */
   compact?: boolean;
+  /** Extra-small segments for dense header toolbars (e.g. homepage bid chart). */
+  mini?: boolean;
 }
 
 /**
@@ -33,6 +35,7 @@ export function SegmentSlider<T extends string>({
   ariaLabel,
   className = "",
   compact = false,
+  mini = false,
 }: SegmentSliderProps<T>) {
   const activeIndex = Math.max(
     0,
@@ -46,7 +49,7 @@ export function SegmentSlider<T extends string>({
 
   return (
     <div
-      className={`spinshare-segment-slider ${compact ? "spinshare-segment-slider--compact" : ""} ${className}`.trim()}
+      className={`spinshare-segment-slider ${compact ? "spinshare-segment-slider--compact" : ""} ${mini ? "spinshare-segment-slider--mini" : ""} ${className}`.trim()}
       style={style}
       role="tablist"
       aria-label={ariaLabel}

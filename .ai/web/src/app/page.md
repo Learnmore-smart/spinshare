@@ -118,6 +118,7 @@ User feedback on 2026-06-13 after visual review:
   - `SpinShare turns idle AI waits into paid moments.`
   - `60% of revenue goes to you.`
 - The CTA chip should show a monthly amount only, not `/hr live estimate`.
+- The monthly chip animates via `liveEarnings`: each 333ms tick adds `0.015 + random * 0.03` (roughly half the prior step size) so the fake counter climbs more slowly.
 
 Follow-up requirement:
 
@@ -200,9 +201,24 @@ Screenshot review on 2026-06-13 showed the full-width line under the fixed navba
 
 Follow-up screenshot review clarified the blur should belong to the rounded navbar container, not the whole fixed header section. Move the backdrop treatment from the full-width header wrapper to the inner navbar capsule.
 
+## Planned Change (2026-06-14)
+
+Restore bid-market timeline chart without fake multipliers:
+
+- Re-add the Recharts area chart and 24H/ALL toggles between the market header and table.
+- Build chart points from client-side poll history (`topCpmCents` snapshots on each `GET /api/market` refresh), persisted in `sessionStorage` for the current browser session.
+- Show an honest empty chart state when no bid history exists yet; do not restore fabricated fleet imps/min badge.
+
+## Planned Change (2026-06-14)
+
+Restore impressions column with real served/target values from `GET /api/market` instead of remaining budget.
+
 ## Implemented Change (2026-06-14)
 
-Removed bid-market sample data:
+- Restored bid timeline chart from live poll snapshots (`sessionStorage`), not fake multipliers.
+- Restored impressions column with `served / target` text and progress bar using `servedImpressions` and `targetImpressions` from `GET /api/market`.
+
+## Implemented Change (2026-06-14)
 
 - Deleted fake CPM history chart, 24H/ALL toggles, and fabricated fleet imps/min badge.
 - Top CPM now shows `$0.00` when no live bids (was `$11.00`).
@@ -212,10 +228,63 @@ Removed bid-market sample data:
 
 - Footer `liquid-glass` panel: add `spinshare-static` so it does not animate on hover.
 
+## Planned Change (2026-06-14)
+
+Bid table fourth column: remove progress dot/bar; show total amount the advertiser funded (remaining budget + served spend).
+
+## Implemented Change (2026-06-14)
+
+- Bid table fourth column shows total funded amount (`remaining + served spend`); progress dot/bar removed.
+
+## Planned Change (2026-06-14)
+
+Add fifth bid-table column after total paid: served/target label (e.g. `24/1.7k`) plus progress bar.
+
+## Implemented Change (2026-06-14)
+
+- Fifth column shows impression delivery (`served/target` + progress bar) after total paid.
+
+## Bug Fix: Impressions Label Clipped (2026-06-14)
+
+**Discovered**: 2026-06-14
+**Description**: Bid table impressions cell shows `served / target` (e.g. `24 / 1.7k`) with the right side cut off because the label uses a fixed `w-16` (64px) width inside a 200px column.
+**Fix plan**: Remove fixed width; use `shrink-0 whitespace-nowrap` on the label and widen the impressions grid column slightly so the progress bar still fits.
+
+## Implemented Change (2026-06-14)
+
+- Impressions label no longer uses fixed `w-16`; grid impressions column uses `minmax(220px, 1fr)`.
+
+## Bug Fix: Bid Market Chart Axis Overlap (2026-06-14)
+
+**Discovered**: 2026-06-14
+**Description**: Y-axis dollar labels on the bid-market area chart are cramped, and the bottom `$0.00` tick overlaps the first X-axis timestamp.
+**Root Cause**: `AreaChart` used `margin.left: -20` and `margin.bottom: 0`, squeezing Y-axis labels into the plot and leaving no room below the X-axis. No explicit `YAxis` width or tick margins.
+**Fix Strategy**:
+- Use positive chart margins (`left: 0`, `bottom: 12`, modest `top`/`right`).
+- Set `YAxis` `width={54}`, `tickMargin={6}`, and `tickCount={5}`.
+- Add `XAxis` `tickMargin` and `minTickGap` so timestamps do not collide with Y labels.
+- Slightly increase chart container height and vertical padding between header and plot.
+
+## Planned Change (2026-06-14)
+
+Bid-market header timeframe: swap bespoke button group for shared `SegmentSlider` with new `mini` size.
+
+## Bug Fix: Bid Market Chart Empty Right Side (2026-06-14)
+
+**Discovered**: 2026-06-14
+**Description**: With only one or few poll snapshots, the bid chart plotted a lone point in the middle and left the right half of the plot blank.
+**Root Cause**: `buildBidChartData` returned only raw snapshot rows on a categorical `time` X-axis, so Recharts had no domain spanning the selected 24H/ALL window.
+**Fix Strategy**:
+- Pad chart samples with window-start and window-end anchors using the first/last known bid.
+- Store `atMs` on each point and drive `XAxis` with `type="number"` + fixed `[windowStartMs, windowEndMs]` domain.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-14 | Bid chart spans full timeframe when history is sparse (padded anchors + numeric X domain) | Cursor |
+| 2026-06-14 | Bid-market timeframe uses `SegmentSlider` mini | Cursor |
+| 2026-06-14 | Fix bid-market chart axis label overlap (margins, axis width, spacing) | Cursor |
 | 2026-06-14 | Footer glass panel uses `spinshare-static` (no hover lift) | Cursor |
 | 2026-06-14 | Homepage dark mode: `spinshare-home*` classes consume `theme.css` tokens; removed hardcoded `#e8f6ed` backgrounds | Cursor |
 | 2026-06-13 | Documented money-forward homepage redesign plan before editing code | Codex |

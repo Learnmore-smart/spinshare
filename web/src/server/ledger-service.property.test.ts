@@ -36,8 +36,8 @@ const DEV = "dev-1";
 /** A valid, fully-fundable campaign used to isolate the auth guard. */
 const FUNDED_CAMPAIGN_ID = "cmp-funded";
 
-/** CPM range mirrors the campaign schema ($0.01–$1000.00 ⇒ 1–100000 cents). */
-const cpmArb = fc.integer({ min: 1, max: 100_000 });
+/** CPM range mirrors the campaign schema ($1.00–$1000.00 ⇒ 100–100000 cents). */
+const cpmArb = fc.integer({ min: 100, max: 100_000 });
 
 /**
  * Build a fresh harness with deterministic clock/id generation. Each property

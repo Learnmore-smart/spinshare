@@ -89,6 +89,27 @@ export interface CounterStore {
   /** Reads the remaining campaign budget (integer cents). */
   getBudgetCents(campaignId: string): Promise<number>;
 
+  // Earning caps (server-enforced anti-abuse)
+  /**
+   * Reads the developer's already-credited earnings within the current rolling
+   * hour and UTC day windows (integer cents). Used by the ledger service to
+   * enforce the hourly/daily earning caps before crediting a new impression.
+   */
+  getEarnedCentsInWindows(
+    userId: string,
+    nowMs: number,
+  ): Promise<{ hourlyCents: number; dailyCents: number }>;
+  /**
+   * Records `amountCents` of credited earnings toward the developer's current
+   * hour and day windows. Called only when an impression actually moves money,
+   * so suppressed (banned/capped) impressions never count toward the caps.
+   */
+  addEarnedCents(
+    userId: string,
+    amountCents: number,
+    nowMs: number,
+  ): Promise<void>;
+
   // Velocity + shadow-ban
   /** Increments and returns the impression count for the user's fixed 60s window. */
   incrementVelocity(userId: string, windowStartEpochSec: number): Promise<number>;

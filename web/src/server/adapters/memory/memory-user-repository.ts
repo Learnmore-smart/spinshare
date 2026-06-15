@@ -57,6 +57,23 @@ export class MemoryUserRepository implements UserRepository {
     user.balanceCents += deltaCents;
   }
 
+  async setConnectAccount(
+    id: string,
+    input: { stripeConnectAccountId: string; payoutsEnabled: boolean },
+  ): Promise<User> {
+    // Upsert: a developer may connect payouts before any durable record exists
+    // (e.g. before their first credited impression). Create a minimal record in
+    // that case; identity fields are enriched later by `upsertFromIdentity`.
+    let user = this.users.get(id);
+    if (!user) {
+      user = { id, email: "", provider: "github", role: "developer", balanceCents: 0 };
+      this.users.set(id, user);
+    }
+    user.stripeConnectAccountId = input.stripeConnectAccountId;
+    user.payoutsEnabled = input.payoutsEnabled;
+    return { ...user };
+  }
+
   /** Test/seed helper: inserts a fully-formed user. */
   seed(user: User): void {
     this.users.set(user.id, { ...user });

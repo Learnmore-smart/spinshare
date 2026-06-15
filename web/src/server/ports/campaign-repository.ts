@@ -10,7 +10,7 @@ import type { Campaign } from "@spinshare/core";
 /**
  * Inputs to create a new campaign. New campaigns always start with
  * `budgetCents = 0` (funded later via Stripe). `cpmCents` is validated to
- * 1–100000 ($0.01–$1000.00) and `adText` to 1–60 chars by the core schema.
+ * 100–100000 ($1.00–$1000.00) and `adText` to 1–60 chars by the core schema.
  */
 export interface NewCampaign {
   /** Owner user id. */

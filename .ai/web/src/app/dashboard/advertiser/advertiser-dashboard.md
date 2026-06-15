@@ -1,6 +1,6 @@
 # advertiser-dashboard.tsx
 
-> Last updated: 2026-06-13 | Protection: STANDARD
+> Last updated: 2026-06-14 | Protection: STANDARD
 
 ## Purpose
 
@@ -11,6 +11,9 @@ Client-side advertiser dashboard shell.
 - Loads advertiser campaigns from `/api/campaigns`.
 - Wires campaign creation into the campaign list.
 - Renders loading, error, and ready states.
+- Hero header with subtitle and 3-second viewability badge.
+- Summary stats (campaign count, total budget) when campaigns exist.
+- Two-column layout: campaign builder + campaign list on large screens.
 
 ## Public API
 
@@ -20,7 +23,7 @@ Client-side advertiser dashboard shell.
 
 ## Dependencies
 
-- Internal: campaign builder/list components and UI primitives.
+- Internal: campaign builder/list components, advertiser shell styles.
 - External: React hooks.
 
 ## Important Notes / NEVER Change
@@ -28,20 +31,13 @@ Client-side advertiser dashboard shell.
 - Keep authenticated API calls using the provided bearer token.
 - Do not remove loading/error states.
 
-## Planned Change
+## Implemented Change (2026-06-14)
 
-Display "3-second minimum views" in the dashboard header so advertisers know
-campaign impressions are counted only after the minimum view time.
-
-## Implemented Change
-
-The dashboard header now displays `3-second minimum views` near the campaign
-overview text, making the impression counting rule visible to advertisers.
-
-## Verification
-
-- Green: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/track/route.test.ts src/app/page.test.tsx src/app/dashboard/advertiser/advertiser-dashboard.test.tsx` passed.
-- Full workspace tests and lint passed.
+- Amber-accent advertiser theme with hero banner, stats row, and two-column layout.
+- `AdvertiserDashboardShell` with sticky top bar and `DashboardRoleSwitcher`.
+- Campaign builder grouped into Ad copy / Brand / Bidding sections.
+- Campaign cards with status badges and improved fund controls.
+- Developer dashboard also shows role switcher top-right.
 
 ## Change History
 
@@ -49,3 +45,4 @@ overview text, making the impression counting rule visible to advertisers.
 |------|--------|--------|
 | 2026-06-13 | Created doc before adding advertiser dashboard viewability copy. | Codex |
 | 2026-06-13 | Synced docs with advertiser dashboard viewability copy. | Codex |
+| 2026-06-14 | UI refresh: shell, hero, grid layout, role switcher. | Codex |

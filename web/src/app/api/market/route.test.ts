@@ -6,7 +6,7 @@ import {
   resetContainer,
   type Container,
 } from "@/server/container";
-import { MemoryCampaignRepository } from "@/server/adapters/memory";
+import { MemoryCampaignRepository, MemoryLedgerRepository } from "@/server/adapters/memory";
 
 import { GET } from "./route";
 
@@ -80,11 +80,46 @@ describe("GET /api/market", () => {
     expect(body.rows[0]).toMatchObject({
       adText: "Top bidder",
       bidLabel: "$22.00 / 1k imps",
+      servedImpressions: 0,
+      targetImpressions: 2272,
       status: "live",
     });
     expect(body.rows.some((row: { id: string }) => row.id === "cmp_unfunded")).toBe(
       false,
     );
+  });
+
+  it("includes served impressions from the durable ledger", async () => {
+    const container = getContainer();
+    seedCampaign(container, { id: "cmp_top", cpmCents: 3000, budgetCents: 5000 });
+    (container.ledger as MemoryLedgerRepository).seed([
+      {
+        entryId: "entry-1",
+        campaignId: "cmp_top",
+        developerId: "dev-1",
+        revenueMicrocents: 3000,
+        developerCreditCents: 2,
+        spinshareRetentionMicrocents: 998,
+      },
+      {
+        entryId: "entry-2",
+        campaignId: "cmp_top",
+        developerId: "dev-1",
+        revenueMicrocents: 3000,
+        developerCreditCents: 2,
+        spinshareRetentionMicrocents: 998,
+      },
+    ]);
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.rows[0]).toMatchObject({
+      id: "cmp_top",
+      servedImpressions: 2,
+      targetImpressions: 1668,
+    });
   });
 
   it("omits private leaderboard campaigns from the public market", async () => {

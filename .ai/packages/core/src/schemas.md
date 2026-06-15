@@ -61,10 +61,15 @@ Added `VIEWABILITY_MIN_MS = 3000` and required `viewDurationMs` in
 `trackRequestSchema`. Tracking payloads below 3000 ms, missing the field, or
 using non-integer durations now fail validation before backend ledger logic.
 
+## Planned Change
+
+Raise minimum CPM bid from $0.01 to $1.00 (`CPM_CENTS_MIN = 100`). Update UI hints, client validation, and i18n to match.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-14 | Minimum CPM bid raised to $1.00 (`CPM_CENTS_MIN = 100`). | Codex |
 | 2026-06-13 | Created doc before adding public advertiser checkout schema. | Codex |
 | 2026-06-13 | Synced doc with implemented advertiser checkout schema and amount helper. | Codex |
 | 2026-06-13 | Documented 3-second viewability tracking contract before editing schema. | Codex |

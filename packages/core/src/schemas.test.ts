@@ -49,7 +49,7 @@ describe("createCampaignSchema", () => {
   });
 
   it("rejects zero, negative, non-integer, and out-of-range CPM (Requirement 9.4)", () => {
-    for (const cpmCents of [0, -1, 1.5, CPM_CENTS_MAX + 1, Number.NaN]) {
+    for (const cpmCents of [0, -1, 1.5, CPM_CENTS_MIN - 1, CPM_CENTS_MAX + 1, Number.NaN]) {
       expect(
         createCampaignSchema.safeParse({ adText: "Ad", cpmCents }).success,
       ).toBe(false);

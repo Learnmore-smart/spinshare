@@ -15,7 +15,7 @@ SpinShare web UI copy for `en`, `zh`, and `fr`. All user-visible strings must re
 - Wire all affected client components to `useT()`.
 - Terms: TOC titles + intro chrome via `terms.sectionTitles`; full legal body remains English until split into locale modules.
 
-**Fix (2026-06-14 follow-up):** Full legal body translations for Privacy (13 sections) and Terms (22 sections) in `web/src/lib/i18n/legal/` — locale switch now changes entire page content, not just titles.
+**Fix (2026-06-14 follow-up):** `hourlyResetLabel` is a function like `dailyResetLabel` — always appends a live duration (`滚动 60 分钟窗口 · 0m` when empty, `· 45m` when credits are aging out).
 
 ## Change History
 

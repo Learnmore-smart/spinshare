@@ -4,12 +4,11 @@ type SpinShareWordmarkProps = {
   className?: string;
 };
 
-/** "SpinShare" wordmark — per-word vertical bevel gradients (matches logo 3D lighting). */
+/** "SpinShare" wordmark — solid black text beside the logo icon. */
 export function SpinShareWordmark({ className }: SpinShareWordmarkProps) {
   return (
-    <span className={cn("font-black tracking-tight", className)}>
-      <span className="spinshare-wordmark-spin">Spin</span>
-      <span className="spinshare-wordmark-share">Share</span>
+    <span className={cn("font-black tracking-tight text-black", className)}>
+      SpinShare
     </span>
   );
 }

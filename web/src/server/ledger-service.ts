@@ -19,7 +19,8 @@
  *   6. If **not** banned: {@link CounterStore.applyImpression} atomically credits
  *      the balance, decrements the budget by the full revenue, and enqueues a
  *      durable ledger entry. If banned: no money moves and no ledger entry is
- *      written.
+ *      written. The same suppression applies when crediting would breach the
+ *      per-developer hourly ($20) / daily ($300) earning caps (anti-abuse).
  *   7. Return the **same** success shape (`recorded: true`, the computed
  *      developer credit in cents + USD) whether recorded normally or shadow-
  *      banned, so the two cases are indistinguishable to the caller.
@@ -33,11 +34,14 @@
 
 import {
   type TrackResponse,
+  DEVELOPER_DAILY_EARNING_LIMIT_CENTS,
+  DEVELOPER_HOURLY_EARNING_LIMIT_CENTS,
   SHADOW_BAN_TTL_SECONDS,
   computeSplit,
   formatCentsAsUsd,
   isVelocityExceeded,
   windowStartEpochSec,
+  wouldExceedEarningCap,
 } from "@spinshare/core";
 
 import {
@@ -153,9 +157,22 @@ export async function recordImpression(
   // shadow-ban response indistinguishable.
   const split = computeSplit(campaign.cpmCents);
 
-  // 6. Move money exactly once — only when not banned (Requirements 2.4, 2.5,
-  // 10.4, 10.5). When banned, skip crediting/decrementing/enqueueing entirely.
-  if (!banned) {
+  // 5b. Enforce the hourly/daily earning caps (anti-abuse). A developer — or a
+  // bot farming impressions across many velocity windows — can never be
+  // credited past $20/hour or $300/day. When crediting this impression would
+  // breach either cap, suppress it: no money moves, but the response stays
+  // indistinguishable from a recorded one (same handling as a shadow-ban).
+  const earned = await counters.getEarnedCentsInWindows(developerId, nowMs);
+  const capExceeded = wouldExceedEarningCap(earned, split.developerCreditCents, {
+    hourlyLimitCents: DEVELOPER_HOURLY_EARNING_LIMIT_CENTS,
+    dailyLimitCents: DEVELOPER_DAILY_EARNING_LIMIT_CENTS,
+  });
+  const suppressed = banned || capExceeded;
+
+  // 6. Move money exactly once — only when neither banned nor capped
+  // (Requirements 2.4, 2.5, 10.4, 10.5). When suppressed, skip crediting/
+  // decrementing/enqueueing entirely and do not count it toward the caps.
+  if (!suppressed) {
     await counters.applyImpression({
       developerId,
       campaignId: campaign.id,
@@ -163,6 +180,7 @@ export async function recordImpression(
       split,
       occurredAtMs: nowMs,
     });
+    await counters.addEarnedCents(developerId, split.developerCreditCents, nowMs);
   }
 
   // 7. Identical success shape for recorded and shadow-banned (Requirements 2.7,

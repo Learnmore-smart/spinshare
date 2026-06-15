@@ -2,6 +2,16 @@
 
 > Last updated: 2026-06-14 | Protection: STANDARD
 
+## Planned Change: OAuth-Only Sign-In Panel
+
+User request on 2026-06-14: remove the email/password block from the sign-in card (the "or" divider, email field, password field, and green submit button). Keep role tabs and Google/GitHub OAuth only — same behavior on localhost and production.
+
+Fix strategy:
+
+- Delete credentials form UI, related state, and `handleCredentialsSignIn` from `SignInForm`.
+- Keep OAuth handlers, role selection, callback URLs, and inline OAuth error display.
+- Do not remove the NextAuth Credentials provider from the server; only hide the client form.
+
 ## Purpose
 
 Renders the client-side sign-in page for developer and advertiser entry.
@@ -9,16 +19,10 @@ Renders the client-side sign-in page for developer and advertiser entry.
 ## What It Does
 
 - Lets users choose Developer or Advertiser before signing in.
-- Offers an official sign-in: GitHub/Google OAuth plus an email + password form.
-- The email/password form validates against the fixed local test accounts
-  (`web/src/server/dev/test-users.ts`) via the NextAuth Credentials provider;
-  there is no longer a "type any user id" mock box.
-- Shows the local test account for the selected role with a "Use this account"
-  prefill button, clearly labelled as local-only.
-- Surfaces an inline error on bad credentials (`redirect: false` flow).
+- Offers OAuth-only sign-in via GitHub and Google.
+- Surfaces inline OAuth errors when provider sign-in fails.
 - Preserves callback URLs so users land on the correct dashboard.
 - Uses a clean split sign-in layout with marketing copy on the left and the auth panel on the right.
-- Uses plain ASCII helper text in the password placeholder and local test account line to avoid encoding glitches in the sign-in form.
 
 ## Public API
 
@@ -140,6 +144,7 @@ Fix: update `web/src/lib/i18n/dictionaries.ts` `signin.body` in all locales.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-14 | Removed email/password form from sign-in card; OAuth-only panel. | Auto |
 | 2026-06-14 | Corrected sign-in body copy to describe 3-second ad impressions instead of per-second AI thinking. | Codex |
 | 2026-06-13 | Created documentation for sign-in role initialization fix. | Codex |
 | 2026-06-13 | Documented diagonal money-stream sign-in enhancement before editing code. | Codex |

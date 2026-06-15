@@ -127,4 +127,24 @@ export class FirestoreLedgerRepo implements LedgerRepository {
       )
       .map((doc) => toLedgerEntry(doc.id, doc.data()));
   }
+
+  async countByCampaignIds(campaignIds: string[]): Promise<Record<string, number>> {
+    const counts = Object.fromEntries(campaignIds.map((id) => [id, 0]));
+    if (campaignIds.length === 0) {
+      return counts;
+    }
+
+    const snap = await this.collection
+      .where("campaignId", "in", campaignIds.slice(0, 30))
+      .get();
+
+    for (const doc of snap.docs) {
+      const campaignId = String(doc.get("campaignId") ?? "");
+      if (counts[campaignId] !== undefined) {
+        counts[campaignId] += 1;
+      }
+    }
+
+    return counts;
+  }
 }

@@ -1,6 +1,6 @@
 # LoadingStatus.tsx
 
-> Last updated: 2026-06-13 | Protection: STANDARD
+> Last updated: 2026-06-14 | Protection: STANDARD
 
 ## Purpose
 
@@ -10,8 +10,8 @@ Claude-style LearnX loading status component for AI wait states.
 
 - Renders a compact status row with an animated Unicode icon on the left and LearnX branding on the right.
 - Uses Claude clay `#c15f3c` for the animated icon, loading verb, and brand emphasis.
-- Cycles icons through a ping-pong sequence over exactly 1 second.
-- Cycles loading ellipsis states from no dots to three dots over exactly 1 second, then switches to a new random verb.
+- Cycles icons through the Claude Code sequence `· * ✢ ✶ ✻ ✽` over exactly 1080ms (six frames at 180ms each).
+- Cycles loading ellipsis states from no dots to three dots over the same 1080ms loop, then switches to a new random verb.
 
 ## Public API
 
@@ -19,8 +19,8 @@ Claude-style LearnX loading status component for AI wait states.
 |------|------|-------------|
 | `LoadingStatus` | React component | Client component for the LearnX loading row. |
 | `LOADING_VERBS` | Constant | Clean English-only verb pool. |
-| `LOADING_ICONS` | Constant | Eight-frame ping-pong icon sequence. |
-| timing helpers | Functions | Pure helpers used by the component and tests to lock 1-second timing. |
+| `LOADING_ICONS` | Constant | Six-frame Claude Code icon sequence (`· * ✢ ✶ ✻ ✽`). |
+| timing helpers | Functions | Pure helpers used by the component and tests to lock the 1440ms animation loop. |
 
 ## Props / Parameters
 
@@ -37,8 +37,8 @@ Claude-style LearnX loading status component for AI wait states.
 
 ## Important Notes / NEVER Change
 
-- The full icon round trip must remain exactly 1000ms: eight frames at 125ms each.
-- The ellipsis cycle must remain exactly 1000ms: four visible states at 250ms each.
+- The full icon round trip must remain exactly 1080ms: six frames at 180ms each.
+- The ellipsis cycle must remain exactly 1080ms: four visible states at 360ms each.
 - Keep Unicode icons encoded safely so the source file does not corrupt them.
 - The brand text must render as `LearnX · Know exactly what to study`.
 
@@ -65,5 +65,11 @@ Refactor the existing component to replace corrupted icon and middle-dot literal
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-14 | Correct `LOADING_ICONS` to Claude Code sequence `· * ✢ ✶ ✻ ✽` (1080ms loop). | Codex |
+| 2026-06-14 | Align `LOADING_ICONS` with Claude Code sequence `✶ * ✢ · ✻ ✢ ✽` (1260ms loop). | Codex |
+| 2026-06-14 | Slow Claude Unicode icon frame interval to 180ms (1440ms full loop). | Codex |
+| 2026-06-14 | Slow Claude Unicode icon frame interval to 150ms (1200ms full loop). | Codex |
+| 2026-06-14 | Slow Claude Unicode icon frame interval to 120ms (1.5× slower than 80ms). | Codex |
+| 2026-06-14 | Speed up Claude Unicode icon frame interval from 125ms to 80ms (640ms full loop). | Codex |
 | 2026-06-13 | Created documentation for Claude-style LearnX loading component refactor | Codex |
 | 2026-06-13 | Implemented single-clock Claude-style LearnX loading status component | Codex |

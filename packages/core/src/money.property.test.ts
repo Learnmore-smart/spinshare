@@ -11,14 +11,14 @@ import {
 /**
  * Property-based tests for the integer-cent money math.
  *
- * CPM is constrained to its valid range (`cpmCents` 1..100000, i.e.
- * $0.01–$1000.00) so the generators exercise only inputs the system accepts.
+ * CPM is constrained to its valid range (`cpmCents` 100..100000, i.e.
+ * $1.00–$1000.00) so the generators exercise only inputs the system accepts.
  * Each property runs with fast-check at 100 iterations.
  */
 
-/** Valid CPM range per the design and Zod schema: 1..100000 integer cents. */
+/** Valid CPM range per the design and Zod schema: 100..100000 integer cents. */
 const validCpmCents = (): fc.Arbitrary<number> =>
-  fc.integer({ min: 1, max: 100000 });
+  fc.integer({ min: 100, max: 100000 });
 
 describe("money math properties", () => {
   // Feature: spinshare-ad-exchange, Property 4: Per-impression revenue equals CPM/1000

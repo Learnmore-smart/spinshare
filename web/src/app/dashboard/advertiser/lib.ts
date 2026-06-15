@@ -61,7 +61,7 @@ export function parseDollarsToCents(input: string): number | null {
 
 /**
  * Validates a CPM bid entered in dollars against the core bounds
- * ($0.01–$1,000.00). Returns the integer-cent value on success or a
+ * ($1.00–$1,000.00). Returns the integer-cent value on success or a
  * human-readable error describing the violation (R9.1, R9.4).
  */
 export function validateCpmDollars(input: string): AmountResult {
@@ -73,7 +73,7 @@ export function validateCpmDollars(input: string): AmountResult {
     };
   }
   if (cents < CPM_CENTS_MIN) {
-    return { ok: false, error: "CPM bid must be at least $0.01." };
+    return { ok: false, error: "CPM bid must be at least $1.00." };
   }
   if (cents > CPM_CENTS_MAX) {
     return { ok: false, error: "CPM bid must be at most $1,000.00." };

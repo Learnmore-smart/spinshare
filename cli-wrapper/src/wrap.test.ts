@@ -8,6 +8,7 @@ import {
   countImpressions,
   exitCodeFor,
   runWrap,
+  spawnOptionsForPlatform,
   type FrameClassification,
 } from "./wrap.js";
 
@@ -94,6 +95,17 @@ describe("exitCodeFor", () => {
 
   it("prefers the signal over a present code", () => {
     expect(exitCodeFor(0, "SIGINT", { SIGINT: 2 })).toBe(130);
+  });
+});
+
+describe("spawnOptionsForPlatform", () => {
+  it("enables a shell on Windows so .cmd agent launchers can run", () => {
+    expect(spawnOptionsForPlatform("win32").shell).toBe(true);
+  });
+
+  it("does not force a shell on POSIX platforms", () => {
+    expect(spawnOptionsForPlatform("linux").shell).toBeUndefined();
+    expect(spawnOptionsForPlatform("darwin").shell).toBeUndefined();
   });
 });
 

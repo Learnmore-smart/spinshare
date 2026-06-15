@@ -27,6 +27,15 @@ export type {
 } from "./payment-gateway";
 
 export type {
+  PayoutGateway,
+  EnsureConnectedAccountInput,
+  OnboardingLinkInput,
+  ConnectAccountStatus,
+  PayoutInput,
+  PayoutResult,
+} from "./payout-gateway";
+
+export type {
   PaymentEventStore,
   PaymentEventRecord,
 } from "./payment-event-store";

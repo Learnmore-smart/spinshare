@@ -11,7 +11,8 @@
  * prepended so they appear immediately without a refetch.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Timer } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,7 +25,7 @@ import { useT } from "@/lib/i18n/locale-provider";
 
 import { CampaignBuilder } from "./campaign-builder";
 import { CampaignList } from "./campaign-list";
-import type { CampaignView } from "./lib";
+import { formatUsd, type CampaignView } from "./lib";
 
 /** Props for {@link AdvertiserDashboard}. */
 export interface AdvertiserDashboardProps {
@@ -64,7 +65,7 @@ export function AdvertiserDashboard({ token }: AdvertiserDashboardProps) {
         message: t.advertiserDashboard.networkError,
       });
     }
-  }, [token]);
+  }, [token, t]);
 
   useEffect(() => {
     void loadCampaigns();
@@ -76,7 +77,6 @@ export function AdvertiserDashboard({ token }: AdvertiserDashboardProps) {
         if (prev.status === "ready") {
           return { status: "ready", campaigns: [created, ...prev.campaigns] };
         }
-        // List wasn't loaded (loading/error): pull a fresh copy.
         void loadCampaigns();
         return prev;
       });
@@ -84,61 +84,79 @@ export function AdvertiserDashboard({ token }: AdvertiserDashboardProps) {
     [loadCampaigns],
   );
 
+  const campaigns = state.status === "ready" ? state.campaigns : [];
+  const totalBudgetCents = useMemo(
+    () => campaigns.reduce((sum, c) => sum + c.budgetCents, 0),
+    [campaigns],
+  );
+
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10">
-      <header className="flex flex-col gap-1">
-        <h1 className="text-3xl font-bold tracking-tight text-primary [text-shadow:0_0_18px_hsl(var(--neon)/0.6)]">
-          {t.advertiserDashboard.title}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {t.advertiserDashboard.subtitle}
-        </p>
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+    <>
+      <section className="adv-dash-hero adv-dash-rise">
+        <h1 className="adv-dash-hero-title">{t.advertiserDashboard.title}</h1>
+        <p className="adv-dash-hero-sub">{t.advertiserDashboard.subtitle}</p>
+        <p className="adv-dash-badge">
+          <Timer className="h-3.5 w-3.5" aria-hidden />
           {t.advertiserDashboard.minViewSeconds}
         </p>
-      </header>
-
-      <CampaignBuilder token={token} onCreated={handleCreated} />
-
-      <section className="flex flex-col gap-4">
-        <h2 className="text-xl font-semibold text-foreground">{t.advertiserDashboard.yourCampaigns}</h2>
-
-        {state.status === "loading" && (
-          <Card data-testid="campaigns-loading">
-            <CardHeader>
-              <CardTitle className="text-base text-muted-foreground">
-                {t.advertiserDashboard.loadingCampaigns}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-        )}
-
-        {state.status === "error" && (
-          <Card data-testid="campaigns-error">
-            <CardHeader>
-              <CardTitle className="text-base text-destructive">
-                {t.advertiserDashboard.somethingWrong}
-              </CardTitle>
-              <CardDescription>{state.message}</CardDescription>
-            </CardHeader>
-            <div className="px-6 pb-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  void loadCampaigns();
-                }}
-              >
-                {t.advertiserDashboard.retry}
-              </Button>
-            </div>
-          </Card>
-        )}
-
-        {state.status === "ready" && (
-          <CampaignList token={token} campaigns={state.campaigns} />
-        )}
       </section>
-    </main>
+
+      {state.status === "ready" && campaigns.length > 0 && (
+        <section className="adv-dash-stat-scroll adv-dash-rise" data-testid="adv-dash-stats">
+          <div className="adv-dash-stat">
+            <p className="adv-dash-stat-label">{t.advertiserDashboard.yourCampaigns}</p>
+            <p className="adv-dash-stat-value">{t.advertiserDashboard.campaignCount(campaigns.length)}</p>
+          </div>
+          <div className="adv-dash-stat">
+            <p className="adv-dash-stat-label">{t.advertiserDashboard.totalBudget}</p>
+            <p className="adv-dash-stat-value">{formatUsd(totalBudgetCents)}</p>
+          </div>
+        </section>
+      )}
+
+      <div className="adv-dash-grid adv-dash-rise">
+        <CampaignBuilder token={token} onCreated={handleCreated} />
+
+        <section className="flex flex-col gap-4">
+          <h2 className="adv-dash-section-heading">{t.advertiserDashboard.yourCampaigns}</h2>
+
+          {state.status === "loading" && (
+            <Card data-testid="campaigns-loading">
+              <CardHeader>
+                <CardTitle className="text-base text-muted-foreground">
+                  {t.advertiserDashboard.loadingCampaigns}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+          )}
+
+          {state.status === "error" && (
+            <Card data-testid="campaigns-error">
+              <CardHeader>
+                <CardTitle className="text-base text-destructive">
+                  {t.advertiserDashboard.somethingWrong}
+                </CardTitle>
+                <CardDescription>{state.message}</CardDescription>
+              </CardHeader>
+              <div className="px-6 pb-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    void loadCampaigns();
+                  }}
+                >
+                  {t.advertiserDashboard.retry}
+                </Button>
+              </div>
+            </Card>
+          )}
+
+          {state.status === "ready" && (
+            <CampaignList token={token} campaigns={state.campaigns} />
+          )}
+        </section>
+      </div>
+    </>
   );
 }

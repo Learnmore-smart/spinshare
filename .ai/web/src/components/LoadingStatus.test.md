@@ -1,6 +1,6 @@
 # LoadingStatus.test.tsx
 
-> Last updated: 2026-06-13 | Protection: STANDARD
+> Last updated: 2026-06-14 | Protection: STANDARD
 
 ## Purpose
 
@@ -33,7 +33,7 @@ Focused Vitest coverage for the LearnX loading status timing contract.
 
 ## Important Notes / NEVER Change
 
-- Tests should lock exact durations: 125ms icon frames, 250ms ellipsis states, 1000ms loops.
+- Tests should lock exact durations: 180ms icon frames, 360ms ellipsis states, 1080ms loops.
 - Keep tests deterministic by passing `initialVerb` and seeded random callbacks.
 
 ## Planned Change: Timing Contract Tests

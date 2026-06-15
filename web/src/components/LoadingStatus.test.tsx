@@ -120,35 +120,33 @@ describe("LoadingStatus", () => {
     expect(subject.LOADING_VERBS.every((verb) => /^[A-Za-z]+$/.test(verb))).toBe(true);
   });
 
-  it("cycles the icon ping-pong sequence over exactly one second", () => {
+  it("cycles the Claude Code icon sequence over exactly 1080ms", () => {
     const expectedIcons = [
+      "\u00b7", // ·
+      "\u002a", // *
       "\u2722", // ✢
       "\u2736", // ✶
       "\u273b", // ✻
-      "\u2733", // ✳
       "\u273d", // ✽
-      "\u273a", // ✺
-      "\u273d", // ✽
-      "\u2733", // ✳
     ];
 
-    expect(subject.ICON_FRAME_MS).toBe(125);
-    expect(subject.ICON_LOOP_MS).toBe(1000);
+    expect(subject.ICON_FRAME_MS).toBe(180);
+    expect(subject.ICON_LOOP_MS).toBe(1080);
     expect(subject.LOADING_ICONS).toEqual(expectedIcons);
     expect(
-      [0, 125, 250, 375, 500, 625, 750, 875, 1000].map((elapsedMs) =>
+      [0, 180, 360, 540, 720, 900, 1080].map((elapsedMs) =>
         subject.getIconForElapsedMs(elapsedMs),
       ),
-    ).toEqual([...expectedIcons, "\u2722"]);
+    ).toEqual([...expectedIcons, "\u00b7"]);
   });
 
   it("formats the ellipsis cycle over exactly one second", () => {
-    expect(subject.ELLIPSIS_STEP_MS).toBe(250);
+    expect(subject.ELLIPSIS_STEP_MS).toBe(360);
     expect(
-      [0, 249, 250, 499, 500, 749, 750, 999, 1000].map((elapsedMs) =>
+      [0, 359, 360, 719, 720, 1079, 1080].map((elapsedMs) =>
         subject.getDotCountForElapsedMs(elapsedMs),
       ),
-    ).toEqual([0, 0, 1, 1, 2, 2, 3, 3, 0]);
+    ).toEqual([0, 0, 1, 1, 2, 2, 0]);
     expect([0, 1, 2, 3].map((dotCount) =>
       subject.formatLoadingText("Loading", dotCount),
     )).toEqual(["Loading", "Loading .", "Loading ..", "Loading ..."]);

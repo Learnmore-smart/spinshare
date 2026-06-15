@@ -3,6 +3,10 @@ import * as vscode from "vscode";
 import { AdController } from "./ad-controller";
 import { AdApiClient, DEFAULT_BASE_URL } from "./api-client";
 import { AuthManager, formatSignInFailure } from "./auth";
+import {
+  installTerminalAutoWrap,
+  normalizeTerminalAgents,
+} from "./terminal-auto-wrap";
 
 /**
  * SpinShare VSCode extension entry point.
@@ -57,6 +61,57 @@ export function activate(context: vscode.ExtensionContext): void {
     },
     onError: (error) => console.error("[spinshare] ad error", error),
   });
+
+  const refreshTerminalAutoWrap = async (
+    showMessage = false,
+  ): Promise<void> => {
+    const config = vscode.workspace.getConfiguration("spinshare");
+    const enabled = config.get<boolean>("terminalAutoWrap") ?? true;
+    const agents = normalizeTerminalAgents(
+      config.get<unknown[]>("terminalAgents"),
+    );
+    const terminalBaseUrl =
+      config.get<string>("baseUrl") ?? DEFAULT_BASE_URL;
+
+    try {
+      const plan = await installTerminalAutoWrap({
+        enabled,
+        agents,
+        baseUrl: terminalBaseUrl,
+        extensionRoot: context.extensionPath,
+        storageRoot: context.globalStorageUri.fsPath,
+        collection: context.environmentVariableCollection,
+      });
+
+      if (!showMessage) {
+        return;
+      }
+
+      if (plan === null) {
+        void vscode.window.showInformationMessage(
+          "SpinShare terminal auto-wrap is disabled.",
+        );
+        return;
+      }
+
+      void vscode.window.showInformationMessage(
+        `SpinShare terminal auto-wrap ready for: ${agents.join(
+          ", ",
+        )}. Open a new terminal to use it.`,
+      );
+    } catch (error) {
+      console.error("[spinshare] terminal auto-wrap error", error);
+      if (showMessage) {
+        void vscode.window.showErrorMessage(
+          `SpinShare could not rebuild terminal shims: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
+    }
+  };
+
+  void refreshTerminalAutoWrap();
 
   // Warm the token cache from secure storage so `getToken()` is populated.
   // If the developer is not signed in yet, prompt immediately on activation
@@ -121,12 +176,32 @@ export function activate(context: vscode.ExtensionContext): void {
     },
   );
 
+  const rebuildTerminalShims = vscode.commands.registerCommand(
+    "spinshare.rebuildTerminalShims",
+    async () => {
+      await refreshTerminalAutoWrap(true);
+    },
+  );
+
+  const terminalAutoWrapConfigWatcher =
+    vscode.workspace.onDidChangeConfiguration((event) => {
+      if (
+        event.affectsConfiguration("spinshare.baseUrl") ||
+        event.affectsConfiguration("spinshare.terminalAutoWrap") ||
+        event.affectsConfiguration("spinshare.terminalAgents")
+      ) {
+        void refreshTerminalAutoWrap();
+      }
+    });
+
   context.subscriptions.push(
     showStatus,
     signIn,
     signOut,
     startGeneration,
     completeGeneration,
+    rebuildTerminalShims,
+    terminalAutoWrapConfigWatcher,
     { dispose: () => controller.dispose() },
   );
 }

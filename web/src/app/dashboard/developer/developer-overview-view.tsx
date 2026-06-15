@@ -1,23 +1,35 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   DEVELOPER_DAILY_EARNING_LIMIT_CENTS,
   DEVELOPER_HOURLY_EARNING_LIMIT_CENTS,
   MINIMUM_PAYOUT_CENTS,
-  VELOCITY_THRESHOLD,
 } from "@spinshare/core";
 
 import { useT } from "@/lib/i18n/locale-provider";
-import { formatDurationShort, msUntilUtcMidnight } from "@/lib/time/utc-periods";
+import {
+  formatDurationShort,
+  msUntilNextUtcHour,
+  msUntilOldestRollingHourCreditExpires,
+  msUntilUtcMidnight,
+} from "@/lib/time/utc-periods";
 
 import { useDeveloperDashboard } from "./developer-dashboard-data";
 import { LimitMeter, money, pct } from "./developer-dashboard-parts";
+import { PayoutPanel } from "./payout-panel";
 import { SetupGuideButton } from "./setup-guide-modal";
 import "./developer-dashboard.css";
 
 export function DeveloperOverviewView() {
   const t = useT();
   const { summary } = useDeveloperDashboard();
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   const {
     totalEarningsUsd,
@@ -27,15 +39,25 @@ export function DeveloperOverviewView() {
     hourlyEarningsCents,
     todayEarningsCents,
     impressionCount,
+    rows,
   } = summary;
 
   const payoutRemainingCents = Math.max(0, MINIMUM_PAYOUT_CENTS - totalEarningsCents);
   const payoutEligible = totalEarningsCents >= MINIMUM_PAYOUT_CENTS;
   const payoutProgress = pct(totalEarningsCents, MINIMUM_PAYOUT_CENTS);
 
-  const hourlyReset = t.developerDashboard.hourlyResetLabel;
+  const creditTimestampsMs = rows.flatMap((row) =>
+    row.createdAtMs === undefined ? [] : [row.createdAtMs],
+  );
+  const msUntilHourlyRollOff = msUntilOldestRollingHourCreditExpires(
+    creditTimestampsMs,
+    now,
+  );
+  const hourlyReset = t.developerDashboard.hourlyResetLabel(
+    formatDurationShort(msUntilHourlyRollOff ?? msUntilNextUtcHour(now)),
+  );
   const dailyReset = t.developerDashboard.dailyResetLabel(
-    formatDurationShort(msUntilUtcMidnight()),
+    formatDurationShort(msUntilUtcMidnight(now)),
   );
 
   return (
@@ -106,9 +128,6 @@ export function DeveloperOverviewView() {
       <section className="dev-dash-panel dev-dash-rise grid gap-5 p-4 sm:grid-cols-2 sm:p-5">
         <div>
           <h2 className="dev-dash-section-title">{t.developerDashboard.earningCaps}</h2>
-          <p className="dev-dash-section-body">
-            {t.developerDashboard.earningCapsBody(VELOCITY_THRESHOLD)}
-          </p>
           <div className="mt-4 space-y-4">
             <LimitMeter
               label={t.developerDashboard.hourlyRolling}
@@ -130,18 +149,7 @@ export function DeveloperOverviewView() {
           <p className="dev-dash-section-body">
             {t.developerDashboard.getPaidBody(money(MINIMUM_PAYOUT_CENTS))}
           </p>
-          <button
-            type="button"
-            disabled={!payoutEligible}
-            className="spinshare-btn-primary mt-4 min-h-11 w-full justify-center rounded-full text-sm disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {t.developerDashboard.connectPayouts}
-          </button>
-          <p className="dev-dash-section-caption">
-            {payoutEligible
-              ? t.developerDashboard.payoutAboveMinimum
-              : t.developerDashboard.payoutBelowMinimum(money(payoutRemainingCents))}
-          </p>
+          <PayoutPanel />
         </div>
       </section>
     </>

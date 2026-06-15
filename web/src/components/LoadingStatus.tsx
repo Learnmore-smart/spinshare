@@ -6,9 +6,9 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export const CLAUDE_CLAY_HEX = "#c15f3c";
-export const ICON_FRAME_MS = 125;
-export const ICON_LOOP_MS = 1000;
-export const ELLIPSIS_STEP_MS = 250;
+export const ICON_FRAME_MS = 180;
+export const ICON_LOOP_MS = 1080;
+export const ELLIPSIS_STEP_MS = 360;
 
 export const LOADING_VERBS = [
   "Absorbing",
@@ -103,21 +103,21 @@ export const LOADING_VERBS = [
 ] as const;
 
 export const LOADING_ICONS = [
-  "\u2722", // ✢
+  "\u00b7", // ·
+  "\u002a", // *
   "\u2736", // ✶
-  "\u273b", // ✻
+  "\u2722", // ✢
   "\u2733", // ✳
+  "\u273b", // ✻
   "\u273d", // ✽
   "\u273a", // ✺
-  "\u273d", // ✽
-  "\u2733", // ✳
 ] as const;
 
 export type LoadingVerb = (typeof LOADING_VERBS)[number];
 
 const BRAND_TEXT = "LearnX \u00b7 Know exactly what to study";
 const DOTS_PER_ICON_FRAME = ELLIPSIS_STEP_MS / ICON_FRAME_MS;
-const FALLBACK_LOADING_ICON = "\u2722";
+const FALLBACK_LOADING_ICON = "\u00b7";
 
 interface LoadingAnimationState {
   frameIndex: number;

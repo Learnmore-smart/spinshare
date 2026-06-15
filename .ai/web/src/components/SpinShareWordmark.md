@@ -4,11 +4,11 @@
 
 ## Purpose
 
-Reusable two-tone "SpinShare" wordmark text that mirrors the infinity icon colors: lime green for "Spin", silver gray for "Share".
+Reusable "SpinShare" wordmark text rendered in solid black (`#000000`) beside the logo icon.
 
 ## What It Does
 
-- Renders `<span>Spin</span><span>Share</span>` with brand wordmark colors from CSS variables.
+- Renders `SpinShare` as a single black text span (`text-black`).
 - Accepts optional `className` for size/weight overrides (e.g. `text-xl` in nav headers).
 
 ## Public API
@@ -25,12 +25,12 @@ Reusable two-tone "SpinShare" wordmark text that mirrors the infinity icon color
 
 ## Dependencies
 
-- Internal: `@/lib/utils` (`cn`), `web/src/app/theme.css` (`--brand-wordmark-spin`, `--brand-wordmark-share`).
+- Internal: `@/lib/utils` (`cn`).
 - External: none.
 
 ## Important Notes / NEVER Change
 
-- Parent links should keep `aria-label="SpinShare home"` for accessibility; the split colors are visual only.
+- Parent links should keep `aria-label="SpinShare home"` for accessibility.
 - Use only in logo lockups (icon + wordmark), not in body copy or legal text.
 
 ## Planned Change
@@ -47,6 +47,7 @@ Per-word **top-to-bottom** gradients (3 stops each) to mimic icon 3D lighting. A
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-14 | Switched wordmark to solid black text (removed green/silver gradients) | Cursor |
 | 2026-06-14 | Fixed broken wordmark: vertical bevel per word, removed horizontal shine band | Cursor |
 | 2026-06-14 | Switched to static per-word gradients; removed silver sweep animation | Cursor |
 | 2026-06-14 | Created before implementing two-tone wordmark styling | Cursor |

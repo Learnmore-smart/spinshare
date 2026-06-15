@@ -1,0 +1,26 @@
+/* Shared dashboard chrome — role switcher (SegmentSlider) */
+
+
+
+.dash-role-segment {
+
+  min-width: 13rem;
+
+}
+
+
+
+.dev-dash .dash-role-segment .spinshare-segment-slider__option--active {
+
+  color: #059669;
+
+}
+
+
+
+.adv-dash .dash-role-segment .spinshare-segment-slider__option--active {
+
+  color: #d97706;
+
+}
+

@@ -1,6 +1,6 @@
 # money.ts
 
-> Last updated: 2026-06-13 | Protection: CRITICAL
+> Last updated: 2026-06-14 | Protection: CRITICAL
 
 ## Purpose
 
@@ -19,6 +19,9 @@ Single source of truth for SpinShare integer money math.
 |------|------|-------------|
 | `MICROCENTS_PER_CENT` | constant | 1000 micro-cents per cent. |
 | `DEVELOPER_SHARE_PERCENT` | constant | Developer revenue share percentage. |
+| `MINIMUM_PAYOUT_CENTS` | constant | Minimum balance before a payout can be initiated ($5.00). |
+| `DEVELOPER_HOURLY_EARNING_LIMIT_CENTS` | constant | Rolling-hour earning cap ($20.00). **Enforced server-side** by the ledger service. |
+| `DEVELOPER_DAILY_EARNING_LIMIT_CENTS` | constant | UTC-day earning cap ($300.00). **Enforced server-side** by the ledger service. |
 | `perImpressionRevenueMicrocents` | function | Exact CPM-to-impression revenue conversion. |
 | `roundHalfUpToCents` | function | Rounds a percentage of revenue to whole cents, capped by available revenue. |
 | `computeSplit` | function | Returns exact revenue, developer credit, and retention. |
@@ -46,3 +49,4 @@ Single source of truth for SpinShare integer money math.
 |------|--------|--------|
 | 2026-06-13 | Created documentation for non-negative retention fix. | Codex |
 | 2026-06-13 | Implemented developer-credit cap in `roundHalfUpToCents`. | Codex |
+| 2026-06-14 | Documented hourly/daily earning cap constants; corrected stale "not wired yet" comments — caps are enforced server-side via `wouldExceedEarningCap` in the ledger service (RTDB + memory adapters, `earning-cap.test.ts`). | Kiro |

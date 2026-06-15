@@ -6,7 +6,7 @@
  * Money convention (see design "Money/Ledger Math" and Data Models):
  *   - CPM bids and funding amounts are validated as integer cents.
  *   - Bounds mirror requirements 9.1–9.4, 9.6, 9.7:
- *       cpmCents:      1..100000      ($0.01 .. $1000.00)
+ *       cpmCents:      100..100000    ($1.00 .. $1000.00)
  *       fundingCents:  100..10000000  ($1.00  .. $100,000.00)
  *   - "One-cent precision" means amounts must be whole integers (no sub-cent
  *     fractions); non-integer values are rejected.
@@ -23,8 +23,8 @@ export const AD_TEXT_MIN_LENGTH = 1;
 /** Maximum ad text length (inclusive). Requirement 9.1, 9.2. */
 export const AD_TEXT_MAX_LENGTH = 60;
 
-/** Minimum max-CPM bid in cents, = $0.01. Requirement 9.1, 9.4. */
-export const CPM_CENTS_MIN = 1;
+/** Minimum max-CPM bid in cents, = $1.00. Requirement 9.1, 9.4. */
+export const CPM_CENTS_MIN = 100;
 /** Maximum max-CPM bid in cents, = $1000.00. Requirement 9.1, 9.4. */
 export const CPM_CENTS_MAX = 100_000;
 
@@ -66,14 +66,14 @@ export const adTextSchema = z
   });
 
 /**
- * Max CPM bid in integer cents: 1..100000 ($0.01..$1000.00).
+ * Max CPM bid in integer cents: 100..100000 ($1.00..$1000.00).
  * Rejects zero, negative, non-integer (sub-cent), and out-of-range values.
  * Requirement 9.4 (invalid bid) and 9.1 (valid range).
  */
 export const cpmCentsSchema = z
   .number({ invalid_type_error: "CPM bid must be a number" })
   .int({ message: "CPM bid must be a whole number of cents" })
-  .min(CPM_CENTS_MIN, { message: "CPM bid must be at least $0.01" })
+  .min(CPM_CENTS_MIN, { message: "CPM bid must be at least $1.00" })
   .max(CPM_CENTS_MAX, { message: "CPM bid must be at most $1000.00" });
 
 /** HTTPS destination URL for a campaign's click-through. */

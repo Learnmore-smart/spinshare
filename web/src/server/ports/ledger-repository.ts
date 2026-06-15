@@ -22,4 +22,11 @@ export interface LedgerRepository {
    * activity table (Requirements 8.1–8.3).
    */
   listByDeveloper(developerId: string): Promise<LedgerEntry[]>;
+
+  /**
+   * Counts durable impressions per campaign id. Used by the public market table
+   * to show served vs purchased impressions without scanning the full ledger on
+   * the client.
+   */
+  countByCampaignIds(campaignIds: string[]): Promise<Record<string, number>>;
 }

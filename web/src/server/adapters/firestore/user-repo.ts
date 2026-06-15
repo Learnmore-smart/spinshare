@@ -95,4 +95,34 @@ export class FirestoreUserRepo implements UserRepository {
       });
     });
   }
+
+  /** Persists the Stripe Connect account id + payout eligibility (upsert). */
+  async setConnectAccount(
+    id: string,
+    input: { stripeConnectAccountId: string; payoutsEnabled: boolean },
+  ): Promise<User> {
+    const ref = this.collection.doc(id);
+    return this.db.runTransaction(async (tx) => {
+      const doc = await tx.get(ref);
+      const existing = doc.exists ? (doc.data() ?? {}) : {};
+      // Upsert (merge): a developer may connect payouts before any durable
+      // record exists. Seed minimal defaults when absent; preserve everything
+      // else (balance, identity) when present.
+      tx.set(
+        ref,
+        {
+          ...(doc.exists ? {} : { balanceCents: 0, createdAt: FieldValue.serverTimestamp() }),
+          stripeConnectAccountId: input.stripeConnectAccountId,
+          payoutsEnabled: input.payoutsEnabled,
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+      return toUser(id, {
+        ...existing,
+        stripeConnectAccountId: input.stripeConnectAccountId,
+        payoutsEnabled: input.payoutsEnabled,
+      });
+    });
+  }
 }

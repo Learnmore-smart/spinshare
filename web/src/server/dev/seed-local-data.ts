@@ -102,7 +102,9 @@ export function seedLocalTestData(repos: SeedableRepos): void {
     const campaign: Campaign = {
       id: DEMO_CAMPAIGN_ID,
       advertiserId: advertiser.id,
-      adText: "Ship faster with Acme CI — try it free",
+      adText: "LearnX · Know exactly what to study",
+      destinationUrl: "https://www.learnx.pro",
+      brandName: "LearnX",
       cpmCents: CAMPAIGN_CPM_CENTS,
       budgetCents: CAMPAIGN_BUDGET_CENTS,
       status: "active",

@@ -32,6 +32,19 @@ export class MemoryLedgerRepository implements LedgerRepository {
       .map((entry) => ({ ...entry }));
   }
 
+  async countByCampaignIds(campaignIds: string[]): Promise<Record<string, number>> {
+    const counts = Object.fromEntries(campaignIds.map((id) => [id, 0]));
+
+    for (const entry of this.entries.values()) {
+      const current = counts[entry.campaignId];
+      if (current !== undefined) {
+        counts[entry.campaignId] = current + 1;
+      }
+    }
+
+    return counts;
+  }
+
   /**
    * Test/seed helper: inserts fully-formed entries synchronously, idempotent by
    * `entryId` (first write wins). Mirrors `appendEntries` without the async

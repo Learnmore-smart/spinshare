@@ -55,7 +55,7 @@ describe("parseDollarsToCents", () => {
 
 describe("validateCpmDollars", () => {
   it("accepts the minimum and maximum bids", () => {
-    expect(validateCpmDollars("0.01")).toEqual({ ok: true, cents: CPM_CENTS_MIN });
+    expect(validateCpmDollars("1.00")).toEqual({ ok: true, cents: CPM_CENTS_MIN });
     expect(validateCpmDollars("1000.00")).toEqual({
       ok: true,
       cents: CPM_CENTS_MAX,
@@ -65,6 +65,7 @@ describe("validateCpmDollars", () => {
   it("rejects zero and below-minimum bids", () => {
     expect(validateCpmDollars("0").ok).toBe(false);
     expect(validateCpmDollars("0.00").ok).toBe(false);
+    expect(validateCpmDollars("0.99").ok).toBe(false);
   });
 
   it("rejects above-maximum bids", () => {

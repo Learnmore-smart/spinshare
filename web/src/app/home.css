@@ -82,37 +82,6 @@
   color: var(--text-accent-strong);
 }
 
-.spinshare-home-timeframe {
-  display: inline-flex;
-  border-radius: 0.5rem;
-  background: var(--surface-glass-end);
-  padding: 0.125rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-}
-
-.spinshare-home-timeframe__btn {
-  border-radius: 0.375rem;
-  padding: 0.375rem 0.75rem;
-  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-}
-
-.spinshare-home-timeframe__btn:hover {
-  color: var(--text-primary);
-}
-
-.spinshare-home-timeframe__btn--active {
-  background: var(--surface-white);
-  color: var(--color-primary-800);
-  font-weight: 800;
-  box-shadow: var(--shadow-elevation-sm);
-}
-
-.dark .spinshare-home-timeframe__btn--active {
-  color: var(--text-accent);
-}
-
 .spinshare-home-chart-badge {
   display: flex;
   align-items: center;
@@ -186,7 +155,7 @@
 
 .spinshare-home-progress-track {
   height: 0.375rem;
-  width: 6rem;
+  min-width: 0;
   overflow: hidden;
   border-radius: 9999px;
   background: var(--surface-glass-end);
@@ -443,7 +412,6 @@
     inset 1px 0 0 0 rgba(255, 255, 255, 0.06),
     inset -1px 0 0 0 rgba(255, 255, 255, 0.03),
     0 20px 52px 0 rgba(0, 0, 0, 0.35);
-  transition: var(--transition-glass);
 }
 
 .liquid-glass-black::before {
@@ -455,18 +423,6 @@
   background: radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 50%);
   opacity: 0.8;
   mix-blend-mode: screen;
-}
-
-.liquid-glass-black:hover {
-  background: var(--surface-black-hover);
-  box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.22),
-    inset 0 2px 10px 0 rgba(255, 255, 255, 0.12),
-    inset 0 -4px 16px 0 rgba(0, 0, 0, 0.7),
-    inset 1px 0 0 0 rgba(255, 255, 255, 0.1),
-    inset -1px 0 0 0 rgba(255, 255, 255, 0.05),
-    0 24px 64px 0 rgba(0, 0, 0, 0.45);
-  transform: translateY(-2px);
 }
 
 /* =====================================================================
@@ -696,38 +652,6 @@ input[type="password"]:focus {
   color: var(--color-primary-600);
   animation: spinshare-gradient-sweep 3s linear infinite;
   display: inline-block;
-}
-
-/* =====================================================================
-   Wordmark — vertical bevel per word (top-lit, like the logo icon).
-   No horizontal shine bands — those clip as harsh vertical stripes in text.
-   ===================================================================== */
-.spinshare-wordmark-spin,
-.spinshare-wordmark-share {
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  display: inline-block;
-}
-
-.spinshare-wordmark-spin {
-  background-image: linear-gradient(
-    180deg,
-    var(--brand-wordmark-green-light) 0%,
-    var(--brand-wordmark-green-mid) 52%,
-    var(--brand-wordmark-green-dark) 100%
-  );
-  color: var(--brand-wordmark-green-mid);
-}
-
-.spinshare-wordmark-share {
-  background-image: linear-gradient(
-    180deg,
-    var(--brand-wordmark-silver-light) 0%,
-    var(--brand-wordmark-silver-mid) 52%,
-    var(--brand-wordmark-silver-dark) 100%
-  );
-  color: var(--brand-wordmark-silver-mid);
 }
 
 /* =====================================================================

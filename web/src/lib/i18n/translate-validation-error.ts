@@ -5,7 +5,8 @@ export function translateValidationError(message: string, t: Dictionary): string
   switch (message) {
     case "Enter a valid CPM bid in dollars (up to two decimals).":
       return t.errors.cpmInvalid;
-    case "CPM bid must be at least $0.01.":
+    case "CPM bid must be at least $1.00.":
+    case "CPM bid must be at least $1.00":
       return t.errors.cpmMin;
     case "CPM bid must be at most $1,000.00.":
       return t.errors.cpmMax;

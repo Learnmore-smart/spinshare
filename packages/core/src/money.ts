@@ -38,14 +38,16 @@ export const MINIMUM_PAYOUT_CENTS = 500;
 
 /**
  * Max developer credits that may accrue in a rolling 60-minute window ($20.00).
- * Policy constant — surfaced on the dashboard; server enforcement is not wired yet
- * (velocity shadow-ban is the only live anti-abuse cap today).
+ * Enforced server-side by the ledger service (`wouldExceedEarningCap`): once
+ * crediting an impression would breach this cap, the impression is served but
+ * not credited until the window rolls over.
  */
 export const DEVELOPER_HOURLY_EARNING_LIMIT_CENTS = 2_000;
 
 /**
- * Max developer credits that may accrue per calendar day ($300.00).
- * Policy constant — surfaced on the dashboard; server enforcement is not wired yet.
+ * Max developer credits that may accrue per UTC calendar day ($300.00).
+ * Enforced server-side alongside the hourly cap (`wouldExceedEarningCap`):
+ * impressions beyond the cap are served but earn no credit until midnight UTC.
  */
 export const DEVELOPER_DAILY_EARNING_LIMIT_CENTS = 30_000;
 

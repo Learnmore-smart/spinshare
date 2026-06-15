@@ -26,6 +26,8 @@ import type { LedgerEntry } from "@spinshare/core";
 import {
   MICROCENTS_PER_CENT,
   VELOCITY_WINDOW_SECONDS,
+  dayWindowStartMs,
+  hourWindowStartMs,
 } from "@spinshare/core";
 import type {
   ApplyImpressionInput,
@@ -45,6 +47,14 @@ interface VelocityCounter {
   count: number;
   /** Epoch millis at which this window counter expires (TTL = 60s). */
   expiresAtMs: number;
+}
+
+/** A windowed earnings accumulator (hour or day) with its aligned window start. */
+interface EarningWindow {
+  /** Aligned window start (epoch millis); a different start resets the total. */
+  windowStartMs: number;
+  /** Credited earnings accumulated within the window, in whole cents. */
+  cents: number;
 }
 
 /** An in-flight batch held between `drainPending` and `ackDrained`. */
@@ -71,6 +81,10 @@ export class MemoryCounterStore implements CounterStore {
   private readonly knownEntryIds = new Set<string>();
   /** Fixed 60s velocity windows keyed by `${userId}:${windowStartEpochSec}`. */
   private readonly velocity = new Map<string, VelocityCounter>();
+  /** Per-developer credited earnings in the current aligned hour window. */
+  private readonly earnHour = new Map<string, EarningWindow>();
+  /** Per-developer credited earnings in the current UTC day window. */
+  private readonly earnDay = new Map<string, EarningWindow>();
   /** Active shadow-bans: user id → epoch millis at which the ban expires. */
   private readonly shadowBans = new Map<string, number>();
   /** In-flight drained batches keyed by `batchToken`. */
@@ -181,6 +195,43 @@ export class MemoryCounterStore implements CounterStore {
   private pruneExpiredVelocity(nowMs: number): void {
     for (const [key, counter] of this.velocity) {
       if (counter.expiresAtMs <= nowMs) this.velocity.delete(key);
+    }
+  }
+
+  // --- Earning caps -------------------------------------------------------
+
+  async getEarnedCentsInWindows(
+    userId: string,
+    nowMs: number,
+  ): Promise<{ hourlyCents: number; dailyCents: number }> {
+    const hour = this.earnHour.get(userId);
+    const day = this.earnDay.get(userId);
+    const hourlyCents =
+      hour && hour.windowStartMs === hourWindowStartMs(nowMs) ? hour.cents : 0;
+    const dailyCents =
+      day && day.windowStartMs === dayWindowStartMs(nowMs) ? day.cents : 0;
+    return { hourlyCents, dailyCents };
+  }
+
+  async addEarnedCents(
+    userId: string,
+    amountCents: number,
+    nowMs: number,
+  ): Promise<void> {
+    const hourStart = hourWindowStartMs(nowMs);
+    const hour = this.earnHour.get(userId);
+    if (hour && hour.windowStartMs === hourStart) {
+      hour.cents += amountCents;
+    } else {
+      this.earnHour.set(userId, { windowStartMs: hourStart, cents: amountCents });
+    }
+
+    const dayStart = dayWindowStartMs(nowMs);
+    const day = this.earnDay.get(userId);
+    if (day && day.windowStartMs === dayStart) {
+      day.cents += amountCents;
+    } else {
+      this.earnDay.set(userId, { windowStartMs: dayStart, cents: amountCents });
     }
   }
 

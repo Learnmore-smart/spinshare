@@ -10,7 +10,7 @@ Provisions durable in-memory records for the local test accounts so the dashboar
 
 - Seeds a durable `User` for each local test account (developer + advertiser).
 - Credits the developer account with a deterministic set of `LedgerEntry` records (24 impressions × 18¢ = $4.32), powering the developer dashboard's earnings, chart, and activity rows.
-- Seeds one funded, active `Campaign` (id `cmp-local-demo`, $50 budget, $30 CPM) owned by the advertiser account, powering the advertiser dashboard and homepage market panel.
+- Seeds one funded, active `Campaign` (id `cmp-local-demo`, $50 budget, $30 CPM, LearnX ad copy) owned by the advertiser account, powering the advertiser dashboard and homepage market panel.
 - Operates only on the synchronous in-memory repositories; idempotent via stable ids / `entryId`s.
 
 ## Public API

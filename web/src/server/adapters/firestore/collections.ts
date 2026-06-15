@@ -31,6 +31,12 @@ export function toUser(id: string, data: FirebaseFirestore.DocumentData): User {
     provider: data.provider as AuthProviderId,
     role: data.role as UserRole,
     balanceCents: Number(data.balanceCents ?? 0),
+    ...(data.stripeConnectAccountId !== undefined
+      ? { stripeConnectAccountId: String(data.stripeConnectAccountId) }
+      : {}),
+    ...(data.payoutsEnabled !== undefined
+      ? { payoutsEnabled: Boolean(data.payoutsEnabled) }
+      : {}),
   };
 }
 

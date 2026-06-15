@@ -13,6 +13,8 @@ export interface MarketRow {
   bidLabel: string;
   remainingBudgetCents: number;
   remainingBudgetUsd: string;
+  servedImpressions: number;
+  targetImpressions: number;
   status: "live";
 }
 
@@ -32,14 +34,37 @@ function usd(cents: number): string {
   return `$${formatCentsAsUsd(cents)}`;
 }
 
+function impressionCapacity(
+  cpmCents: number,
+  budgetCents: number,
+  servedImpressions: number,
+): { servedImpressions: number; targetImpressions: number } {
+  const remainingImpressions =
+    cpmCents > 0 ? Math.floor((budgetCents * 1000) / cpmCents) : 0;
+
+  return {
+    servedImpressions,
+    targetImpressions: servedImpressions + remainingImpressions,
+  };
+}
+
 function byAuctionPriority(a: Campaign, b: Campaign): number {
   if (isBetterBid(a, b)) return -1;
   if (isBetterBid(b, a)) return 1;
   return 0;
 }
 
-function toMarketRow(campaign: Campaign, index: number): MarketRow {
+function toMarketRow(
+  campaign: Campaign,
+  index: number,
+  servedImpressions: number,
+): MarketRow {
   const cpmUsd = usd(campaign.cpmCents);
+  const impressions = impressionCapacity(
+    campaign.cpmCents,
+    campaign.budgetCents,
+    servedImpressions,
+  );
 
   return {
     id: campaign.id,
@@ -50,18 +75,25 @@ function toMarketRow(campaign: Campaign, index: number): MarketRow {
     bidLabel: `${cpmUsd} / 1k imps`,
     remainingBudgetCents: campaign.budgetCents,
     remainingBudgetUsd: usd(campaign.budgetCents),
+    servedImpressions: impressions.servedImpressions,
+    targetImpressions: impressions.targetImpressions,
     status: "live",
   };
 }
 
 export async function GET(): Promise<Response> {
   try {
-    const { campaigns } = getContainer();
+    const { campaigns, ledger } = getContainer();
     const ranked = (await campaigns.listBiddable()).sort(byAuctionPriority);
     const publicRanked = ranked.filter(
       (campaign) => campaign.publicOnLeaderboard !== false,
     );
-    const rows = publicRanked.map(toMarketRow);
+    const impressionCounts = await ledger.countByCampaignIds(
+      publicRanked.map((campaign) => campaign.id),
+    );
+    const rows = publicRanked.map((campaign, index) =>
+      toMarketRow(campaign, index, impressionCounts[campaign.id] ?? 0),
+    );
     const topCpmCents = rows[0]?.cpmCents ?? 0;
 
     return Response.json(

@@ -35,6 +35,13 @@ Provides live bid-market summary data for the homepage.
 
 Filter private campaigns out of the public market rows while leaving them eligible for ad delivery through the bidding endpoint.
 
+## Implemented Change (2026-06-14)
+
+Each market row now includes:
+
+- `servedImpressions` — durable ledger impression count for the campaign.
+- `targetImpressions` — served plus remaining purchasable impressions derived from `budgetCents` and `cpmCents`.
+
 ## Implemented Change
 
 `GET /api/market` now filters out campaigns where `publicOnLeaderboard === false` after loading/sorting biddable campaigns. Actual ad selection still uses the repository's full biddable set.

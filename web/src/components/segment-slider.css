@@ -98,6 +98,32 @@
   letter-spacing: 0.02em;
 }
 
+.spinshare-segment-slider--mini {
+  gap: 3px;
+  padding: 3px;
+  border-radius: 10px;
+}
+
+.spinshare-segment-slider--mini::before {
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(
+    (100% - 6px - 3px * (var(--segment-count) - 1)) / var(--segment-count)
+  );
+  border-radius: 7px;
+  transform: translateX(calc(var(--segment-index) * (100% + 3px)));
+}
+
+.spinshare-segment-slider--mini .spinshare-segment-slider__option {
+  min-height: 1.625rem;
+  padding: 0 0.5rem;
+  border-radius: 7px;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
 /* Modal sheet entrance (setup guide, etc.) */
 @keyframes spinshare-modal-backdrop-in {
   from {

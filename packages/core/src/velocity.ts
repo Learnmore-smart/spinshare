@@ -208,3 +208,56 @@ export function reduceLedgerSequence(
 ): LedgerSeqState {
   return events.reduce((acc, event) => reduceLedgerEvent(acc, event, splitFn), initial);
 }
+
+// ---------------------------------------------------------------------------
+// Earning-cap windows (server-enforced anti-abuse, Requirements 10.x)
+// ---------------------------------------------------------------------------
+
+/** Milliseconds in one hour — the rolling hourly earning window length. */
+export const HOUR_MS = 3_600_000;
+
+/** Milliseconds in one UTC calendar day — the daily earning window length. */
+export const DAY_MS = 86_400_000;
+
+/**
+ * Start (epoch millis) of the fixed, hour-aligned window that `nowMs` falls
+ * into. Used to bucket credited developer earnings for the hourly cap. A fixed
+ * aligned hour is a deterministic, store-friendly approximation of a strict
+ * 60-minute rolling window; it bounds earnings to at most the cap per clock
+ * hour, which is what the anti-abuse policy requires.
+ */
+export function hourWindowStartMs(nowMs: number): number {
+  return Math.floor(nowMs / HOUR_MS) * HOUR_MS;
+}
+
+/**
+ * Start (epoch millis) of the UTC calendar day that `nowMs` falls into. Epoch
+ * millis are UTC-aligned, so flooring by {@link DAY_MS} yields UTC midnight —
+ * matching the dashboard's "Today (UTC)" daily figure.
+ */
+export function dayWindowStartMs(nowMs: number): number {
+  return Math.floor(nowMs / DAY_MS) * DAY_MS;
+}
+
+/**
+ * Whether crediting `creditCents` would push a developer past either earning
+ * cap, given the amounts they have already earned in the current hour/day
+ * windows. Pure: the caller supplies the current window totals and the limits.
+ *
+ * Returns `true` when the impression must be suppressed (credited later, not
+ * now) so that neither cap is exceeded.
+ *
+ * @param current  Already-credited cents in the current hour and day windows.
+ * @param creditCents  The developer credit the pending impression would add.
+ * @param limits  The hourly and daily caps in integer cents.
+ */
+export function wouldExceedEarningCap(
+  current: { hourlyCents: number; dailyCents: number },
+  creditCents: number,
+  limits: { hourlyLimitCents: number; dailyLimitCents: number },
+): boolean {
+  return (
+    current.hourlyCents + creditCents > limits.hourlyLimitCents ||
+    current.dailyCents + creditCents > limits.dailyLimitCents
+  );
+}

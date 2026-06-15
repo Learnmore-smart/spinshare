@@ -65,7 +65,8 @@ export interface Dictionary {
     impsPerMinFleet: (rate: string) => string;
     campaign: string;
     bidPerThousand: string;
-    impressions: string;
+    totalPaid: string;
+    delivery: string;
     loadingLiveBids: string;
     bidMarketUnavailable: string;
     noFundedBids: string;
@@ -75,6 +76,7 @@ export interface Dictionary {
     openAdvertiserPortal: string;
     loadingLiveBidsShort: string;
     chartBidLabel: string;
+    chartCollectingHistory: string;
   };
   howItPaysSection: {
     title: string;
@@ -131,7 +133,8 @@ export interface Dictionary {
     panelLabel: string;
     roleDeveloper: string;
     roleAdvertiser: string;
-    submit: string;
+    submitGoogle: string;
+    submitGithub: string;
     submitting: string;
     signInAs: string;
     orDivider: string;
@@ -185,7 +188,6 @@ export interface Dictionary {
     ofLimit: (limit: string) => string;
     events: string;
     earningCaps: string;
-    earningCapsBody: (velocity: number) => string;
     hourlyRolling: string;
     dailyUtc: string;
     getPaid: string;
@@ -193,6 +195,12 @@ export interface Dictionary {
     connectPayouts: string;
     payoutAboveMinimum: string;
     payoutBelowMinimum: (remaining: string) => string;
+    cashOut: (amount: string) => string;
+    payoutConnecting: string;
+    payoutProcessing: string;
+    payoutSuccess: (amount: string) => string;
+    payoutError: string;
+    payoutFinishOnboarding: string;
     earningsCurve: string;
     earningsCurveSub: string;
     chartTimeRangeAria: string;
@@ -217,7 +225,7 @@ export interface Dictionary {
     loadErrorTitle: string;
     loadErrorDefault: string;
     dailyResetLabel: (duration: string) => string;
-    hourlyResetLabel: string;
+    hourlyResetLabel: (duration: string) => string;
     settings: string;
     settingsTitle: string;
     settingsCloseAria: string;
@@ -298,10 +306,21 @@ export interface Dictionary {
     pasteCodeLabel: string;
     pasteCodePlaceholder: string;
   };
+  dashboardCommon: {
+    roleSwitcherAria: string;
+    roleDeveloper: string;
+    roleAdvertiser: string;
+  };
   advertiserDashboard: {
     title: string;
     subtitle: string;
     minViewSeconds: string;
+    sidebarAria: string;
+    navAria: string;
+    navOverview: string;
+    settings: string;
+    campaignCount: (count: number) => string;
+    totalBudget: string;
     yourCampaigns: string;
     loadingCampaigns: string;
     somethingWrong: string;
@@ -310,6 +329,9 @@ export interface Dictionary {
     networkError: string;
     newCampaign: string;
     newCampaignDesc: string;
+    sectionAdCopy: string;
+    sectionBrand: string;
+    sectionBidding: string;
     adText: string;
     adTextPlaceholder: string;
     destinationUrl: string;

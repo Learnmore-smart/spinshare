@@ -13,6 +13,8 @@
  *   inflight/{batchToken}        { entries, meta }  drained but not yet acked
  *   velocity/{userId}/{windowStartSec}  fixed 60s window count
  *   shadowban/{userId}           epoch millis the ban expires
+ *   earnHour/{userId}            { windowStartMs, cents }  credited earnings this hour
+ *   earnDay/{userId}             { windowStartMs, cents }  credited earnings this UTC day
  *
  * ── Atomicity / idempotency (design "Redis→Firestore Reconciliation") ───────
  * `applyImpression`:
@@ -34,7 +36,11 @@
  */
 
 import type { LedgerEntry } from "@spinshare/core";
-import { MICROCENTS_PER_CENT } from "@spinshare/core";
+import {
+  MICROCENTS_PER_CENT,
+  dayWindowStartMs,
+  hourWindowStartMs,
+} from "@spinshare/core";
 import {
   ServerValue,
   type Database,
@@ -70,6 +76,14 @@ interface BatchMeta {
   balanceDeltaCentsByUser: Record<string, number>;
   /** Negative micro-cent deltas (sum of `-revenueMicrocents`) keyed by campaign. */
   budgetDeltaMicrocentsByCampaign: Record<string, number>;
+}
+
+/** Persisted earnings accumulator for one aligned window (hour or day). */
+interface EarningWindowNode {
+  /** Aligned window start (epoch millis); a different start resets the total. */
+  windowStartMs: number;
+  /** Credited earnings accumulated within the window, in whole cents. */
+  cents: number;
 }
 
 /** Convert a micro-cent amount to whole cents, rounding half-away-from-zero. */
@@ -191,6 +205,52 @@ export class RealtimeDbCounterStore implements CounterStore {
     await this.root
       .child(`shadowban/${userId}`)
       .set(this.clock.nowMs() + ttlSeconds * 1000);
+  }
+
+  // --- Earning caps -------------------------------------------------------
+
+  async getEarnedCentsInWindows(
+    userId: string,
+    nowMs: number,
+  ): Promise<{ hourlyCents: number; dailyCents: number }> {
+    const [hourSnap, daySnap] = await Promise.all([
+      this.root.child(`earnHour/${userId}`).get(),
+      this.root.child(`earnDay/${userId}`).get(),
+    ]);
+    const hour = hourSnap.val() as EarningWindowNode | null;
+    const day = daySnap.val() as EarningWindowNode | null;
+    const hourlyCents =
+      hour && hour.windowStartMs === hourWindowStartMs(nowMs) ? hour.cents : 0;
+    const dailyCents =
+      day && day.windowStartMs === dayWindowStartMs(nowMs) ? day.cents : 0;
+    return { hourlyCents, dailyCents };
+  }
+
+  async addEarnedCents(
+    userId: string,
+    amountCents: number,
+    nowMs: number,
+  ): Promise<void> {
+    const hourStart = hourWindowStartMs(nowMs);
+    const dayStart = dayWindowStartMs(nowMs);
+    // Transaction per window: reset the accumulator when the aligned window has
+    // rolled over, otherwise add to it. Keeps the cap correct under concurrency.
+    await Promise.all([
+      this.root.child(`earnHour/${userId}`).transaction((current) => {
+        const node = current as EarningWindowNode | null;
+        if (node && node.windowStartMs === hourStart) {
+          return { windowStartMs: hourStart, cents: node.cents + amountCents };
+        }
+        return { windowStartMs: hourStart, cents: amountCents };
+      }),
+      this.root.child(`earnDay/${userId}`).transaction((current) => {
+        const node = current as EarningWindowNode | null;
+        if (node && node.windowStartMs === dayStart) {
+          return { windowStartMs: dayStart, cents: node.cents + amountCents };
+        }
+        return { windowStartMs: dayStart, cents: amountCents };
+      }),
+    ]);
   }
 
   // --- Reconciliation support --------------------------------------------

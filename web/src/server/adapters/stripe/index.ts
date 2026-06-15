@@ -8,3 +8,4 @@
  */
 
 export { StripeGateway, type StripeGatewayEnv } from "./stripe-gateway";
+export { StripePayoutGateway } from "./stripe-payout-gateway";

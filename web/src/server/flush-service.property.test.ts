@@ -64,7 +64,7 @@ const scenarioArb = fc
     ),
     campaigns: fc.array(
       fc.record({
-        cpmCents: fc.integer({ min: 1, max: 100_000 }),
+        cpmCents: fc.integer({ min: 100, max: 100_000 }),
         startBudgetCents: fc.integer({ min: 0, max: 10_000_000 }),
       }),
       { minLength: 1, maxLength: 4 },
@@ -357,6 +357,10 @@ class FaultOnceLedgerRepository implements LedgerRepository {
 
   async listByDeveloper(developerId: string): Promise<LedgerEntry[]> {
     return this.inner.listByDeveloper(developerId);
+  }
+
+  async countByCampaignIds(campaignIds: string[]): Promise<Record<string, number>> {
+    return this.inner.countByCampaignIds(campaignIds);
   }
 }
 

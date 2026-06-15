@@ -37,6 +37,7 @@ import type {
   LedgerRepository,
   PaymentEventStore,
   PaymentGateway,
+  PayoutGateway,
   UserRepository,
 } from "./ports";
 import {
@@ -47,6 +48,7 @@ import {
   MemoryUserRepository,
   MockAuthProvider,
   MockPaymentGateway,
+  MockPayoutGateway,
   RandomIdGenerator,
   SystemClock,
   type Clock,
@@ -58,7 +60,7 @@ import {
   FirestorePaymentEventStore,
   FirestoreUserRepo,
 } from "./adapters/firestore";
-import { StripeGateway } from "./adapters/stripe";
+import { StripeGateway, StripePayoutGateway } from "./adapters/stripe";
 import { RealtimeDbCounterStore } from "./adapters/rtdb";
 // Import the concrete device-flow provider directly (not the barrel) so the
 // composition root never pulls in the NextAuth browser-session instance: the
@@ -79,6 +81,8 @@ export interface Container {
   ledger: LedgerRepository;
   /** Funding via Stripe (or the mock gateway). */
   payments: PaymentGateway;
+  /** Developer payouts via Stripe Connect (or the mock gateway). */
+  payouts: PayoutGateway;
   /** Stripe webhook idempotency store (`paymentEvents/{eventId}`). */
   paymentEvents: PaymentEventStore;
   /** Device-flow authentication + token validation. */
@@ -237,7 +241,27 @@ function buildPaymentGateway(
   );
 }
 
-/** Selects the {@link AuthProvider} from `AUTH_MODE`. */
+/**
+ * Selects the {@link PayoutGateway} from `STRIPE_MODE` (same switch as funding).
+ * `mock` locally wires {@link MockPayoutGateway} (instant onboarding, no creds);
+ * `test`/`live` wire the real Stripe Connect gateway (credential-tolerant —
+ * only credentialed calls require `STRIPE_SECRET_KEY`).
+ */
+function buildPayoutGateway(
+  env: ContainerEnv,
+  mode: SpinshareMode,
+): PayoutGateway {
+  const stripe = (env.STRIPE_MODE ?? (mode === "local" ? "mock" : "live")).trim();
+  if (stripe === "mock") {
+    return new MockPayoutGateway();
+  }
+  if (stripe === "test" || stripe === "live") {
+    return new StripePayoutGateway(env);
+  }
+  throw new Error(
+    `Invalid STRIPE_MODE="${env.STRIPE_MODE}". Expected "mock", "test", or "live".`,
+  );
+}
 function buildAuthProvider(env: ContainerEnv, mode: SpinshareMode): AuthProvider {
   const auth = (env.AUTH_MODE ?? (mode === "local" ? "mock" : "oauth")).trim();
   if (auth === "mock") {
@@ -266,6 +290,7 @@ export function buildContainer(env: ContainerEnv = process.env): Container {
     counters: buildCounterStore(env, mode),
     ...buildDurableRepos(env, mode),
     payments: buildPaymentGateway(env, mode),
+    payouts: buildPayoutGateway(env, mode),
     auth: buildAuthProvider(env, mode),
   };
 }

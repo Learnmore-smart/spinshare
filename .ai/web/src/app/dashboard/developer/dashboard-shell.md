@@ -32,7 +32,12 @@ Compact bar: `3.25rem` total height, `0.375rem` vertical padding, `2.5rem` round
 | ScrollText | `/dashboard/developer/activity` | Activity ledger |
 | Settings | `/dashboard/developer/settings` | Settings page |
 
-## Dependencies
+## Implemented Change (2026-06-14)
 
-- `developer-settings-view.tsx`, `next/navigation` (`usePathname`)
-- Styles: `developer-dashboard.css` (`.dev-dash-rail*`)
+Sticky top bar inside `.dev-dash-main` with `DashboardRoleSwitcher` aligned top-right.
+
+## Change History
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-14 | Added role switcher to developer main top bar. | Codex |

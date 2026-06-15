@@ -23,7 +23,7 @@ import type { LedgerSeqEvent } from "./velocity";
 // CPM arbitraries
 // ---------------------------------------------------------------------------
 
-/** A valid max-CPM bid in integer cents (1..100000 ⇒ $0.01..$1000.00). */
+/** A valid max-CPM bid in integer cents (100..100000 ⇒ $1.00..$1000.00). */
 export const validCpmCentsArb = fc.integer({ min: CPM_CENTS_MIN, max: CPM_CENTS_MAX });
 
 /**

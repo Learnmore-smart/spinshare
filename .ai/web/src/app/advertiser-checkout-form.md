@@ -50,10 +50,22 @@ Refine the form visuals after screenshot review:
 - Change the ad-line placeholder to the LearnX copy used elsewhere on the homepage.
 - Replace the browser-default leaderboard checkbox with a clearly-styled custom control that matches the mint glass UI.
 
+## Bug Fix (2026-06-14)
+
+Invalid email showed the browser/Zod string `Enter a valid email address` instead of inline feedback. Ad-line validation only shook when empty, while over-limit showed a text error — inconsistent UX.
+
+**Fix plan**
+
+- Validate email client-side with `advertiserEmailSchema` before submit; shake the email field container on failure (no error banner for email).
+- Always shake the ad-line container when ad text is invalid (empty or over limit).
+- Use a reusable field-shake helper that re-triggers the animation on every failed submit (toggle off → on via `requestAnimationFrame`).
+- Use `type="text"` + `inputMode="email"` so the browser never shows its native email tooltip.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-14 | Client-side email validation + consistent container shake for email/ad line | Cursor |
 | 2026-06-14 | Checkout summary + form labels use `spinshare-checkout-*` theme.css tokens for dark mode | Cursor |
 | 2026-06-13 | Created doc before implementing homepage checkout form. | Codex |
 | 2026-06-13 | Synced doc with implemented homepage checkout form and verification. | Codex |
