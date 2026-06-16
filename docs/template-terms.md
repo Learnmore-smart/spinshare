@@ -109,9 +109,9 @@ The following terms shall have the meanings set forth below throughout this Agre
 
 "Auction" means the real-time bidding system through which Advertisers compete for placement priority in the display queue.
 
-"Bid" means the monetary amount an Advertiser offers to pay per block of 1,000 five-second impressions.
+"Bid" means the monetary amount an Advertiser offers to pay per block of 1,000 impressions of at least 3 seconds.
 
-"Block" means a unit of advertising inventory consisting of 1,000 five-second impressions served within AI wait-states.
+"Block" means a unit of advertising inventory consisting of 1,000 impressions of at least 3 seconds served within AI wait-states.
 
 "Click" means a user's affirmative interaction with an advertisement that triggers a navigation event to the Advertiser's designated destination URL.
 
@@ -123,7 +123,7 @@ The following terms shall have the meanings set forth below throughout this Agre
 
 "Extension" means the Kickbacks Visual Studio Code (VS Code) extension, IDE plugin, or command-line interface (CLI) integration installed by a user to enable the Service.
 
-"Impression" means a single instance of an advertisement being displayed within an AI wait-state for a minimum of five (5) seconds.
+"Impression" means a single instance of an advertisement being displayed within an AI wait-state for a minimum of three (3) seconds.
 
 "Ledger" means the internal accounting record maintained by Kickbacks tracking impressions, clicks, earnings, and payouts attributable to each user or advertiser account.
 
@@ -154,7 +154,7 @@ Kickbacks operates an advertising marketplace that displays sponsored content wi
 Upon installing the Extension and completing account registration, Earning Users will see sponsored status-line messages replace or supplement the default spinner text during Claude Code, Codex, (and other supported AI assistant) wait-states. Earning Users accumulate credit based on qualifying impressions and clicks, with an estimated fifty percent (50%) of attributable net advertising revenue (after operational expenses), credited to their account by default, but which is not guaranteed and may vary on the basis of dynamic calculation. Earnings are paid out monthly, subject to the Payment Threshold and other conditions set forth herein.
 
 4.3 For Advertisers
-Advertisers bid in real time for placement priority. Pricing is dynamic and auction-based. Bids are expressed on a cost-per-thousand-impressions (CPM) basis; each block delivers 1,000 impressions of approximately five (5) seconds each. Where clicks are separately billed, the per-click price is a multiple of the prevailing per-impression price (currently fifty (50) times the per-impression rate). Current rates and parameters are shown in the advertiser dashboard at the time of bidding, and Kickbacks may adjust this methodology from time to time. Advertisements are served in descending order of effective value; higher effective bids receive priority placement and are more likely to be filled. All amounts are non-refundable and are considered spent once the corresponding impression or click is served.
+Advertisers bid in real time for placement priority. Pricing is dynamic and auction-based. Bids are expressed on a cost-per-thousand-impressions (CPM) basis; each block delivers 1,000 impressions of at least three (3) seconds each. Where clicks are separately billed, the per-click price is a multiple of the prevailing per-impression price (currently fifty (50) times the per-impression rate). Current rates and parameters are shown in the advertiser dashboard at the time of bidding, and Kickbacks may adjust this methodology from time to time. Advertisements are served in descending order of effective value; higher effective bids receive priority placement and are more likely to be filled. All amounts are non-refundable and are considered spent once the corresponding impression or click is served.
 
 4.4 No Guarantee of Availability
 We do not guarantee that the Service will be available at all times, that impressions will be served continuously, or that any minimum level of earnings will be achieved. The Service depends on the usage and uptime of third-party platforms (including Visual Studio Code, Claude Code, and Anthropic's services) that are outside our control.
@@ -177,7 +177,7 @@ Advertisers may be required to provide additional verification information, incl
 Earning Users accrue credit based on: (i) qualifying impressions of advertisements displayed during AI wait-states on their authenticated devices; and (ii) qualifying clicks on such advertisements. The current Revenue Split is estimated to be fifty percent (50%) of net advertising revenue (i.e., after operational expenses) attributable to a user's impressions and clicks, but Earnings Accrual is subject to variability and all other terms herein, in good faith.
 
 6.2 Qualifying Impressions
-An impression qualifies for earnings only if: (i) the advertisement is displayed for a minimum of five (5) consecutive seconds during an active AI wait-state; (ii) the Extension is properly installed, authenticated, and connected to our servers; (iii) the impression is generated by a bona fide, human-initiated AI coding request (not automated, scripted, or artificially generated); (iv) the user has not exceeded applicable daily or periodic caps; and (v) the impression is not excluded by our fraud detection systems. A denial of a qualifying claim may be appealed or disputed in line with the requirements of Section 17 of this Agreement.
+An impression qualifies for earnings only if: (i) the advertisement is displayed for a minimum of three (3) seconds (which may be accumulated) during active AI wait-states; (ii) the Extension is properly installed, authenticated, and connected to our servers; (iii) the impression is generated by a bona fide, human-initiated AI coding request (not automated, scripted, or artificially generated); (iv) the user has not exceeded applicable daily or periodic caps; and (v) the impression is not excluded by our fraud detection systems. A denial of a qualifying claim may be appealed or disputed in line with the requirements of Section 17 of this Agreement.
 
 6.3 Usage Caps
 Kickbacks reserves the right, in its sole discretion and without prior notice, to establish, modify, or enforce daily, weekly, monthly, or other periodic caps on: (a) the number of qualifying impressions per user; (b) the number of qualifying clicks per user; (c) the amount of earnings that may be accrued in a given period; and (d) the number of AI wait-states that generate billable impressions. Activity exceeding any applicable cap is non-billable and does not generate earnings. We may apply caps globally, per region, per account tier, or on an individual basis.
@@ -223,7 +223,7 @@ Nothing in this Agreement or on the Kickbacks website constitutes tax, legal, or
 
 7. Advertising Program for Advertisers
 7.1 Campaign Creation & Bidding
-Advertisers may create advertising campaigns by submitting Ad Content and placing bids through our platform. Each bid purchases a block of 1,000 five-second impressions. The highest active bid receives priority placement. Advertisers may increase their bid at any time to improve placement priority.
+Advertisers may create advertising campaigns by submitting Ad Content and placing bids through our platform. Each bid purchases a block of 1,000 impressions of at least 3 seconds. The highest active bid receives priority placement. Advertisers may increase their bid at any time to improve placement priority.
 
 7.2 Non-Refundable Bids
 ALL BIDS ARE FINAL AND NON-REFUNDABLE ONCE AN IMPRESSION HAS BEEN SERVED. Advertisers acknowledge that bids represent a binding commitment to pay for impressions delivered. Notwithstanding the foregoing, Kickbacks may, in its sole discretion, issue credits for impressions that our systems determine were not delivered in accordance with campaign parameters.

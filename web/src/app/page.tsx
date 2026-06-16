@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Clock, PieChart, RefreshCw } from "lucide-react";
@@ -302,6 +302,64 @@ function Smile60Icon({ className = "" }: { className?: string }) {
   );
 }
 
+function ThreeDCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState({ rx: 0, ry: 0, x: 0, y: 0, isHovered: false });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    if (window.matchMedia("(pointer: coarse)").matches) return;
+
+    const card = cardRef.current;
+    const rect = card.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    // Tilt angle
+    const rY = ((mouseX / width) - 0.5) * 20;
+    const rX = (0.5 - (mouseY / height)) * 20;
+
+    const px = (mouseX / width) * 100;
+    const py = (mouseY / height) * 100;
+
+    setCoords({ rx: rX, ry: rY, x: px, y: py, isHovered: true });
+  };
+
+  const handleMouseLeave = () => {
+    setCoords((prev) => ({ ...prev, rx: 0, ry: 0, isHovered: false }));
+  };
+
+  const style: React.CSSProperties = {
+    transform: `perspective(1000px) rotateX(${coords.rx}deg) rotateY(${coords.ry}deg) scale3d(${coords.isHovered ? 1.03 : 1}, ${coords.isHovered ? 1.03 : 1}, 1)`,
+    transition: coords.isHovered ? "transform 0.1s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.15s ease-out" : "transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.5s ease-out",
+    boxShadow: coords.isHovered
+      ? "0 30px 60px -15px rgba(16, 185, 129, 0.18), 0 15px 30px -10px rgba(0, 0, 0, 0.1)"
+      : "0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02)",
+    transformStyle: "preserve-3d",
+  };
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={style}
+      className={`threed-card group relative rounded-2xl border border-[var(--border-default)] bg-[var(--surface-white)] p-6 select-none flex items-start gap-4 ${className}`}
+    >
+      {/* Glare/shine effect */}
+      <div
+        className="pointer-events-none absolute inset-0 z-10 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          background: `radial-gradient(circle 250px at ${coords.x}% ${coords.y}%, rgba(16, 185, 129, 0.16), transparent 75%)`,
+        }}
+      />
+      {children}
+    </div>
+  );
+}
+
 const CLAUDE_CATEGORIES = ["Bash", "Glob", "Write", "Read"] as const;
 
 const CLAUDE_STATES = LOADING_VERBS.map((verb, i) => ({
@@ -364,10 +422,10 @@ export default function HomePage() {
     const interval = window.setInterval(() => {
       setLiveEarnings((prev) => {
         if (prev === 0) return startVal;
-        const increment = 0.01 + Math.random() * 0.02;
+        const increment = 0.02 + Math.random() * 0.04;
         return prev + increment;
       });
-    }, 150);
+    }, 350);
 
     return () => {
       window.clearInterval(interval);
@@ -571,7 +629,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="how-it-works" className="spinshare-frame-section spinshare-home-section-alt px-4 py-16 sm:px-6 lg:py-20">
+      <section id="how-it-works" className="spinshare-frame-section spinshare-home-section-muted px-4 py-16 sm:px-6 lg:py-20">
         <div className="mx-auto max-w-7xl">
           <div className="mx-auto max-w-3xl text-center">
             <p className="spinshare-home-label-accent text-xs font-black uppercase tracking-[0.18em]">
@@ -640,7 +698,7 @@ export default function HomePage() {
           </div>
         </section>
 
-      <section id="bid-market" className="spinshare-frame-section spinshare-home-section-alt px-4 py-16 sm:px-6 lg:py-20">
+      <section id="bid-market" className="spinshare-frame-section spinshare-home-section-muted px-4 py-16 sm:px-6 lg:py-20">
         <div className="mx-auto max-w-7xl">
           <p className="spinshare-home-label-accent text-xs font-black uppercase tracking-[0.18em]">
             {t.nav.marketDepth}
@@ -851,7 +909,7 @@ export default function HomePage() {
             </div>
         </section>
 
-        <section id="how-it-pays" className="spinshare-frame-section spinshare-home-section-warm px-4 py-16 sm:px-6 lg:py-20">
+        <section id="how-it-pays" className="spinshare-frame-section spinshare-home-section-muted px-4 py-16 sm:px-6 lg:py-20">
           <div className="mx-auto max-w-7xl">
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="text-3xl font-black tracking-tight sm:text-4xl text-[var(--text-primary)]">
@@ -861,11 +919,11 @@ export default function HomePage() {
 
             <div className="mt-10 grid gap-5 md:grid-cols-3">
               {/* Card 1: Clock / Waiting */}
-              <div className="rounded-2xl border border-[var(--border-default)] bg-[var(--surface-white)] p-6 shadow-sm flex items-start gap-4">
-                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-100/30">
+              <ThreeDCard>
+                <div className="threed-card-icon flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-100/30">
                   <Clock className="h-10 w-10" />
                 </div>
-                <div className="space-y-1 min-w-0">
+                <div className="threed-card-content space-y-1 min-w-0">
                   <h3 className="text-base font-black text-[var(--text-primary)] leading-tight">
                     {t.howItPaysSection.step1Title}
                   </h3>
@@ -873,14 +931,14 @@ export default function HomePage() {
                     {t.howItPaysSection.step1Body}
                   </p>
                 </div>
-              </div>
+              </ThreeDCard>
 
               {/* Card 2: Smile 60% */}
-              <div className="rounded-2xl border border-[var(--border-default)] bg-[var(--surface-white)] p-6 shadow-sm flex items-start gap-4">
-                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-100/30">
+              <ThreeDCard>
+                <div className="threed-card-icon flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-100/30">
                   <Smile60Icon className="h-14 w-14" />
                 </div>
-                <div className="space-y-1 min-w-0">
+                <div className="threed-card-content space-y-1 min-w-0">
                   <h3 className="text-base font-black text-[var(--text-primary)] leading-tight">
                     {t.howItPaysSection.step2Title(DEVELOPER_SHARE_PERCENT)}
                   </h3>
@@ -888,14 +946,14 @@ export default function HomePage() {
                     {t.howItPaysSection.step2Body(DEVELOPER_SHARE_PERCENT)}
                   </p>
                 </div>
-              </div>
+              </ThreeDCard>
 
               {/* Card 3: Pie Chart */}
-              <div className="rounded-2xl border border-[var(--border-default)] bg-[var(--surface-white)] p-6 shadow-sm flex items-start gap-4">
-                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-100/30">
+              <ThreeDCard>
+                <div className="threed-card-icon flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-100/30">
                   <PieChart className="h-10 w-10" />
                 </div>
-                <div className="space-y-1 min-w-0">
+                <div className="threed-card-content space-y-1 min-w-0">
                   <h3 className="text-base font-black text-[var(--text-primary)] leading-tight">
                     {t.howItPaysSection.step3Title}
                   </h3>
@@ -903,7 +961,7 @@ export default function HomePage() {
                     {t.howItPaysSection.step3Body}
                   </p>
                 </div>
-              </div>
+              </ThreeDCard>
             </div>
           </div>
         </section>

@@ -83,8 +83,9 @@ describe("buildTerminalAutoWrapPlan", () => {
     );
   });
 
-  it("routes zero-argument interactive agent launches through SpinShare", () => {
+  it("direct-launches Claude Code while preserving wrapper fallback for other agents", () => {
     const plan = buildTerminalAutoWrapPlan({
+      agents: ["claude", "codex"],
       baseUrl: "https://www.spinshare.dev",
       extensionRoot: "/installed/spinshare",
       storageRoot: "/tmp/spinshare",
@@ -94,8 +95,9 @@ describe("buildTerminalAutoWrapPlan", () => {
     )?.content;
 
     expect(launcher).toBeDefined();
-    expect(launcher).not.toContain("if (args.length === 0)");
-    expect(launcher).not.toContain("spawnSync(agent, args");
+    expect(launcher).toContain('const nativeAdapterAgents = new Set(["claude"])');
+    expect(launcher).toContain("if (nativeAdapterAgents.has(agent))");
+    expect(launcher).toContain("spawnSync(agent, args");
     expect(launcher).toContain("[...commandArgs, agent, ...args]");
   });
 

@@ -27,6 +27,26 @@ Unit tests for the CLI API client.
 
 - Tests must use injected fetch stubs, not real network calls.
 
+## Planned Change 2026-06-15 Authenticated Ad Fetch
+
+Add a failing regression test proving `CliApiClient.getAd()` does not call
+`fetch` and returns `{ adAvailable: false }` when no token is available.
+
+This protects the product invariant that every displayed ad must be attributable
+to a logged-in developer account before the CLI fetches it.
+
+## Implemented Test 2026-06-15 Authenticated Ad Fetch
+
+Added `GET /api/ad returns unavailable without fetching when no bearer token
+exists`, using an injected fetch stub and `tokenProvider: () => undefined`.
+
+## Verification 2026-06-15 Authenticated Ad Fetch
+
+- Red: focused CLI API client test failed because anonymous `getAd()` returned a real ad.
+- Green: focused CLI API client test passed after `getAd()` stopped fetching without auth.
+- Full CLI suite passed with 96 tests.
+- Root regression and lint/typecheck passed.
+
 ## Planned Change (2026-06-15)
 
 Add a failing regression test proving explicit and environment-provided
@@ -63,6 +83,7 @@ The tracking request test now asserts the body is
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Added regression coverage for authenticated CLI ad fetch gating. | Codex |
 | 2026-06-15 | Added regression coverage for canonical CLI production base URL resolution. | Codex |
 | 2026-06-13 | Created doc before adding CLI API view duration test. | Codex |
 | 2026-06-13 | Synced doc with passing CLI API payload test. | Codex |

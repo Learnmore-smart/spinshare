@@ -24,6 +24,14 @@ export {
   type FirestoreLedgerRepoOptions,
 } from "./ledger-repo";
 export {
+  FirestoreActivityRepo,
+  type FirestoreActivityRepoOptions,
+} from "./activity-repo";
+export {
+  FirestoreImpressionProgressRepo,
+  type FirestoreImpressionProgressRepoOptions,
+} from "./impression-progress-repo";
+export {
   FirestorePaymentEventStore,
   type FirestorePaymentEventStoreOptions,
 } from "./payment-event-store";

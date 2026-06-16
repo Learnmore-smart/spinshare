@@ -279,6 +279,12 @@ export function parseAdResponse(value: unknown): AdResponse {
         : {}),
       cpmCents: obj.cpmCents,
       cpmUsd: obj.cpmUsd,
+      ...(typeof obj.accumulatedViewDurationMs === "number"
+        ? { accumulatedViewDurationMs: obj.accumulatedViewDurationMs }
+        : {}),
+      ...(typeof obj.remainingViewDurationMs === "number"
+        ? { remainingViewDurationMs: obj.remainingViewDurationMs }
+        : {}),
     };
   }
   return { adAvailable: false };
@@ -299,6 +305,17 @@ export function parseTrackResponse(value: unknown): TrackResponse | null {
       recorded: true,
       developerCreditCents: obj.developerCreditCents,
       developerCreditUsd: obj.developerCreditUsd,
+    };
+  }
+  if (
+    obj.recorded === false &&
+    typeof obj.accumulatedViewDurationMs === "number" &&
+    typeof obj.remainingViewDurationMs === "number"
+  ) {
+    return {
+      recorded: false,
+      accumulatedViewDurationMs: obj.accumulatedViewDurationMs,
+      remainingViewDurationMs: obj.remainingViewDurationMs,
     };
   }
   return null;
@@ -394,10 +411,15 @@ export class CliApiClient implements DeviceAuthApi {
    * malformed payload so the wrapper can fall back to a neutral state.
    */
   async getAd(): Promise<AdResponse> {
+    const headers = this.authHeaders();
+    if (!headers.Authorization) {
+      return { adAvailable: false };
+    }
+
     try {
       const res = await this.fetchImpl(`${this.baseUrl}/api/ad`, {
         method: "GET",
-        headers: { Accept: "application/json", ...this.authHeaders() },
+        headers: { Accept: "application/json", ...headers },
       });
       if (!res.ok) {
         return { adAvailable: false };

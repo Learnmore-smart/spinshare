@@ -2,6 +2,7 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 
+import type { ActivityFeedRow } from "../activity-feed";
 import type { DeveloperDashboardSummary } from "./summarize-ledger";
 
 export interface DeveloperDashboardUser {
@@ -10,6 +11,7 @@ export interface DeveloperDashboardUser {
 }
 
 interface DeveloperDashboardData {
+  activities: ActivityFeedRow[];
   summary: DeveloperDashboardSummary;
   user: DeveloperDashboardUser;
 }
@@ -17,12 +19,13 @@ interface DeveloperDashboardData {
 const DeveloperDashboardContext = createContext<DeveloperDashboardData | null>(null);
 
 export function DeveloperDashboardProvider({
+  activities,
   summary,
   user,
   children,
 }: DeveloperDashboardData & { children: ReactNode }) {
   return (
-    <DeveloperDashboardContext.Provider value={{ summary, user }}>
+    <DeveloperDashboardContext.Provider value={{ activities, summary, user }}>
       {children}
     </DeveloperDashboardContext.Provider>
   );

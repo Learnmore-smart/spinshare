@@ -26,7 +26,10 @@
  * the increment happens synchronously within this request (R9.8).
  */
 
-import { getContainer } from "@/server/container";
+import { formatCentsAsUsd } from "@spinshare/core";
+
+import { getContainer, type Container } from "@/server/container";
+import type { StripeEvent } from "@/server/ports";
 
 /** Always evaluate at request time; this is a side-effecting webhook receiver. */
 export const dynamic = "force-dynamic";
@@ -37,13 +40,36 @@ const SIGNATURE_HEADER = "stripe-signature";
 /** Stripe event type that confirms funding and credits the campaign budget. */
 const FUNDING_EVENT_TYPE = "checkout.session.completed";
 
+async function recordBudgetFundedActivity(
+  container: Container,
+  event: StripeEvent,
+): Promise<void> {
+  try {
+    const campaign = await container.campaigns.getById(event.campaignId);
+    await container.activities.record({
+      activityId: `payment_${event.id}`,
+      campaignId: event.campaignId,
+      type: "advertiser_event",
+      status: "budgetFunded",
+      createdAtMs: Date.now(),
+      ...(campaign !== null ? { advertiserId: campaign.advertiserId } : {}),
+      amountCents: event.amountCents,
+      amountUsd: formatCentsAsUsd(event.amountCents),
+      providerEventId: event.id,
+    });
+  } catch {
+    // Activity history must never alter Stripe webhook acknowledgement.
+  }
+}
+
 export async function POST(request: Request): Promise<Response> {
   // 1. Capture the RAW body bytes and the signature header. Verification is
   //    byte-exact, so read the body as-is (never via request.json()).
   const rawBody = Buffer.from(await request.arrayBuffer());
   const signature = request.headers.get(SIGNATURE_HEADER) ?? "";
 
-  const { payments, paymentEvents, campaigns } = getContainer();
+  const container = getContainer();
+  const { payments, paymentEvents, campaigns } = container;
 
   // 2. Verify + parse. A bad/missing signature throws → 400 with no mutation
   //    (R9.10).
@@ -66,6 +92,7 @@ export async function POST(request: Request): Promise<Response> {
     });
     if (newlyApplied) {
       await campaigns.applyBudgetDeltaCents(event.campaignId, event.amountCents);
+      await recordBudgetFundedActivity(container, event);
     }
   }
 

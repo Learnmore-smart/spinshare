@@ -16,8 +16,21 @@ HTTPS destination URL.
 
 - No user prompt, raw request content, or private user identifier is stored.
 - Do not accept arbitrary target URLs from the request.
-- Campaigns without an HTTPS destination should not increment clicks and should
-  redirect to the site root.
+- Campaigns without a safe public HTTPS destination should not increment clicks
+  and should redirect to the site root.
+
+## Planned Change 2026-06-15 Destination Safety Reuse
+
+Reuse the shared `destinationUrlSchema` when redirecting clicks. Creation-time
+validation protects new ads, but the click endpoint also needs to protect users
+from historical/manual campaign records that contain unsafe HTTPS-looking URLs
+such as `https://localhost/`, credentialed URLs, IP literals, or custom ports.
+
+## Implemented Change 2026-06-15 Destination Safety Reuse
+
+`GET /api/click` now validates stored campaign destinations through
+`destinationUrlSchema` before redirecting or counting a click. Unsafe historical
+destinations fall back to the site root and do not increment `clicks`.
 
 ## Implemented Change
 
@@ -33,5 +46,7 @@ increments aggregate `clicks`, and redirects only to stored HTTPS destinations.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Reused shared destination URL safety for click redirects. | Codex |
+| 2026-06-15 | Planned shared destination safety validation for click redirects. | Codex |
 | 2026-06-15 | Planned tracked click redirect endpoint. | Codex |
 | 2026-06-15 | Implemented tracked click redirect endpoint. | Codex |

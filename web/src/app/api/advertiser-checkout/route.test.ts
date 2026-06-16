@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { MemoryActivityRepository } from "@/server/adapters/memory";
 import {
   getContainer,
   resetContainer,
@@ -82,6 +83,24 @@ describe("POST /api/advertiser-checkout", () => {
       publicOnLeaderboard: false,
       budgetCents: 1500,
     });
+    expect((getContainer().activities as MemoryActivityRepository).all()).toEqual([
+      expect.objectContaining({
+        campaignId: body.campaign.id,
+        type: "advertiser_event",
+        status: "checkoutStarted",
+        amountCents: 1500,
+        amountUsd: "15.00",
+        checkoutSessionId: body.sessionId,
+      }),
+      expect.objectContaining({
+        campaignId: body.campaign.id,
+        type: "advertiser_event",
+        status: "budgetFunded",
+        amountCents: 1500,
+        amountUsd: "15.00",
+        checkoutSessionId: body.sessionId,
+      }),
+    ]);
   });
 
   it("shows a public mock checkout campaign in the market immediately after purchase", async () => {

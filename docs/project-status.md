@@ -33,6 +33,26 @@
 6. 没满 3 秒（比如只显示 1 秒）→ 不扣费、不给钱，**下次继续显示同一条**，直到累计满 3 秒才双向记账；
 7. 记账后继续竞价，出价高的继续显示，循环。
 
+### 最新产品决策（2026-06-15）
+- **MVP 不再追求“任意 CLI”。** 先把 Claude Code 原生 CLI/TUI 做准，后面再扩展 Codex、Gemini、其他 CLI。
+- **用户必须无感。** 正常 UX 是用户只输入 `claude`；不能要求用户每次输入 `spinshare claude` 或手动执行某个 command。npm 路径现在通过 `spinshare login` 后自动安装 Claude Code adapter 来靠近这个目标。
+- **先做 VSCode/Cursor/Trae 集成终端自动接管，再做全局 shell 接管。** extension/npm 的职责是安装、同步账号、接管启动链路；用户不应该感知包装器存在。
+- **允许修改 `~/.claude/settings.json`。** 但必须备份、可恢复、可卸载，不能静默破坏用户原配置。
+- **Claude Code 主路径改为官方 hooks/statusLine 适配器。** Claude Code 文档明确支持 lifecycle hooks（例如 `UserPromptSubmit`、`MessageDisplay`、`Stop`）和 `statusLine` command；这比外层猜 spinner 更接近“什么时候在 thinking / 什么时候结束”的事实源。
+- **现有 spinner 拦截只能作为 fallback。** 它可以保留给没有官方生命周期 API 的 CLI，但不再作为 Claude Code MVP 的主要架构。
+
+### 广告主购买模型（已确认）
+- 主页购买不强制先注册：广告主输入邮箱、广告文案、链接、bid/block 数量并付款。
+- 付款创建或更新 campaign，并把 campaign 归属到该邮箱。
+- 广告主之后用同一个邮箱登录，即可 claim / 查看购买记录、预算、消耗、曝光。
+- 如果广告主先注册再购买，也应该走同一套归属模型，不应出现“主页买”和“dashboard 充值”两套互相矛盾的 mental model。
+- Dashboard 的主操作应该是“购买曝光 block / 增加预算”，而不是让用户先选东西再理解成“充值余额”。
+
+### Activity ledger（缺失但必须做）
+- 开发者需要看到每次广告活动：广告、开始时间、结束时间、显示时长、是否满 3 秒、是否记账、赚了多少钱、未记账原因。
+- 广告主需要看到每次预算活动：购买、webhook 入账、每次可计费曝光扣费、剩余预算、无效/未满 3 秒曝光不扣费记录。
+- 这不是纯 UI；后端需要把 impression attempt、credited impression、payment event、budget debit 串成可查询账本。
+
 ---
 
 ## 2. 架构与各部件职责
@@ -66,12 +86,38 @@ Monorepo（pnpm workspace）：**1 个基础库 + 3 个交付包**。
 装完提供 `spinshare` 命令，**必须包在别的 CLI 前面**：`spinshare node claude "..."`。
 它 spawn 目标 CLI 当子进程 → 拦截 stdout → 逐帧判断是不是 spinner 字符（`|/-\`、`thinking/loading/...`）→ 是则吞掉、改显示广告 → 连续 ≥3 秒上报一次曝光 → 子进程退出返回退出码。
 
-### 2.4 `vscode-extension/` — VSCode 扩展（兼容 Cursor/Trae）❌ 不可用
+这就是当前“一坨逻辑”的核心：它不是 Claude Code 官方集成，而是在 Claude 外面套一层父进程，猜 stdout 里哪些字节代表等待状态。它能解释为什么代码复杂：要处理子进程、PTY、Windows shell、ANSI 控制码、OSC8 链接、spinner 分类、连续 3 秒 debounce、上报曝光。问题是它始终没有可靠语义：看到 `Thinking...` 不等于知道 Claude 何时真正开始/结束思考。
+
+### 2.4 `vscode-extension/` — VSCode 扩展（兼容 Cursor/Trae）⚠️ 部分可用，仍需实机验证
 两条投广告路径：
 - **路径 A（生成钩子）**：注册命令 `spinshare.startGeneration`/`completeGeneration`，等宿主编辑器在 AI 生成时调用。
 - **路径 B（终端自动包装）**：给终端里的 claude/codex 装 shim，实际跑 `spinshare ... claude`，复用 CLI 的 spinner 拦截。
+- **路径 C（Claude Code 官方 adapter）**：安装 hooks/statusLine 到 `~/.claude/settings.json`，这是当前 Claude Code MVP 主路径。代码和单测已完成，真实 Claude Code TUI 还没手测。
 
-### 2.5 三大核心引擎（都在 web）
+extension 当前做的事可以概括为：
+1. 启动时注册几个 SpinShare 命令和登录流程；
+2. 往 VSCode/Cursor/Trae 集成终端的 `PATH` 前面塞一个 shim 目录；
+3. 让终端里输入 `claude` 时先命中 `claude.cmd`/`claude.ps1` shim；
+4. shim 再启动 bundled `cli-wrapper/dist/index.js`；
+5. CLI wrapper 再启动真实 `claude`。
+
+所以旧路径不是“理解 Claude Code”，而是“劫持 claude 启动命令，然后套旧的 spinner 猜测器”。这条路仍然有价值，因为它满足“用户只输入 `claude`”，但它应该只负责自动启动/兜底，不应该继续承担判断 thinking 状态的主责任。Claude Code 的主判断路径已经转向 hooks/statusLine。
+
+### 2.5 新目标：Claude Code 官方适配器（MVP 主路径）
+Claude Code 有两个比猜 stdout 更可靠的官方入口：
+- **Hooks**：Claude Code lifecycle 会触发 hook，并把 JSON context 传给 handler；相关事件包括 `UserPromptSubmit`、`MessageDisplay`、`Stop`、`StopFailure` 等。适合记录“turn 开始/展示/结束”的事实。
+- **Status line**：`~/.claude/settings.json` 可以配置 `statusLine` command，Claude Code 会把会话 JSON 通过 stdin 传给脚本，脚本输出的内容会显示在 Claude Code UI 的状态行。适合做你截图里的 inline ad surface。
+
+MVP 应该变成：
+1. extension/npm 安装 Claude Code adapter；
+2. adapter 备份并 patch `~/.claude/settings.json`；
+3. hooks 负责告诉 SpinShare “prompt 开始 / message 正在显示 / turn 结束”；
+4. statusLine 负责把当前应展示的广告渲染进 Claude Code TUI；
+5. shim 只保留为“用户输入 `claude` 时确保环境变量、账号 token、adapter 可用”的启动层。
+
+这条路也解释了“能不能适配更多 IDE”：**可以，但不是一个万能钥匙。** 只要某个 IDE/CLI 暴露类似 lifecycle hook、status line、extension API 或可控 terminal renderer，就能写对应 adapter；没有这些 API 的工具才退回 PTY/stdout 猜测。
+
+### 2.6 三大核心引擎（都在 web）
 1. **竞价引擎** `GET /api/ad`：所有 `budget>0` 的活跃广告里，**最高 CPM 获胜**（平手按创建时间→id）。确定性、与输入顺序无关。
 2. **账本引擎** `POST /api/track`：按曝光结算。例 $30 CPM = $0.03/次，开发者得 $0.018（60%）。原子地加余额、扣预算、写账本。
 3. **反欺诈**：>30 印象/分钟 → **影子封禁**（照样投放不记费，对开发者不可区分）；收益上限 $20/小时、$300/天；shadow-ban 60 分钟自动解。
@@ -101,6 +147,14 @@ CLI 能工作但**要求用户改变习惯**（每次打 `spinshare ...`），�
 | Windows 命令引号转义 | `cli-wrapper/src/wrap.ts:173` | 极易出错，调试痛苦 |
 | 盼宿主编辑器调钩子 | `vscode-extension/src/extension.ts:162` | Cursor/Trae 不调，契约不存在 |
 | 终端装 shim | `vscode-extension/src/terminal-auto-wrap.ts` | 脆弱，污染用户环境 |
+
+**新的判断**：Claude Code MVP 不应该继续把“猜 spinner”当主路径。更好的方案是用 Claude Code 官方 hooks/statusLine 得到 lifecycle 事件和可渲染状态行。这样至少对 Claude Code 原生软件，我们不再需要猜 `Thinking...` 的文本样式，而是把它当成一个明确适配的 host。
+
+这不是说 shim 没用。shim 仍然有两个用处：
+- 让用户只输入 `claude`，无感进入 SpinShare 管理的环境；
+- 在没有官方 statusLine/hook 的工具上，保留 stdout/PTY 猜测 fallback。
+
+但 Claude Code 的主路径应调整为：**启动接管（shim/extension）+ 官方 lifecycle 事件（hooks）+ inline surface（statusLine）+ 后端账本**。
 
 ### 🔴 问题 2：`.env` 模式自相矛盾（大概率是「感觉都坏了」的主因）
 
@@ -137,40 +191,40 @@ SPINSHARE_COUNTER=rtdb    ← 生产计数器（真 RTDB）
 
 另外还有两个相关问题：
 - 当前 `.env` 是 `SPINSHARE_MODE=local` + `STRIPE_MODE=test`。如果没有 `SPINSHARE_USE_FIRESTORE=1` 或 `FIRESTORE_EMULATOR_HOST`，campaign 创建和 webhook 入账都在同一个进程的内存 repo 里；服务重启后会丢。
-- Firestore 集合名目前硬编码为顶层 `users/campaigns/ledgerEntries/paymentEvents`（`web/src/server/adapters/firestore/collections.ts:18-24`）。也就是说，localhost 若启用真实 Firestore，会直接写真实集合，没有 `test/...` namespace。你提出的「localhost 写 test folder，不要改 actual Firestore」是正确的，需要单独实现。
+- Firestore 已支持 `SPINSHARE_FIRESTORE_NAMESPACE=test`，集合会写到 `namespaces/test/...`；并且本地模式如果用 `SPINSHARE_USE_FIRESTORE=1` 直连真实 cloud Firestore，现在会强制要求 namespace，避免 localhost 写真实顶层集合。
 
 验证过的测试：`corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/advertiser-checkout/route.test.ts src/app/api/market/route.test.ts src/app/api/webhooks/stripe/route.test.ts`，9 个相关单元测试通过。这说明 mock 付款、market 排行榜、webhook 幂等入账的单元逻辑是好的；坏点更可能在本地 Stripe webhook/环境隔离，而不是纯业务函数。
 
-### 🟡 问题 4：计费逻辑与你期望的不符（待改造）
+### 🟢 问题 4：累计型计费已进入代码路径，旧 fallback 仍需降级
 
-你要的是**累计型**，现有代码是**连续型**：
+你要的是**累计型**。旧 CLI spinner 设计曾经是**连续型**，现在主代码路径已经改成累计型：
 
-| 维度 | 你要的（累计型） | 现有代码（连续型） | 代码位置 |
+| 维度 | 你要的（累计型） | 当前状态 | 代码位置 |
 |------|----------------|------------------|---------|
-| 3 秒判定 | **累计**满 3 秒（可跨多次显示） | 必须**连续**一次满 3 秒 | `cli-wrapper/src/wrap.ts:48` `WaitStateTracker` |
-| 未满 3 秒 | **记住这个广告**，下次继续同一个 | **丢弃**，下次重新竞价拿新的 | `wrap.ts:63` 非-spinner 帧 `reset()` |
-| 记账时机 | 累计满 3 秒那一刻，双向记账 | 连续满 3 秒才记；不满则不记 | `web/src/server/ledger-service.ts` 每次即结算 |
+| 3 秒判定 | **累计**满 3 秒（可跨多次显示） | core/web/CLI/extension/Claude hook 都支持短片段累计 | `track/route.ts` + progress repos |
+| 未满 3 秒 | **记住这个广告**，下次继续同一个 | web pending progress 会让 authenticated developer 优先拿回未完成广告 | `bidding-service.ts` / `/api/ad` |
+| 记账时机 | 累计满 3 秒那一刻，双向记账 | 后端累计满 3000 ms 后才走 ledger settlement | `/api/track` |
 
-**改造影响面**（独立工作项，本轮不做）：core 要新增「广告进度」状态模型；存储层要持久化进度（用户重启后续上）；竞价层在有未完成广告时优先返回它；账本层只在进度首次达 3 秒时结算。
+**当前实现状态**：累计型 3 秒代码路径已经完成。core 接受正数短片段；web 存储 pending progress 并在累计满 3000 ms 时结算；CLI、VS Code extension、Claude Code generated hook 都会上报短片段。剩余风险是 Firestore emulator 写穿和真实 Claude Code TUI 实机验证。
 
 ### 🟡 问题 5：广告商付款入口分叉，`/api/funds/checkout` 不是死代码但不完整
 
 之前判断 `/api/funds/checkout` 是死代码，这一点被当前代码推翻：`web/src/app/dashboard/advertiser/campaign-list.tsx:100-110` 的 Add Funds 确实会调用它，并且会带 `Device_Auth_Token`。
 
-但它仍然有问题：项目现在有两条付款入口，行为不一致。
+核心安全和 redirect 问题已经修掉，但项目仍有两条付款入口，需要继续统一产品语义。
 
 | 入口 | 调用方 | 做什么 | 风险 |
 |------|--------|--------|------|
 | `/api/advertiser-checkout` | 主页公开表单 | 创建 campaign + 创建 Stripe session；mock 模式当场加预算 | test/live 必须依赖 webhook，否则不上榜 |
-| `/api/funds/checkout` | 广告商仪表盘 Add Funds | 给已有 campaign 创建 Stripe session | 没传 `successUrl/cancelUrl`；没有测试覆盖；不校验 campaign 是否属于当前 advertiser |
+| `/api/funds/checkout` | 广告商仪表盘 Add Funds | 给已有 campaign 创建 Stripe session | 已补 `successUrl/cancelUrl`、ownership 校验、route tests；test/live 仍依赖 webhook |
 
-具体证据：
-- `web/src/app/api/funds/checkout/route.ts:97-100` 调 `payments.createCheckoutSession()` 时只传了 `campaignId/amountCents`，没有传 success/cancel URL；
-- `StripeGateway` 只有在输入里有 `successUrl/cancelUrl` 时才会传给 Stripe（`web/src/server/adapters/stripe/stripe-gateway.ts:101-102`）；
-- `web/src/app/api/funds` 下没有 route test；
-- `funds/checkout` 只验证 token 有效（`route.ts:63-68`），没有读取 campaign 并确认 `campaign.advertiserId === advertiserId`。
+当前证据：
+- `web/src/app/api/funds/checkout/route.ts` 会读取 campaign 并确认它属于当前 advertiser；
+- checkout session 会带 dashboard success/cancel URL；
+- mock checkout settled 时会立即给 campaign 加预算；
+- `web/src/app/api/funds/checkout/route.test.ts` 覆盖 ownership、redirect URL、mock settled 入账。
 
-所以这里不是「死代码」，而是**仪表盘充值路径没有达到和主页公开 checkout 一样的完整度**。
+所以这里不是「死代码」；核心工程缺陷已修。剩余问题是产品语义：主页是“邮箱 + 创建广告 + 买 block”，dashboard 是“已有 campaign + add funds”，两者需要在 UI/文案上统一成同一个购买模型。
 
 ### 🟡 问题 6：LearnX mock data 会干扰本地判断
 
@@ -182,13 +236,13 @@ SPINSHARE_COUNTER=rtdb    ← 生产计数器（真 RTDB）
 - `budgetCents: 5000`
 - `cpmCents: 3000`
 
-这能让空项目本地启动后看起来有数据，但现在它会干扰真实调试：你付费后看排行榜，很难分清看到的是 seed 的 LearnX，还是自己刚付款的 campaign。你说「先删除 LearnX 那个 mock data」是合理的，建议下一步最小改法是默认不 seed campaign，或者只在显式 `SPINSHARE_SEED_LOCAL_DATA=1` 时 seed。
+这能让空项目本地启动后看起来有数据，但会干扰真实调试：你付费后看排行榜，很难分清看到的是 seed 的 LearnX，还是自己刚付款的 campaign。现在已经改成默认不 seed；只有显式设置 `SPINSHARE_SEED_LOCAL_DATA=1` 才会注入 LearnX demo campaign。
 
 ### 🟢 问题 7：本地连云端的数据一致性风险（承接问题 2 和 3）
 
 即使你想本地连云端，`SPINSHARE_MODE=local` 默认也不连 Firestore。但你配了真私钥——这让**认证（OAuth）连真 Firebase，业务数据走内存**。账户能登进去但看不到自己的真实数据。
 
-反过来，如果你设置 `SPINSHARE_USE_FIRESTORE=1`，当前代码也没有 test namespace，会直接写真实顶层 Firestore 集合。正确方向应该是：localhost 的 Firestore repo 自动写到 `test/users`、`test/campaigns`、`test/ledgerEntries`、`test/paymentEvents`，或至少支持 `SPINSHARE_FIRESTORE_NAMESPACE=test`。
+反过来，如果你设置 `SPINSHARE_USE_FIRESTORE=1`，现在必须同时设置 `SPINSHARE_FIRESTORE_NAMESPACE=test`（或使用 `FIRESTORE_EMULATOR_HOST`）。否则 `buildContainer()` 会 fail fast，不让 localhost 直接写真实顶层 Firestore 集合。
 
 ---
 
@@ -197,12 +251,13 @@ SPINSHARE_COUNTER=rtdb    ← 生产计数器（真 RTDB）
 | 功能 | 状态 | 原因 | 证据 |
 |------|------|------|------|
 | Extension 路径 A（生成钩子显示广告） | ❌ 完全不可用 | 宿主编辑器不调钩子，契约不存在 | `extension.ts:162` |
-| Extension 路径 B（终端自动包装） | ⚠️ 早期/不稳 | Windows PTY+shim 脆弱 | `terminal-auto-wrap.ts` |
-| 「AI 等待→看到广告」端到端 | ❌ 未打通 | 触发链路断裂（问题 1） | — |
+| Extension 路径 B（终端自动包装） | ⚠️ 早期/不稳 | 能尝试让用户只输入 `claude`，但仍依赖旧 spinner 猜测器判断 waiting | `terminal-auto-wrap.ts` |
+| Claude Code 官方 adapter（hooks/statusLine） | ⚠️ 已实现静态路径 | extension 会安装/备份/patch `~/.claude/settings.json`；生成 hooks/statusLine 脚本；仍需真实 Claude Code TUI 手测 | `claude-code-adapter.ts` |
+| 「AI 等待→看到广告」端到端 | ⚠️ 代码路径已接上，实机未证明 | hooks/statusLine 不再依赖猜 spinner；真实 Claude Code UI 位置、刷新和路径行为仍需手测 | — |
 | Stripe test 付款后排行榜上榜 | ⚠️ 本地易失败 | test/live 不会当场加预算，必须依赖 webhook；localhost 常没转发 webhook | 问题 3 |
-| `/api/funds/checkout` | ⚠️ 可调用但不完整 | 仪表盘 Add Funds 在用，但缺 success/cancel URL、缺 ownership 校验、缺测试 | 问题 5 |
-| Firestore localhost 隔离 | ❌ 未实现 | 集合名硬编码为真实顶层集合，没有 test namespace | `collections.ts:18-24` |
-| LearnX mock data | ⚠️ 干扰诊断 | local dev 内存 repo 自动 seed LearnX funded campaign | `seed-local-data.ts:102-113` |
+| `/api/funds/checkout` | ✅ 已修正核心问题 | 仪表盘 Add Funds 会校验 campaign ownership、传 success/cancel URL，mock settled 会入账；仍需真实 Stripe test webhook 手测 | 问题 5 |
+| Firestore localhost 隔离 | ✅ 已实现核心 guard | namespace 路径和 local cloud Firestore fail-fast 已有单测；真实 emulator 写入仍需端到端验证 | `collections.ts` / `container.ts` |
+| LearnX mock data | ✅ 默认关闭 | 只有 `SPINSHARE_SEED_LOCAL_DATA=1` 才 seed LearnX demo campaign | `seed-local-data.ts` / `container.ts` |
 | 本地端到端跑通 | ⚠️ 配置矛盾 | env 模式冲突，数据进内存不进云端 | 问题 2 |
 
 ### ✅ 这些功能是好的（别误判）
@@ -220,17 +275,36 @@ SPINSHARE_COUNTER=rtdb    ← 生产计数器（真 RTDB）
 
 ### 5.1 产品级（最重要）
 
-**P0 — 定触发模型，放弃「猜 spinner」**
-这是产品能否做出来的前提。建议方向：放弃猜 spinner，改成**「命令开始 → 显示广告 → 命令结束 → 按运行时长结算」**：
-- CLI 侧：用户敲 `spinshare claude ...`，立即显示一条广告，整个命令运行期间都算展示中，命令结束按运行时长结算。不猜 spinner、不吞字节、不需要 PTY。可靠性提升一个数量级。
-- Extension 侧：主推路径 B 改良版，或同样用「命令开始/结束」模型。
-- 代价：广告和「等待」脱钩，变成「命令运行期间展示」。但**这是当前唯一能稳定落地的路**。
+**P0 — Claude Code 官方适配器，替代“猜 spinner”主路径**
+这是产品能否做出来的前提。当前决策不是继续追求“任意 CLI”，而是先把 Claude Code 原生 CLI/TUI 做准：
+- 用户仍然只敲 `claude`，不能要求 `spinshare claude`；
+- extension/npm 负责安装和自动接管；
+- 优先用 Claude Code `hooks` 判断 turn lifecycle（prompt submit、message display、stop/failure）；
+- 优先用 Claude Code `statusLine` 渲染 inline ad，而不是右下角弹窗；
+- 旧的 stdout spinner 猜测只作为 fallback。
+
+这条路的关键收益是：对 Claude Code，我们终于有 host 提供的生命周期信号，不必只靠 `renderer.ts` 猜 `Thinking...`、spinner 字符或 ANSI 输出。
+
+**P0 — 广告主购买/归属模型统一**
+主页购买和 dashboard 购买必须使用同一个 mental model：
+- 未注册广告主可以在主页输入邮箱并付款；
+- campaign 归属于购买邮箱；
+- 后续用同邮箱登录即可 claim / 查看 dashboard；
+- 已登录广告主购买时，也写入同一套 campaign/payment/ledger；
+- dashboard 里应该是“购买曝光 block / 增加预算”，不是让用户困惑地“选择然后充值”。
+
+**P0 — Activity ledger 产品化**
+开发者和广告主都需要可解释账本：
+- 开发者：每次显示、显示时长、是否满 3 秒、是否入账、赚了多少、未入账原因；
+- 广告主：每次购买、webhook 入账、每次可计费曝光扣费、剩余预算、未满 3 秒不扣费记录；
+- 后端需要区分 impression attempt 与 credited impression，否则无法解释“为什么这次看到了但没赚钱/没扣费”；
+- 后端 activity API 已支持 newest-first 的 `limit`/`cursor` 分页，剩下是筛选、UI 加载更多、导出、明细页等产品层打磨。
 
 **P0 — 统一 `.env` 模式**
 二选一，别混：
 - 全生产：`SPINSHARE_MODE=production` + 全套 creds（`NEXTAUTH_URL`、`AUTH_VERIFICATION_URI`、`FIREBASE_*`、`STRIPE_*`、`AUTH_MODE=oauth`、`SPINSHARE_COUNTER=rtdb`）。
 - 全本地：`STRIPE_MODE=mock`、`AUTH_MODE=mock`、`SPINSHARE_COUNTER=memory`，别配真私钥。
-- 本地连真实服务测试：必须显式定义隔离策略。当前代码没有 Firestore test namespace，所以不建议直接 `SPINSHARE_USE_FIRESTORE=1` 连真实项目。
+- 本地连真实服务测试：必须显式定义隔离策略。现在直连真实 Firestore 时必须设置 `SPINSHARE_FIRESTORE_NAMESPACE=test`；否则本地启动会报错。使用 emulator 时设置 `FIRESTORE_EMULATOR_HOST=127.0.0.1:8080` 即可。
 
 **P0 — 建立 localhost 的 Stripe/Firebase 测试闭环**
 如果要用 Stripe test 而不是 mock，就必须把这条链路固定下来：
@@ -241,21 +315,21 @@ SPINSHARE_COUNTER=rtdb    ← 生产计数器（真 RTDB）
 - 确认同一个存储里的 campaign `budgetCents > 0`；
 - 再看 `/api/market`。
 
-同时需要把 Firestore 本地写入隔离到 test namespace，避免 localhost 写真实顶层集合。
+Firestore 本地写入隔离已经有核心实现：`SPINSHARE_FIRESTORE_NAMESPACE=test` 会写入 `namespaces/test/...`，且 local cloud Firestore 没有 namespace 会直接报错。剩下要做的是跑真实 Firestore emulator/Stripe CLI 的端到端链路。
 
 ### 5.2 工程级
 
-**P1 — 修正广告商仪表盘付款路径**
-`/api/funds/checkout` 不是死代码。最小修正方向是：补 `successUrl/cancelUrl`，给 route 加测试，并在创建 checkout 前确认 campaign 属于当前 advertiser。
+**P1 — 广告商仪表盘付款路径已修核心问题**
+`/api/funds/checkout` 不是死代码。现在已经补了 dashboard `successUrl/cancelUrl`、campaign ownership 校验、mock settled 入账和 route tests。剩余是 Stripe test/live 的真实 webhook 端到端验证。
 
-**P1 — 删除或显式开关 LearnX seed**
-本地 seed 的 LearnX campaign 现在会污染判断。建议默认不 seed funded campaign；需要 demo 数据时用 `SPINSHARE_SEED_LOCAL_DATA=1` 显式开启。
+**P1 — LearnX seed 已改成显式开关**
+本地 seed 的 LearnX campaign 已默认关闭；需要 demo 数据时用 `SPINSHARE_SEED_LOCAL_DATA=1` 显式开启。
 
-**P1 — 砍掉 spinner 猜测相关的脆弱代码**
-若采纳 5.1 的触发模型，`renderer.ts` 的 spinner 字符猜测、`wrap.ts` 的 PTY 加载、`quoteWindowsArg` 的 Windows 转义都可以大幅简化或删除。这能消除项目里一半的复杂度和 bug 面。
+**P1 — 把旧 spinner 猜测逻辑降级为 fallback**
+Claude Code 主路径确定后，`renderer.ts` 的 spinner 字符猜测、`wrap.ts` 的 PTY/子进程包装、Windows 转义等逻辑不应继续决定 Claude Code 的计费事实。它们可以保留给没有官方生命周期 API 的 CLI，但要从“核心架构”降级成“兼容层/兜底层”。
 
-**P2 — 累计型计费改造**
-按问题 4 的影响面：core 新增进度状态模型 + 存储持久化 + 竞价优先返回未完成广告 + 账本只在达 3 秒时结算。待触发模型定了再做。
+**P2 — 累计型计费改造已完成代码路径**
+core/web/CLI/extension/Claude Code generated hook 都已经支持短片段累计；剩余不是代码路径，而是真实 Firestore/Claude Code 运行环境验证。
 
 **P2 — telemetry 强化**
 你提到「后台 telemetry 记录用户确保不是机器人」。现有反欺诈（velocity、影子封禁、收益上限）已覆盖**计费侧**防刷，但**用户行为侧**的 telemetry（登录设备指纹、异常登录、多账号关联）目前没有。可作为独立工作项。
@@ -266,28 +340,101 @@ SPINSHARE_COUNTER=rtdb    ← 生产计数器（真 RTDB）
 
 | 优先级 | 动作 | 解决的问题 | 说明 |
 |--------|------|-----------|------|
+| **P0** | 实现 Claude Code 官方 adapter（hooks/statusLine） | 问题 1 | 静态实现和单测已完成；仍需真实 Claude Code TUI 验证 |
 | **P0** | 统一 `.env` 模式 | 问题 2、7 | 让你能真正跑通端到端，区分真假数据 |
-| **P0** | 打通 Stripe test webhook + Firestore test namespace | 问题 3、7 | 解决「付款后不上榜」和 localhost 污染真实数据 |
-| **P0** | 定触发模型（建议放弃猜 spinner） | 问题 1 | 产品能否做出来的前提 |
-| P1 | 修正 `/api/funds/checkout` 仪表盘充值路径 | 问题 5 | 补 redirect URL、ownership 校验、route tests |
-| P1 | 删除或开关 LearnX mock data | 问题 6 | 避免本地调试被 seed 广告干扰 |
-| P1 | 简化/砍掉 spinner 猜测代码 | 问题 1 的代码面 | 依赖 P0 触发模型决策 |
-| P2 | 累计型计费改造 | 问题 4 | 待触发模型定 |
+| **P0** | 打通 Stripe test webhook + Firestore test namespace | 问题 3、7 | namespace guard 已实现；仍需真实 Stripe CLI/webhook + emulator 端到端验证 |
+| **P0** | 统一广告主购买/归属模型 | 问题 5 + 新决策 | 主页邮箱购买、同邮箱登录 claim、dashboard 购买 block |
+| **P0** | Activity ledger 产品化 | 问题 4 + 新需求 | 核心时间线已包含 attempt、payment、webhook、budget debit；后端 API 分页已完成；还需筛选/UI 分页控件/导出/明细等产品打磨 |
+| ✅ | 修正 `/api/funds/checkout` 仪表盘充值路径 | 问题 5 | 已补 redirect URL、ownership 校验、route tests、mock settled 入账 |
+| ✅ | 删除或开关 LearnX mock data | 问题 6 | 已默认关闭，显式 `SPINSHARE_SEED_LOCAL_DATA=1` 才开启 |
+| P1 | 旧 spinner 猜测逻辑降级为 fallback | 问题 1 的代码面 | Claude Code 不再依赖猜 stdout 作为事实源 |
+| ✅ | 累计型计费改造 | 问题 4 | 代码路径已完成；仍需真实 Firestore/Claude Code 运行环境验证 |
 | P2 | 用户行为 telemetry | 新增 | 反机器人强化 |
 
 ---
 
+## 7. 已执行的修复（2026-06-15）
+
+这一批已经进入代码，并有测试验证：
+
+- **Claude Code adapter 已接入 extension 和 npm CLI**：extension activation 默认安装 Claude Code hooks/statusLine adapter；npm CLI 新增 `spinshare setup claude-code`，且 `spinshare login` 成功后会自动安装同一类 adapter。adapter 会备份并 patch `~/.claude/settings.json`，写入 generated hook/statusLine 脚本。当前脚本支持 inline statusLine 广告、hook 拉广告/清理状态；只有存在 `SPINSHARE_TOKEN` 或 CLI 文件凭据时才拉广告；`GET /api/ad` 和 `POST /api/track` 都会带 bearer token，所以后端可以为同一 developer 优先返回未满 3 秒的 pending ad；任意正数 view segment 都会上报给后端累计；`statusLine.refreshInterval=1` 用于更快显示 thinking 期间的广告；hook/statusLine 都会读取 Claude stdin JSON 的 `session_id`，避免跨会话 stale state 误显示或误上报。
+- **Claude Code adapter 已有可撤销路径**：npm CLI 支持 `spinshare setup claude-code --remove`；VSCode/Cursor/Trae 扩展新增 `SpinShare: Remove Claude Code Adapter` 命令；当 `spinshare.claudeCodeAdapter=false` 时，扩展会移除当前 adapter，而不是只停止未来安装。移除逻辑只删除 SpinShare 写入的 statusLine/hooks，保留用户其他 Claude settings 和 hook handlers，并 best-effort 清理 generated scripts/state。
+- **Claude settings 解析已修 Windows BOM 风险**：Windows PowerShell 写 JSON 时可能带 UTF-8 BOM，旧 installer 会 `JSON.parse` 失败并把现有 Claude settings 当 `{}` 覆盖。现在 CLI/extension adapter 都会剥离开头 BOM 再解析；测试覆盖 BOM-prefixed settings 的 install/remove，确认用户 `theme` 和既有 hooks 不丢失。
+- **VSIX 安装包已重建并检查**：`spinshare-0.2.0.vsix` 已重新生成；包内确认 extension manifest 包含 `spinshare.removeClaudeCodeAdapter`，bundled CLI 包含 `setup claude-code --remove`，compiled adapter 包含 BOM-safe `parseClaudeSettings()`。
+- **npm CLI 包已修发布阻塞**：`cli-wrapper/package.json` 已移除 `private: true`，`bin.spinshare` 规范为 `dist/index.js`，运行时 dependencies 不再包含 `workspace:*`；`@spinshare/core` 仅作为 devDependency 类型来源。`npm publish --dry-run` 已通过，当前只剩真实发布需要 npm 登录。
+- **Extension 登录 token 已同步给 Claude hooks**：`AuthManager` 新增 `FileTokenMirror`，extension sign-in 成功后会写入 CLI-compatible credential file，sign-out 时清理。这样 generated Claude hook 脚本可以读取同一份 token，不需要把 token 写进 `~/.claude/settings.json`。
+- **npm CLI 登录 token 也会同步给 Claude hooks**：`spinshare login` 成功后会把 token mirror 到 file credential，并 best-effort 安装 Claude Code adapter；`spinshare setup claude-code` 会显式执行同一安装路径。
+- **Dashboard Add Funds 修复**：`/api/funds/checkout` 现在会校验 campaign 是否存在、是否属于当前 advertiser；会传 dashboard success/cancel URL；mock checkout settled 时会立即给 campaign 加预算。
+- **主页邮箱购买 → 同邮箱登录 claim**：抽出 `publicAdvertiserIdForEmail()`，主页 checkout 和 `/api/campaigns` 共用同一算法。token 内有 email 时，dashboard 会同时读取该 email 的 public checkout campaigns。
+- **Firestore localhost 隔离**：新增 `SPINSHARE_FIRESTORE_NAMESPACE`，collection path 可变成 `namespaces/test/users`、`namespaces/test/campaigns` 等；本地模式用 `SPINSHARE_USE_FIRESTORE=1` 直连 cloud Firestore 时强制要求 namespace，避免 localhost 写真实顶层集合。
+- **LearnX seed 默认关闭**：local development 不再默认 seed funded LearnX campaign；只有显式 `SPINSHARE_SEED_LOCAL_DATA=1` 才 seed。
+- **Attempt-level activity ledger 后端**：新增 `ActivityRepository`，`POST /api/track` 会记录 tooShort、invalidToken、invalidCampaign、credited、shadowBanned、earningCapped、duplicate 等每次曝光尝试；新增/升级 `GET /api/activity/developer` 和 `GET /api/activity/advertiser`，开发者和广告主都能查询 attempt-level 活动；两个 activity API 现在都返回 newest-first 的有界页面，支持 `limit`/`cursor` 和 `nextCursor`。
+
+验证结果：
+- 根级 `corepack pnpm@9.12.0 test` 通过：core/web/cli/extension 全部测试通过。
+- 根级 `corepack pnpm@9.12.0 lint` 通过：core/web/cli/extension `tsc --noEmit` 全部通过。
+- `@spinshare/web` 全量测试通过：40 files passed, 156 tests passed, 1 skipped。
+- `vscode-extension` 全量测试通过：6 files passed, 39 tests passed。
+- `vscode-extension` build 通过：`tsc -p ./` + bundled CLI wrapper。
+
+## 8. 仍未完成/不能假装完成的部分
+
+- **完整 activity ledger 产品还没完成**：后端 impression attempt store、developer/advertiser activity API、dashboard 最近活动 UI、payment/webhook/budget debit 事件账本已经进入同一时间线，activity API 分页也已完成；还需要进一步打磨成完整用户可解释 ledger（筛选、UI 加载更多、导出/明细等）。
+- **累计型 3 秒计费代码路径已完成**：core/web/CLI/extension/Claude Code generated hook 都已经接受并上报短片段；后端保存 pending progress，累计满 3000 ms 才结算。剩余风险是 Firestore emulator 写穿和真实 Claude Code TUI 实机验证。
+- **Token bridge 仍需真实环境验证**：代码已把 extension token mirror 到 CLI-compatible credential file；还需要在真实 VSCode/Cursor + Claude Code 环境确认权限、路径和 Windows 文件模式行为。
+- **广告主 activity ledger 仍需产品打磨**：曝光 attempt、checkoutStarted、budgetFunded、budgetDebited 已进入 advertiser activity feed；后端分页已完成，还缺筛选、UI 加载更多、导出、明细页等完整 ledger 体验。
+- **全局 shell 接管还没做**：现在仍是 extension 集成终端为主；全局 PowerShell/Bash/Zsh PATH/shim 安装还没有实现。
+- **Claude Code adapter 需要真实 Claude Code 手测**：单测验证了 settings merge、脚本生成、短片段上报、token gating、session gating、`refreshInterval` 和 ASCII 广告前缀；还需要在真实 Claude Code TUI 中验证 statusLine 位置、hook 触发频率、OSC8 链接显示、Windows Git Bash/PowerShell 路径行为。
+
 ## 附：诊断时验证过的关键事实
 - `.env` 实际值：`SPINSHARE_MODE=local` / `AUTH_MODE=oauth` / `STRIPE_MODE=test` / `SPINSHARE_COUNTER=rtdb`（矛盾组合）。
 - `container.ts:158` `useFirestoreInLocal()` 在当前配置下返回 false → 本地走内存 repo。
-- `container.ts:217` 本地 + dev → `seedLocalTestData()` 灌假数据。
-- `seed-local-data.ts:102-113` 会 seed LearnX funded campaign，容易干扰本地排行榜判断。
-- `collections.ts:18-24` 集合名固定为 `users/campaigns/ledgerEntries/paymentEvents`，当前没有 Firestore test namespace。
+- `container.ts` 本地 + dev 默认不再 seed LearnX；只有 `SPINSHARE_SEED_LOCAL_DATA=1` 才会调用 `seedLocalTestData()`。
+- `seed-local-data.ts:102-113` 仍保留 LearnX funded campaign 作为显式 demo seed。
+- `collections.ts` 支持 `SPINSHARE_FIRESTORE_NAMESPACE`；设置后集合写入 `namespaces/{namespace}/...`，未设置时仍使用顶层集合。`container.ts` 会阻止 local cloud Firestore 在未设置 namespace 时启动。
 - 主页公开付款走 `/api/advertiser-checkout`（`advertiser-checkout-form.tsx`、`page.tsx`），真实 Stripe test/live 需要 webhook 才会把 budget 加到 campaign。
-- 广告商仪表盘 Add Funds 走 `/api/funds/checkout`（`campaign-list.tsx:100-110`），这条不是死代码，但目前不完整。
-- 相关测试已通过：`advertiser-checkout/route.test.ts`、`market/route.test.ts`、`webhooks/stripe/route.test.ts` 共 9 个测试。
-- `WaitStateTracker`（`wrap.ts:48`）连续型逻辑，与你要的累计型不符。
+- 广告商仪表盘 Add Funds 走 `/api/funds/checkout`（`campaign-list.tsx:100-110`）；现在已补 campaign ownership、redirect URL、mock settled 入账和 route tests。
+- 相关测试已通过：根级 `corepack pnpm@9.12.0 test` 全部通过，根级 `corepack pnpm@9.12.0 lint` 全部通过。
+- 旧 `WaitStateTracker` 仍是 fallback 层的连续等待检测；Claude Code 主路径不应再依赖它作为计费事实源。
 - 代码无 TODO/FIXME/HACK 标记——不是半成品堆砌，是设计决策导致的问题。
+- Claude Code 官方 Hooks 文档说明 lifecycle hooks 会在 Claude Code session 的特定点触发，并向 handler 传 JSON context；事件包含 `UserPromptSubmit`、`MessageDisplay`、`Stop`、`StopFailure` 等。
+- Claude Code 官方 Status line 文档说明可在 `~/.claude/settings.json` 配置 `statusLine` command；Claude Code 会把 JSON 通过 stdin 传给脚本，脚本 stdout 会成为状态行内容。Windows 下也有 PowerShell 配置示例。
+
+## 附：当前“一坨逻辑”的职责拆解
+| 层 | 当前在干什么 | 问题 |
+|----|-------------|------|
+| VSCode extension | 注册命令、登录、安装 terminal shim、改集成终端 PATH | 生成命令没人调用；shim 只解决启动，不解决 thinking 语义 |
+| terminal shim | 让用户输入 `claude` 时先进入 SpinShare launcher | 能做到无感启动，但环境接管脆弱 |
+| launcher | 找 bundled CLI wrapper，再运行 `spinshare ... claude` | 又多了一层进程和 Windows/引用转义问题 |
+| CLI wrapper | spawn 真实 Claude，读取 stdout/stderr | 它在外部观察 Claude，不是 Claude 官方事件 |
+| `renderer.ts` | 猜哪些 chunk 是 spinner/thinking/status | Claude TUI 输出变一次就可能失效 |
+| `WaitStateTracker` | 连续 spinner 满 3 秒才上报 | 与“累计满 3 秒”产品逻辑不符 |
+| `POST /api/track` | 真正扣广告主预算、给开发者入账 | 后端账本本身相对健康，但前面的触发事实不可靠 |
+
+结论：这套逻辑的目标是“在不知道 Claude 内部状态的情况下，靠外层终端输出猜 waiting 并塞广告”。它不是毫无用处，但方向错在把最不稳定的 UI 输出当事实源。Claude Code MVP 应该改成“官方 hook 给事实，statusLine 给展示，shim 只负责无感启动”。
+
+## 附：本地真实运行环境验证（2026-06-15）
+
+新增 `corepack pnpm@9.12.0 verify:local-runtime` 作为 localhost 外部依赖 preflight。它检查 Node、`claude`、`stripe`、`firebase`、`npx`、Java 版本，以及 local Firestore 是否启用了 emulator 或 namespace 隔离。
+
+本机当前实测结果：
+
+- `claude` 已安装，真实命令 `claude.CMD --version` 返回 `2.1.170 (Claude Code)`。
+- `firebase` 已安装，真实命令 `firebase.CMD --version` 返回 `14.26.0`。
+- `spinshare setup claude-code` 已真实执行成功，adapter 安装到 `C:\Users\noahz\.claude\settings.json`；backup 存在，hook/statusLine 脚本存在，settings 文件不包含 token。
+- `stripe` 不在 PATH，所以 Stripe test webhook 本地闭环还不能验证。必须先安装 Stripe CLI，再运行 `stripe listen --forward-to http://localhost:3000/api/webhooks/stripe`。
+- Firestore emulator 当前被 Java 8 阻塞：本机 `java -version` 是 `1.8.0_491`，Firestore emulator jar 报 `UnsupportedClassVersionError`（class file 55.0，Java 8 只能识别到 52.0）。需要安装 JDK 21（至少 JDK 11）后再跑 emulator。
+
+这解释了为什么“Stripe test 付款后排行榜不显示”不能只看 Checkout 成功页：真实 Stripe test/live 模式下，campaign 预算只会在 webhook 到达并写入同一个 Firestore/namespace 后增加。没有 Stripe CLI webhook 或本地存储隔离没跑通时，排行榜不会稳定反映付款结果。
+
+下一步验证顺序应该固定为：
+
+1. 安装 Stripe CLI 和 JDK 21。
+2. 运行 `corepack pnpm@9.12.0 verify:local-runtime`，直到外部依赖全部通过。
+3. 用 Firestore emulator 或 `SPINSHARE_FIRESTORE_NAMESPACE=test` 跑本地 web。
+4. 运行 `stripe listen --forward-to http://localhost:3000/api/webhooks/stripe` 并复制 `whsec_...` 到 `.env`。
+5. 完成一次 Stripe test Checkout，确认 webhook 200、campaign budget 增加、`/api/market`/排行榜读取到同一个 campaign。
+6. 打开真实 Claude Code，确认 statusLine 广告显示、Stop hook 上报、activity ledger 出现 attempt/credited rows。
 
 ## 附：关键文件索引
 | 想看什么 | 去哪里 |
@@ -312,5 +459,305 @@ SPINSHARE_COUNTER=rtdb    ← 生产计数器（真 RTDB）
 | 扩展入口 | `vscode-extension/src/extension.ts` |
 | 扩展广告控制器 | `vscode-extension/src/ad-controller.ts` |
 | 扩展终端自动包装 | `vscode-extension/src/terminal-auto-wrap.ts` |
+| Claude Code 用户配置（目标） | `~/.claude/settings.json` |
+| Claude Code hooks 文档 | `https://code.claude.com/docs/en/hooks` |
+| Claude Code statusLine 文档 | `https://code.claude.com/docs/en/statusline` |
 | 原始产品规格 | `docs/project_architecture.md` |
 | 生产自测指南 | `docs/production-test-guide.md` |
+
+## 2026-06-15 dashboard activity ledger update
+
+- Developer dashboard activity now reads attempt-level activity rows, not only credited ledger rows. It can show credited and non-credited outcomes with status, duration, and credit labels.
+- Advertiser dashboard now loads `/api/activity/advertiser` with the existing dashboard bearer token and renders a Recent activity feed below campaign management.
+- Shared UI normalization lives in `web/src/app/dashboard/activity-feed.ts`.
+- Verified focused UI coverage: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/dashboard/activity-feed.test.ts src/app/dashboard/advertiser/advertiser-activity-feed.test.tsx src/app/dashboard/advertiser/advertiser-dashboard.test.tsx src/app/dashboard/developer/developer-dashboard-parts.test.tsx`.
+- Verified full regression coverage after the UI update: `corepack pnpm@9.12.0 test` and `corepack pnpm@9.12.0 lint` both passed.
+- Still not complete: the cumulative 3-second billing model now has core/web/CLI/extension focused coverage plus full root test/lint verification. Firestore namespace guard has focused unit verification, but real Firestore emulator write-through and real Claude Code manual verification are still pending.
+
+## 2026-06-15 cumulative 3-second viewability update
+
+- Core schema now accepts positive short view segments (`viewDurationMs >= 1`) while keeping `VIEWABILITY_MIN_MS = 3000` as the settlement threshold.
+- Web now stores one pending impression-progress record per developer. `GET /api/ad` prefers that pending campaign for authenticated developers before normal bidding; `POST /api/track` returns `recorded:false` until cumulative duration reaches 3000 ms, then settles through the existing ledger path, records activity, and clears progress.
+- CLI wrapper now reports short spinner/wait segments instead of discarding them. If an ad response includes `remainingViewDurationMs`, it schedules the report timer for the remaining time. Progress-only track responses update the cached pending ad; settled responses refresh the ad cache.
+- VS Code extension ad controller now reports short completed generations and uses pending `remainingViewDurationMs` as the timer delay.
+- Claude Code generated hook scripts now report positive short segments instead of dropping `< 3000 ms` views; the backend remains the source of truth for when cumulative 3000 ms settles.
+- Focused verification passed:
+  - `corepack pnpm@9.12.0 --filter @spinshare/core test -- src/schemas.test.ts`
+  - `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/server/adapters/memory/memory-impression-progress-repository.test.ts src/server/bidding-service.test.ts src/app/api/ad/route.test.ts src/app/api/track/route.test.ts`
+  - `corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/api-client.test.ts src/wrap.test.ts`
+  - `corepack pnpm@9.12.0 --filter ./vscode-extension test -- src/api-client.test.ts src/ad-controller.test.ts src/ad-controller.property.test.ts`
+- Full root verification passed after the cumulative change: `corepack pnpm@9.12.0 test` and `corepack pnpm@9.12.0 lint`.
+- Still not complete: Firestore namespace guard has focused unit verification, but real Firestore emulator write-through and real Claude Code TUI manual verification are still pending.
+
+## 2026-06-15 Claude Code adapter cumulative/statusLine update
+
+- Generated Claude hook script now requires a local token before fetching/showing an ad, preventing anonymous/free ad views that cannot be attributed.
+- Generated Claude hook script now sends that token to `GET /api/ad`, so pending cumulative-progress campaigns can be selected for the authenticated developer before normal bidding.
+- Generated Claude hook script now reports any positive viewed segment (`viewDurationMs >= 1`) to `/api/track`; it no longer drops segments below 3000 ms. This matches the cumulative backend model.
+- Generated `statusLine` settings now include `refreshInterval: 1`, aligning with Claude Code's documented timer-based statusLine refresh support for time-based or externally sourced segments.
+- The actual statusLine output now uses an ASCII `$ ` prefix for the ad text, avoiding the previous mojibake glyph in the generated display string.
+- Generated hook/statusLine scripts now read Claude's stdin JSON and bind state to `session_id`, preventing stale state from another Claude session from being displayed or tracked.
+- Focused verification passed:
+  - `corepack pnpm@9.12.0 --filter ./vscode-extension test -- src/claude-code-adapter.test.ts`
+  - `corepack pnpm@9.12.0 --filter ./vscode-extension test`
+  - `corepack pnpm@9.12.0 --filter ./vscode-extension lint`
+- Still pending: real Claude Code TUI verification for statusLine placement, refresh timing during thinking, OSC8 link behavior, and Windows shell path execution.
+
+## 2026-06-15 npm CLI Claude Code setup update
+
+- Added `cli-wrapper/src/claude-code-adapter.ts`, giving the npm CLI its own Claude Code hooks/statusLine installer instead of relying on the VS Code extension package.
+- Added `spinshare setup claude-code` for explicit adapter installation.
+- `spinshare login` now runs Claude Code setup best-effort after storing the token, so npm users do not need to manually wrap every Claude invocation with `spinshare claude`.
+- Because the standalone generated Claude hook script reads the file credential path, CLI login now mirrors the token into `~/.config/spinshare/credentials.json` or `%APPDATA%/spinshare/credentials.json` even when the primary credential store is keytar.
+- Focused verification passed:
+  - `corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/claude-code-adapter.test.ts src/login.test.ts src/index.test.ts`
+- Package verification passed:
+  - `corepack pnpm@9.12.0 --filter @spinshare/cli build`
+  - `node "cli-wrapper/dist/index.js" --help`
+- Still pending: real global npm install and real Claude Code TUI verification.
+
+## 2026-06-15 advertiser money activity ledger update
+
+- Advertiser activity is now a unified timeline, not only impression attempts.
+- New advertiser event rows:
+  - `checkoutStarted`: written when public homepage checkout or dashboard Add Funds creates a checkout session.
+  - `budgetFunded`: written when mock/local checkout settles immediately, or when a real Stripe `checkout.session.completed` webhook is newly applied.
+  - `budgetDebited`: written only for credited billable impressions; suppressed/duplicate/non-billed outcomes do not create debit rows.
+- Stripe webhook activity is idempotent with the existing payment event claim. Duplicate webhook redelivery does not create duplicate budget or duplicate activity.
+- Public homepage checkout and dashboard Add Funds both write local/mock money activity rows, so localhost testing can explain why a campaign gained budget.
+- Advertiser activity API now preserves advertiser event fields (`amountCents`, `amountMicrocents`, `amountUsd`, `providerEventId`, `checkoutSessionId`) and still filters by direct owner id plus same-email public checkout id.
+- Dashboard activity formatting now supports both impression attempts and advertiser money events in one recent activity feed.
+- Verification passed:
+  - Focused: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/activity/advertiser/route.test.ts src/app/api/webhooks/stripe/route.test.ts src/app/api/advertiser-checkout/route.test.ts src/app/api/funds/checkout/route.test.ts src/app/api/track/route.test.ts src/app/dashboard/activity-feed.test.ts`
+  - Web full: `corepack pnpm@9.12.0 --filter @spinshare/web test`
+  - Root full: `corepack pnpm@9.12.0 test`
+  - Root typecheck/lint: `corepack pnpm@9.12.0 lint`
+- Firestore namespace guard has focused unit verification, but real Firestore emulator write-through and real Claude Code TUI manual verification remain pending.
+
+## 2026-06-15 activity ledger pagination update
+
+- `GET /api/activity/developer` and `GET /api/activity/advertiser` now return bounded newest-first pages instead of unbounded arrays.
+- Both routes support `limit` and `cursor` query parameters and include `nextCursor` when another page exists.
+- Pagination is route-level for now because the repository interface still exposes full-list reads; if activity volume grows, the same API contract should be pushed down into Firestore queries.
+- Focused verification passed: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/activity/developer/route.test.ts src/app/api/activity/advertiser/route.test.ts`.
+- Full regression passed after the pagination update: `corepack pnpm@9.12.0 test` and `corepack pnpm@9.12.0 lint`.
+- Remaining product work: dashboard UI still needs explicit load-more/paging controls, filters, export, and detail views.
+
+## 2026-06-15 local Firestore isolation update
+
+- `SPINSHARE_FIRESTORE_NAMESPACE=test` routes every Firestore collection path under `namespaces/test/...`, including `impressionActivities`, `impressionProgress`, and `paymentEvents`.
+- `SPINSHARE_MODE=local` + `SPINSHARE_USE_FIRESTORE=1` + no `FIRESTORE_EMULATOR_HOST` now fails fast unless `SPINSHARE_FIRESTORE_NAMESPACE` is set. This prevents localhost from mutating top-level cloud Firestore collections.
+- Firestore emulator usage remains allowed without a namespace because `FIRESTORE_EMULATOR_HOST` already isolates writes to the local emulator.
+- Focused verification passed:
+  - `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/server/container.test.ts src/server/adapters/firestore/collections.test.ts`
+- Still pending: a real emulator process write-through test and the Stripe CLI webhook end-to-end run.
+
+## 2026-06-15 install/sign-in, statusLine ad polish, and URL safety update
+
+- Fresh extension installs now have a persistent status bar sign-in entry:
+  `$(account) SpinShare Sign in`. It appears when no token is stored, runs
+  `spinshare.signIn`, hides after successful sign-in, and returns after
+  sign-out. The automatic activation prompt remains, but the user no longer has
+  only one easy-to-miss modal prompt.
+- Generated Claude Code statusLine ads are now bold cyan and still wrapped in
+  OSC8 hyperlinks when `destinationUrl` exists. This makes the visible ad more
+  attention-grabbing while preserving click-through behavior in terminals that
+  support OSC8 links.
+- Claude Code controls statusLine placement. SpinShare can style and link the
+  statusLine text, but it cannot force the ad to render directly under the
+  `Thinking...` row through this API. That placement needs real Claude Code TUI
+  verification or a different host surface.
+- Destination URL safety now has a deterministic first gate in
+  `@spinshare/core`: campaign URLs must be HTTPS public domains. URLs with
+  username/password credentials, localhost/.local hosts, IP literals, or custom
+  ports are rejected before public checkout or dashboard campaign creation.
+- The click redirect endpoint now reuses that same safety gate. This closes a
+  historical-data gap: an old or manually inserted campaign with an unsafe
+  HTTPS-looking destination such as `https://localhost/` now falls back to the
+  site root and does not increment click telemetry.
+- Root `test` and `lint` now rebuild `@spinshare/core` before running consumer
+  packages. This matters because web/CLI/extension imports resolve core through
+  `packages/core/dist`; without the build step, consumer tests can accidentally
+  run against stale schemas and produce false confidence.
+- LLM review should be a second layer, not the first line of defense. A later
+  review service can call OpenRouter/Gemma or another provider for ad copy and
+  landing-page checks, but deterministic URL policy and reputation checks should
+  run before any model judgment.
+- Focused verification passed:
+  - `corepack pnpm@9.12.0 --filter ./vscode-extension test -- src/extension.test.ts`
+  - `corepack pnpm@9.12.0 --filter ./vscode-extension test -- src/claude-code-adapter.test.ts`
+  - `corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/claude-code-adapter.test.ts`
+  - `corepack pnpm@9.12.0 --filter @spinshare/core test -- src/schemas.test.ts`
+  - `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/click/route.test.ts`
+- Full regression passed after this update:
+  - `corepack pnpm@9.12.0 test`
+  - `corepack pnpm@9.12.0 lint`
+  - `corepack pnpm@9.12.0 --filter ./vscode-extension package`
+- `git diff --check` still reports pre-existing unrelated whitespace in
+  `web/src/app/page.tsx`, `web/src/app/home.css`, and
+  `.ai/web/src/app/api/track/route.test.md`; the files touched by this update
+  pass path-scoped diff check.
+
+## 2026-06-15 dashboard block-purchase funding update
+
+- Advertiser dashboard funding now matches the product model: campaigns are
+  funded by buying 1,000-view blocks, not by typing arbitrary USD top-up
+  amounts.
+- `@spinshare/core` now exports `fundingBlockCheckoutSchema` for
+  `{ campaignId, blockCount }`. It shares the same whole positive block-count
+  validation as public homepage checkout.
+- `POST /api/funds/checkout` now rejects legacy amount-only dashboard payloads.
+  It loads the owned campaign, computes checkout amount as
+  `campaign.cpmCents * blockCount`, rejects derived totals above $100,000, then
+  records checkout/funding activity with that derived amount.
+- `CampaignList` now presents the control as "Buy blocks", explains that one
+  block equals 1,000 impressions, validates whole block counts, and sends
+  `blockCount` to `/api/funds/checkout`.
+- Focused verification passed:
+  - `corepack pnpm@9.12.0 --filter @spinshare/core test -- src/schemas.test.ts`
+  - `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/funds/checkout/route.test.ts src/app/dashboard/advertiser/lib.test.ts src/app/dashboard/advertiser/campaign-list.test.tsx`
+- Full regression passed after this update:
+  - `corepack pnpm@9.12.0 test`
+  - `corepack pnpm@9.12.0 lint`
+
+## 2026-06-15 Claude direct-launch boundary update
+
+- The VS Code/Cursor/Trae terminal shim no longer routes `claude` through the old `spinshare claude` stdout/spinner wrapper.
+- Generated terminal launchers now treat `claude` as a native adapter agent: they remove the shim directory from `PATH`, set SpinShare base URL env vars, and launch the real `claude` directly with inherited stdio.
+- Non-native configured agents still use the SpinShare CLI wrapper fallback, so the old wrapper remains available for future tools that do not expose lifecycle/status APIs.
+- This aligns the MVP boundary with the product decision: Claude Code ads come from official hooks/statusLine, while shim logic only provides no-touch startup.
+- The generated VS Code Claude statusLine script no longer contains the unused non-ASCII `▣ ` marker; generated visible ad text uses the ASCII `$ ` prefix.
+- Focused verification passed:
+  - `corepack pnpm@9.12.0 --filter ./vscode-extension test -- src/terminal-auto-wrap.test.ts`
+  - `corepack pnpm@9.12.0 --filter ./vscode-extension test -- src/claude-code-adapter.test.ts`
+- Still pending: real Claude Code TUI verification after extension activation, including statusLine placement, hook firing, OSC8 link rendering, and Windows shell behavior.
+
+## 2026-06-15 generated Claude script runtime verification update
+
+- Added execution-level tests for both VS Code extension and npm CLI Claude Code adapters.
+- The tests write generated `spinshare-hook.cjs` and `spinshare-statusline.cjs` scripts to temp directories and execute them with real Node child processes.
+- A local HTTP server simulates `/api/ad` and `/api/track`, proving the generated scripts send bearer Authorization, persist ad state, display `$ <adText>` only for the matching `session_id`, post a positive `viewDurationMs` on `Stop`, and clear state afterward.
+- Focused verification passed:
+  - `corepack pnpm@9.12.0 --filter ./vscode-extension test -- src/claude-code-adapter.test.ts`
+  - `corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/claude-code-adapter.test.ts`
+- Full regression after adding runtime smoke tests passed:
+  - `corepack pnpm@9.12.0 test`
+  - `corepack pnpm@9.12.0 lint`
+  - `git diff --check` (only CRLF warnings, no whitespace errors)
+- This still does not replace real Claude Code TUI testing; it narrows the remaining risk to Claude's actual hook/statusLine invocation and terminal rendering behavior.
+
+## 2026-06-15 duplicate Claude adapter cleanup update
+
+- New bug found during the client architecture audit: if a user installs both the VS Code/Cursor/Trae extension adapter and the npm CLI adapter, both can patch the same `~/.claude/settings.json` with different generated script paths.
+- Previous behavior only deduplicated the exact current hook command. That meant an old SpinShare `spinshare-hook.cjs` command from the other installer path could remain active, while `statusLine` pointed at only the newest installer. Risk: one Claude turn could fetch/report ads twice, including a report for an ad surface the user did not see.
+- Fixed both adapter implementations so generated SpinShare commands are identified by owned script names (`spinshare-hook.cjs`, `spinshare-statusline.cjs`) instead of the exact directory. Merge now removes old SpinShare-owned hooks before adding the current plan. Removal deletes all SpinShare-owned hook/statusLine entries while preserving unrelated user hooks/settings.
+- RED/GREEN verification passed:
+  - RED before implementation: both focused tests failed on stale hook/statusLine cleanup.
+  - GREEN after implementation: `corepack pnpm@9.12.0 --filter ./vscode-extension test -- src/claude-code-adapter.test.ts` passed.
+  - GREEN after implementation: `corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/claude-code-adapter.test.ts` passed.
+- Full regression and publish/package checks passed after the cleanup:
+  - `corepack pnpm@9.12.0 test`
+  - `corepack pnpm@9.12.0 lint`
+  - `corepack pnpm@9.12.0 --filter ./vscode-extension package`
+  - `npm.cmd publish --dry-run` with a workspace-local npm cache
+  - `git diff --check` reported only CRLF warnings, no whitespace errors.
+- Compiled/package artifact spot check passed: `vscode-extension/out/claude-code-adapter.js`, `cli-wrapper/dist/index.js`, and `vscode-extension/cli-wrapper/dist/index.js` contain the SpinShare-owned command cleanup.
+- `corepack pnpm@9.12.0 verify:local-runtime` still exits 1 for external dependencies only: `stripe` is not on `PATH`, and Java is `1.8.0_491` while the Firestore emulator requires Java 11+.
+- Still pending: real Claude Code TUI verification and external Stripe CLI / Firestore emulator end-to-end verification after installing Stripe CLI and JDK 21.
+
+## 2026-06-15 same-session Claude stale state update
+
+- New client bug found after the duplicate-hook cleanup: generated Claude hooks returned early whenever active ad state matched the current `session_id`. That correctly deduped repeated `MessageDisplay` events in one turn, but it was wrong for a new `UserPromptSubmit` in the same Claude session after a missed/failed `Stop` hook.
+- Previous risk: stale active state from an old turn could make the next prompt skip `/api/ad`, keep the old campaign and old `startedAtMs`, then report the old campaign when the next `Stop` eventually fired. That would pollute activity ledger rows and could credit a stale surface instead of the freshly displayed one.
+- Fixed both generated hook templates: `UserPromptSubmit` is now treated as the start of a new turn and clears any existing active state before fetching a fresh ad. `MessageDisplay` still returns early for a matching active state, so the same turn does not double-fetch.
+- RED/GREEN runtime verification passed:
+  - RED before implementation: extension and CLI generated-script tests failed because the second same-session `UserPromptSubmit` did not call `/api/ad` again.
+  - GREEN after implementation: `corepack pnpm@9.12.0 test -- src/claude-code-adapter.test.ts` from `vscode-extension/` passed.
+  - GREEN after implementation: `corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/claude-code-adapter.test.ts` passed.
+- Full regression and publish/package checks passed after the stale-state fix:
+  - `corepack pnpm@9.12.0 test`
+  - `corepack pnpm@9.12.0 lint`
+  - `corepack pnpm@9.12.0 --filter ./vscode-extension package`
+  - `npm.cmd publish --dry-run` with a workspace-local npm cache
+  - `git diff --check` reported only CRLF warnings, no whitespace errors.
+- Compiled/package artifact spot check passed: `vscode-extension/out/claude-code-adapter.js`, `cli-wrapper/dist/index.js`, and `vscode-extension/cli-wrapper/dist/index.js` contain the `isPromptStart` / `isDisplayEvent` branch.
+- `corepack pnpm@9.12.0 verify:local-runtime` still exits 1 for external dependencies only: `stripe` is not on `PATH`, and Java is `1.8.0_491` while the Firestore emulator requires Java 11+.
+
+## 2026-06-15 extension existing-token mirror sync update
+
+- New account-sync bug found in the VS Code/Cursor/Trae path: Claude Code generated hooks cannot read VS Code SecretStorage. The extension already mirrored tokens on fresh sign-in, but an existing signed-in extension user could have a token only in SecretStorage after upgrade/restart.
+- Previous risk: extension activation installs the Claude Code adapter, but generated hook scripts find no CLI-compatible file credential, so `/api/ad` is never fetched with bearer auth until the user signs in again. That violates the desired "download extension/npm, login once, account syncs" UX.
+- Fixed `AuthManager.initialize()`: when it loads a non-empty token from SecretStorage, it best-effort saves the same token through the configured `FileTokenMirror`. If SecretStorage has no token, initialize intentionally does not clear the shared file credential because it may belong to a separate npm CLI login.
+- RED/GREEN verification passed:
+  - RED before implementation: `corepack pnpm@9.12.0 test -- src/auth.test.ts` from `vscode-extension/` failed because the existing token was not mirrored.
+  - GREEN after implementation: the same focused test passed with 10 auth tests.
+- Full regression and publish/package checks passed after the mirror-sync fix:
+  - `corepack pnpm@9.12.0 test`
+  - `corepack pnpm@9.12.0 lint`
+  - `corepack pnpm@9.12.0 --filter ./vscode-extension package`
+  - `npm.cmd publish --dry-run` with a workspace-local npm cache
+  - `git diff --check` reported only CRLF warnings, no whitespace errors.
+- Compiled/package artifact spot check passed: `vscode-extension/out/auth.js` contains the `tokenMirror?.save(this.cachedToken)` call inside `initialize()`.
+- `corepack pnpm@9.12.0 verify:local-runtime` still exits 1 for external dependencies only: `stripe` is not on `PATH`, and Java is `1.8.0_491` while the Firestore emulator requires Java 11+.
+
+## 2026-06-15 legacy CLI authenticated ad fetch update
+
+- New fallback-wrapper billing safety bug found: `CliApiClient.getAd()` could call the public `/api/ad` endpoint without a bearer token.
+- Previous risk: the old generic stdout/spinner wrapper could display an anonymous ad, then fail `/api/track` because there was no developer token. That gives advertisers an unattributed/free ad view and violates the account-sync model.
+- Fixed `CliApiClient.getAd()`: when no token is available, it returns `{ adAvailable: false }` immediately and does not call `fetch`. Device login endpoints remain unauthenticated.
+- RED/GREEN verification passed:
+  - RED before implementation: `corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/api-client.test.ts` failed because anonymous `getAd()` returned a real ad.
+  - GREEN after implementation: the same focused CLI API client test passed with 16 tests.
+- Full follow-up verification passed:
+  - `corepack pnpm@9.12.0 --filter @spinshare/cli test`
+  - `corepack pnpm@9.12.0 test`
+  - `corepack pnpm@9.12.0 lint`
+  - `corepack pnpm@9.12.0 --filter ./vscode-extension package`
+  - `npm.cmd publish --dry-run` with a workspace-local npm cache
+  - `git diff --check` reported only CRLF warnings, no whitespace errors.
+- Packaged artifact spot check passed: both `cli-wrapper/dist/index.js` and `vscode-extension/cli-wrapper/dist/index.js` contain the `!headers.Authorization` guard before `/api/ad`.
+- `corepack pnpm@9.12.0 verify:local-runtime` still exits 1 for external dependencies only: `stripe` is not on `PATH`, and Java is `1.8.0_491` while the Firestore emulator requires Java 11+.
+
+## 2026-06-15 backend ad-serving auth boundary update
+
+- New API boundary bug found after the client token gate: `/api/ad` itself still allowed missing or invalid bearer tokens to enter normal bidding.
+- Previous risk: any custom or stale client could fetch a paid campaign anonymously. Even if `/api/track` later rejected settlement, the advertiser could receive free, unattributed exposure and campaign `shows` telemetry could be inflated.
+- Fixed `web/src/app/api/ad/route.ts`: missing or invalid bearer tokens now return `401 { "error": "Unauthorized" }` before bidding, pending-progress selection, click URL rewriting, or `shows` telemetry.
+- RED/GREEN verification passed:
+  - RED before implementation: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/ad/route.test.ts` failed because missing/invalid tokens returned `200`.
+  - GREEN after implementation: the same focused ad route test passed with 4 tests.
+- Full web regression passed: `corepack pnpm@9.12.0 --filter @spinshare/web test` passed with 186 tests and 1 skipped emulator integration.
+- Full root regression and lint/typecheck passed after the boundary change:
+  - `corepack pnpm@9.12.0 test`
+  - `corepack pnpm@9.12.0 lint`
+
+## 2026-06-15 extension ad-fetch token gate update
+
+- Follow-up client boundary fix: the VS Code/Cursor/Trae `AdApiClient.getAd()` no longer calls `/api/ad` unless it has either a constructor token or a per-call token.
+- Previous risk after the backend auth change: no free ad could be returned, but manual extension command paths could still produce unauthenticated 401 request noise.
+- Fixed `vscode-extension/src/api-client.ts`: missing token returns `{ adAvailable: false }` without calling `fetch`; device-flow login endpoints remain unauthenticated.
+- RED/GREEN verification passed:
+  - RED before implementation: `corepack pnpm@9.12.0 --filter ./vscode-extension test -- src/api-client.test.ts` failed because anonymous `getAd()` returned a stubbed ad.
+  - GREEN after implementation: the same focused API client test passed with 9 tests.
+- Full verification passed:
+  - `corepack pnpm@9.12.0 --filter ./vscode-extension test`
+  - `corepack pnpm@9.12.0 test`
+  - `corepack pnpm@9.12.0 lint`
+  - `corepack pnpm@9.12.0 --filter ./vscode-extension package` (passed on retry after a transient Windows `EBUSY` lock on the old VSIX)
+- Compiled/package artifact spot check passed: `vscode-extension/out/api-client.js` and `vscode-extension/cli-wrapper/dist/index.js` both contain their `/api/ad` Authorization guards.
+
+## 2026-06-15 served-marker track validation update
+
+- New ledger safety bug found: `/api/track` validated the developer token and campaign budget, but it did not prove that `/api/ad` had actually served that campaign to that developer.
+- Previous risk: an authenticated developer could POST an arbitrary funded `campaignId` with `viewDurationMs >= 3000` and drain advertiser budget without receiving that ad from bidding.
+- Fixed the boundary using the existing progress repository:
+  - authenticated `/api/ad` writes a 0ms pending progress marker for the selected developer/campaign before `shows`;
+  - `/api/track` requires an existing marker for the same developer/campaign before adding duration or calling `recordImpression`;
+  - missing/mismatched marker returns the existing `422 invalid_or_insufficient_campaign`, records invalid-campaign activity/telemetry, and does not mutate ledger.
+- RED/GREEN verification passed:
+  - RED before implementation: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/ad/route.test.ts src/app/api/track/route.test.ts` failed because `/api/ad` left no marker and `/api/track` accepted unserved campaigns.
+  - GREEN after implementation: the same focused route test passed with 10 tests.
+- Full verification passed:
+  - `corepack pnpm@9.12.0 --filter @spinshare/web test`
+  - `corepack pnpm@9.12.0 test`
+  - `corepack pnpm@9.12.0 lint`

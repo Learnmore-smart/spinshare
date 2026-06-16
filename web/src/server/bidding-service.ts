@@ -12,9 +12,18 @@
  * `GET /api/ad` API contract.
  */
 
-import { type AdResponse, formatCentsAsUsd, selectWinner } from "@spinshare/core";
+import {
+  VIEWABILITY_MIN_MS,
+  type AdResponse,
+  type Campaign,
+  formatCentsAsUsd,
+  selectWinner,
+} from "@spinshare/core";
 
-import type { CampaignRepository } from "./ports";
+import type {
+  CampaignRepository,
+  ImpressionProgressRepository,
+} from "./ports";
 
 /** Default hard latency budget for ad selection, in milliseconds (Req 1.7). */
 export const BIDDING_TIMEOUT_MS = 500;
@@ -26,6 +35,10 @@ export const BIDDING_TIMEOUT_MS = 500;
 export interface BiddingServiceDeps {
   /** Durable campaign repository providing the biddable candidate set. */
   campaigns: CampaignRepository;
+  /** Durable pending cumulative viewability progress. */
+  progress?: ImpressionProgressRepository;
+  /** Authenticated developer id, when available. */
+  developerId?: string;
   /**
    * Latency budget in milliseconds. Defaults to {@link BIDDING_TIMEOUT_MS}.
    * On timeout the service resolves to `{ adAvailable: false }`.
@@ -35,6 +48,36 @@ export interface BiddingServiceDeps {
 
 /** Sentinel "no ad available" response (Req 1.4). */
 const NO_AD: AdResponse = { adAvailable: false };
+
+function campaignToAd(
+  campaign: Campaign,
+  progress?: { accumulatedViewDurationMs: number },
+): AdResponse {
+  return {
+    adAvailable: true,
+    campaignId: campaign.id,
+    adText: campaign.adText,
+    ...(campaign.destinationUrl !== undefined
+      ? { destinationUrl: campaign.destinationUrl }
+      : {}),
+    ...(campaign.brandName !== undefined ? { brandName: campaign.brandName } : {}),
+    cpmCents: campaign.cpmCents,
+    cpmUsd: formatCentsAsUsd(campaign.cpmCents),
+    ...(progress !== undefined
+      ? {
+          accumulatedViewDurationMs: progress.accumulatedViewDurationMs,
+          remainingViewDurationMs: Math.max(
+            0,
+            VIEWABILITY_MIN_MS - progress.accumulatedViewDurationMs,
+          ),
+        }
+      : {}),
+  };
+}
+
+function isBiddable(campaign: Campaign | null): campaign is Campaign {
+  return campaign !== null && campaign.budgetCents > 0 && campaign.cpmCents > 0;
+}
 
 /**
  * Selects an advertisement for `GET /api/ad`.
@@ -61,22 +104,20 @@ export async function selectAd(deps: BiddingServiceDeps): Promise<AdResponse> {
 
   const selection = (async (): Promise<AdResponse> => {
     try {
+      if (deps.progress !== undefined && deps.developerId !== undefined) {
+        const pending = await deps.progress.getByDeveloper(deps.developerId);
+        if (pending !== null) {
+          const campaign = await campaigns.getById(pending.campaignId);
+          if (isBiddable(campaign)) {
+            return campaignToAd(campaign, pending);
+          }
+          await deps.progress.clearDeveloper(deps.developerId);
+        }
+      }
       const candidates = await campaigns.listBiddable();
       const winner = selectWinner(candidates);
       if (winner === null) return NO_AD;
-      return {
-        adAvailable: true,
-        campaignId: winner.id,
-        adText: winner.adText,
-        ...(winner.destinationUrl !== undefined
-          ? { destinationUrl: winner.destinationUrl }
-          : {}),
-        ...(winner.brandName !== undefined
-          ? { brandName: winner.brandName }
-          : {}),
-        cpmCents: winner.cpmCents,
-        cpmUsd: formatCentsAsUsd(winner.cpmCents),
-      };
+      return campaignToAd(winner);
     } catch {
       // Any failure loading/selecting candidates degrades to "no ad".
       return NO_AD;

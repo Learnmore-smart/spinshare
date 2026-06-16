@@ -34,8 +34,15 @@ Extended localized copy for dashboards, setup guide, activation, advertiser dash
 
 Clarify extension auto-wrap and CLI device-flow setup copy. The guide should say that extension auto-wrap affects new integrated terminals, and that CLI login approval is the `/activate` device-flow approval, not a separate wakeup feature.
 
+## Implemented Change 2026-06-15 Block Funding Copy
+
+English advertiser dashboard funding copy now presents the control as
+"Buy blocks" and explains that one block equals 1,000 impressions, with checkout
+derived from the campaign's max CPM.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Updated English advertiser funding copy to block purchases. | Codex |
 | 2026-06-15 | Created doc and documented setup copy clarification. | Codex |

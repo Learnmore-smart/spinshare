@@ -39,6 +39,8 @@ export interface RunLoginDeps {
   stdout?: Pick<NodeJS.WritableStream, "write">;
   /** Error/diagnostic output sink. Defaults to `process.stderr`. */
   stderr?: Pick<NodeJS.WritableStream, "write">;
+  /** Best-effort setup after the token is stored, e.g. Claude Code adapter install. */
+  afterTokenStored?: (token: string) => Promise<void>;
 }
 
 const realSleep = (ms: number): Promise<void> =>
@@ -114,6 +116,7 @@ export async function runLogin(deps: RunLoginDeps): Promise<LoginResult> {
     now = Date.now,
     stdout = process.stdout,
     stderr = process.stderr,
+    afterTokenStored,
   } = deps;
 
   const out = (line: string): void => void stdout.write(line);
@@ -168,6 +171,17 @@ export async function runLogin(deps: RunLoginDeps): Promise<LoginResult> {
             }\n`,
           );
           return 1;
+        }
+        if (afterTokenStored) {
+          try {
+            await afterTokenStored(poll.accessToken);
+          } catch (e) {
+            err(
+              `Claude Code setup warning: ${
+                e instanceof Error ? e.message : String(e)
+              }\n`,
+            );
+          }
         }
         out(`\nLogin successful. You're all set.\n`);
         return 0;

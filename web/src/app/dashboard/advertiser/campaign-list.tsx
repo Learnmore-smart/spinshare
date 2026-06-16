@@ -25,7 +25,7 @@ import {
   formatCtr,
   formatUsd,
   nonCreditTotal,
-  validateFundingDollars,
+  validateFundingBlocks,
   type CampaignView,
 } from "./lib";
 
@@ -79,7 +79,7 @@ function CampaignCard({
   campaign: CampaignView;
 }) {
   const t = useT();
-  const [amount, setAmount] = useState("");
+  const [blocks, setBlocks] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const telemetry = campaignTelemetry(campaign);
@@ -89,7 +89,7 @@ function CampaignCard({
   async function addFunds(): Promise<void> {
     setError(null);
 
-    const result = validateFundingDollars(amount);
+    const result = validateFundingBlocks(blocks);
     if (!result.ok) {
       setError(translateValidationError(result.error, t));
       return;
@@ -105,7 +105,7 @@ function CampaignCard({
         },
         body: JSON.stringify({
           campaignId: campaign.id,
-          amountCents: result.cents,
+          blockCount: result.blocks,
         }),
       });
 
@@ -200,12 +200,11 @@ function CampaignCard({
           <input
             id={`funds-${campaign.id}`}
             type="number"
-            inputMode="decimal"
+            inputMode="numeric"
             min="1"
-            max="100000"
-            step="0.01"
-            value={amount}
-            onChange={(event) => setAmount(event.target.value)}
+            step="1"
+            value={blocks}
+            onChange={(event) => setBlocks(event.target.value)}
             placeholder={t.advertiserDashboard.addFundsPlaceholder}
             className="w-full min-w-0 flex-1 spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal sm:max-w-[10rem]"
           />

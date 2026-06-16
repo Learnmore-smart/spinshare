@@ -134,6 +134,7 @@ export interface Dictionary {
     bulletNoUpload: string;
     bulletExtension: string;
     panelLabel: string;
+    featuresSubtitle: string;
     roleDeveloper: string;
     roleAdvertiser: string;
     submitGoogle: string;

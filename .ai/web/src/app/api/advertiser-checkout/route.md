@@ -41,6 +41,24 @@ Fix: after creating a checkout session, credit the campaign budget only if the g
 
 Create this route with tests for valid checkout creation, invalid payload rejection, and private leaderboard persistence.
 
+## Planned Change 2026-06-15
+
+Extract the email-derived advertiser id algorithm into `web/src/server/advertiser-identity.ts` so homepage checkout and dashboard claim logic cannot drift.
+
+## Implemented Change 2026-06-15
+
+Homepage checkout now calls shared `publicAdvertiserIdForEmail()`.
+
+## Planned/Implemented Change 2026-06-15 Advertiser Money Events
+
+Public checkout now records best-effort advertiser activity events:
+
+- `checkoutStarted` after a checkout session is created
+- `budgetFunded` when a mock/local checkout settles immediately
+
+Real Stripe test/live funding remains webhook-settled, so the later
+`budgetFunded` row is written by `/api/webhooks/stripe`.
+
 ## Implemented Change
 
 Added `POST /api/advertiser-checkout`. It validates the public form payload, creates a zero-budget campaign with hashed email-derived advertiser id and metadata, starts a checkout session for `cpmCents * blockCount`, and returns `{ url, sessionId, amountCents, amountUsd, campaign }`.
@@ -55,6 +73,9 @@ Added `POST /api/advertiser-checkout`. It validates the public form payload, cre
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Added public checkout advertiser money activity events. | Codex |
+| 2026-06-15 | Switched public checkout to shared advertiser identity helper. | Codex |
+| 2026-06-15 | Planned shared public advertiser identity helper extraction. | Codex |
 | 2026-06-15 | Documented immediate mock-settlement plan for public checkout. | Codex |
 | 2026-06-13 | Created doc before implementing public advertiser checkout endpoint. | Codex |
 | 2026-06-13 | Synced doc with implemented public advertiser checkout route and verification. | Codex |

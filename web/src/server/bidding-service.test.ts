@@ -22,6 +22,7 @@ import type { CampaignRepository } from "./ports";
 import {
   ManualClock,
   MemoryCampaignRepository,
+  MemoryImpressionProgressRepository,
   SequentialIdGenerator,
 } from "./adapters/memory";
 
@@ -85,6 +86,48 @@ describe("selectAd — winner response shape (R1.3, R1.6)", () => {
       adText: "Winner",
       cpmCents: 1500,
       cpmUsd: "15.00",
+    });
+  });
+
+  it("returns a developer's pending campaign before normal bidding", async () => {
+    const campaigns = new MemoryCampaignRepository(
+      new ManualClock(0),
+      new SequentialIdGenerator(),
+    );
+    const progress = new MemoryImpressionProgressRepository();
+    campaigns.seed(
+      campaign({
+        id: "cmp_pending",
+        cpmCents: 1000,
+        adText: "Continue me",
+      }),
+    );
+    campaigns.seed(
+      campaign({
+        id: "cmp_high",
+        cpmCents: 9000,
+        adText: "Higher bid",
+      }),
+    );
+    await progress.addDuration({
+      developerId: "dev_1",
+      campaignId: "cmp_pending",
+      viewDurationMs: 1000,
+      nowMs: 10,
+    });
+
+    const result = await selectAd({
+      campaigns,
+      progress,
+      developerId: "dev_1",
+    });
+
+    expect(result).toMatchObject({
+      adAvailable: true,
+      campaignId: "cmp_pending",
+      adText: "Continue me",
+      accumulatedViewDurationMs: 1000,
+      remainingViewDurationMs: 2000,
     });
   });
 });

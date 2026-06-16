@@ -22,6 +22,8 @@ export { MemoryCounterStore } from "./memory-counter-store";
 export { MemoryCampaignRepository } from "./memory-campaign-repository";
 export { MemoryUserRepository } from "./memory-user-repository";
 export { MemoryLedgerRepository } from "./memory-ledger-repository";
+export { MemoryActivityRepository } from "./memory-activity-repository";
+export { MemoryImpressionProgressRepository } from "./memory-impression-progress-repository";
 export { MockPaymentGateway } from "./mock-payment-gateway";
 export { MockPayoutGateway } from "./mock-payout-gateway";
 export { MemoryPaymentEventStore } from "./memory-payment-event-store";

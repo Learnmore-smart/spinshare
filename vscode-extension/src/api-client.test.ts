@@ -32,9 +32,15 @@ describe("AdApiClient.getAd", () => {
         adText: "Hello",
         cpmCents: 1000,
         cpmUsd: "10.00",
+        accumulatedViewDurationMs: 1000,
+        remainingViewDurationMs: 2000,
       }),
     );
-    const client = new AdApiClient({ baseUrl: "https://x.test/", fetchImpl });
+    const client = new AdApiClient({
+      baseUrl: "https://x.test/",
+      token: "tok",
+      fetchImpl,
+    });
 
     const ad = await client.getAd();
 
@@ -46,7 +52,25 @@ describe("AdApiClient.getAd", () => {
       adText: "Hello",
       cpmCents: 1000,
       cpmUsd: "10.00",
+      accumulatedViewDurationMs: 1000,
+      remainingViewDurationMs: 2000,
     });
+  });
+
+  it("returns adAvailable:false without fetching when no bearer token exists", async () => {
+    const { fetchImpl, calls } = makeFetch(() =>
+      jsonResponse({
+        adAvailable: true,
+        campaignId: "cmp_1",
+        adText: "Hello",
+        cpmCents: 1000,
+        cpmUsd: "10.00",
+      }),
+    );
+    const client = new AdApiClient({ baseUrl: "https://x.test/", fetchImpl });
+
+    await expect(client.getAd()).resolves.toEqual({ adAvailable: false });
+    expect(calls).toHaveLength(0);
   });
 
   it("returns adAvailable:false on network error", async () => {
@@ -91,6 +115,25 @@ describe("AdApiClient.reportImpression", () => {
       JSON.stringify({ campaignId: "cmp_9", viewDurationMs: 3000 }),
     );
     expect(res).toEqual({ recorded: true, developerCreditCents: 18, developerCreditUsd: "0.18" });
+  });
+
+  it("parses cumulative progress responses without treating them as failures", async () => {
+    const { fetchImpl } = makeFetch(() =>
+      jsonResponse({
+        recorded: false,
+        accumulatedViewDurationMs: 1000,
+        remainingViewDurationMs: 2000,
+      }),
+    );
+    const client = new AdApiClient({ baseUrl: "https://x.test", fetchImpl });
+
+    const res = await client.reportImpression("cmp_9", 1000, "tok2");
+
+    expect(res).toEqual({
+      recorded: false,
+      accumulatedViewDurationMs: 1000,
+      remainingViewDurationMs: 2000,
+    });
   });
 
   it("returns null on failure", async () => {

@@ -47,6 +47,20 @@ shows zero values when campaigns or telemetry have not loaded yet. Added
 aggregate cards for total shows, served impressions, clicks, CTR, and
 uncredited totals.
 
+## Planned Change (2026-06-15 Activity UI)
+
+Load `/api/activity/advertiser` with the existing bearer token and render a
+compact activity feed under the campaign area. Campaign loading must remain
+independent from activity loading so a feed error does not block campaign
+management.
+
+## Implemented Change (2026-06-15 Activity UI)
+
+`AdvertiserDashboard` now keeps an independent activity load state, fetches
+`/api/activity/advertiser` with the dashboard bearer token, normalizes the
+result through `toActivityFeedRows()`, and renders `AdvertiserActivityFeed`
+below the campaign management area.
+
 ## Verification (2026-06-15)
 
 - `corepack pnpm@9.12.0 --filter @spinshare/web test` passed.
@@ -67,3 +81,5 @@ uncredited totals.
 | 2026-06-13 | Created doc before adding advertiser dashboard viewability copy. | Codex |
 | 2026-06-13 | Synced docs with advertiser dashboard viewability copy. | Codex |
 | 2026-06-14 | UI refresh: shell, hero, grid layout, role switcher. | Codex |
+| 2026-06-15 | Planned advertiser activity feed UI. | Codex |
+| 2026-06-15 | Implemented advertiser activity feed loading and rendering. | Codex |

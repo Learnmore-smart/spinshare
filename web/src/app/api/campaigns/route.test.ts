@@ -13,6 +13,7 @@ import {
 } from "@/server/adapters/memory";
 
 import { GET } from "./route";
+import { POST as advertiserCheckout } from "../advertiser-checkout/route";
 
 const ENV_KEYS = [
   "SPINSHARE_MODE",
@@ -64,6 +65,14 @@ function seedCampaign(
 function authRequest(token: string): Request {
   return new Request("https://spinshare.test/api/campaigns", {
     headers: { authorization: `Bearer ${token}` },
+  });
+}
+
+function publicCheckoutRequest(body: unknown): Request {
+  return new Request("https://spinshare.test/api/advertiser-checkout", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
   });
 }
 
@@ -126,5 +135,38 @@ describe("GET /api/campaigns telemetry", () => {
         tooShort: 1,
       },
     });
+  });
+
+  it("includes public checkout campaigns claimed by the authenticated email", async () => {
+    const container = getContainer();
+    const checkoutResponse = await advertiserCheckout(
+      publicCheckoutRequest({
+        email: "ads@example.com",
+        adText: "Hire faster with SpinShare Ads",
+        destinationUrl: "https://spinshare.dev/",
+        brandName: "SpinShare",
+        publicOnLeaderboard: true,
+        cpmCents: 500,
+        blockCount: 2,
+      }),
+    );
+    const checkout = await checkoutResponse.json();
+    const token = (container.auth as MockAuthProvider).mintToken("google:123", {
+      email: "ads@example.com",
+    });
+
+    const response = await GET(authRequest(token));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.campaigns).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: checkout.campaign.id,
+          contactEmail: "ads@example.com",
+          adText: "Hire faster with SpinShare Ads",
+        }),
+      ]),
+    );
   });
 });

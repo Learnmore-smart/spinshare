@@ -22,6 +22,17 @@ import type { AdResponse } from "@spinshare/core";
 /** Always evaluate at request time; ad selection is dynamic per request. */
 export const dynamic = "force-dynamic";
 
+const BEARER_PREFIX = "Bearer ";
+
+function extractBearerToken(request: Request): string | null {
+  const header = request.headers.get("authorization");
+  if (header === null || !header.startsWith(BEARER_PREFIX)) {
+    return null;
+  }
+  const token = header.slice(BEARER_PREFIX.length).trim();
+  return token.length > 0 ? token : null;
+}
+
 function withTrackedClickUrl(request: Request, result: AdResponse): AdResponse {
   if (!result.adAvailable || result.destinationUrl === undefined) {
     return result;
@@ -33,9 +44,27 @@ function withTrackedClickUrl(request: Request, result: AdResponse): AdResponse {
 
 export async function GET(request: Request): Promise<Response> {
   try {
-    const { campaigns, counters } = getContainer();
-    const result = await selectAd({ campaigns });
+    const { auth, campaigns, counters, progress } = getContainer();
+    const token = extractBearerToken(request);
+    if (token === null) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const claims = await auth.validateToken(token).catch(() => null);
+    if (claims === null) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const result = await selectAd({
+      campaigns,
+      progress,
+      developerId: claims.userId,
+    });
     if (result.adAvailable) {
+      await progress.addDuration({
+        developerId: claims.userId,
+        campaignId: result.campaignId,
+        viewDurationMs: 0,
+        nowMs: Date.now(),
+      });
       try {
         await counters.incrementCampaignTelemetry(result.campaignId, "shows");
       } catch {

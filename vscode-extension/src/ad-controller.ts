@@ -111,8 +111,16 @@ export interface AdControllerDeps {
 interface ActiveGeneration {
   /** Resolves the `withProgress` task, dismissing the notification. */
   finish: () => void;
-  /** Pending 3-second viewability timer. */
+  /** Pending viewability timer for this generation. */
   reportTimer: ReturnType<typeof setTimeout> | null;
+  /** Displayed ad for this generation. */
+  ad: AdResponseAvailable;
+  /** Bearer token used for the ad fetch/report pair. */
+  token: string | undefined;
+  /** Timestamp when the ad became active. */
+  startedAtMs: number;
+  /** True once this generation has already reported a view segment. */
+  reported: boolean;
 }
 
 /**
@@ -150,7 +158,7 @@ export class AdController {
 
   /**
    * Begin a generation: fetch an ad, show it in a notification, and schedule
-   * exactly one impression after the 3-second minimum view time.
+   * exactly one report when the current ad reaches its remaining view time.
    *
    * Idempotent while a generation is active or starting — repeat calls return
    * immediately without showing another notification or reporting another
@@ -177,14 +185,26 @@ export class AdController {
       const pending = new Promise<void>((resolve) => {
         finish = resolve;
       });
-      const active: ActiveGeneration = { finish, reportTimer: null };
+      const active: ActiveGeneration = {
+        finish,
+        reportTimer: null,
+        ad,
+        token,
+        startedAtMs: Date.now(),
+        reported: false,
+      };
       active.reportTimer = setTimeout(() => {
         if (this.active !== active) {
           return;
         }
         active.reportTimer = null;
-        void this.reportOnce(ad.campaignId, VIEWABILITY_MIN_MS, token);
-      }, VIEWABILITY_MIN_MS);
+        active.reported = true;
+        void this.reportOnce(
+          ad.campaignId,
+          Math.max(1, Date.now() - active.startedAtMs),
+          token,
+        );
+      }, this.viewabilityDelayMs(ad));
       this.active = active;
 
       // Show the ad text in a bottom-right progress notification. We do not
@@ -214,6 +234,17 @@ export class AdController {
     this.active = null;
     if (current.reportTimer !== null) {
       clearTimeout(current.reportTimer);
+    }
+    if (!current.reported) {
+      const viewDurationMs = Math.max(0, Date.now() - current.startedAtMs);
+      if (viewDurationMs > 0) {
+        current.reported = true;
+        void this.reportOnce(
+          current.ad.campaignId,
+          viewDurationMs,
+          current.token,
+        );
+      }
     }
     current.finish();
   }
@@ -249,7 +280,8 @@ export class AdController {
     );
   }
 
-  private showProgress(adText: string, pending: Promise<void>): Thenable<void> {    return this.vscode.window.withProgress<void>(
+  private showProgress(adText: string, pending: Promise<void>): Thenable<void> {
+    return this.vscode.window.withProgress<void>(
       {
         location: this.vscode.ProgressLocation.Notification,
         title: adText,
@@ -257,6 +289,13 @@ export class AdController {
       },
       () => pending,
     );
+  }
+
+  private viewabilityDelayMs(ad: AdResponseAvailable): number {
+    const remaining = ad.remainingViewDurationMs;
+    return typeof remaining === "number" && remaining > 0
+      ? Math.ceil(remaining)
+      : VIEWABILITY_MIN_MS;
   }
 
   private async reportOnce(

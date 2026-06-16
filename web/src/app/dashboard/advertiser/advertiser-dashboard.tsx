@@ -25,6 +25,7 @@ import { useT } from "@/lib/i18n/locale-provider";
 
 import { CampaignBuilder } from "./campaign-builder";
 import { CampaignList } from "./campaign-list";
+import { AdvertiserActivityFeed, type AdvertiserActivityState } from "./advertiser-activity-feed";
 import {
   formatCount,
   formatCtr,
@@ -33,6 +34,10 @@ import {
   sumCampaignTelemetry,
   type CampaignView,
 } from "./lib";
+import {
+  toActivityFeedRows,
+  type ActivityFeedSource,
+} from "../activity-feed";
 
 /** Props for {@link AdvertiserDashboard}. */
 export interface AdvertiserDashboardProps {
@@ -49,6 +54,9 @@ type LoadState =
 export function AdvertiserDashboard({ token }: AdvertiserDashboardProps) {
   const t = useT();
   const [state, setState] = useState<LoadState>({ status: "loading" });
+  const [activityState, setActivityState] = useState<AdvertiserActivityState>({
+    status: "loading",
+  });
 
   const loadCampaigns = useCallback(async (): Promise<void> => {
     setState({ status: "loading" });
@@ -74,9 +82,37 @@ export function AdvertiserDashboard({ token }: AdvertiserDashboardProps) {
     }
   }, [token, t]);
 
+  const loadActivity = useCallback(async (): Promise<void> => {
+    setActivityState({ status: "loading" });
+    try {
+      const response = await fetch("/api/activity/advertiser", {
+        headers: { authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      if (!response.ok) {
+        setActivityState({
+          status: "error",
+          message: `Activity failed to load (${response.status}).`,
+        });
+        return;
+      }
+      const body = (await response.json()) as { activities: ActivityFeedSource[] };
+      setActivityState({
+        status: "ready",
+        activities: toActivityFeedRows(body.activities),
+      });
+    } catch {
+      setActivityState({
+        status: "error",
+        message: "Activity failed to load. Check your connection and retry.",
+      });
+    }
+  }, [token]);
+
   useEffect(() => {
     void loadCampaigns();
-  }, [loadCampaigns]);
+    void loadActivity();
+  }, [loadActivity, loadCampaigns]);
 
   const handleCreated = useCallback(
     (created: CampaignView): void => {
@@ -187,6 +223,8 @@ export function AdvertiserDashboard({ token }: AdvertiserDashboardProps) {
           )}
         </section>
       </div>
+
+      <AdvertiserActivityFeed state={activityState} />
     </>
   );
 }

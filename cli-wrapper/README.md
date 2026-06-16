@@ -1,47 +1,82 @@
 # SpinShare CLI (`@spinshare/cli`)
 
-**Separate product from the VS Code extension.** The CLI wraps terminal commands (e.g. `claude`, `npm run build`) and shows ads while their spinner output indicates a wait state.
+Separate product from the VS Code extension. The CLI authenticates the
+developer, installs the Claude Code hooks/statusLine adapter, and keeps the
+legacy command wrapper available as a fallback for tools without a native
+lifecycle surface.
 
-The VS Code extension lives in `vscode-extension/` and is installed as a `.vsix` or from the Marketplace. This CLI is built and run from `cli-wrapper/`.
+The VS Code extension lives in `vscode-extension/` and is installed as a `.vsix`
+or from the Marketplace. This CLI is published as `@spinshare/cli`.
 
-## Local testing (no npm publish)
-
-From the **repo root** (after `pnpm build`):
+## Install
 
 ```bash
-# Production API (requires deployed SpinShare — not the Cloud Run placeholder)
-pnpm cli:login
+npm install -g @spinshare/cli
+spinshare login
+```
 
-# Local dev (run `pnpm dev` in another terminal first)
-pnpm cli:login:local
-pnpm cli:test:local
+`spinshare login` runs the browser device flow, stores the token, and installs
+the Claude Code adapter best-effort. After that, use Claude normally:
+
+```bash
+claude
+```
+
+To explicitly install or repair the Claude Code adapter:
+
+```bash
+spinshare setup claude-code
+```
+
+To remove SpinShare from `~/.claude/settings.json`:
+
+```bash
+spinshare setup claude-code --remove
+```
+
+Removal deletes only SpinShare statusLine/hooks and preserves unrelated Claude
+settings/hooks.
+
+## Local Testing
+
+From the repo root after `corepack pnpm@9.12.0 build`:
+
+```bash
+corepack pnpm@9.12.0 cli:login
+
+# Local dev: run `corepack pnpm@9.12.0 dev` in another terminal first.
+corepack pnpm@9.12.0 cli:login:local
+corepack pnpm@9.12.0 cli:test:local
 ```
 
 Or set the API URL manually:
 
-```bash
-# PowerShell
-$env:SPINSHARE_BASE_URL="http://localhost:3000"; pnpm cli:login
+```powershell
+$env:SPINSHARE_BASE_URL = "http://localhost:3000"
+node .\cli-wrapper\dist\index.js login
 ```
 
-Or from `cli-wrapper/`:
+`fake-ai.js` simulates a 5-second terminal spinner for legacy wrapper testing:
 
 ```bash
-node dist/index.js login
-node dist/index.js node fake-ai.js
+node cli-wrapper/dist/index.js node cli-wrapper/fake-ai.js
 ```
 
-`fake-ai.js` simulates a 5-second terminal spinner for manual testing.
+## What It Does
 
-## What it does
-
-1. `spinshare login` — browser device flow; stores token in OS keychain (or env `SPINSHARE_TOKEN`).
-2. `spinshare <command> [args]` — runs the command, intercepts spinner-only stdout frames, renders ad text after 3s of continuous spinner output, reports impressions.
+1. `spinshare login`: browser device flow; stores token in OS keychain or the
+   file fallback; installs Claude Code hooks/statusLine.
+2. `spinshare setup claude-code`: patches `~/.claude/settings.json` with a
+   backup and generated hook/statusLine scripts.
+3. `spinshare setup claude-code --remove`: removes SpinShare statusLine/hooks
+   and generated adapter files.
+4. `spinshare <command> [args]`: legacy fallback wrapper for tools without
+   native hooks/statusLine.
 
 ## Build
 
 ```bash
-pnpm --filter @spinshare/cli build
+corepack pnpm@9.12.0 --filter @spinshare/cli build
 ```
 
 Output: `cli-wrapper/dist/index.js`

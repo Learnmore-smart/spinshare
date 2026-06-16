@@ -71,6 +71,18 @@ describe("WaitStateTracker", () => {
     expect(t.active).toBe(false);
     expect(t.observe({ spinner: true }, 3000).impression).toBe(false);
   });
+
+  it("finish returns a short segment for cumulative server-side progress", () => {
+    const t = new WaitStateTracker();
+    t.observe({ spinner: true }, 0);
+
+    expect(t.finish(1000)).toEqual({
+      impression: true,
+      inWaitState: false,
+      viewDurationMs: 1000,
+    });
+    expect(t.active).toBe(false);
+  });
 });
 
 describe("exitCodeFor", () => {
@@ -184,7 +196,7 @@ describe("runWrap", () => {
     vi.useRealTimers();
   });
 
-  it("does not report an impression when the wait state ends before 3 seconds", async () => {
+  it("reports a short segment when the wait state ends before 3 seconds", async () => {
     vi.useFakeTimers();
     const child = new FakeChild();
     const reported: Array<{ campaignId: string; viewDurationMs: number }> = [];
@@ -212,7 +224,41 @@ describe("runWrap", () => {
     child.emit("close", 0, null);
 
     expect(await promise).toBe(0);
-    expect(reported).toEqual([]);
+    expect(reported).toEqual([{ campaignId: "cmp_1", viewDurationMs: 2999 }]);
+  });
+
+  it("uses pending progress metadata as the next reporting delay", async () => {
+    vi.useFakeTimers();
+    const child = new FakeChild();
+    const reported: Array<{ campaignId: string; viewDurationMs: number }> = [];
+    const client = {
+      getAd: async (): Promise<AdResponse> => ({
+        ...AD,
+        accumulatedViewDurationMs: 1000,
+        remainingViewDurationMs: 2000,
+      }),
+      reportImpression: async (campaignId: string, viewDurationMs: number) => {
+        reported.push({ campaignId, viewDurationMs });
+        return TRACK;
+      },
+    };
+
+    const promise = runWrap({
+      target: "fake",
+      args: [],
+      client,
+      stdout: { write: () => true } as unknown as NodeJS.WritableStream,
+      stderr: { write: () => true } as unknown as NodeJS.WritableStream,
+      spawnImpl: fakeSpawn(child),
+    });
+
+    await flush();
+    child.stdout.emit("data", Buffer.from("\r|"));
+    await vi.advanceTimersByTimeAsync(2000);
+    child.emit("close", 0, null);
+
+    expect(await promise).toBe(0);
+    expect(reported).toEqual([{ campaignId: "cmp_1", viewDurationMs: 2000 }]);
   });
 
   it("reports exactly one impression per 3-second wait state and exits with the child code", async () => {

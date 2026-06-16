@@ -8,6 +8,7 @@ import {
   FUNDING_CENTS_MIN,
   advertiserCheckoutSchema,
   createCampaignSchema,
+  fundingBlockCheckoutSchema,
   fundingAmountSchema,
   getAdvertiserCheckoutAmountCents,
   trackRequestSchema,
@@ -107,6 +108,37 @@ describe("fundingAmountSchema", () => {
   });
 });
 
+describe("fundingBlockCheckoutSchema", () => {
+  it("accepts a campaign id and whole block count", () => {
+    expect(
+      fundingBlockCheckoutSchema.safeParse({
+        campaignId: "cmp_1",
+        blockCount: 3,
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects arbitrary amount-based payloads", () => {
+    expect(
+      fundingBlockCheckoutSchema.safeParse({
+        campaignId: "cmp_1",
+        amountCents: 2500,
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects invalid block counts", () => {
+    for (const blockCount of [undefined, 0, -1, 1.5, Number.NaN, "3"]) {
+      expect(
+        fundingBlockCheckoutSchema.safeParse({
+          campaignId: "cmp_1",
+          blockCount,
+        }).success,
+      ).toBe(false);
+    }
+  });
+});
+
 describe("advertiserCheckoutSchema", () => {
   const validCheckout = {
     email: "ads@example.com",
@@ -145,6 +177,24 @@ describe("advertiserCheckoutSchema", () => {
     ).toBe(false);
   });
 
+  it("rejects syntactically valid but unsafe destination URLs", () => {
+    for (const destinationUrl of [
+      "https://user:pass@example.com/",
+      "https://localhost/",
+      "https://preview.local/",
+      "https://127.0.0.1/",
+      "https://10.0.0.1/",
+      "https://example.com:8443/",
+    ]) {
+      expect(
+        advertiserCheckoutSchema.safeParse({
+          ...validCheckout,
+          destinationUrl,
+        }).success,
+      ).toBe(false);
+    }
+  });
+
   it("rejects block counts that exceed the funding maximum", () => {
     expect(
       advertiserCheckoutSchema.safeParse({
@@ -176,17 +226,23 @@ describe("trackRequestSchema", () => {
     ).toBe(false);
   });
 
-  it("rejects impressions below the 3-second minimum", () => {
+  it("accepts positive view durations below the 3-second settlement threshold", () => {
+    expect(
+      trackRequestSchema.safeParse({
+        campaignId: "cmp_1",
+        viewDurationMs: 1,
+      }).success,
+    ).toBe(true);
     expect(
       trackRequestSchema.safeParse({
         campaignId: "cmp_1",
         viewDurationMs: 2999,
       }).success,
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it("requires an integer view duration", () => {
-    for (const viewDurationMs of [undefined, 3000.5, Number.NaN, "3000"]) {
+    for (const viewDurationMs of [undefined, 0, -1, 3000.5, Number.NaN, "3000"]) {
       expect(
         trackRequestSchema.safeParse({ campaignId: "cmp_1", viewDurationMs })
           .success,

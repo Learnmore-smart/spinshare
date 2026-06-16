@@ -15,12 +15,29 @@ import type {
   UserRole,
 } from "@spinshare/core";
 
+const FIRESTORE_NAMESPACE_PATTERN = /^[A-Za-z0-9._-]+$/;
+
+function collectionPath(name: string): string {
+  const namespace = (process.env.SPINSHARE_FIRESTORE_NAMESPACE ?? "").trim();
+  if (namespace.length === 0) {
+    return name;
+  }
+  if (!FIRESTORE_NAMESPACE_PATTERN.test(namespace)) {
+    throw new Error(
+      "Invalid SPINSHARE_FIRESTORE_NAMESPACE. Use only letters, numbers, dot, underscore, or hyphen.",
+    );
+  }
+  return `namespaces/${namespace}/${name}`;
+}
+
 /** Collection paths (see design "Data Models"). */
 export const COLLECTIONS = {
-  users: "users",
-  campaigns: "campaigns",
-  ledgerEntries: "ledgerEntries",
-  paymentEvents: "paymentEvents",
+  users: collectionPath("users"),
+  campaigns: collectionPath("campaigns"),
+  ledgerEntries: collectionPath("ledgerEntries"),
+  impressionActivities: collectionPath("impressionActivities"),
+  impressionProgress: collectionPath("impressionProgress"),
+  paymentEvents: collectionPath("paymentEvents"),
 } as const;
 
 /** Maps a `users/{userId}` document to the domain `User`. */

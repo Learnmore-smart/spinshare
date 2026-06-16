@@ -9,6 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  ADVERTISER_CHECKOUT_BLOCKS_MAX,
   CPM_CENTS_MAX,
   CPM_CENTS_MIN,
   FUNDING_CENTS_MAX,
@@ -24,6 +25,7 @@ import {
   parseDollarsToCents,
   sumCampaignTelemetry,
   validateCpmDollars,
+  validateFundingBlocks,
   validateFundingDollars,
   type CampaignView,
 } from "./lib";
@@ -105,6 +107,25 @@ describe("validateFundingDollars", () => {
 
   it("rejects sub-cent precision", () => {
     expect(validateFundingDollars("10.999").ok).toBe(false);
+  });
+});
+
+describe("validateFundingBlocks", () => {
+  it("accepts whole positive block counts", () => {
+    expect(validateFundingBlocks("1")).toEqual({ ok: true, blocks: 1 });
+    expect(validateFundingBlocks("25")).toEqual({ ok: true, blocks: 25 });
+  });
+
+  it("rejects invalid block counts", () => {
+    for (const value of ["", "0", "-1", "1.5", "abc"]) {
+      expect(validateFundingBlocks(value).ok).toBe(false);
+    }
+  });
+
+  it("rejects block counts above the shared maximum", () => {
+    expect(validateFundingBlocks(String(ADVERTISER_CHECKOUT_BLOCKS_MAX + 1)).ok).toBe(
+      false,
+    );
   });
 });
 

@@ -45,6 +45,24 @@ VS Code extension manifest and build scripts for local `.vsix` packaging and Mar
 
 Update package scripts so the CLI wrapper is built and copied into the extension before packaging. Keep extension `build` usable after the root build has already produced `cli-wrapper/dist`; make `package` build the CLI explicitly.
 
+## Planned Change (2026-06-15 Claude Code Adapter)
+
+Add a default-on `spinshare.claudeCodeAdapter` configuration flag so users can disable automatic Claude Code settings installation if needed.
+
+## Implemented Change (2026-06-15 Claude Code Adapter)
+
+Added default-on `spinshare.claudeCodeAdapter` configuration.
+
+## Planned Change (2026-06-15 Claude Code Adapter Removal)
+
+Add a contributed command for removing the Claude Code hooks/statusLine adapter.
+The extension installs by default, so the command palette must expose a clear
+undo path.
+
+## Implemented Change (2026-06-15 Claude Code Adapter Removal)
+
+Added `spinshare.removeClaudeCodeAdapter` to the contributed commands list.
+
 ## Planned Packaging Fix (2026-06-15)
 
 The VSIX packaging script currently calls bare `vsce`, which fails on Windows when no global `vsce` command exists. Add the official local `@vscode/vsce` devDependency and invoke it via `corepack pnpm@9.12.0 exec vsce`.
@@ -60,11 +78,16 @@ The VSIX packaging script currently calls bare `vsce`, which fails on Windows wh
 - The generated VSIX includes `extension/cli-wrapper/dist/index.js`.
 - 2026-06-15: Rebuilt `spinshare-0.2.0.vsix` after production base URL canonicalization; package output includes rebuilt `out/api-client.js`, `out/extension.js`, and bundled `cli-wrapper/dist/index.js`.
 - 2026-06-15: Rebuilt `spinshare-0.2.0.vsix` after terminal passthrough and CLI ESM metadata fixes; package output includes `extension/cli-wrapper/package.json`.
+- 2026-06-15: Rebuilt `spinshare-0.2.0.vsix` after Claude adapter removal and BOM-safe settings parsing; package inspection confirms `spinshare.removeClaudeCodeAdapter`, bundled `setup claude-code --remove`, and `parseClaudeSettings`.
 
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Added `spinshare.removeClaudeCodeAdapter` command contribution. | Codex |
+| 2026-06-15 | Planned `spinshare.removeClaudeCodeAdapter` command contribution. | Codex |
+| 2026-06-15 | Added `spinshare.claudeCodeAdapter` setting. | Codex |
+| 2026-06-15 | Planned `spinshare.claudeCodeAdapter` setting for automatic Claude Code adapter install. | Codex |
 | 2026-06-15 | Rebuilt `spinshare-0.2.0.vsix` with terminal passthrough and nested CLI ESM metadata. | Codex |
 | 2026-06-15 | Rebuilt `spinshare-0.2.0.vsix` with canonical production base URL handling. | Codex |
 | 2026-06-15 | Verified VSIX packaging includes the bundled CLI wrapper. | Codex |

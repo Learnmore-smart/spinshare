@@ -11,19 +11,19 @@ import "./developer-dashboard.css";
 
 export function DeveloperActivityView() {
   const t = useT();
-  const { summary } = useDeveloperDashboard();
-  const { impressionCount, rows } = summary;
+  const { activities } = useDeveloperDashboard();
   const [activityQuery, setActivityQuery] = useState("");
 
   const filteredRows = useMemo(() => {
     const q = activityQuery.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter(
+    if (!q) return activities;
+    return activities.filter(
       (row) =>
         row.campaignId.toLowerCase().includes(q) ||
-        row.entryId.toLowerCase().includes(q),
+        row.activityId.toLowerCase().includes(q) ||
+        row.statusLabel.toLowerCase().includes(q),
     );
-  }, [activityQuery, rows]);
+  }, [activityQuery, activities]);
 
   return (
     <section className="dev-dash-panel dev-dash-rise p-4 sm:p-5">
@@ -42,7 +42,7 @@ export function DeveloperActivityView() {
       </div>
 
       <div className="mt-4">
-        {impressionCount === 0 ? (
+        {activities.length === 0 ? (
           <div className="py-8 text-center">
             <p className="dev-dash-empty-body py-8 text-center">
               {t.developerDashboard.activityEmpty}

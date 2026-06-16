@@ -32,6 +32,12 @@ Tests for the public advertiser checkout endpoint.
 
 Add a red regression proving mock checkout immediately funds the created campaign so `/api/market` can show it after reload in local development. Keep the test explicit that this is mock-only behavior.
 
+## Implemented Change 2026-06-15 Advertiser Money Events
+
+The settled mock checkout test now verifies two advertiser activity events are
+written: `checkoutStarted` and `budgetFunded`, both tied to the created
+campaign and checkout session id.
+
 ## Planned Change
 
 Add failing tests before implementing the route.
@@ -49,6 +55,7 @@ Added tests for successful checkout creation with private leaderboard metadata a
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Added public checkout money activity event coverage. | Codex |
 | 2026-06-15 | Documented mock-settlement regression test plan. | Codex |
 | 2026-06-13 | Created doc before adding public checkout route tests. | Codex |
 | 2026-06-13 | Synced doc with final public checkout route tests. | Codex |

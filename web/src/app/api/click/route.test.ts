@@ -88,4 +88,21 @@ describe("GET /api/click", () => {
     const telemetry = await container.counters.getCampaignTelemetry(["cmp_plain"]);
     expect(telemetry["cmp_plain"]!.clicks).toBe(0);
   });
+
+  it("does not redirect or count clicks for unsafe historical destinations", async () => {
+    const container = getContainer();
+    seedCampaign(container, {
+      id: "cmp_unsafe",
+      destinationUrl: "https://localhost/",
+    });
+
+    const response = await GET(
+      new Request("https://spinshare.test/api/click?campaignId=cmp_unsafe"),
+    );
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get("location")).toBe("https://spinshare.test/");
+    const telemetry = await container.counters.getCampaignTelemetry(["cmp_unsafe"]);
+    expect(telemetry["cmp_unsafe"]!.clicks).toBe(0);
+  });
 });

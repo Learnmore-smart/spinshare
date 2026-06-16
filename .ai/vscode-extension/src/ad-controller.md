@@ -43,8 +43,26 @@ ms. Completion before the threshold must cancel the pending report.
 - Reported each eligible ad at most once with `viewDurationMs: 3000`.
 - Preserved no-ad, duplicate-start, click-through, and failure-tolerant behavior.
 
+## Planned Change 2026-06-15 Cumulative Viewability
+
+When a generation completes before the local threshold, report the actual
+visible duration instead of discarding it. If the fetched ad includes
+`remainingViewDurationMs`, schedule the settlement timer for that remaining
+duration so a pending ad can settle earlier than 3000 ms in the next generation.
+
+## Implemented Change 2026-06-15 Cumulative Viewability
+
+`AdController` now stores the displayed ad, token, start timestamp, and reported
+flag for the active generation. Completing a generation before the timer fires
+reports the actual positive visible duration so the backend can accumulate it.
+The report timer uses `remainingViewDurationMs` from `/api/ad` when present, so
+pending ads can settle after only the remaining view time.
+
 ## Verification
 
+- Focused cumulative viewability extension run passed:
+  `corepack pnpm@9.12.0 --filter ./vscode-extension test -- src/api-client.test.ts src/ad-controller.test.ts src/ad-controller.property.test.ts`
+  (3 files, 21 tests).
 - Red: focused controller tests failed while impressions were still reported immediately.
 - Green: `corepack pnpm@9.12.0 --filter @spinshare/vscode-extension test -- src/api-client.test.ts src/ad-controller.test.ts src/ad-controller.property.test.ts` passed.
 - Full workspace tests and lint passed; production build reached web font fetching after the extension build passed.
@@ -53,5 +71,7 @@ ms. Completion before the threshold must cancel the pending report.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Implemented cumulative viewability short-generation reporting. | Codex |
+| 2026-06-15 | Planned cumulative viewability short-generation reporting. | Codex |
 | 2026-06-13 | Created doc before adding VS Code 3-second viewability logic. | Codex |
 | 2026-06-13 | Synced VS Code controller docs with 3-second viewability implementation. | Codex |

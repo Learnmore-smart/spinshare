@@ -72,8 +72,8 @@ interface DeviceRecord {
 export class MockAuthProvider implements AuthProvider {
   /** deviceCode → record. */
   private readonly devices = new Map<string, DeviceRecord>();
-  /** access token → userId. */
-  private readonly tokens = new Map<string, string>();
+  /** access token → auth claims. */
+  private readonly tokens = new Map<string, AuthClaims>();
 
   constructor(
     private readonly clock: Clock = new SystemClock(),
@@ -138,8 +138,8 @@ export class MockAuthProvider implements AuthProvider {
   }
 
   async validateToken(token: string): Promise<AuthClaims | null> {
-    const userId = this.tokens.get(token);
-    return userId ? { userId } : null;
+    const claims = this.tokens.get(token);
+    return claims ? { ...claims } : null;
   }
 
   // --- Test drivers -------------------------------------------------------
@@ -196,9 +196,9 @@ export class MockAuthProvider implements AuthProvider {
    * Mints a valid `Device_Auth_Token` for `userId` directly (no device flow).
    * Used by the e2e settlement test to authenticate `POST /api/track`.
    */
-  mintToken(userId: string): string {
+  mintToken(userId: string, claims: Omit<Partial<AuthClaims>, "userId"> = {}): string {
     const token = this.ids.next("tok");
-    this.tokens.set(token, userId);
+    this.tokens.set(token, { ...claims, userId });
     return token;
   }
 }

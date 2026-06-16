@@ -1,4 +1,5 @@
 import { getContainer } from "@/server/container";
+import { destinationUrlSchema } from "@spinshare/core";
 
 export const dynamic = "force-dynamic";
 
@@ -6,16 +7,15 @@ function rootRedirect(request: Request): Response {
   return Response.redirect(new URL("/", request.url), 302);
 }
 
-function safeHttpsUrl(value: string | undefined): string | null {
+function safeDestinationUrl(value: string | undefined): string | null {
   if (value === undefined) {
     return null;
   }
-  try {
-    const url = new URL(value);
-    return url.protocol === "https:" ? url.toString() : null;
-  } catch {
+  const parsed = destinationUrlSchema.safeParse(value);
+  if (!parsed.success) {
     return null;
   }
+  return new URL(parsed.data).toString();
 }
 
 export async function GET(request: Request): Promise<Response> {
@@ -28,7 +28,7 @@ export async function GET(request: Request): Promise<Response> {
   try {
     const { campaigns, counters } = getContainer();
     const campaign = await campaigns.getById(campaignId);
-    const destination = safeHttpsUrl(campaign?.destinationUrl);
+    const destination = safeDestinationUrl(campaign?.destinationUrl);
     if (campaign === null || destination === null) {
       return rootRedirect(request);
     }

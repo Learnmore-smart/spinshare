@@ -6,7 +6,10 @@ import {
   resetContainer,
   type Container,
 } from "@/server/container";
-import { MemoryCampaignRepository } from "@/server/adapters/memory";
+import {
+  MemoryCampaignRepository,
+  MockAuthProvider,
+} from "@/server/adapters/memory";
 
 import { GET } from "./route";
 
@@ -58,12 +61,45 @@ function seedCampaign(
   (container.campaigns as MemoryCampaignRepository).seed(campaign);
 }
 
+function adRequest(token?: string): Request {
+  return new Request("https://spinshare.test/api/ad", {
+    ...(token ? { headers: { authorization: `Bearer ${token}` } } : {}),
+  });
+}
+
 describe("GET /api/ad telemetry", () => {
-  it("increments shows and rewrites clickable destinations to tracked redirects", async () => {
+  it("requires a bearer token before bidding or telemetry", async () => {
     const container = getContainer();
     seedCampaign(container, { id: "cmp_top" });
 
-    const response = await GET(new Request("https://spinshare.test/api/ad"));
+    const response = await GET(adRequest());
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body).toEqual({ error: "Unauthorized" });
+    const telemetry = await container.counters.getCampaignTelemetry(["cmp_top"]);
+    expect(telemetry["cmp_top"]!.shows).toBe(0);
+  });
+
+  it("rejects invalid bearer tokens before bidding or telemetry", async () => {
+    const container = getContainer();
+    seedCampaign(container, { id: "cmp_top" });
+
+    const response = await GET(adRequest("not-a-real-token"));
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body).toEqual({ error: "Unauthorized" });
+    const telemetry = await container.counters.getCampaignTelemetry(["cmp_top"]);
+    expect(telemetry["cmp_top"]!.shows).toBe(0);
+  });
+
+  it("increments shows and rewrites clickable destinations to tracked redirects", async () => {
+    const container = getContainer();
+    const token = (container.auth as MockAuthProvider).mintToken("dev_1");
+    seedCampaign(container, { id: "cmp_top" });
+
+    const response = await GET(adRequest(token));
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -74,5 +110,43 @@ describe("GET /api/ad telemetry", () => {
     });
     const telemetry = await container.counters.getCampaignTelemetry(["cmp_top"]);
     expect(telemetry["cmp_top"]!.shows).toBe(1);
+    await expect(container.progress.getByDeveloper("dev_1")).resolves.toMatchObject({
+      developerId: "dev_1",
+      campaignId: "cmp_top",
+      accumulatedViewDurationMs: 0,
+    });
+  });
+
+  it("returns an authenticated developer's pending campaign before normal bidding", async () => {
+    const container = getContainer();
+    const token = (container.auth as MockAuthProvider).mintToken("dev_1");
+    seedCampaign(container, {
+      id: "cmp_pending",
+      adText: "Continue this ad",
+      cpmCents: 1000,
+    });
+    seedCampaign(container, {
+      id: "cmp_high",
+      adText: "Higher bidder",
+      cpmCents: 9000,
+    });
+    await container.progress.addDuration({
+      developerId: "dev_1",
+      campaignId: "cmp_pending",
+      viewDurationMs: 1000,
+      nowMs: 10,
+    });
+
+    const response = await GET(adRequest(token));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      adAvailable: true,
+      campaignId: "cmp_pending",
+      adText: "Continue this ad",
+      accumulatedViewDurationMs: 1000,
+      remainingViewDurationMs: 2000,
+    });
   });
 });

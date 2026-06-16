@@ -96,8 +96,28 @@ resumes, and sends `viewDurationMs` only for eligible waits.
 wrapper to launch `.cmd`/`.bat` agent commands such as npm-installed `claude`
 while preserving direct spawn behavior on POSIX platforms.
 
+## Planned Change 2026-06-15 Cumulative Viewability
+
+Report short wait segments instead of discarding them. When a spinner wait ends
+before local 3 seconds, send the observed duration so the backend can accumulate
+progress. When the fetched ad includes `remainingViewDurationMs`, schedule the
+timer for that remaining duration rather than always 3000 ms.
+
+## Implemented Change 2026-06-15 Cumulative Viewability
+
+`WaitStateTracker.finish()` now returns the final active wait segment. `runWrap`
+reports that segment even when it is shorter than 3000 ms; the backend decides
+whether this is only progress or a settled paid impression. If `/api/ad` returns
+`remainingViewDurationMs`, the wrapper schedules the report timer for that
+remaining time. If `/api/track` returns `recorded:false`, the cached ad metadata
+is updated so the next wait continues the same campaign. If it returns
+`recorded:true`, the wrapper refreshes the ad cache for the next wait.
+
 ## Verification
 
+- Focused cumulative viewability CLI run passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/api-client.test.ts src/wrap.test.ts`
+  (2 files, 35 tests).
 - Initial CLI focused run failed on immediate-report behavior and old API
   payload shape.
 - Final focused CLI run passed: 3 files, 30 tests.
@@ -110,6 +130,8 @@ while preserving direct spawn behavior on POSIX platforms.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Implemented cumulative viewability segment reporting. | Codex |
+| 2026-06-15 | Planned cumulative viewability segment reporting. | Codex |
 | 2026-06-15 | Implemented PTY-backed wrapper path for interactive CLIs. | Codex |
 | 2026-06-15 | Planned PTY-backed interactive wrapper for Claude/Gemini-style CLIs. | Codex |
 | 2026-06-14 | Document Windows `.cmd` spawn support needed by extension terminal shims. | Codex |

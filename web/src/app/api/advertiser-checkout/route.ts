@@ -1,20 +1,14 @@
-import { createHash } from "node:crypto";
-
 import {
   advertiserCheckoutSchema,
   formatCentsAsUsd,
   getAdvertiserCheckoutAmountCents,
 } from "@spinshare/core";
 
-import { getContainer } from "@/server/container";
+import { publicAdvertiserIdForEmail } from "@/server/advertiser-identity";
+import { getContainer, type Container } from "@/server/container";
+import type { Campaign } from "@spinshare/core";
 
 export const dynamic = "force-dynamic";
-
-function advertiserIdForEmail(email: string): string {
-  const normalized = email.trim().toLowerCase();
-  const digest = createHash("sha256").update(normalized).digest("hex").slice(0, 32);
-  return `public_${digest}`;
-}
 
 function fieldErrors(
   error: { issues: Array<{ path: Array<string | number>; message: string }> },
@@ -23,6 +17,32 @@ function fieldErrors(
     field: issue.path.join("."),
     message: issue.message,
   }));
+}
+
+async function recordCheckoutActivity(
+  container: Container,
+  input: {
+    campaign: Campaign;
+    status: "checkoutStarted" | "budgetFunded";
+    amountCents: number;
+    checkoutSessionId: string;
+  },
+): Promise<void> {
+  try {
+    await container.activities.record({
+      activityId: `${input.status}_${input.checkoutSessionId}`,
+      campaignId: input.campaign.id,
+      advertiserId: input.campaign.advertiserId,
+      type: "advertiser_event",
+      status: input.status,
+      amountCents: input.amountCents,
+      amountUsd: formatCentsAsUsd(input.amountCents),
+      checkoutSessionId: input.checkoutSessionId,
+      createdAtMs: Date.now(),
+    });
+  } catch {
+    // Activity history must not block checkout creation or mock settlement.
+  }
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -46,9 +66,10 @@ export async function POST(request: Request): Promise<Response> {
 
   const input = parsed.data;
   const amountCents = getAdvertiserCheckoutAmountCents(input);
-  const { campaigns, payments } = getContainer();
+  const container = getContainer();
+  const { campaigns, payments } = container;
   const campaign = await campaigns.create({
-    advertiserId: advertiserIdForEmail(input.email),
+    advertiserId: publicAdvertiserIdForEmail(input.email),
     contactEmail: input.email,
     adText: input.adText,
     destinationUrl: input.destinationUrl,
@@ -67,10 +88,22 @@ export async function POST(request: Request): Promise<Response> {
     cancelUrl: `${origin}/?checkout=cancelled#advertiser-checkout`,
   });
   const responseCampaign = { ...campaign };
+  await recordCheckoutActivity(container, {
+    campaign,
+    status: "checkoutStarted",
+    amountCents,
+    checkoutSessionId: checkout.sessionId,
+  });
 
   if (checkout.settled === true) {
     await campaigns.applyBudgetDeltaCents(campaign.id, amountCents);
     responseCampaign.budgetCents += amountCents;
+    await recordCheckoutActivity(container, {
+      campaign,
+      status: "budgetFunded",
+      amountCents,
+      checkoutSessionId: checkout.sessionId,
+    });
   }
 
   return Response.json(

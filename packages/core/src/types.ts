@@ -166,6 +166,13 @@ export interface AdResponseAvailable {
   cpmCents: number;
   /** Winning campaign CPM formatted as a USD string for display, e.g. "30.00". */
   cpmUsd: string;
+  /**
+   * Authenticated-only cumulative viewability progress. Present when the
+   * developer must continue a previously short view of the same campaign.
+   */
+  accumulatedViewDurationMs?: number;
+  /** Milliseconds still needed before the pending ad can settle. */
+  remainingViewDurationMs?: number;
 }
 
 /** Response when no candidate campaign is available. */
@@ -193,7 +200,7 @@ export interface TrackRequest {
  * identical shape; the credit reflects the computed value, internal accounting
  * differs (no balance/budget/ledger mutation).
  */
-export interface TrackResponse {
+export interface TrackRecordedResponse {
   /** Always true on the success path. */
   recorded: true;
   /** Computed developer credit in integer cents. */
@@ -201,3 +208,15 @@ export interface TrackResponse {
   /** Developer credit formatted as a USD string for display, e.g. "0.18". */
   developerCreditUsd: string;
 }
+
+/** Response for a valid short view segment that was stored as progress only. */
+export interface TrackProgressResponse {
+  /** False until cumulative view duration reaches the viewability floor. */
+  recorded: false;
+  /** Cumulative view duration stored for this developer/campaign. */
+  accumulatedViewDurationMs: number;
+  /** Milliseconds still needed before the impression can settle. */
+  remainingViewDurationMs: number;
+}
+
+export type TrackResponse = TrackRecordedResponse | TrackProgressResponse;

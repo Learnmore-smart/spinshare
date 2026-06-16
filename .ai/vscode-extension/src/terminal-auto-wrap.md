@@ -34,42 +34,46 @@ Installs SpinShare terminal shims so configured AI agent commands entered in new
 - This only affects new integrated terminals created after activation/environment refresh.
 - Shims must be generated from sanitized command names only.
 - Prefer the CLI bundled inside the installed extension before falling back to repo-local or globally installed CLIs.
-- Plain zero-argument agent launches must still invoke SpinShare; the CLI
-  wrapper is responsible for preserving TTY semantics through a PTY.
+- Agent commands that have a native SpinShare adapter, starting with `claude`
+  via Claude Code hooks/statusLine, must launch the real agent directly after
+  removing the shim directory from `PATH`. Those agents should not be routed
+  through the stdout/spinner wrapper because the native adapter is the
+  authoritative lifecycle source.
+- Agents without a native adapter may still use the CLI wrapper fallback.
 
 ## Bug Fixes
 
 | Date | Bug | Cause | Fix |
 |------|-----|-------|-----|
-| 2026-06-15 | Typing plain `claude` showed Claude's own `Pollinating...` loading text with no SpinShare ad. | The zero-argument launcher branch bypassed SpinShare entirely, so the wrapper never saw the loading output. | Remove the bypass and route plain agent launches through the PTY-backed SpinShare wrapper. |
-| 2026-06-15 | Typing plain `claude` after installing 0.2 printed `Input must be provided either through stdin or as a prompt argument when using --print`. | The generated shim launched the SpinShare wrapper, which piped stdout/stderr; Claude treated that as non-interactive print mode and failed without input. | Superseded by the PTY-backed wrapper: keep routing through SpinShare while preserving TTY semantics. |
+| 2026-06-15 | Typing plain `claude` showed Claude's own `Pollinating...` loading text with no SpinShare ad. | Historical diagnosis before the Claude Code native adapter decision: the zero-argument launcher branch bypassed SpinShare entirely, so the wrapper never saw the loading output. | Superseded. Current rule: `claude` direct-launches the real Claude Code command and ads come from hooks/statusLine. |
+| 2026-06-15 | Typing plain `claude` after installing 0.2 printed `Input must be provided either through stdin or as a prompt argument when using --print`. | Historical diagnosis before the Claude Code native adapter decision: the generated shim launched the SpinShare wrapper, which piped stdout/stderr; Claude treated that as non-interactive print mode and failed without input. | Superseded. Current rule: native adapter agents bypass the stdout wrapper; non-native agents may still use the PTY-backed wrapper. |
 
-## Planned Fix (2026-06-15)
+## Historical Planned Fix (2026-06-15, Superseded)
 
 Remove the generated-launcher zero-argument passthrough branch. Plain `claude`
 must invoke the bundled SpinShare CLI wrapper, and `runWrap` must use a PTY to
 preserve interactive behavior.
 
-## Implemented Fix (2026-06-15)
+## Historical Implemented Fix (2026-06-15, Superseded)
 
 The generated launcher no longer branches on `args.length === 0`. It always
 selects the bundled SpinShare CLI when present and invokes it as
 `spinshare <agent> ...args`.
 
-## Verification (2026-06-15)
+## Historical Verification (2026-06-15, Superseded)
 
 - Red extension focused test failed on the old `if (args.length === 0)` branch.
 - Green extension focused test passed with 9 tests.
 - Full extension tests passed: 5 files, 35 tests.
 - Extension type check passed.
 
-## Planned Fix (2026-06-15)
+## Historical Planned Fix (2026-06-15, Superseded)
 
 Add a generated-launcher branch for `args.length === 0` that spawns the real
 agent directly with inherited stdio, using a shell on Windows so `.cmd` agents
 resolve correctly. Keep wrapped behavior for invocations with arguments.
 
-## Implemented Fix (2026-06-15)
+## Historical Implemented Fix (2026-06-15, Superseded)
 
 The generated launcher now removes its shim directory from `PATH`, then if no
 agent arguments were provided it spawns the real agent directly with inherited
@@ -77,7 +81,7 @@ stdio. On Windows that direct interactive launch uses `shell: true` so `.cmd`
 agent launchers resolve. Invocations with arguments continue through the
 SpinShare wrapper.
 
-## Verification (2026-06-15)
+## Historical Verification (2026-06-15, Superseded)
 
 - Red: focused terminal auto-wrap test failed because the launcher had no `args.length === 0` branch.
 - Green: focused terminal auto-wrap test passed after adding the passthrough branch.
@@ -90,10 +94,40 @@ Bug: installing the extension does not reliably wrap future CLI runs because the
 
 Fix: make the launcher prefer `extensionRoot/cli-wrapper/dist/index.js`, keep `SPINSHARE_CLI_PATH` as an override, and update packaging to bundle that CLI directory.
 
+## Planned Fix (2026-06-15)
+
+Bug: after adding the Claude Code hooks/statusLine adapter, the terminal shim
+still routes `claude` through `spinshare claude`, so the old stdout/spinner
+guesser can run at the same time as the native Claude Code adapter. That keeps
+the brittle path in the MVP and can interfere with Claude's real TUI.
+
+Fix: teach the generated launcher about native adapter agents. For `claude`,
+remove the shim directory from `PATH`, set SpinShare base URL env vars, then
+spawn the real `claude` directly with inherited stdio. Keep the existing
+SpinShare CLI wrapper path as fallback for agents that do not yet have a
+native adapter.
+
+## Implemented Fix (2026-06-15)
+
+The generated launcher now has a native adapter agent set containing `claude`.
+After removing the shim directory from `PATH` and setting SpinShare base URL
+environment variables, `claude` launches the real command directly with
+inherited stdio. Other configured agents still use the SpinShare CLI wrapper
+fallback.
+
+## Verification (2026-06-15)
+
+- Red: focused terminal auto-wrap test failed because the generated launcher
+  had no native adapter agent branch.
+- Green: focused terminal auto-wrap test passed after adding the `claude`
+  direct-launch branch.
+
 ## Planned Changes
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Implemented native Claude Code direct-launch branch in terminal shim launcher. | Codex |
+| 2026-06-15 | Planned native Claude Code direct-launch branch in terminal shim launcher. | Codex |
 | 2026-06-15 | Removed zero-argument launcher bypass so interactive agents still route through SpinShare. | Codex |
 | 2026-06-15 | Implemented zero-argument interactive agent passthrough. | Codex |
 | 2026-06-15 | Planned zero-argument interactive agent passthrough. | Codex |

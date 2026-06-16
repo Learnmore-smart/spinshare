@@ -70,6 +70,30 @@ describe("runLogin", () => {
     expect(store.value).toBe("tok_xyz");
   });
 
+  it("runs post-login setup after storing the token", async () => {
+    const setup = vi.fn(() => Promise.resolve());
+    const { d, store } = deps(
+      [{ status: "approved", accessToken: "tok_xyz", tokenType: "Bearer" }],
+      { afterTokenStored: setup },
+    );
+
+    expect(await runLogin(d)).toBe(0);
+    expect(store.value).toBe("tok_xyz");
+    expect(setup).toHaveBeenCalledOnce();
+  });
+
+  it("keeps login successful when post-login setup fails", async () => {
+    const setup = vi.fn(() => Promise.reject(new Error("claude setup failed")));
+    const { d, store, err } = deps(
+      [{ status: "approved", accessToken: "tok_xyz", tokenType: "Bearer" }],
+      { afterTokenStored: setup },
+    );
+
+    expect(await runLogin(d)).toBe(0);
+    expect(store.value).toBe("tok_xyz");
+    expect(err.join("")).toContain("Claude Code setup warning");
+  });
+
   it("prints the URL when the browser cannot launch", async () => {
     const { d, out } = deps([{ status: "approved", accessToken: "t", tokenType: "Bearer" }], {
       openBrowser: async () => false,

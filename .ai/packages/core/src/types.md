@@ -57,11 +57,34 @@ These fields support a public homepage checkout funnel without changing ad selec
 `TrackRequest` now requires `viewDurationMs` so typed clients and API contracts
 carry the client-observed display duration alongside `campaignId`.
 
+## Planned Change (2026-06-15 Cumulative Viewability)
+
+Extend the public API contract types for cumulative viewability:
+
+- `AdResponseAvailable` may include pending progress metadata for an
+  authenticated developer's locked campaign.
+- `TrackResponse` should become a union: `recorded: false` for progress-only
+  updates and `recorded: true` for settled impressions that moved or suppressed
+  money.
+- Keep the existing settled `recorded: true` shape backward-compatible for
+  current clients.
+
+## Implemented Change (2026-06-15 Cumulative Viewability)
+
+`AdResponseAvailable` now has optional `accumulatedViewDurationMs` and
+`remainingViewDurationMs` fields for an authenticated developer's pending
+campaign. `TrackResponse` is now a union of:
+
+- `recorded:false` with accumulated and remaining view duration for progress-only updates
+- `recorded:true` with developer credit fields for settled impressions
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Implemented cumulative viewability API response contract types. | Codex |
 | 2026-06-13 | Created doc before adding public advertiser checkout campaign metadata. | Codex |
 | 2026-06-13 | Synced doc with implemented optional campaign metadata fields. | Codex |
 | 2026-06-13 | Documented required track view duration field before editing shared types. | Codex |
 | 2026-06-13 | Synced doc with required `TrackRequest.viewDurationMs`. | Codex |
+| 2026-06-15 | Planned cumulative viewability response contract types. | Codex |

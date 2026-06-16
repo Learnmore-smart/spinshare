@@ -21,6 +21,21 @@ export type { UserRepository, ExternalIdentity } from "./user-repository";
 export type { LedgerRepository } from "./ledger-repository";
 
 export type {
+  ActivityRepository,
+  ActivityRecord,
+  AdvertiserActivity,
+  AdvertiserActivityStatus,
+  ImpressionActivity,
+  ImpressionActivityStatus,
+} from "./activity-repository";
+
+export type {
+  AddImpressionProgressInput,
+  ImpressionProgress,
+  ImpressionProgressRepository,
+} from "./impression-progress-repository";
+
+export type {
   PaymentGateway,
   CheckoutInput,
   StripeEvent,

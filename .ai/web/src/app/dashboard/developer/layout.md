@@ -16,3 +16,15 @@ Shared developer dashboard layout: auth gate, ledger fetch, `DeveloperDashboardP
 ## Error handling
 
 Ledger load failure renders `DeveloperDashboardError` (no provider/shell children).
+
+## Planned Change 2026-06-15
+
+Load both credited ledger entries and attempt-level activity rows. Keep earnings
+summary based on credited ledger entries; pass normalized attempt rows to the
+developer dashboard context for the Activity page.
+
+## Change History
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-15 | Planned attempt-level activity context loading. | Codex |

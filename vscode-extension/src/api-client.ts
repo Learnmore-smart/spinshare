@@ -105,6 +105,12 @@ function parseAdResponse(value: unknown): AdResponse {
           : {}),
         cpmCents: obj.cpmCents,
         cpmUsd: obj.cpmUsd,
+        ...(typeof obj.accumulatedViewDurationMs === "number"
+          ? { accumulatedViewDurationMs: obj.accumulatedViewDurationMs }
+          : {}),
+        ...(typeof obj.remainingViewDurationMs === "number"
+          ? { remainingViewDurationMs: obj.remainingViewDurationMs }
+          : {}),
       };
     }
     // Malformed "available" payload — treat as no ad rather than trust it.
@@ -187,6 +193,17 @@ function parseTrackResponse(value: unknown): TrackResponse | null {
       developerCreditUsd: obj.developerCreditUsd,
     };
   }
+  if (
+    obj.recorded === false &&
+    typeof obj.accumulatedViewDurationMs === "number" &&
+    typeof obj.remainingViewDurationMs === "number"
+  ) {
+    return {
+      recorded: false,
+      accumulatedViewDurationMs: obj.accumulatedViewDurationMs,
+      remainingViewDurationMs: obj.remainingViewDurationMs,
+    };
+  }
   return null;
 }
 
@@ -222,12 +239,17 @@ export class AdApiClient {
    * @param token Optional bearer token overriding the instance default.
    */
   async getAd(token?: string): Promise<AdResponse> {
+    const headers = this.authHeaders(token);
+    if (!headers.Authorization) {
+      return { adAvailable: false };
+    }
+
     try {
       const res = await this.fetchImpl(`${this.baseUrl}/api/ad`, {
         method: "GET",
         headers: {
           Accept: "application/json",
-          ...this.authHeaders(token),
+          ...headers,
         },
       });
       if (!res.ok) {

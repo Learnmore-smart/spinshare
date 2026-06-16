@@ -21,6 +21,17 @@ Styles for the advertiser dashboard shell, panels, campaign cards, and form fiel
 Added compact campaign telemetry and diagnostics row styles with responsive
 grid behavior and tabular numeric formatting.
 
+## Planned Change (2026-06-15 Activity UI)
+
+Add compact activity feed row/status styles for advertiser dashboard attempt
+activity.
+
+## Implemented Change (2026-06-15 Activity UI)
+
+Added activity feed body, empty, list, row, campaign id, metadata, status, and
+credit styles. Credited rows have distinct success color hooks while non-billed
+attempts stay muted.
+
 ## Verification (2026-06-15)
 
 - `corepack pnpm@9.12.0 --filter @spinshare/web test` passed.
@@ -31,3 +42,5 @@ grid behavior and tabular numeric formatting.
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-14 | Submit button shadow + panel overflow fix. | Codex |
+| 2026-06-15 | Planned advertiser activity feed styles. | Codex |
+| 2026-06-15 | Implemented advertiser activity feed styles. | Codex |

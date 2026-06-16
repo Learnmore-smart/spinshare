@@ -3,7 +3,21 @@ import { pathToFileURL } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import { isDirectExecution } from "./index";
+import { isDirectExecution, parseArgs } from "./index";
+
+describe("parseArgs", () => {
+  it("routes Claude Code setup", () => {
+    expect(parseArgs(["setup", "claude-code"])).toEqual({
+      kind: "setupClaudeCode",
+    });
+  });
+
+  it("routes Claude Code adapter removal", () => {
+    expect(parseArgs(["setup", "claude-code", "--remove"])).toEqual({
+      kind: "removeClaudeCode",
+    });
+  });
+});
 
 describe("isDirectExecution", () => {
   it("matches normalized Windows paths and file URLs", () => {

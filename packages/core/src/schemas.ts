@@ -42,6 +42,8 @@ export const BRAND_NAME_MAX_LENGTH = 60;
 export const BRAND_ICON_DATA_URL_MAX_LENGTH = 49_152;
 /** Minimum ad display duration required before an impression can be tracked. */
 export const VIEWABILITY_MIN_MS = 3_000;
+/** Minimum positive view segment accepted for cumulative progress tracking. */
+export const VIEW_SEGMENT_MIN_MS = 1;
 
 // ---------------------------------------------------------------------------
 // Campaign creation (Requirements 9.1, 9.2, 9.3, 9.4)
@@ -76,6 +78,52 @@ export const cpmCentsSchema = z
   .min(CPM_CENTS_MIN, { message: "CPM bid must be at least $1.00" })
   .max(CPM_CENTS_MAX, { message: "CPM bid must be at most $1000.00" });
 
+function parseIpv4Address(hostname: string): number[] | null {
+  const parts = hostname.split(".");
+  if (parts.length !== 4) {
+    return null;
+  }
+
+  const octets = parts.map((part) => {
+    if (!/^\d+$/.test(part)) {
+      return Number.NaN;
+    }
+    const value = Number(part);
+    return value >= 0 && value <= 255 ? value : Number.NaN;
+  });
+
+  return octets.some((value) => Number.isNaN(value)) ? null : octets;
+}
+
+function isUnsafeDestinationUrl(value: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return true;
+  }
+
+  const hostname = url.hostname.toLowerCase();
+  if (url.username.length > 0 || url.password.length > 0) {
+    return true;
+  }
+  if (url.port.length > 0) {
+    return true;
+  }
+  if (
+    hostname === "localhost" ||
+    hostname.endsWith(".localhost") ||
+    hostname.endsWith(".local")
+  ) {
+    return true;
+  }
+  if (hostname.includes(":") || parseIpv4Address(hostname) !== null) {
+    return true;
+  }
+
+  return false;
+}
+
 /** HTTPS destination URL for a campaign's click-through. */
 export const destinationUrlSchema = z
   .string()
@@ -87,7 +135,10 @@ export const destinationUrlSchema = z
     } catch {
       return false;
     }
-  }, { message: "Destination URL must start with https://" });
+  }, { message: "Destination URL must start with https://" })
+  .refine((value) => !isUnsafeDestinationUrl(value), {
+    message: "Destination URL must use a public HTTPS domain",
+  });
 
 /** Optional public brand name shown on leaderboards / alongside the ad. */
 export const brandNameSchema = z
@@ -155,6 +206,15 @@ export const fundingCentsSchema = z
     message: "Funding amount must be at most $100,000.00",
   });
 
+/** Number of 1,000-view blocks bought in checkout. */
+export const advertiserCheckoutBlockCountSchema = z
+  .number({ invalid_type_error: "Number of blocks must be a number" })
+  .int({ message: "Number of blocks must be a whole number" })
+  .min(1, { message: "Buy at least 1 block" })
+  .max(ADVERTISER_CHECKOUT_BLOCKS_MAX, {
+    message: `Buy at most ${ADVERTISER_CHECKOUT_BLOCKS_MAX} blocks`,
+  });
+
 /** "Add Funds" request body. */
 export const fundingAmountSchema = z.object({
   campaignId: z.string().min(1, { message: "Campaign id is required" }),
@@ -163,6 +223,17 @@ export const fundingAmountSchema = z.object({
 
 /** Validated funding request payload. */
 export type FundingAmountInput = z.infer<typeof fundingAmountSchema>;
+
+/** Dashboard campaign funding request body: buy 1,000-view blocks. */
+export const fundingBlockCheckoutSchema = z.object({
+  campaignId: z.string().min(1, { message: "Campaign id is required" }),
+  blockCount: advertiserCheckoutBlockCountSchema,
+});
+
+/** Validated dashboard block funding payload. */
+export type FundingBlockCheckoutInput = z.infer<
+  typeof fundingBlockCheckoutSchema
+>;
 
 // ---------------------------------------------------------------------------
 // Public advertiser checkout (homepage form)
@@ -179,15 +250,6 @@ export const advertiserEmailSchema = z
 
 /** HTTPS destination URL, brand name, and brand icon schemas are declared in
  * the campaign-creation section above and reused here. */
-
-/** Number of 1,000-view blocks bought in public checkout. */
-export const advertiserCheckoutBlockCountSchema = z
-  .number({ invalid_type_error: "Number of blocks must be a number" })
-  .int({ message: "Number of blocks must be a whole number" })
-  .min(1, { message: "Buy at least 1 block" })
-  .max(ADVERTISER_CHECKOUT_BLOCKS_MAX, {
-    message: `Buy at most ${ADVERTISER_CHECKOUT_BLOCKS_MAX} blocks`,
-  });
 
 /** Public homepage advertiser checkout payload. */
 export const advertiserCheckoutSchema = z
@@ -233,16 +295,17 @@ export function getAdvertiserCheckoutAmountCents(input: {
 
 /**
  * Impression tracking request body. Auth travels in the Authorization header.
- * The body carries the campaign identifier plus the client-observed display
- * duration; impressions below 3 seconds are invalid and must not settle.
+ * The body carries the campaign identifier plus one client-observed display
+ * segment. Positive segments below 3 seconds are valid progress updates; the
+ * backend settles only after cumulative progress reaches `VIEWABILITY_MIN_MS`.
  */
 export const trackRequestSchema = z.object({
   campaignId: z.string().min(1, { message: "Campaign id is required" }),
   viewDurationMs: z
     .number({ invalid_type_error: "View duration must be a number" })
     .int({ message: "View duration must be a whole number of milliseconds" })
-    .min(VIEWABILITY_MIN_MS, {
-      message: "Impressions require at least 3 seconds of view time",
+    .min(VIEW_SEGMENT_MIN_MS, {
+      message: "View duration must be positive",
     }),
 });
 

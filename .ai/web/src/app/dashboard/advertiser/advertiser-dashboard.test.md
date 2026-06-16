@@ -40,6 +40,11 @@ dashboard should show zero values before campaigns or traffic are loaded.
 Static render coverage now asserts the telemetry containers and zero values are
 present before campaign data loads.
 
+## Planned Change (2026-06-15 Activity UI)
+
+Add static-render coverage that the dashboard includes the activity feed shell
+before asynchronous data loads.
+
 ## Verification (2026-06-15)
 
 - `corepack pnpm@9.12.0 --filter @spinshare/web test` passed.
@@ -62,3 +67,4 @@ the visible `3-second minimum views` policy text.
 | 2026-06-13 | Synced docs with advertiser dashboard copy test. | Codex |
 | 2026-06-15 | Planned zero-state telemetry container coverage. | Codex |
 | 2026-06-15 | Implemented zero-state telemetry container coverage. | Codex |
+| 2026-06-15 | Planned advertiser activity shell coverage. | Codex |

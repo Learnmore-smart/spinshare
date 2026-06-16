@@ -9,6 +9,8 @@ CLI executable entrypoint for `@spinshare/cli`.
 
 - Parses top-level CLI arguments.
 - Routes `spinshare login` to the device authorization flow.
+- Routes `spinshare setup claude-code` to the Claude Code hooks/statusLine
+  installer.
 - Routes `spinshare <command> [args...]` to the wrapper that renders ads during spinner wait states.
 - Executes `main()` only when the module is run directly as the CLI binary.
 
@@ -19,6 +21,34 @@ CLI executable entrypoint for `@spinshare/cli`.
 | `parseArgs` | function | Pure argument parser for help/login/wrap commands. |
 | `main` | async function | Runs the selected command and returns an exit code. |
 | `isDirectExecution` | function | Detects whether the module is being run as the CLI entrypoint. |
+
+## Planned Change 2026-06-15
+
+Add `spinshare setup claude-code` so npm users can explicitly install the same
+Claude Code hooks/statusLine adapter used by the VS Code extension. Also run the
+same setup best-effort after `spinshare login` succeeds.
+
+## Implemented Change 2026-06-15
+
+`parseArgs()` now routes `spinshare setup claude-code`.
+
+`spinshare login` now mirrors the stored token into the file credential location
+that generated Claude hook scripts can read, then installs the Claude Code
+adapter best-effort.
+
+`spinshare setup claude-code` explicitly mirrors any available token and installs
+the adapter, printing a login reminder if no token is available.
+
+## Planned Change 2026-06-15 Adapter Removal
+
+Route `spinshare setup claude-code --remove` to a safe Claude Code adapter
+removal path. This should remove SpinShare hooks/statusLine from Claude Code
+settings without touching unrelated user settings.
+
+## Implemented Change 2026-06-15 Adapter Removal
+
+`parseArgs()` now routes `spinshare setup claude-code --remove`, and `main()`
+executes the Claude Code adapter removal path.
 
 ## Props / Parameters
 
@@ -49,4 +79,8 @@ CLI executable entrypoint for `@spinshare/cli`.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Implemented CLI Claude Code adapter removal command. | Codex |
+| 2026-06-15 | Implemented CLI Claude Code setup command and login auto-setup. | Codex |
+| 2026-06-15 | Planned CLI Claude Code adapter removal command. | Codex |
+| 2026-06-15 | Planned CLI Claude Code setup command and login auto-setup. | Codex |
 | 2026-06-14 | Created documentation and planned direct-execution guard fix. | Codex |

@@ -23,14 +23,14 @@ importers:
       '@homebridge/node-pty-prebuilt-multiarch':
         specifier: ^0.13.1
         version: 0.13.1
-      '@spinshare/core':
-        specifier: workspace:*
-        version: link:../packages/core
     optionalDependencies:
       keytar:
         specifier: ^7.9.0
         version: 7.9.0
     devDependencies:
+      '@spinshare/core':
+        specifier: workspace:*
+        version: link:../packages/core
       '@types/node':
         specifier: ^22.5.0
         version: 22.19.21

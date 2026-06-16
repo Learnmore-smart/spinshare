@@ -119,6 +119,56 @@ describe("AuthManager", () => {
     expect(auth.getToken()).toBe("tok_existing");
   });
 
+  it("mirrors an existing stored token during initialize", async () => {
+    const { secrets } = makeSecrets({ [TOKEN_SECRET_KEY]: "tok_existing" });
+    const mirrored: string[] = [];
+    const auth = new AuthManager({
+      vscode: makeVscode().vscode,
+      client: makeClient([{ status: "pending" }]),
+      secrets,
+      sleep: noSleep,
+      tokenMirror: {
+        save: async (token) => {
+          mirrored.push(token);
+        },
+        clear: async () => {
+          mirrored.push("CLEARED");
+        },
+      },
+    });
+
+    const token = await auth.initialize();
+
+    expect(token).toBe("tok_existing");
+    expect(auth.getToken()).toBe("tok_existing");
+    expect(mirrored).toEqual(["tok_existing"]);
+  });
+
+  it("does not clear the shared token mirror when initialize finds no stored token", async () => {
+    const { secrets } = makeSecrets();
+    const mirrored: string[] = [];
+    const auth = new AuthManager({
+      vscode: makeVscode().vscode,
+      client: makeClient([{ status: "pending" }]),
+      secrets,
+      sleep: noSleep,
+      tokenMirror: {
+        save: async (token) => {
+          mirrored.push(token);
+        },
+        clear: async () => {
+          mirrored.push("CLEARED");
+        },
+      },
+    });
+
+    const token = await auth.initialize();
+
+    expect(token).toBeUndefined();
+    expect(auth.getToken()).toBeUndefined();
+    expect(mirrored).toEqual([]);
+  });
+
   it("prompts, runs the device flow, and persists the token when unauthenticated", async () => {
     const { secrets, store } = makeSecrets();
     const ui = makeVscode(SIGN_IN_ACTION);
@@ -139,6 +189,34 @@ describe("AuthManager", () => {
     expect(ui.opened).toEqual([START.verificationUriComplete]);
     expect(store.get(TOKEN_SECRET_KEY)).toBe("tok_new");
     expect(auth.getToken()).toBe("tok_new");
+  });
+
+  it("mirrors tokens for external Claude Code hook scripts when configured", async () => {
+    const { secrets } = makeSecrets();
+    const mirrored: string[] = [];
+    const auth = new AuthManager({
+      vscode: makeVscode(SIGN_IN_ACTION).vscode,
+      client: makeClient([
+        { status: "pending" },
+        { status: "approved", accessToken: "tok_new", tokenType: "Bearer" },
+      ]),
+      secrets,
+      sleep: noSleep,
+      tokenMirror: {
+        save: async (token) => {
+          mirrored.push(token);
+        },
+        clear: async () => {
+          mirrored.push("CLEARED");
+        },
+      },
+    });
+
+    const result = await auth.signIn();
+    await auth.signOut();
+
+    expect(result).toEqual({ ok: true, token: "tok_new" });
+    expect(mirrored).toEqual(["tok_new", "CLEARED"]);
   });
 
   it("does not display ads (returns undefined) when the developer dismisses the prompt", async () => {

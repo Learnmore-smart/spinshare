@@ -50,11 +50,19 @@ Clarify:
 - CLI login/device approval is the existing `/activate` polling flow.
 - Local mock checkout settles immediately; real Stripe checkout is webhook-settled.
 - Stripe payout onboarding requires Connect enabled and creates Accounts v2 recipient accounts with Express dashboard access.
+- `/api/ad` now requires a bearer device token; production checks should not
+  treat anonymous 401 responses as broken bidding.
+
+## Implemented Update (2026-06-15)
+
+Updated the CLI ads and end-to-end check sections so `/api/ad` verification is
+explicitly authenticated through the device-flow token.
 
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Documented authenticated `/api/ad` production test expectation. | Codex |
 | 2026-06-15 | Added Stripe Connect payout onboarding test section. | Codex |
 | 2026-06-15 | Planned Stripe Connect payout onboarding test guidance. | Codex |
 | 2026-06-15 | Documented setup-guide/webhook/extension clarification plan. | Codex |

@@ -143,18 +143,23 @@
 }
 
 .spinshare-home-section-alt {
-  background-color: var(--bg-page-alt);
+  background-color: var(--bg-page-muted);
 }
 
 .spinshare-home-section-warm {
   border-top: 1px solid var(--border-subtle);
   border-bottom: 1px solid var(--border-subtle);
-  background-color: var(--bg-page-warm);
+  background-color: var(--bg-page-muted);
   color: var(--text-primary);
 }
 
 .spinshare-home-section-muted {
   background-color: var(--bg-page-muted);
+  border: 1px solid var(--border-accent);
+  box-shadow:
+    inset 0 1px 0 0 var(--shadow-inner-highlight),
+    inset 0 -4px 16px 0 var(--shadow-inner-depth),
+    var(--shadow-elevation-md);
 }
 
 .spinshare-home-body {
@@ -773,3 +778,32 @@ input[type="password"]:focus {
   letter-spacing: -0.04em;
   user-select: none;
 }
+
+/* =====================================================================
+   3D Card Effects — Parallax & pop-out transitions on hover
+   ===================================================================== */
+.threed-card {
+  transform-style: preserve-3d;
+  will-change: transform, box-shadow;
+}
+
+.threed-card-icon {
+  transform: translateZ(0px);
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: transform;
+}
+
+.threed-card:hover .threed-card-icon {
+  transform: translateZ(35px) scale(1.08);
+}
+
+.threed-card-content {
+  transform: translateZ(0px);
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: transform;
+}
+
+.threed-card:hover .threed-card-content {
+  transform: translateZ(20px);
+}
+

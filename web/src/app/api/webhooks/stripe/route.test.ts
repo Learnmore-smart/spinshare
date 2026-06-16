@@ -23,6 +23,7 @@ import {
 } from "@/server/container";
 import {
   MemoryCampaignRepository,
+  MemoryActivityRepository,
   MockPaymentGateway,
 } from "@/server/adapters/memory";
 import type { StripeEvent } from "@/server/ports";
@@ -126,6 +127,33 @@ describe("POST /api/webhooks/stripe", () => {
     expect(second.status).toBe(200);
     // Applied exactly once despite two verified deliveries.
     expect(await budgetOf(container, "cmp1")).toBe(2500);
+  });
+
+  it("records one advertiser activity row for newly applied funding", async () => {
+    const container = getContainer();
+    seedCampaign(container, "cmp1");
+    const event: StripeEvent = {
+      id: "evt_activity",
+      type: "checkout.session.completed",
+      campaignId: "cmp1",
+      amountCents: 7500,
+    };
+
+    await POST(signedRequest(event));
+    await POST(signedRequest(event));
+
+    expect((container.activities as MemoryActivityRepository).all()).toEqual([
+      expect.objectContaining({
+        activityId: "payment_evt_activity",
+        campaignId: "cmp1",
+        advertiserId: "adv1",
+        type: "advertiser_event",
+        status: "budgetFunded",
+        amountCents: 7500,
+        amountUsd: "75.00",
+        providerEventId: "evt_activity",
+      }),
+    ]);
   });
 
   it("rejects a tampered/bad signature with 400 and no mutation", async () => {

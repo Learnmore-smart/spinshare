@@ -27,6 +27,22 @@ corepack pnpm@9.12.0 verify:prod-env
 
 It checks env presence, production mode flags, Firestore read access, RTDB read access, Stripe key mode, Google OAuth credentials, GitHub OAuth credentials, and Firestore index config. It does not print secret values.
 
+## Local External Runtime Preflight
+
+Before running the localhost Stripe/Firebase/Claude checks, run:
+
+```powershell
+corepack pnpm@9.12.0 verify:local-runtime
+```
+
+This checks Node, `claude`, `stripe`, `firebase`, `npx`, Java for the Firestore emulator, and whether local Firestore writes are isolated by `FIRESTORE_EMULATOR_HOST` or `SPINSHARE_FIRESTORE_NAMESPACE`.
+
+Current requirement notes:
+
+- Stripe test webhooks require the Stripe CLI on `PATH`.
+- Firestore emulator requires Java 11+ today, and Firebase tooling warns to use Java 21+ before `firebase-tools` 15.
+- Local cloud Firestore testing must use either `FIRESTORE_EMULATOR_HOST` or `SPINSHARE_FIRESTORE_NAMESPACE=test` so localhost does not write to top-level Firestore collections.
+
 ## Automated Checks
 
 ```powershell
@@ -47,7 +63,7 @@ corepack pnpm@9.12.0 deploy:indexes
 ## Confirm CLI Ads Show
 
 1. Start the web app against the environment you want to test.
-2. Create and fund at least one campaign so `/api/ad` returns `adAvailable: true`.
+2. Create and fund at least one campaign so authenticated `/api/ad` can return `adAvailable: true`.
 3. Log in once. This is the device-flow approval step: the CLI prints a code, opens `/activate`, and polls until you approve it in the browser.
 4. Point the CLI at the app and run a command that emits spinner-style output for at least 3 seconds:
 
@@ -71,6 +87,14 @@ The VS Code extension only changes **new integrated terminals** opened after the
 5. Open a new integrated terminal and run a configured agent command such as `claude`.
 
 The packaged extension bundles the SpinShare CLI wrapper. For external terminals, use the standalone CLI command explicitly.
+
+To remove the Claude Code adapter after testing:
+
+```powershell
+node .\cli-wrapper\dist\index.js setup claude-code --remove
+```
+
+From the extension, run `SpinShare: Remove Claude Code Adapter` from the command palette.
 
 ## Test Payment
 
@@ -112,7 +136,7 @@ If Stripe rejects the request, check the server log for `requestId` and `provide
 ## End-To-End System Check
 
 1. `GET /api/health` returns `{ "status": "ok" }`.
-2. `GET /api/ad` returns either a winning ad or `{ "adAvailable": false }`.
+2. `GET /api/ad` with a bearer device token returns either a winning ad or `{ "adAvailable": false }`; missing/invalid tokens should return `401`.
 3. A valid `POST /api/track` with a bearer device token returns `recorded: true`.
 4. The developer dashboard reflects credited earnings after flush/reconciliation.
 5. The advertiser dashboard shows the funded campaign and reduced remaining budget after impressions.

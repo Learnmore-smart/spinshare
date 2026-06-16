@@ -1,3 +1,7 @@
+import * as fs from "node:fs/promises";
+import * as os from "node:os";
+import * as path from "node:path";
+
 import type {
   DeviceFlowStart,
   DeviceTokenResult,
@@ -42,6 +46,22 @@ export interface SecretStorageLike {
   get(key: string): Thenable<string | undefined>;
   store(key: string, value: string): Thenable<void>;
   delete(key: string): Thenable<void>;
+}
+
+export interface TokenMirrorLike {
+  save(token: string): Promise<void>;
+  clear(): Promise<void>;
+}
+
+export interface TokenMirrorFileSystem {
+  mkdir(dirPath: string, options: { recursive: true; mode?: number }): Promise<unknown>;
+  writeFile(
+    filePath: string,
+    data: string,
+    options: { encoding: "utf8"; mode: number },
+  ): Promise<unknown>;
+  chmod(filePath: string, mode: number): Promise<unknown>;
+  rm(filePath: string, options: { force: true }): Promise<unknown>;
 }
 
 /** Opaque URI handle (mirrors `vscode.Uri`); only passed back to `openExternal`. */
@@ -99,6 +119,8 @@ export interface AuthManagerDeps {
   sleep?: (ms: number) => Promise<void>;
   /** Optional sink for non-fatal errors (e.g. logging). */
   onError?: (error: unknown) => void;
+  /** Optional token mirror for external Claude Code hook scripts. */
+  tokenMirror?: TokenMirrorLike;
   /**
    * Optional progress wrapper (e.g. `vscode.window.withProgress`) so sign-in
    * does not look like it vanished after the prompt is dismissed.
@@ -123,6 +145,7 @@ export const SIGN_IN_ACTION = "Sign in";
 export const SIGN_IN_PROMPT =
   "Sign in to SpinShare to earn while your AI works.";
 
+const TOKEN_FILE_MODE = 0o600;
 const DEFAULT_POLL_INTERVAL_SEC = 5;
 const SLOW_DOWN_BACKOFF_SEC = 5;
 
@@ -159,6 +182,43 @@ export function formatSignInFailure(
   }
 }
 
+export function defaultTokenMirrorFilePath(
+  env: Record<string, string | undefined> = process.env,
+  homedir: string = os.homedir(),
+): string {
+  const configBase =
+    env.XDG_CONFIG_HOME ?? env.APPDATA ?? path.join(homedir, ".config");
+  return path.join(configBase, "spinshare", "credentials.json");
+}
+
+export class FileTokenMirror implements TokenMirrorLike {
+  constructor(
+    private readonly filePath: string = defaultTokenMirrorFilePath(),
+    private readonly fileSystem: TokenMirrorFileSystem = fs,
+  ) {}
+
+  async save(token: string): Promise<void> {
+    await this.fileSystem.mkdir(path.dirname(this.filePath), {
+      recursive: true,
+      mode: 0o700,
+    });
+    await this.fileSystem.writeFile(
+      this.filePath,
+      `${JSON.stringify({ token }, null, 2)}\n`,
+      { encoding: "utf8", mode: TOKEN_FILE_MODE },
+    );
+    try {
+      await this.fileSystem.chmod(this.filePath, TOKEN_FILE_MODE);
+    } catch {
+      // Best effort on filesystems where chmod is unavailable/no-op.
+    }
+  }
+
+  async clear(): Promise<void> {
+    await this.fileSystem.rm(this.filePath, { force: true });
+  }
+}
+
 /**
  * Owns the Device_Auth_Token lifecycle and the interactive sign-in flow.
  *
@@ -174,6 +234,7 @@ export class AuthManager {
   private readonly now: () => number;
   private readonly sleep: (ms: number) => Promise<void>;
   private readonly onError: (error: unknown) => void;
+  private readonly tokenMirror: TokenMirrorLike | undefined;
   private readonly runWithProgress: <R>(
     title: string,
     task: () => Thenable<R>,
@@ -195,6 +256,7 @@ export class AuthManager {
     this.now = deps.now ?? (() => Date.now());
     this.sleep = deps.sleep ?? defaultSleep;
     this.onError = deps.onError ?? (() => {});
+    this.tokenMirror = deps.tokenMirror;
     this.runWithProgress =
       deps.runWithProgress ?? (async (_title, task) => task());
   }
@@ -207,6 +269,13 @@ export class AuthManager {
     if (!this.loaded) {
       try {
         this.cachedToken = (await this.secrets.get(TOKEN_SECRET_KEY)) ?? undefined;
+        if (this.cachedToken !== undefined && this.cachedToken !== "") {
+          try {
+            await this.tokenMirror?.save(this.cachedToken);
+          } catch (error) {
+            this.onError(error);
+          }
+        }
       } catch (error) {
         this.onError(error);
         this.cachedToken = undefined;
@@ -300,6 +369,11 @@ export class AuthManager {
     } catch (error) {
       this.onError(error);
     }
+    try {
+      await this.tokenMirror?.clear();
+    } catch (error) {
+      this.onError(error);
+    }
     this.cachedToken = undefined;
     this.loaded = true;
   }
@@ -373,6 +447,11 @@ export class AuthManager {
       await this.secrets.store(TOKEN_SECRET_KEY, token);
     } catch (error) {
       // Even if persistence fails, keep the token in memory for this session.
+      this.onError(error);
+    }
+    try {
+      await this.tokenMirror?.save(token);
+    } catch (error) {
       this.onError(error);
     }
     this.cachedToken = token;

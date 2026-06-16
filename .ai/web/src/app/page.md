@@ -1,6 +1,6 @@
 # page.tsx
 
-> Last updated: 2026-06-13 | Protection: STANDARD
+> Last updated: 2026-06-15 | Protection: STANDARD
 
 ## Purpose
 
@@ -38,6 +38,12 @@ This file renders the public SpinShare homepage and polls the live bid market.
 - Keep homepage market values derived from `GET /api/market`, not hardcoded samples.
 - Avoid implying source-code upload or intrusive ad behavior.
 
+## Planned Change (2026-06-15 - Lower Earning Counter Frequency)
+
+Reduce the update frequency of the simulated live earnings counter (`liveEarnings`) to avoid UI distraction:
+- Increase the interval from 150ms to 2000ms.
+- Scale up the increment step from `0.01 + Math.random() * 0.02` to `0.15 + Math.random() * 0.25` to maintain the same average rate of accumulation (~$0.13 - $0.14 per second).
+
 ## Planned Change (2026-06-15)
 
 Adapt the homepage to the friend's recommended layout structure without copying
@@ -69,6 +75,7 @@ the screenshot's color treatment or UI chrome:
   a compact live-bid preview list on the left while preserving the existing live
   chart, table, advertiser checkout form, and advertiser portal CTA.
 - Added `spinshare-proof-card-row` to keep the lower proof cards aligned.
+- Increased live earnings counter interval to 2000ms with scaled increments.
 
 ## Verification (2026-06-15)
 
@@ -329,12 +336,10 @@ Bid-market header timeframe: swap bespoke button group for shared `SegmentSlider
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Reduce live earnings increment frequency to 2000ms and scale up steps | Antigravity |
 | 2026-06-15 | Implemented friend-reference layout spine, split hero, process panel, and market proof grid | Codex |
 | 2026-06-15 | Planned friend-reference layout adaptation while preserving SpinShare styling and live data | Codex |
 | 2026-06-14 | Bid chart spans full timeframe when history is sparse (padded anchors + numeric X domain) | Cursor |
-| 2026-06-14 | Bid-market timeframe uses `SegmentSlider` mini | Cursor |
-| 2026-06-14 | Fix bid-market chart axis label overlap (margins, axis width, spacing) | Cursor |
-| 2026-06-14 | Footer glass panel uses `spinshare-static` (no hover lift) | Cursor |
 | 2026-06-14 | Homepage dark mode: `spinshare-home*` classes consume `theme.css` tokens; removed hardcoded `#e8f6ed` backgrounds | Cursor |
 | 2026-06-13 | Documented money-forward homepage redesign plan before editing code | Codex |
 | 2026-06-13 | Documented responsive fixes for hero proof panels and bid table overflow | Codex |

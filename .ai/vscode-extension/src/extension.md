@@ -30,11 +30,60 @@ VS Code extension activation entry point.
 Use the extension API client's base URL normalizer when reading
 `spinshare.baseUrl` during activation and terminal shim refresh.
 
+## Planned Change (2026-06-15 Claude Code Adapter)
+
+On activation, install the Claude Code adapter when enabled. This writes generated hook/statusLine scripts under extension global storage and safely patches `~/.claude/settings.json`. Terminal shims remain responsible for no-touch `claude` launch; Claude hooks/statusLine become the first-class lifecycle/display integration.
+
+## Implemented Change (2026-06-15 Claude Code Adapter)
+
+Activation now calls `installClaudeCodeAdapter()` and refreshes it when `spinshare.baseUrl` or `spinshare.claudeCodeAdapter` changes.
+
+Activation also wires `FileTokenMirror` into `AuthManager`, so extension sign-in writes the same fallback credential file the generated Claude hook script can read.
+
+## Planned Change (2026-06-15 Claude Code Adapter Removal)
+
+Register a command palette command that removes the SpinShare Claude Code
+adapter from `~/.claude/settings.json` and cleans generated adapter files on a
+best-effort basis. This gives users a reversible path for the default-on
+automatic install.
+
+## Implemented Change (2026-06-15 Claude Code Adapter Removal)
+
+Registered `spinshare.removeClaudeCodeAdapter`. Disabling
+`spinshare.claudeCodeAdapter` now removes the current adapter instead of only
+stopping future installs.
+
 ## Implemented Change (2026-06-15)
 
 Activation now normalizes the configured `spinshare.baseUrl` before creating
 `AdApiClient`, and the terminal auto-wrap refresh path normalizes the same
 setting before writing launcher environment values.
+
+## Planned Change 2026-06-15 Persistent Sign-In Entry
+
+Fresh VSIX installs may not visibly prompt sign-in in the current window:
+`onStartupFinished` only runs when the extension activates, and the one-shot
+modal prompt can be missed or hidden. Add a persistent status bar sign-in entry
+that is shown whenever activation finds no token. Keep the existing automatic
+prompt, but do not rely on it as the only sign-in surface.
+
+The status item should:
+
+- show only when unauthenticated;
+- run `spinshare.signIn`;
+- hide after a successful activation prompt or manual sign-in;
+- show again after sign-out.
+
+## Implemented Change 2026-06-15 Persistent Sign-In Entry
+
+Activation now creates a right-aligned status bar item with text
+`$(account) SpinShare Sign in`, tooltip copy, and command
+`spinshare.signIn`. The item is shown when activation finds no stored token,
+hidden after a successful activation prompt or manual sign-in, and shown again
+after sign-out or auth initialization failure.
+
+The existing automatic prompt remains, but it is no longer the only visible
+sign-in surface after installing the extension.
 
 ## Verification (2026-06-15)
 
@@ -57,4 +106,11 @@ setting before writing launcher environment values.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Implemented persistent sign-in status entry on activation. | Codex |
+| 2026-06-15 | Planned persistent sign-in status entry on activation. | Codex |
+| 2026-06-15 | Implemented command palette removal path for Claude Code adapter. | Codex |
+| 2026-06-15 | Planned command palette removal path for Claude Code adapter. | Codex |
+| 2026-06-15 | Wired FileTokenMirror into extension auth. | Codex |
+| 2026-06-15 | Wired Claude Code adapter install into extension activation. | Codex |
+| 2026-06-15 | Planned activation wiring for Claude Code hooks/statusLine adapter. | Codex |
 | 2026-06-15 | Normalized configured production base URLs during activation and terminal shim refresh. | Codex |

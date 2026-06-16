@@ -10,6 +10,7 @@
  */
 
 import {
+  ADVERTISER_CHECKOUT_BLOCKS_MAX,
   AD_TEXT_MAX_LENGTH,
   type Campaign,
   CPM_CENTS_MAX,
@@ -60,6 +61,11 @@ export interface CampaignView extends Campaign {
 /** Result of validating a user-entered dollar amount against a bound. */
 export type AmountResult =
   | { ok: true; cents: number }
+  | { ok: false; error: string };
+
+/** Result of validating a block count input. */
+export type BlockCountResult =
+  | { ok: true; blocks: number }
   | { ok: false; error: string };
 
 /**
@@ -127,6 +133,28 @@ export function validateFundingDollars(input: string): AmountResult {
     return { ok: false, error: "Amount must be at most $100,000.00." };
   }
   return { ok: true, cents };
+}
+
+/**
+ * Validates a dashboard funding block count. One block buys 1,000 impressions;
+ * the server derives the final checkout amount from the campaign's CPM bid.
+ */
+export function validateFundingBlocks(input: string): BlockCountResult {
+  const trimmed = input.trim();
+  if (!/^\d+$/.test(trimmed)) {
+    return { ok: false, error: "Enter a whole number of blocks." };
+  }
+  const blocks = Number(trimmed);
+  if (!Number.isSafeInteger(blocks) || blocks < 1) {
+    return { ok: false, error: "Buy at least 1 block." };
+  }
+  if (blocks > ADVERTISER_CHECKOUT_BLOCKS_MAX) {
+    return {
+      ok: false,
+      error: `Buy at most ${ADVERTISER_CHECKOUT_BLOCKS_MAX} blocks.`,
+    };
+  }
+  return { ok: true, blocks };
 }
 
 /** Live state of the campaign ad-text input, driving the 60-char counter. */

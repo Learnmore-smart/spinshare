@@ -27,6 +27,24 @@ Unit tests for the VS Code extension API client.
 
 - Tests must use fake fetch implementations only.
 
+## Planned Change 2026-06-15 Authenticated Ad Fetch
+
+Add a failing regression test proving `AdApiClient.getAd()` returns
+`{ adAvailable:false }` and does not call `fetch` when no constructor or per-call
+token is available.
+
+## Implemented Test 2026-06-15 Authenticated Ad Fetch
+
+Added a no-token `getAd()` test and updated the successful ad-fetch test to use
+an authenticated client token.
+
+## Verification 2026-06-15 Authenticated Ad Fetch
+
+- Red: focused extension API client test failed because anonymous `getAd()` returned a stubbed ad.
+- Green: focused extension API client test passed with 9 tests.
+- Full extension suite passed with 50 tests.
+- Root regression and lint/typecheck passed.
+
 ## Planned Change (2026-06-15)
 
 Add a failing regression test proving `https://spinshare.dev/` is normalized to
@@ -62,6 +80,8 @@ The API client tests now assert the tracking request body includes
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Added extension ad-fetch token gate regression coverage. | Codex |
+| 2026-06-15 | Planned extension ad-fetch token gate regression coverage. | Codex |
 | 2026-06-15 | Added regression coverage for canonical production device-start URL. | Codex |
 | 2026-06-13 | Created doc before adding VS Code API view duration test. | Codex |
 | 2026-06-13 | Synced docs with VS Code API duration payload assertions. | Codex |

@@ -19,6 +19,14 @@ advertiser dashboard:
 Every campaign should receive a zero-filled telemetry object when it has no
 activity.
 
+## Planned Change 2026-06-15
+
+Support email-first advertiser claim: when the authenticated token includes an email, `GET /api/campaigns` should include campaigns owned by the deterministic public advertiser id for that email in addition to campaigns owned directly by `claims.userId`.
+
+## Implemented Change 2026-06-15
+
+`GET /api/campaigns` now resolves full auth claims. When the token includes an email, it also lists campaigns owned by `publicAdvertiserIdForEmail(email)`, de-duplicates by campaign id, and returns the same telemetry-enriched view.
+
 ## Constraints
 
 - Only return campaigns owned by the authenticated advertiser.
@@ -39,5 +47,7 @@ merging durable ledger impression counts into the `credited` total.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-15 | Implemented email-based claim for public checkout campaigns. | Codex |
+| 2026-06-15 | Planned email-based claim for public homepage purchases. | Codex |
 | 2026-06-15 | Planned advertiser campaign telemetry response fields. | Codex |
 | 2026-06-15 | Implemented advertiser campaign telemetry enrichment. | Codex |

@@ -97,7 +97,7 @@ describe("AdController", () => {
     expect(impressions).toEqual(["cmp_123:3000"]);
   });
 
-  it("cancels the pending impression when generation completes before 3 seconds", async () => {
+  it("reports short progress when generation completes before 3 seconds", async () => {
     vi.useFakeTimers();
     const { vscode } = makeMockVscode();
     const { client, impressions } = makeMockClient(availableAd);
@@ -108,7 +108,23 @@ describe("AdController", () => {
     controller.completeGeneration();
     await vi.advanceTimersByTimeAsync(1);
 
-    expect(impressions).toEqual([]);
+    expect(impressions).toEqual(["cmp_123:2999"]);
+  });
+
+  it("uses pending progress metadata as the reporting delay", async () => {
+    vi.useFakeTimers();
+    const { vscode } = makeMockVscode();
+    const { client, impressions } = makeMockClient({
+      ...availableAd,
+      accumulatedViewDurationMs: 1000,
+      remainingViewDurationMs: 2000,
+    });
+    const controller = new AdController({ vscode, client });
+
+    await controller.startGeneration();
+    await vi.advanceTimersByTimeAsync(2000);
+
+    expect(impressions).toEqual(["cmp_123:2000"]);
   });
 
   it("dismisses the notification when the generation completes", async () => {

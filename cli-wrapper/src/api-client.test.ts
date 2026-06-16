@@ -52,6 +52,8 @@ describe("parseAdResponse / parseTrackResponse", () => {
         adText: "a",
         cpmCents: 1,
         cpmUsd: "0.01",
+        accumulatedViewDurationMs: 1000,
+        remainingViewDurationMs: 2000,
       }),
     ).toEqual({
       adAvailable: true,
@@ -59,6 +61,8 @@ describe("parseAdResponse / parseTrackResponse", () => {
       adText: "a",
       cpmCents: 1,
       cpmUsd: "0.01",
+      accumulatedViewDurationMs: 1000,
+      remainingViewDurationMs: 2000,
     });
   });
 
@@ -76,6 +80,17 @@ describe("parseAdResponse / parseTrackResponse", () => {
         developerCreditUsd: "0.18",
       }),
     ).toEqual({ recorded: true, developerCreditCents: 18, developerCreditUsd: "0.18" });
+    expect(
+      parseTrackResponse({
+        recorded: false,
+        accumulatedViewDurationMs: 1000,
+        remainingViewDurationMs: 2000,
+      }),
+    ).toEqual({
+      recorded: false,
+      accumulatedViewDurationMs: 1000,
+      remainingViewDurationMs: 2000,
+    });
     expect(parseTrackResponse({ recorded: false })).toBeNull();
     expect(parseTrackResponse(null)).toBeNull();
   });
@@ -105,6 +120,27 @@ describe("CliApiClient", () => {
     expect(firstCall).toBeDefined();
     expect(firstCall?.url).toBe("https://x.dev/api/ad");
     expect(firstCall?.init?.headers?.Authorization).toBe("Bearer tok123");
+  });
+
+  it("GET /api/ad returns unavailable without fetching when no bearer token exists", async () => {
+    let calls = 0;
+    const client = new CliApiClient({
+      baseUrl: "https://x.dev",
+      tokenProvider: () => undefined,
+      fetchImpl: async () => {
+        calls += 1;
+        return jsonResponse(200, {
+          adAvailable: true,
+          campaignId: "c",
+          adText: "a",
+          cpmCents: 1,
+          cpmUsd: "0.01",
+        });
+      },
+    });
+
+    await expect(client.getAd()).resolves.toEqual({ adAvailable: false });
+    expect(calls).toBe(0);
   });
 
   it("getAd resolves to unavailable on non-OK and on network error", async () => {
@@ -138,7 +174,11 @@ describe("CliApiClient", () => {
       },
     });
     const res = await client.reportImpression("cmp_1", 3000);
-    expect(res?.developerCreditCents).toBe(18);
+    expect(res).toEqual({
+      recorded: true,
+      developerCreditCents: 18,
+      developerCreditUsd: "0.18",
+    });
     expect(captured?.method).toBe("POST");
     expect(captured?.headers?.Authorization).toBe("Bearer tok");
     expect(JSON.parse(captured?.body ?? "{}")).toEqual({

@@ -14,6 +14,7 @@ import type { ReactNode } from "react";
 import { auth } from "@/server/adapters/auth/nextauth-config";
 import { getContainer } from "@/server/container";
 
+import { toActivityFeedRows } from "../activity-feed";
 import { DashboardShell } from "./dashboard-shell";
 import { DeveloperDashboardProvider } from "./developer-dashboard-data";
 import { DeveloperDashboardError } from "./developer-dashboard-parts";
@@ -44,11 +45,20 @@ export default async function DeveloperDashboardLayout({
   };
 
   try {
-    const entries = await getContainer().ledger.listByDeveloper(developerId);
+    const container = getContainer();
+    const [entries, activityEntries] = await Promise.all([
+      container.ledger.listByDeveloper(developerId),
+      container.activities.listByDeveloper(developerId),
+    ]);
     const summary = summarizeLedger(entries);
+    const activities = toActivityFeedRows(activityEntries);
 
     return (
-      <DeveloperDashboardProvider summary={summary} user={user}>
+      <DeveloperDashboardProvider
+        activities={activities}
+        summary={summary}
+        user={user}
+      >
         <div className="dev-dash">
           <DashboardShell>{children}</DashboardShell>
         </div>

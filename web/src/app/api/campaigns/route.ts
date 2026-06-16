@@ -26,8 +26,10 @@ import {
   formatCentsAsUsd,
 } from "@spinshare/core";
 
+import { publicAdvertiserIdForEmail } from "@/server/advertiser-identity";
 import { getContainer } from "@/server/container";
 import type { CounterStore, LedgerRepository } from "@/server/ports";
+import type { AuthClaims } from "@/server/ports/auth-provider";
 import {
   type CampaignTelemetry,
   zeroCampaignTelemetry,
@@ -57,14 +59,15 @@ function extractBearerToken(request: Request): string | null {
  * `null` when the token is missing/invalid. Centralizes the `401` decision for
  * both verbs.
  */
-async function resolveAdvertiserId(request: Request): Promise<string | null> {
+async function resolveAdvertiserClaims(
+  request: Request,
+): Promise<AuthClaims | null> {
   const token = extractBearerToken(request);
   if (token === null || token.length === 0) {
     return null;
   }
   const { auth } = getContainer();
-  const claims = await auth.validateToken(token);
-  return claims?.userId ?? null;
+  return auth.validateToken(token);
 }
 
 /** Standard `401` response body; no mutation has occurred. */
@@ -124,10 +127,11 @@ async function readDurableImpressions(
 
 export async function POST(request: Request): Promise<Response> {
   // 1. Authenticate; reject with 401 (no mutation) on a missing/invalid token.
-  const advertiserId = await resolveAdvertiserId(request);
-  if (advertiserId === null) {
+  const claims = await resolveAdvertiserClaims(request);
+  if (claims === null) {
     return unauthorized();
   }
+  const advertiserId = claims.userId;
 
   // 2. Parse + validate the body via the core schema. Malformed JSON and schema
   //    violations both surface as 400 with the field-level message; no campaign
@@ -181,15 +185,26 @@ export async function POST(request: Request): Promise<Response> {
 
 export async function GET(request: Request): Promise<Response> {
   // 1. Authenticate; reject with 401 on a missing/invalid token.
-  const advertiserId = await resolveAdvertiserId(request);
-  if (advertiserId === null) {
+  const claims = await resolveAdvertiserClaims(request);
+  if (claims === null) {
     return unauthorized();
   }
 
   // 2. List the advertiser's campaigns with remaining budget + CPM (R9.5).
   const { campaigns, counters, ledger } = getContainer();
-  const owned = await campaigns.listByAdvertiser(advertiserId);
-  const campaignIds = owned.map((campaign) => campaign.id);
+  const advertiserIds = new Set([claims.userId]);
+  if (claims.email !== undefined && claims.email.trim().length > 0) {
+    advertiserIds.add(publicAdvertiserIdForEmail(claims.email));
+  }
+  const owned = (
+    await Promise.all(
+      [...advertiserIds].map((advertiserId) =>
+        campaigns.listByAdvertiser(advertiserId),
+      ),
+    )
+  ).flat();
+  const uniqueOwned = [...new Map(owned.map((campaign) => [campaign.id, campaign])).values()];
+  const campaignIds = uniqueOwned.map((campaign) => campaign.id);
   const [telemetry, durableImpressions] = await Promise.all([
     readCampaignTelemetry(counters, campaignIds),
     readDurableImpressions(ledger, campaignIds),
@@ -197,7 +212,7 @@ export async function GET(request: Request): Promise<Response> {
 
   return Response.json(
     {
-      campaigns: owned.map((campaign) =>
+      campaigns: uniqueOwned.map((campaign) =>
         toCampaignView(
           campaign,
           telemetry[campaign.id],

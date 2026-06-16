@@ -18,9 +18,15 @@
  * checkout session is started). See design "Campaign & Funding".
  */
 
-import { fundingAmountSchema } from "@spinshare/core";
+import {
+  FUNDING_CENTS_MAX,
+  formatCentsAsUsd,
+  fundingBlockCheckoutSchema,
+  getAdvertiserCheckoutAmountCents,
+  type Campaign,
+} from "@spinshare/core";
 
-import { getContainer } from "@/server/container";
+import { getContainer, type Container } from "@/server/container";
 
 /** Always evaluate at request time; funding is a live, per-advertiser action. */
 export const dynamic = "force-dynamic";
@@ -60,6 +66,32 @@ function unauthorized(): Response {
   return Response.json({ error: "unauthorized" }, { status: 401 });
 }
 
+async function recordFundingActivity(
+  container: Container,
+  input: {
+    campaign: Campaign;
+    status: "checkoutStarted" | "budgetFunded";
+    amountCents: number;
+    checkoutSessionId: string;
+  },
+): Promise<void> {
+  try {
+    await container.activities.record({
+      activityId: `${input.status}_${input.checkoutSessionId}`,
+      campaignId: input.campaign.id,
+      advertiserId: input.campaign.advertiserId,
+      type: "advertiser_event",
+      status: input.status,
+      amountCents: input.amountCents,
+      amountUsd: formatCentsAsUsd(input.amountCents),
+      checkoutSessionId: input.checkoutSessionId,
+      createdAtMs: Date.now(),
+    });
+  } catch {
+    // Activity history must not block checkout or mock funding.
+  }
+}
+
 export async function POST(request: Request): Promise<Response> {
   // 1. Authenticate; reject with 401 (no session) on a missing/invalid token.
   const advertiserId = await resolveAdvertiserId(request);
@@ -77,7 +109,7 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "invalid_request_body" }, { status: 400 });
   }
 
-  const parsed = fundingAmountSchema.safeParse(rawBody);
+  const parsed = fundingBlockCheckoutSchema.safeParse(rawBody);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
     return Response.json(
@@ -92,12 +124,57 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  // 3. Start the hosted checkout session for the validated amount (R9.6).
-  const { payments } = getContainer();
-  const { url, sessionId } = await payments.createCheckoutSession({
+  // 3. Ensure the requested campaign exists and is owned by this advertiser.
+  const container = getContainer();
+  const { campaigns, payments } = container;
+  const campaign = await campaigns.getById(parsed.data.campaignId);
+  if (campaign === null) {
+    return Response.json({ error: "campaign_not_found" }, { status: 404 });
+  }
+  if (campaign.advertiserId !== advertiserId) {
+    return Response.json({ error: "forbidden" }, { status: 403 });
+  }
+  const amountCents = getAdvertiserCheckoutAmountCents({
+    cpmCents: campaign.cpmCents,
+    blockCount: parsed.data.blockCount,
+  });
+  if (!Number.isSafeInteger(amountCents) || amountCents > FUNDING_CENTS_MAX) {
+    return Response.json(
+      { error: "Total checkout amount must be between $1.00 and $100,000.00" },
+      { status: 400 },
+    );
+  }
+
+  // 4. Start the hosted checkout session for the validated amount (R9.6).
+  const origin = new URL(request.url).origin;
+  const checkout = await payments.createCheckoutSession({
     campaignId: parsed.data.campaignId,
-    amountCents: parsed.data.amountCents,
+    amountCents,
+    successUrl: `${origin}/dashboard/advertiser?funding=success`,
+    cancelUrl: `${origin}/dashboard/advertiser?funding=cancelled`,
   });
 
-  return Response.json({ url, sessionId }, { status: 200 });
+  const responseCampaign = { ...campaign };
+  await recordFundingActivity(container, {
+    campaign,
+    status: "checkoutStarted",
+    amountCents,
+    checkoutSessionId: checkout.sessionId,
+  });
+
+  if (checkout.settled === true) {
+    await campaigns.applyBudgetDeltaCents(campaign.id, amountCents);
+    responseCampaign.budgetCents += amountCents;
+    await recordFundingActivity(container, {
+      campaign,
+      status: "budgetFunded",
+      amountCents,
+      checkoutSessionId: checkout.sessionId,
+    });
+  }
+
+  return Response.json(
+    { ...checkout, campaign: responseCampaign },
+    { status: 200 },
+  );
 }

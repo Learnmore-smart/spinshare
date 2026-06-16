@@ -5,6 +5,7 @@ export const DEFAULT_TERMINAL_AGENTS = ["claude"] as const;
 
 const AGENT_NAME_PATTERN = /^[A-Za-z0-9._-]+$/;
 const LAUNCHER_FILE = "spinshare-terminal-launcher.cjs";
+const NATIVE_ADAPTER_AGENTS = ["claude"] as const;
 
 export interface TerminalShimFile {
   filePath: string;
@@ -112,6 +113,7 @@ const path = require("node:path");
 
 const extensionRoot = ${JSON.stringify(extensionRoot)};
 const configuredBaseUrl = ${JSON.stringify(trimBaseUrl(baseUrl))};
+const nativeAdapterAgents = new Set(${JSON.stringify([...NATIVE_ADAPTER_AGENTS])});
 const shimDir = __dirname;
 const agent = process.argv[2];
 const args = process.argv.slice(3);
@@ -156,6 +158,19 @@ function exitWithResult(result, errorMessage) {
   }
 
   process.exit(result.status == null ? 1 : result.status);
+}
+
+if (nativeAdapterAgents.has(agent)) {
+  const result = spawnSync(agent, args, {
+    stdio: "inherit",
+    env: process.env,
+    windowsHide: false,
+    shell: process.platform === "win32",
+  });
+  exitWithResult(
+    result,
+    "spinshare terminal launcher: could not start " + agent + ". ",
+  );
 }
 
 const cliCandidates = [

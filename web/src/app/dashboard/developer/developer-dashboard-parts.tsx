@@ -4,7 +4,7 @@ import { formatCentsAsUsd } from "@spinshare/core";
 
 import { useT } from "@/lib/i18n/locale-provider";
 
-import type { DeveloperDashboardSummary } from "./summarize-ledger";
+import type { ActivityFeedRow } from "../activity-feed";
 import { DashboardShell } from "./dashboard-shell";
 
 export function money(cents: number): string {
@@ -54,21 +54,28 @@ export function LimitMeter({
 export function ActivityList({
   rows,
 }: {
-  rows: DeveloperDashboardSummary["rows"];
+  rows: ActivityFeedRow[];
 }) {
   if (rows.length === 0) return null;
 
   return (
     <ul className="space-y-2 md:hidden">
       {rows.map((row) => (
-        <li key={row.entryId} className="dev-dash-activity-card" data-testid="activity-row">
+        <li key={row.activityId} className="dev-dash-activity-card" data-testid="activity-row">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="truncate font-mono text-[11px] text-slate-500">{row.campaignId}</p>
-              <p className="mt-0.5 truncate font-mono text-[10px] text-slate-400">{row.entryId}</p>
+              <p className="mt-0.5 truncate text-[10px] font-bold text-slate-400">
+                {row.statusLabel} - {row.durationLabel}
+              </p>
             </div>
-            <p className="shrink-0 text-base font-black text-emerald-700" data-testid="activity-credit">
-              ${row.developerCreditUsd}
+            <p
+              className={`shrink-0 text-base font-black ${
+                row.counted ? "text-emerald-700" : "text-slate-500"
+              }`}
+              data-testid="activity-credit"
+            >
+              {row.creditLabel}
             </p>
           </div>
         </li>
@@ -80,7 +87,7 @@ export function ActivityList({
 export function ActivityTable({
   rows,
 }: {
-  rows: DeveloperDashboardSummary["rows"];
+  rows: ActivityFeedRow[];
 }) {
   const t = useT();
   if (rows.length === 0) return null;
@@ -98,14 +105,21 @@ export function ActivityTable({
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.entryId} className="border-b border-emerald-900/5" data-testid="activity-row">
-              <td className="py-2.5 pr-3 text-slate-400">{row.sequence}</td>
-              <td className="py-2.5 pr-3 font-mono text-xs">{row.campaignId}</td>
-              <td className="max-w-[200px] truncate py-2.5 pr-3 font-mono text-xs text-slate-500">
-                {row.entryId}
+            <tr key={row.activityId} className="border-b border-emerald-900/5" data-testid="activity-row">
+              <td className="py-2.5 pr-3 font-mono text-xs text-slate-400">
+                {row.durationLabel}
               </td>
-              <td className="py-2.5 text-right font-bold text-emerald-700" data-testid="activity-credit">
-                ${row.developerCreditUsd}
+              <td className="py-2.5 pr-3 font-mono text-xs">{row.campaignId}</td>
+              <td className="max-w-[200px] truncate py-2.5 pr-3 text-xs font-bold text-slate-500">
+                {row.statusLabel}
+              </td>
+              <td
+                className={`py-2.5 text-right font-bold ${
+                  row.counted ? "text-emerald-700" : "text-slate-500"
+                }`}
+                data-testid="activity-credit"
+              >
+                {row.creditLabel}
               </td>
             </tr>
           ))}

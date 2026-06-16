@@ -37,6 +37,45 @@ export function HeroDashboardCard({
   const [chartData, setChartData] = useState<{ index: number; value: number }[]>([]);
   const lastAppendTimeRef = useRef<number>(0);
 
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState({ rx: 0, ry: 0, x: 0, y: 0, isHovered: false });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    if (window.matchMedia("(pointer: coarse)").matches) return;
+
+    const card = cardRef.current;
+    const rect = card.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    // Tilt angle
+    const rY = ((mouseX / width) - 0.5) * 20;
+    const rX = (0.5 - (mouseY / height)) * 20;
+
+    const px = (mouseX / width) * 100;
+    const py = (mouseY / height) * 100;
+
+    setCoords({ rx: rX, ry: rY, x: px, y: py, isHovered: true });
+  };
+
+  const handleMouseLeave = () => {
+    setCoords((prev) => ({ ...prev, rx: 0, ry: 0, isHovered: false }));
+  };
+
+  const cardStyle: React.CSSProperties = {
+    transform: `perspective(1000px) rotateX(${coords.rx}deg) rotateY(${coords.ry}deg) scale3d(${coords.isHovered ? 1.03 : 1}, ${coords.isHovered ? 1.03 : 1}, 1)`,
+    transition: coords.isHovered
+      ? "transform 0.1s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.15s ease-out"
+      : "transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.5s ease-out",
+    boxShadow: coords.isHovered
+      ? "0 30px 60px -15px rgba(16, 185, 129, 0.18), 0 15px 30px -10px rgba(0, 0, 0, 0.1)"
+      : "0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02)",
+    transformStyle: "preserve-3d",
+  };
+
   useEffect(() => {
     setMounted(true);
     setChartData(generateMockChartData(monthlyEstimate));
@@ -91,7 +130,20 @@ export function HeroDashboardCard({
   }, [totalImpressions]);
 
   return (
-    <div className="liquid-glass relative overflow-hidden p-6 sm:p-7">
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={cardStyle}
+      className="liquid-glass group relative overflow-hidden p-6 sm:p-7 select-none"
+    >
+      {/* Glare/shine effect */}
+      <div
+        className="pointer-events-none absolute inset-0 z-10 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          background: `radial-gradient(circle 250px at ${coords.x}% ${coords.y}%, rgba(16, 185, 129, 0.16), transparent 75%)`,
+        }}
+      />
       {/* Top badge */}
       <div className="flex items-center gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-callout)] bg-[var(--surface-callout)] px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-[var(--text-accent-strong)]">

@@ -76,7 +76,7 @@ const en: DictionaryBase = {
   advertiser: {
     title: "Bid live for the most-watched spinner.",
     body:
-      "Each block buys 1,000 five-second impressions. Higher bids rank first; private bids still run, but stay off the public market table.",
+      "Each block buys 1,000 impressions of at least 3 seconds. Higher bids rank first; private bids still run, but stay off the public market table.",
     estimatedTotal: "Estimated total",
     blocksAtPrice: (blocks, price) =>
       `${blocks} block${blocks === 1 ? "" : "s"} at ${price} per block`,
@@ -112,9 +112,10 @@ const en: DictionaryBase = {
     cardPayout: "payout status",
     bulletShare: "60% developer revenue share",
     bulletMinView: "3-second minimum ad views",
-    bulletNoUpload: "No source code upload",
-    bulletExtension: "Works in VS Code and Cursor",
+    bulletNoUpload: "We don't collect your code, privacy first",
+    bulletExtension: "Works in VS Code, Cursor, and Claude Code",
     panelLabel: "Authentication",
+    featuresSubtitle: "AI wait-state earning platform features at a glance:",
     roleDeveloper: "Developer",
     roleAdvertiser: "Advertiser",
     submitGoogle: "Sign in with Google",
@@ -230,7 +231,7 @@ const zh: DictionaryBase = {
   advertiser: {
     title: "为最受关注的加载条实时出价。",
     body:
-      "每个区块购买 1,000 次、每次 5 秒的展示。出价越高排名越靠前；私密出价仍会投放，但不会出现在公开市场榜单。",
+      "每个区块购买 1,000 次、每次至少 3 秒的展示。出价越高排名越靠前；私密出价仍会投放，但不会出现在公开市场榜单。",
     estimatedTotal: "预估总额",
     blocksAtPrice: (blocks, price) => `${blocks} 个区块，每区块 ${price}`,
     perBlock: "每区块",
@@ -265,9 +266,10 @@ const zh: DictionaryBase = {
     cardPayout: "提现状态",
     bulletShare: "开发者分成 60%",
     bulletMinView: "广告至少展示 3 秒才计费",
-    bulletNoUpload: "无需上传源代码",
-    bulletExtension: "支持 VS Code 与 Cursor",
+    bulletNoUpload: "不收集任何代码，隐私安全第一",
+    bulletExtension: "支持 VS Code、Cursor 与 Claude Code",
     panelLabel: "身份验证",
+    featuresSubtitle: "AI 等待变现平台特性一览：",
     roleDeveloper: "开发者",
     roleAdvertiser: "广告主",
     submitGoogle: "使用 Google 登录",
@@ -389,7 +391,7 @@ const fr: DictionaryBase = {
   advertiser: {
     title: "Enchérissez en direct pour le spinner le plus regardé.",
     body:
-      "Chaque bloc achète 1 000 impressions de cinq secondes. Les enchères plus élevées sont classées en premier ; les enchères privées passent toujours, mais restent hors du tableau public.",
+      "Chaque bloc achète 1 000 impressions d'au moins 3 secondes. Les enchères plus élevées sont classées en premier ; les enchères privées passent toujours, mais restent hors du tableau public.",
     estimatedTotal: "Total estimé",
     blocksAtPrice: (blocks, price) =>
       `${blocks} bloc${blocks === 1 ? "" : "s"} à ${price} par bloc`,
@@ -425,9 +427,10 @@ const fr: DictionaryBase = {
     cardPayout: "statut de paiement",
     bulletShare: "60 % des revenus pour les développeurs",
     bulletMinView: "Annonces comptées après 3 secondes minimum",
-    bulletNoUpload: "Aucun envoi de code source",
-    bulletExtension: "Compatible VS Code et Cursor",
+    bulletNoUpload: "Aucune collecte de code, confidentialité d'abord",
+    bulletExtension: "Compatible VS Code, Cursor et Claude Code",
     panelLabel: "Authentification",
+    featuresSubtitle: "Aperçu des fonctionnalités de la plateforme de gains lors des temps d'attente de l'IA :",
     roleDeveloper: "Développeur",
     roleAdvertiser: "Annonceur",
     submitGoogle: "Se connecter avec Google",

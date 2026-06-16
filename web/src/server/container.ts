@@ -32,8 +32,10 @@
 
 import type {
   AuthProvider,
+  ActivityRepository,
   CampaignRepository,
   CounterStore,
+  ImpressionProgressRepository,
   LedgerRepository,
   PaymentEventStore,
   PaymentGateway,
@@ -42,7 +44,9 @@ import type {
 } from "./ports";
 import {
   MemoryCampaignRepository,
+  MemoryActivityRepository,
   MemoryCounterStore,
+  MemoryImpressionProgressRepository,
   MemoryLedgerRepository,
   MemoryPaymentEventStore,
   MemoryUserRepository,
@@ -56,6 +60,8 @@ import {
 } from "./adapters/memory";
 import {
   FirestoreCampaignRepo,
+  FirestoreActivityRepo,
+  FirestoreImpressionProgressRepo,
   FirestoreLedgerRepo,
   FirestorePaymentEventStore,
   FirestoreUserRepo,
@@ -79,6 +85,10 @@ export interface Container {
   users: UserRepository;
   /** Durable per-impression ledger. */
   ledger: LedgerRepository;
+  /** Durable attempt-level activity records. */
+  activities: ActivityRepository;
+  /** Durable cumulative viewability progress records. */
+  progress: ImpressionProgressRepository;
   /** Funding via Stripe (or the mock gateway). */
   payments: PaymentGateway;
   /** Developer payouts via Stripe Connect (or the mock gateway). */
@@ -163,6 +173,34 @@ function useFirestoreInLocal(env: ContainerEnv): boolean {
 }
 
 /**
+ * Prevents local smoke tests from mutating top-level cloud Firestore
+ * collections. Emulator use is already isolated by `FIRESTORE_EMULATOR_HOST`,
+ * but local cloud Firestore must be scoped to an explicit namespace such as
+ * `test`.
+ */
+function assertLocalFirestoreIsolation(
+  env: ContainerEnv,
+  mode: SpinshareMode,
+): void {
+  const localCloudFirestore =
+    mode === "local" &&
+    (env.SPINSHARE_USE_FIRESTORE ?? "").trim() === "1" &&
+    !env.FIRESTORE_EMULATOR_HOST;
+  if (
+    localCloudFirestore &&
+    !(env.SPINSHARE_FIRESTORE_NAMESPACE ?? "").trim()
+  ) {
+    throw new Error(
+      "SPINSHARE_FIRESTORE_NAMESPACE must be set when " +
+        "SPINSHARE_MODE=local uses cloud Firestore via " +
+        "SPINSHARE_USE_FIRESTORE=1. Use FIRESTORE_EMULATOR_HOST for the " +
+        "emulator, or set SPINSHARE_FIRESTORE_NAMESPACE=test to keep localhost " +
+        "writes out of top-level production collections.",
+    );
+  }
+}
+
+/**
  * Selects the durable Firestore-backed repositories. Uses Firestore in production,
  * when the emulator host is configured, or when local mode explicitly opts in
  * (`SPINSHARE_USE_FIRESTORE=1`). Otherwise — local mode — falls back to the pure
@@ -172,9 +210,19 @@ function useFirestoreInLocal(env: ContainerEnv): boolean {
 function buildDurableRepos(
   env: ContainerEnv,
   mode: SpinshareMode,
-): Pick<Container, "campaigns" | "users" | "ledger" | "paymentEvents"> {
+): Pick<
+  Container,
+  | "campaigns"
+  | "users"
+  | "ledger"
+  | "activities"
+  | "progress"
+  | "paymentEvents"
+> {
   const useFirestore =
     mode === "production" || (mode === "local" && useFirestoreInLocal(env));
+
+  assertLocalFirestoreIsolation(env, mode);
 
   if (
     useFirestore &&
@@ -196,6 +244,8 @@ function buildDurableRepos(
       campaigns: new FirestoreCampaignRepo(),
       users: new FirestoreUserRepo(),
       ledger: new FirestoreLedgerRepo(),
+      activities: new FirestoreActivityRepo(),
+      progress: new FirestoreImpressionProgressRepo(),
       paymentEvents: new FirestorePaymentEventStore(),
     };
   }
@@ -207,18 +257,22 @@ function buildDurableRepos(
   const campaigns = new MemoryCampaignRepository(clock, ids);
   const users = new MemoryUserRepository(ids);
   const ledger = new MemoryLedgerRepository();
+  const activities = new MemoryActivityRepository();
+  const progress = new MemoryImpressionProgressRepository();
   const paymentEvents = new MemoryPaymentEventStore();
 
-  // In local mode, provision durable data for the local test accounts so the
-  // dashboards show real content immediately after a credential sign-in. Scoped
-  // to the interactive dev server only (`next dev` → NODE_ENV="development"):
-  // never under test (Vitest), e2e (`next start`), build, or production, so it
-  // can't pollute deterministic fixtures or real data.
-  if (mode === "local" && process.env.NODE_ENV === "development") {
+  // In local mode, provision demo data only when explicitly requested. Keeping
+  // this off by default prevents the funded LearnX campaign from masking
+  // whether a local Stripe/webhook test actually funded the user's campaign.
+  if (
+    mode === "local" &&
+    process.env.NODE_ENV === "development" &&
+    (env.SPINSHARE_SEED_LOCAL_DATA ?? "").trim() === "1"
+  ) {
     seedLocalTestData({ users, campaigns, ledger });
   }
 
-  return { campaigns, users, ledger, paymentEvents };
+  return { campaigns, users, ledger, activities, progress, paymentEvents };
 }
 
 /** Selects the {@link PaymentGateway} from `STRIPE_MODE`. */

@@ -2,14 +2,14 @@
  * @spinshare/cli child-process wrapper with impression reporting.
  *
  * The wrapper intercepts spinner-only stdout frames, shows a cached ad through
- * the renderer, and reports one impression only after a contiguous wait state
- * has stayed active for the 3-second viewability minimum.
+ * the renderer, and reports view segments so the server can settle cumulative
+ * 3-second viewability without losing short waits.
  */
 
 import { spawn, type SpawnOptions } from "node:child_process";
 import * as os from "node:os";
 
-import type { AdResponse } from "@spinshare/core";
+import type { AdResponse, TrackResponse } from "@spinshare/core";
 
 import { CliApiClient } from "./api-client.js";
 import { SpinnerRenderer } from "./renderer.js";
@@ -72,18 +72,35 @@ export class WaitStateTracker {
    * Evaluate the currently active wait state without requiring another stdout
    * frame. This is used by the runtime timer so quiet long waits still count.
    */
-  qualify(nowMs = Date.now()): WaitStateStep {
+  qualify(nowMs = Date.now(), minViewMs = this.minViewMs): WaitStateStep {
     if (!this.inWaitState) {
       return { impression: false, inWaitState: false, viewDurationMs: 0 };
     }
 
     const viewDurationMs = Math.max(0, nowMs - this.waitStartedAtMs);
-    const impression = !this.reported && viewDurationMs >= this.minViewMs;
+    const impression = !this.reported && viewDurationMs >= minViewMs;
     if (impression) {
       this.reported = true;
     }
 
     return { impression, inWaitState: true, viewDurationMs };
+  }
+
+  /**
+   * End the active wait state and return the final segment duration.
+   *
+   * A short segment is still reportable now: the server records it as progress
+   * and only settles money once cumulative view time reaches 3 seconds.
+   */
+  finish(nowMs = Date.now()): WaitStateStep {
+    if (!this.inWaitState) {
+      return { impression: false, inWaitState: false, viewDurationMs: 0 };
+    }
+
+    const viewDurationMs = Math.max(0, nowMs - this.waitStartedAtMs);
+    const impression = !this.reported && viewDurationMs > 0;
+    this.reset();
+    return { impression, inWaitState: false, viewDurationMs };
   }
 
   /** True while inside a contiguous spinner run. */
@@ -370,6 +387,7 @@ export async function runWrap(options: RunWrapOptions): Promise<number> {
   });
   const tracker = new WaitStateTracker();
   let reportTimer: TimerHandle | null = null;
+  const pendingReports: Array<Promise<void>> = [];
 
   function clearReportTimer(): void {
     if (reportTimer !== null) {
@@ -378,15 +396,65 @@ export async function runWrap(options: RunWrapOptions): Promise<number> {
     }
   }
 
+  function currentViewabilityMs(): number {
+    if (!adCache.current.adAvailable) {
+      return VIEWABILITY_MIN_MS;
+    }
+    const remaining = adCache.current.remainingViewDurationMs;
+    return typeof remaining === "number" && remaining > 0
+      ? Math.ceil(remaining)
+      : VIEWABILITY_MIN_MS;
+  }
+
+  function applyTrackResponse(
+    campaignId: string,
+    response: TrackResponse | null,
+  ): void {
+    if (response === null || !adCache.current.adAvailable) {
+      return;
+    }
+    if (response.recorded === false && adCache.current.campaignId === campaignId) {
+      adCache.current = {
+        ...adCache.current,
+        accumulatedViewDurationMs: response.accumulatedViewDurationMs,
+        remainingViewDurationMs: response.remainingViewDurationMs,
+      };
+    }
+  }
+
+  function enqueueReport(step: WaitStateStep): void {
+    if (!step.impression || !adCache.current.adAvailable) {
+      return;
+    }
+    const campaignId = adCache.current.campaignId;
+    const report = Promise.resolve()
+      .then(() => client.reportImpression(campaignId, step.viewDurationMs))
+      .then((response) => {
+        applyTrackResponse(campaignId, response);
+        if (response?.recorded === true) {
+          return client.getAd().then((ad) => {
+            adCache.current = ad;
+          });
+        }
+        return undefined;
+      })
+      .catch(() => {
+        // Ad reporting must not break the wrapped command.
+      });
+    pendingReports.push(report);
+  }
+
+  async function flushActiveSegment(): Promise<void> {
+    clearReportTimer();
+    enqueueReport(tracker.finish());
+    if (pendingReports.length > 0) {
+      await Promise.allSettled(pendingReports);
+    }
+  }
+
   function reportIfEligible(): void {
     reportTimer = null;
-    const step = tracker.qualify();
-    if (step.impression && adCache.current.adAvailable) {
-      void client.reportImpression(
-        adCache.current.campaignId,
-        step.viewDurationMs,
-      );
-    }
+    enqueueReport(tracker.qualify(Date.now(), currentViewabilityMs()));
   }
 
   function scheduleReport(): void {
@@ -394,13 +462,19 @@ export async function runWrap(options: RunWrapOptions): Promise<number> {
     if (!adCache.current.adAvailable) {
       return;
     }
-    reportTimer = setTimeout(reportIfEligible, VIEWABILITY_MIN_MS);
+    reportTimer = setTimeout(reportIfEligible, currentViewabilityMs());
   }
 
   function handleOutputChunk(chunk: Buffer | string): void {
     const { output, spinner } = renderer.render(chunk);
     if (output.length > 0) {
       stdout.write(output);
+    }
+
+    if (!spinner) {
+      clearReportTimer();
+      enqueueReport(tracker.finish());
+      return;
     }
 
     const wasActive = tracker.active;
@@ -410,17 +484,9 @@ export async function runWrap(options: RunWrapOptions): Promise<number> {
       scheduleReport();
     }
 
-    if (!spinner) {
+    if (step.impression) {
       clearReportTimer();
-      return;
-    }
-
-    if (step.impression && adCache.current.adAvailable) {
-      clearReportTimer();
-      void client.reportImpression(
-        adCache.current.campaignId,
-        step.viewDurationMs,
-      );
+      enqueueReport(step);
     }
   }
 
@@ -450,10 +516,11 @@ export async function runWrap(options: RunWrapOptions): Promise<number> {
 
     return await new Promise<number>((resolve) => {
       pty.onExit((event) => {
-        clearReportTimer();
-        detachStdin();
-        detachResize();
-        resolve(event.exitCode ?? 0);
+        void flushActiveSegment().finally(() => {
+          detachStdin();
+          detachResize();
+          resolve(event.exitCode ?? 0);
+        });
       });
     });
   }
@@ -474,8 +541,9 @@ export async function runWrap(options: RunWrapOptions): Promise<number> {
       reject(err);
     });
     child.on("close", (code, signal) => {
-      clearReportTimer();
-      resolve(exitCodeFor(code, signal));
+      void flushActiveSegment().finally(() => {
+        resolve(exitCodeFor(code, signal));
+      });
     });
   });
 }

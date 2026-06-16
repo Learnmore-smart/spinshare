@@ -2,7 +2,11 @@ import * as vscode from "vscode";
 
 import { AdController } from "./ad-controller";
 import { AdApiClient, DEFAULT_BASE_URL, normalizeBaseUrl } from "./api-client";
-import { AuthManager, formatSignInFailure } from "./auth";
+import { AuthManager, FileTokenMirror, formatSignInFailure } from "./auth";
+import {
+  installClaudeCodeAdapter,
+  removeClaudeCodeAdapter,
+} from "./claude-code-adapter";
 import {
   installTerminalAutoWrap,
   normalizeTerminalAgents,
@@ -33,11 +37,27 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 
   const client = new AdApiClient({ baseUrl });
+  const signInStatus = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Right,
+    100,
+  );
+  signInStatus.text = "$(account) SpinShare Sign in";
+  signInStatus.tooltip = "Sign in to SpinShare so Claude Code ads can be credited to you.";
+  signInStatus.command = "spinshare.signIn";
+
+  const showSignInStatus = (): void => {
+    signInStatus.show();
+  };
+
+  const hideSignInStatus = (): void => {
+    signInStatus.hide();
+  };
 
   const auth = new AuthManager({
     vscode,
     client,
     secrets: context.secrets,
+    tokenMirror: new FileTokenMirror(),
     onError: (error) => console.error("[spinshare] auth error", error),
     runWithProgress: (title, task) =>
       vscode.window.withProgress(
@@ -115,17 +135,82 @@ export function activate(context: vscode.ExtensionContext): void {
 
   void refreshTerminalAutoWrap();
 
+  const refreshClaudeCodeAdapter = async (
+    showMessage = false,
+  ): Promise<void> => {
+    const config = vscode.workspace.getConfiguration("spinshare");
+    const enabled = config.get<boolean>("claudeCodeAdapter") ?? true;
+    const adapterBaseUrl = normalizeBaseUrl(
+      config.get<string>("baseUrl") ?? DEFAULT_BASE_URL,
+    );
+
+    try {
+      if (!enabled) {
+        await removeClaudeCodeAdapter({
+          baseUrl: adapterBaseUrl,
+          storageRoot: context.globalStorageUri.fsPath,
+        });
+        if (showMessage) {
+          void vscode.window.showInformationMessage(
+            "SpinShare Claude Code adapter is removed.",
+          );
+        }
+        return;
+      }
+
+      const plan = await installClaudeCodeAdapter({
+        baseUrl: adapterBaseUrl,
+        storageRoot: context.globalStorageUri.fsPath,
+      });
+
+      if (!showMessage) {
+        return;
+      }
+      if (plan === null) {
+        void vscode.window.showInformationMessage(
+          "SpinShare Claude Code adapter is disabled.",
+        );
+        return;
+      }
+      void vscode.window.showInformationMessage(
+        "SpinShare Claude Code hooks/statusLine adapter installed.",
+      );
+    } catch (error) {
+      console.error("[spinshare] claude code adapter error", error);
+      if (showMessage) {
+        void vscode.window.showErrorMessage(
+          `SpinShare could not install Claude Code adapter: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
+    }
+  };
+
+  void refreshClaudeCodeAdapter();
+
   // Warm the token cache from secure storage so `getToken()` is populated.
   // If the developer is not signed in yet, prompt immediately on activation
   // (Requirement 6.4) instead of waiting for a generation hook.
-  void auth.initialize().then(async () => {
-    if (!(await auth.isAuthenticated())) {
+  void auth
+    .initialize()
+    .then(async () => {
+      if (await auth.isAuthenticated()) {
+        hideSignInStatus();
+        return;
+      }
+
+      showSignInStatus();
       const token = await auth.ensureAuthenticated();
       if (token !== undefined) {
+        hideSignInStatus();
         void vscode.window.showInformationMessage("Signed in to SpinShare.");
       }
-    }
-  });
+    })
+    .catch((error) => {
+      showSignInStatus();
+      console.error("[spinshare] auth initialization error", error);
+    });
 
   const showStatus = vscode.commands.registerCommand(
     "spinshare.showStatus",
@@ -139,11 +224,15 @@ export function activate(context: vscode.ExtensionContext): void {
     async () => {
       const result = await auth.signIn();
       if (result.ok) {
+        hideSignInStatus();
         void vscode.window.showInformationMessage("Signed in to SpinShare.");
       } else if (result.reason !== "cancelled") {
+        showSignInStatus();
         void vscode.window.showErrorMessage(
           formatSignInFailure(result.reason, result.detail),
         );
+      } else {
+        showSignInStatus();
       }
     },
   );
@@ -152,6 +241,7 @@ export function activate(context: vscode.ExtensionContext): void {
     "spinshare.signOut",
     async () => {
       await auth.signOut();
+      showSignInStatus();
       void vscode.window.showInformationMessage("Signed out of SpinShare.");
     },
   );
@@ -185,6 +275,22 @@ export function activate(context: vscode.ExtensionContext): void {
     },
   );
 
+  const removeClaudeAdapter = vscode.commands.registerCommand(
+    "spinshare.removeClaudeCodeAdapter",
+    async () => {
+      const config = vscode.workspace.getConfiguration("spinshare");
+      await removeClaudeCodeAdapter({
+        baseUrl: normalizeBaseUrl(
+          config.get<string>("baseUrl") ?? DEFAULT_BASE_URL,
+        ),
+        storageRoot: context.globalStorageUri.fsPath,
+      });
+      void vscode.window.showInformationMessage(
+        "SpinShare Claude Code adapter removed.",
+      );
+    },
+  );
+
   const terminalAutoWrapConfigWatcher =
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (
@@ -193,6 +299,12 @@ export function activate(context: vscode.ExtensionContext): void {
         event.affectsConfiguration("spinshare.terminalAgents")
       ) {
         void refreshTerminalAutoWrap();
+      }
+      if (
+        event.affectsConfiguration("spinshare.baseUrl") ||
+        event.affectsConfiguration("spinshare.claudeCodeAdapter")
+      ) {
+        void refreshClaudeCodeAdapter();
       }
     });
 
@@ -203,7 +315,9 @@ export function activate(context: vscode.ExtensionContext): void {
     startGeneration,
     completeGeneration,
     rebuildTerminalShims,
+    removeClaudeAdapter,
     terminalAutoWrapConfigWatcher,
+    signInStatus,
     { dispose: () => controller.dispose() },
   );
 }

@@ -13,6 +13,7 @@ import { detectLocaleFromAcceptLanguage } from "@/lib/i18n/detect-locale";
 import { DEFAULT_LOCALE, LOCALES, type Locale } from "@/lib/i18n/types";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.SPINSHARE_BASE_URL || "http://localhost:3000"),
   title: "SpinShare",
   description: "Your AI is thinking. You should be earning.",
   openGraph: {
