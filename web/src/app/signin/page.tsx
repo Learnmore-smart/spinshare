@@ -161,7 +161,7 @@ function SignInForm() {
         </Link>
 
         <div className="flex items-center gap-2">
-          <LanguageSwitcher />
+          <LanguageSwitcher placement="bottom" align="right" />
           <Link
             href="/"
             className="spinshare-signin-glass inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-black text-[var(--text-secondary)] transition hover:text-[var(--text-accent-strong)] hover:scale-[1.02] active:scale-[0.98]"

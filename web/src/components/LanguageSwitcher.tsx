@@ -33,15 +33,18 @@ const optionClass = (active: boolean, list = false) =>
 export function LanguageSwitcher({
   variant = "dropdown",
   placement = "top",
+  align,
 }: {
   variant?: "dropdown" | "list";
   /** Dropdown menu opens above (nav/footer) or below (settings/forms). */
   placement?: "top" | "bottom";
+  align?: "left" | "right";
 }) {
   const locale = useLocale();
   const preference = useLocalePreference();
   const setPreference = useSetLocalePreference();
   const t = useT();
+  const resolvedAlign = align ?? (placement === "bottom" ? "left" : "right");
   const [open, setOpen] = useState(false);
   const [menuMounted, setMenuMounted] = useState(false);
   const [menuClosing, setMenuClosing] = useState(false);
@@ -177,8 +180,12 @@ export function LanguageSwitcher({
           onAnimationEnd={handleMenuAnimationEnd}
           className={`spinshare-lang-menu absolute z-50 w-56 overflow-hidden rounded-2xl border p-1.5 ${
             placement === "bottom"
-              ? "spinshare-lang-menu--anchor-bottom left-0 top-full mt-2 origin-top-left"
-              : "spinshare-lang-menu--anchor-top right-0 bottom-full mb-2 origin-bottom-right"
+              ? `spinshare-lang-menu--anchor-bottom top-full mt-2 ${
+                  resolvedAlign === "left" ? "left-0 origin-top-left" : "right-0 origin-top-right"
+                }`
+              : `spinshare-lang-menu--anchor-top bottom-full mb-2 ${
+                  resolvedAlign === "left" ? "left-0 origin-bottom-left" : "right-0 origin-bottom-right"
+                }`
           } ${menuClosing ? "spinshare-lang-menu--exit" : "spinshare-lang-menu--enter"}`}
         >
           <p className="px-3 pb-1.5 pt-2 text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-muted)]">
