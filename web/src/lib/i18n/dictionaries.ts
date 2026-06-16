@@ -157,6 +157,15 @@ const en: DictionaryBase = {
     languageLabel: "Language",
     languageAuto: "Auto",
   },
+  topEarners: {
+    title: "Top Earners",
+    subtitle: "Real-time anonymized earnings and contribution statistics of developers on our network.",
+    rank: "Rank",
+    lifetimeEarned: "Lifetime Earned",
+    earningPerHour: "Avg Earning / Hr",
+    totalHours: "Total Hours",
+    growthTrend: "Growth Trend (30d)",
+  },
 };
 
 const zh: DictionaryBase = {
@@ -310,6 +319,15 @@ const zh: DictionaryBase = {
     backToHome: "返回首页",
     languageLabel: "语言",
     languageAuto: "自动",
+  },
+  topEarners: {
+    title: "高收益用户榜",
+    subtitle: "我们网络中开发者的实时匿名收益与贡献统计数据。",
+    rank: "排名",
+    lifetimeEarned: "累计收益",
+    earningPerHour: "平均时薪",
+    totalHours: "累计工时",
+    growthTrend: "增长趋势 (30天)",
   },
 };
 
@@ -471,6 +489,15 @@ const fr: DictionaryBase = {
     backToHome: "Retour à l'accueil",
     languageLabel: "Langue",
     languageAuto: "Auto",
+  },
+  topEarners: {
+    title: "Meilleurs revenus",
+    subtitle: "Gains en temps réel et statistiques de contribution anonymisées des développeurs de notre réseau.",
+    rank: "Rang",
+    lifetimeEarned: "Gains cumulés",
+    earningPerHour: "Gain moyen / h",
+    totalHours: "Heures totales",
+    growthTrend: "Tendance (30j)",
   },
 };
 

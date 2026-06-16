@@ -30,10 +30,23 @@ The memory adapter now stores `ActivityRecord` union values. Developer queries
 filter out advertiser events; campaign queries return both impression attempts
 and advertiser money events. `all()` returns the same union for tests.
 
+## Planned Change 2026-06-16 Checkout Session Lookup
+
+Implement `listByCheckoutSessionId(sessionId)` by filtering stored advertiser
+events whose `checkoutSessionId` exactly matches the requested value. It should
+return defensive copies and exclude impression-attempt rows.
+
+## Implemented Change 2026-06-16 Checkout Session Lookup
+
+`listByCheckoutSessionId()` now filters only `type: "advertiser_event"` rows
+with an exact `checkoutSessionId` match and returns defensive copies.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented checkout session lookup for memory activity repo. | Codex |
+| 2026-06-16 | Planned checkout session lookup for memory activity repo. | Codex |
 | 2026-06-15 | Implemented memory support for advertiser money activity events. | Codex |
 | 2026-06-15 | Planned memory support for advertiser money activity events. | Codex |
 | 2026-06-15 | Implemented memory activity repository. | Codex |

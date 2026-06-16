@@ -26,7 +26,7 @@
  * the increment happens synchronously within this request (R9.8).
  */
 
-import { formatCentsAsUsd } from "@spinshare/core";
+import { formatCentsAsUsd, type Campaign } from "@spinshare/core";
 
 import { getContainer, type Container } from "@/server/container";
 import type { StripeEvent } from "@/server/ports";
@@ -43,23 +43,34 @@ const FUNDING_EVENT_TYPE = "checkout.session.completed";
 async function recordBudgetFundedActivity(
   container: Container,
   event: StripeEvent,
+  campaign: Campaign,
 ): Promise<void> {
   try {
-    const campaign = await container.campaigns.getById(event.campaignId);
     await container.activities.record({
       activityId: `payment_${event.id}`,
       campaignId: event.campaignId,
       type: "advertiser_event",
       status: "budgetFunded",
       createdAtMs: Date.now(),
-      ...(campaign !== null ? { advertiserId: campaign.advertiserId } : {}),
+      advertiserId: campaign.advertiserId,
       amountCents: event.amountCents,
       amountUsd: formatCentsAsUsd(event.amountCents),
       providerEventId: event.id,
+      ...(event.checkoutSessionId !== undefined
+        ? { checkoutSessionId: event.checkoutSessionId }
+        : {}),
     });
   } catch {
     // Activity history must never alter Stripe webhook acknowledgement.
   }
+}
+
+function hasValidFundingPayload(event: StripeEvent): boolean {
+  return (
+    event.campaignId.trim().length > 0 &&
+    Number.isSafeInteger(event.amountCents) &&
+    event.amountCents > 0
+  );
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -83,6 +94,21 @@ export async function POST(request: Request): Promise<Response> {
   // 3. Only funding events move money; other verified event types are simply
   //    acknowledged (200) so Stripe stops retrying.
   if (event.type === FUNDING_EVENT_TYPE) {
+    if (!hasValidFundingPayload(event)) {
+      return Response.json(
+        { received: true, ignored: true, reason: "invalid_funding_event" },
+        { status: 200 },
+      );
+    }
+
+    const campaign = await campaigns.getById(event.campaignId);
+    if (campaign === null) {
+      return Response.json(
+        { error: "campaign_not_found", campaignId: event.campaignId },
+        { status: 500 },
+      );
+    }
+
     // Atomically claim the event before crediting. Only the first delivery for
     // this event id wins the claim and applies the increment; redeliveries get
     // `false` and skip the mutation (R9.8, R9.9).
@@ -92,7 +118,7 @@ export async function POST(request: Request): Promise<Response> {
     });
     if (newlyApplied) {
       await campaigns.applyBudgetDeltaCents(event.campaignId, event.amountCents);
-      await recordBudgetFundedActivity(container, event);
+      await recordBudgetFundedActivity(container, event, campaign);
     }
   }
 

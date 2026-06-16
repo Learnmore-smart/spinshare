@@ -150,41 +150,41 @@ function CampaignCard({
 
       <div className="adv-dash-campaign-telemetry" aria-label="Campaign telemetry">
         <div>
-          <span>Shows</span>
+          <span>{t.advertiserDashboard.shows}</span>
           <strong>{formatCount(telemetry.shows)}</strong>
         </div>
         <div>
-          <span>Served</span>
+          <span>{t.advertiserDashboard.totalServed}</span>
           <strong>{formatCount(telemetry.credited)}</strong>
         </div>
         <div>
-          <span>Clicks</span>
+          <span>{t.advertiserDashboard.clicks}</span>
           <strong>{formatCount(telemetry.clicks)}</strong>
         </div>
         <div>
-          <span>CTR</span>
+          <span>{t.advertiserDashboard.ctr}</span>
           <strong>{formatCtr(telemetry.clicks, telemetry.shows)}</strong>
         </div>
       </div>
 
       <div className="adv-dash-campaign-diagnostics" aria-label="Campaign diagnostics">
         <span>
-          Not credited <strong>{formatCount(uncredited)}</strong>
+          {t.advertiserDashboard.uncredited} <strong>{formatCount(uncredited)}</strong>
         </span>
         <span>
-          Too short <strong>{formatCount(telemetry.tooShort)}</strong>
+          {t.advertiserDashboard.tooShort} <strong>{formatCount(telemetry.tooShort)}</strong>
         </span>
         <span>
-          Auth issues <strong>{formatCount(telemetry.invalidToken)}</strong>
+          {t.advertiserDashboard.authIssues} <strong>{formatCount(telemetry.invalidToken)}</strong>
         </span>
         <span>
-          Out of budget <strong>{formatCount(telemetry.invalidCampaign)}</strong>
+          {t.advertiserDashboard.outOfBudget} <strong>{formatCount(telemetry.invalidCampaign)}</strong>
         </span>
         <span>
-          Anti-abuse <strong>{formatCount(antiAbuse)}</strong>
+          {t.advertiserDashboard.antiAbuse} <strong>{formatCount(antiAbuse)}</strong>
         </span>
         <span>
-          Duplicate <strong>{formatCount(telemetry.duplicate)}</strong>
+          {t.advertiserDashboard.duplicate} <strong>{formatCount(telemetry.duplicate)}</strong>
         </span>
       </div>
 

@@ -41,10 +41,24 @@ Pass optional `customer_email` to Stripe Checkout when the public homepage form 
 
 `StripeGateway.createCheckoutSession()` passes `customer_email` when `CheckoutInput.customerEmail` is provided.
 
+## Planned Change 2026-06-16 Checkout Session Traceability
+
+When parsing `checkout.session.completed`, preserve the Stripe Checkout Session
+id (`session.id`) alongside the event id. The event id remains the idempotency
+key; the session id is for user-facing diagnostics and activity correlation.
+
+## Implemented Change 2026-06-16 Checkout Session Traceability
+
+`StripeGateway.toStripeEvent()` now returns `checkoutSessionId: session.id` for
+`checkout.session.completed` events while keeping `event.id` as the idempotency
+key.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented parsed Checkout Session id preservation. | Codex |
+| 2026-06-16 | Planned parsed Checkout Session id preservation. | Codex |
 | 2026-06-15 | Documented shared Stripe API-version client plan. | Codex |
 | 2026-06-13 | Created doc before wiring checkout customer email. | Codex |
 | 2026-06-13 | Synced doc with Stripe customer email pass-through. | Codex |

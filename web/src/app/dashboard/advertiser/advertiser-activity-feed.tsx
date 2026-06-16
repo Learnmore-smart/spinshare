@@ -1,3 +1,4 @@
+import { useT } from "@/lib/i18n/locale-provider";
 import type { ActivityFeedRow } from "../activity-feed";
 
 export type AdvertiserActivityState =
@@ -10,18 +11,20 @@ export function AdvertiserActivityFeed({
 }: {
   state: AdvertiserActivityState;
 }) {
+  const t = useT();
+
   return (
     <section className="adv-dash-panel adv-dash-rise" data-testid="advertiser-activity-feed">
       <div className="adv-dash-panel-header">
-        <h2 className="adv-dash-panel-title">Recent activity</h2>
+        <h2 className="adv-dash-panel-title">{t.advertiserDashboard.recentActivity}</h2>
         <p className="adv-dash-panel-desc">
-          Impression attempts, billable outcomes, and non-billed reasons.
+          {t.advertiserDashboard.recentActivityDesc}
         </p>
       </div>
 
       <div className="adv-dash-activity-body">
         {state.status === "loading" && (
-          <p className="adv-dash-activity-empty">Loading activity...</p>
+          <p className="adv-dash-activity-empty">{t.advertiserDashboard.loadingActivity}</p>
         )}
 
         {state.status === "error" && (
@@ -30,7 +33,7 @@ export function AdvertiserActivityFeed({
 
         {state.status === "ready" && state.activities.length === 0 && (
           <p className="adv-dash-activity-empty">
-            No activity yet. Funded campaigns will appear here after developer wait states.
+            {t.advertiserDashboard.noActivityYet}
           </p>
         )}
 

@@ -42,9 +42,56 @@ deliveries skip both budget mutation and duplicate activity creation.
   recorded.
 - Green focused web run passed for webhook/activity/checkout/track/feed tests.
 
+## Planned Change 2026-06-16 Funding Event Validation And Session Traceability
+
+Two webhook risks remain in the post-checkout visibility path:
+
+- If a verified `checkout.session.completed` references a campaign that cannot
+  be loaded, the route currently claims the Stripe event before attempting the
+  budget increment. If the increment then fails, the event may be marked applied
+  without funding the campaign, making a paid checkout stay off the leaderboard.
+- The route records `budgetFunded` activity with the Stripe event id but not the
+  Checkout Session id. The success URL carries `checkout_session_id=cs_...`, so
+  keeping that id in funded activity is necessary for post-checkout diagnostics.
+
+Fix strategy:
+
+- Validate the funding event before claiming it: positive amount, non-empty
+  campaign id, and campaign exists.
+- If the campaign cannot be loaded, return a retryable server error and do not
+  mark the payment event as applied.
+- Carry the Checkout Session id from the parsed payment event into
+  `budgetFunded` activity when available.
+
+Regression tests should cover missing-campaign events not being marked applied
+and checkout session id persistence on funded activity.
+
+## Implemented Change 2026-06-16 Funding Event Validation And Session Traceability
+
+The webhook now validates funding events before claiming the Stripe event:
+
+- non-positive amounts or empty campaign ids are acknowledged as ignored without
+  mutation;
+- missing campaigns return `500` and do not mark the event applied, preserving
+  Stripe retry/manual replay possibilities;
+- existing campaigns are loaded before `markApplied()`, and the loaded campaign
+  supplies the advertiser id for activity history;
+- `budgetFunded` activity includes `checkoutSessionId` when the gateway parsed
+  it from the Checkout Session.
+
+## Verification 2026-06-16 Funding Event Validation And Session Traceability
+
+- Red focused webhook run failed because a missing campaign threw after the
+  payment event was already marked, and funded activity lacked
+  `checkoutSessionId`.
+- Green focused webhook/gateway run passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/webhooks/stripe/route.test.ts src/server/adapters/stripe/stripe-gateway.test.ts`.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented funding event validation and checkout session traceability. | Codex |
+| 2026-06-16 | Planned funding event validation and checkout session traceability. | Codex |
 | 2026-06-15 | Implemented funding activity events for Stripe webhook. | Codex |
 | 2026-06-15 | Created doc before adding funding activity events. | Codex |

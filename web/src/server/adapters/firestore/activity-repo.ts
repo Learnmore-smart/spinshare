@@ -142,4 +142,19 @@ export class FirestoreActivityRepo implements ActivityRepository {
 
     return activities.sort((a, b) => a.createdAtMs - b.createdAtMs);
   }
+
+  async listByCheckoutSessionId(
+    sessionId: string,
+  ): Promise<AdvertiserActivity[]> {
+    const snap = await this.collection
+      .where("checkoutSessionId", "==", sessionId)
+      .get();
+    return snap.docs
+      .map((doc) => toActivity(doc.id, doc.data()))
+      .filter(
+        (activity): activity is AdvertiserActivity =>
+          activity.type === "advertiser_event",
+      )
+      .sort((a, b) => a.createdAtMs - b.createdAtMs);
+  }
 }

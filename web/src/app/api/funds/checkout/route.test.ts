@@ -4,6 +4,7 @@ import {
   MemoryActivityRepository,
   MockAuthProvider,
 } from "@/server/adapters/memory";
+import { publicAdvertiserIdForEmail } from "@/server/advertiser-identity";
 import { getContainer, resetContainer } from "@/server/container";
 
 import { POST } from "./route";
@@ -75,10 +76,10 @@ describe("POST /api/funds/checkout", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.url).toBe(
-      "https://spinshare.test/dashboard/advertiser?funding=success",
-    );
     expect(body.sessionId).toMatch(/^cs_/);
+    expect(body.url).toBe(
+      `https://spinshare.test/dashboard/advertiser?funding=success&checkout_session_id=${body.sessionId}`,
+    );
     expect(body.settled).toBe(true);
     expect(body.campaign).toMatchObject({
       id: campaign.id,
@@ -127,6 +128,34 @@ describe("POST /api/funds/checkout", () => {
     expect(body.error).toBe("forbidden");
     await expect(container.campaigns.getById(campaign.id)).resolves.toMatchObject({
       budgetCents: 0,
+    });
+  });
+
+  it("funds a homepage checkout campaign claimed by the authenticated email", async () => {
+    const container = getContainer();
+    const campaign = await createCampaign(
+      publicAdvertiserIdForEmail("buyer@example.com"),
+    );
+    const token = (container.auth as MockAuthProvider).mintToken("google:buyer-123", {
+      email: "Buyer@Example.com",
+    });
+
+    const response = await POST(
+      checkoutRequest(token, {
+        campaignId: campaign.id,
+        blockCount: 2,
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.campaign).toMatchObject({
+      id: campaign.id,
+      advertiserId: publicAdvertiserIdForEmail("buyer@example.com"),
+      budgetCents: 1000,
+    });
+    await expect(container.campaigns.getById(campaign.id)).resolves.toMatchObject({
+      budgetCents: 1000,
     });
   });
 

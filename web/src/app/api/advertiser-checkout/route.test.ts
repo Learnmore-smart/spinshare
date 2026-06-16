@@ -64,8 +64,10 @@ describe("POST /api/advertiser-checkout", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.url).toBe("https://spinshare.test/?checkout=success#bid-market");
     expect(body.sessionId).toMatch(/^cs_/);
+    expect(body.url).toBe(
+      `https://spinshare.test/?checkout=success&checkout_session_id=${body.sessionId}#bid-market`,
+    );
     expect(body.amountCents).toBe(1500);
     expect(body.campaign).toMatchObject({
       adText: validPayload.adText,

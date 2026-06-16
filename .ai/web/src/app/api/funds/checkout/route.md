@@ -52,6 +52,61 @@ owned campaign, derives `amountCents` from campaign CPM and block count, rejects
 over-maximum derived totals, and records activity with the derived amount.
 Legacy amount-only payloads are rejected.
 
+## Planned Change 2026-06-16 Checkout Return Context
+
+The dashboard funding success URL should include Stripe's
+`{CHECKOUT_SESSION_ID}` placeholder as `checkout_session_id`, matching public
+checkout and preserving post-checkout diagnostic context.
+
+## Implemented Change 2026-06-16 Checkout Return Context
+
+Dashboard funding success URL now includes
+`checkout_session_id={CHECKOUT_SESSION_ID}`.
+
+## Planned Change 2026-06-16 Same-Email Public Campaign Funding
+
+Bug: homepage checkout campaigns are owned by `publicAdvertiserIdForEmail(email)`.
+The dashboard can list those campaigns when the bearer token contains the same
+email, but this route still checks only `campaign.advertiserId === claims.userId`.
+That makes visible same-email homepage campaigns impossible to fund from the
+dashboard.
+
+Fix: resolve full auth claims, build the allowed advertiser id set from
+`claims.userId` plus `publicAdvertiserIdForEmail(claims.email)` when present,
+and authorize the campaign if its advertiser id is in that set.
+
+## Implemented Change 2026-06-16 Same-Email Public Campaign Funding
+
+`POST /api/funds/checkout` now resolves the full bearer auth claims and
+authorizes campaign funding when the campaign owner matches either:
+
+- the authenticated `claims.userId`; or
+- `publicAdvertiserIdForEmail(claims.email)` for same-email homepage checkout
+  campaigns.
+
+This keeps the existing non-owner `403` boundary while allowing campaigns
+bought on the homepage to be topped up from the advertiser dashboard after the
+same email signs in.
+
+## Verification 2026-06-16
+
+- Red focused run failed because the returned mock URL lacked
+  `checkout_session_id`.
+- Green focused run passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/server/adapters/memory/memory-adapters.test.ts src/app/api/advertiser-checkout/route.test.ts src/app/api/funds/checkout/route.test.ts`.
+- Full regression passed:
+  `corepack pnpm@9.12.0 test` and `corepack pnpm@9.12.0 lint`.
+
+## Verification 2026-06-16 Same-Email Public Campaign Funding
+
+- Red focused run failed with `403` for a campaign owned by
+  `publicAdvertiserIdForEmail("buyer@example.com")` when the dashboard token had
+  `userId: "google:buyer-123"` and `email: "Buyer@Example.com"`.
+- Green focused run passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/funds/checkout/route.test.ts`.
+- Related dashboard/claim regression passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/funds/checkout/route.test.ts src/app/api/campaigns/route.test.ts src/app/dashboard/advertiser/page.test.tsx`.
+
 ## Verification
 
 - Red: `src/app/api/funds/checkout/route.test.ts` failed for missing redirect, ownership, and missing campaign handling.
@@ -65,6 +120,10 @@ Legacy amount-only payloads are rejected.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented same-email public campaign funding authorization. | Codex |
+| 2026-06-16 | Planned same-email public campaign funding authorization fix. | Codex |
+| 2026-06-16 | Implemented dashboard funding success URL session context. | Codex |
+| 2026-06-16 | Planned dashboard funding success URL session context. | Codex |
 | 2026-06-15 | Implemented block-based dashboard checkout. | Codex |
 | 2026-06-15 | Planned block-based dashboard checkout. | Codex |
 | 2026-06-15 | Added dashboard checkout advertiser money activity events. | Codex |

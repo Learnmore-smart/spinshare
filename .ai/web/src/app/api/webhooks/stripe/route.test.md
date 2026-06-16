@@ -23,9 +23,27 @@ does not create another activity row.
 The webhook test now verifies that two deliveries of the same verified funding
 event produce exactly one `budgetFunded` activity row.
 
+## Planned Coverage 2026-06-16 Funding Event Validation And Session Traceability
+
+Add regression coverage that:
+
+- a verified funding event for a missing campaign returns a retryable error and
+  does not mark the Stripe event as applied;
+- a newly applied funding event with a Checkout Session id records that
+  `checkoutSessionId` on the `budgetFunded` advertiser activity row.
+
+## Implemented Coverage 2026-06-16 Funding Event Validation And Session Traceability
+
+The route test now covers both planned cases. The missing-campaign case failed
+before implementation because the route threw from `applyBudgetDeltaCents()`
+after claiming the payment event. The checkout-session activity case failed
+because the activity row did not include `checkoutSessionId`.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented missing-campaign and checkout-session webhook coverage. | Codex |
+| 2026-06-16 | Planned missing-campaign and checkout-session webhook coverage. | Codex |
 | 2026-06-15 | Implemented funding activity test coverage. | Codex |
 | 2026-06-15 | Created doc before adding funding activity tests. | Codex |

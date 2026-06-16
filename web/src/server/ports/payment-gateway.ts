@@ -43,6 +43,8 @@ export interface StripeEvent {
   id: string;
   /** Event type, e.g. `"checkout.session.completed"`. */
   type: string;
+  /** Checkout Session id, when the event originated from Stripe Checkout. */
+  checkoutSessionId?: string;
   /** Funded campaign id. */
   campaignId: string;
   /** Confirmed funding amount in integer cents. */

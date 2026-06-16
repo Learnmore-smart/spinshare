@@ -204,6 +204,22 @@ describe("MemoryCampaignRepository", () => {
 });
 
 describe("MockPaymentGateway", () => {
+  it("replaces the checkout session placeholder in mock success URLs", async () => {
+    const gw = new MockPaymentGateway(new SequentialIdGenerator());
+
+    const session = await gw.createCheckoutSession({
+      campaignId: "cmp1",
+      amountCents: 5000,
+      successUrl:
+        "https://spinshare.test/?checkout=success&checkout_session_id={CHECKOUT_SESSION_ID}#bid-market",
+    });
+
+    expect(session.sessionId).toBe("cs_000001");
+    expect(session.url).toBe(
+      "https://spinshare.test/?checkout=success&checkout_session_id=cs_000001#bid-market",
+    );
+  });
+
   it("verifies a correctly-signed webhook and rejects a tampered one", () => {
     const gw = new MockPaymentGateway(new SequentialIdGenerator());
     const event = {

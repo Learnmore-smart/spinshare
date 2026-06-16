@@ -26,7 +26,9 @@ import {
   type Campaign,
 } from "@spinshare/core";
 
+import { publicAdvertiserIdForEmail } from "@/server/advertiser-identity";
 import { getContainer, type Container } from "@/server/container";
+import type { AuthClaims } from "@/server/ports/auth-provider";
 
 /** Always evaluate at request time; funding is a live, per-advertiser action. */
 export const dynamic = "force-dynamic";
@@ -48,17 +50,26 @@ function extractBearerToken(request: Request): string | null {
 }
 
 /**
- * Resolves the authenticated advertiser id from the request's bearer token, or
- * `null` when the token is missing/invalid.
+ * Resolves the authenticated claims from the request's bearer token, or `null`
+ * when the token is missing/invalid.
  */
-async function resolveAdvertiserId(request: Request): Promise<string | null> {
+async function resolveAdvertiserClaims(
+  request: Request,
+): Promise<AuthClaims | null> {
   const token = extractBearerToken(request);
   if (token === null || token.length === 0) {
     return null;
   }
   const { auth } = getContainer();
-  const claims = await auth.validateToken(token);
-  return claims?.userId ?? null;
+  return auth.validateToken(token);
+}
+
+function getAllowedAdvertiserIds(claims: AuthClaims): Set<string> {
+  const ids = new Set<string>([claims.userId]);
+  if (claims.email !== undefined && claims.email.trim().length > 0) {
+    ids.add(publicAdvertiserIdForEmail(claims.email));
+  }
+  return ids;
 }
 
 /** Standard `401` response body; no checkout session has been started. */
@@ -94,10 +105,11 @@ async function recordFundingActivity(
 
 export async function POST(request: Request): Promise<Response> {
   // 1. Authenticate; reject with 401 (no session) on a missing/invalid token.
-  const advertiserId = await resolveAdvertiserId(request);
-  if (advertiserId === null) {
+  const claims = await resolveAdvertiserClaims(request);
+  if (claims === null) {
     return unauthorized();
   }
+  const allowedAdvertiserIds = getAllowedAdvertiserIds(claims);
 
   // 2. Parse + validate the body via the core schema. Malformed JSON and schema
   //    violations (amount <$1.00, >$100,000.00, sub-cent, or non-numeric) both
@@ -131,7 +143,7 @@ export async function POST(request: Request): Promise<Response> {
   if (campaign === null) {
     return Response.json({ error: "campaign_not_found" }, { status: 404 });
   }
-  if (campaign.advertiserId !== advertiserId) {
+  if (!allowedAdvertiserIds.has(campaign.advertiserId)) {
     return Response.json({ error: "forbidden" }, { status: 403 });
   }
   const amountCents = getAdvertiserCheckoutAmountCents({
@@ -150,7 +162,7 @@ export async function POST(request: Request): Promise<Response> {
   const checkout = await payments.createCheckoutSession({
     campaignId: parsed.data.campaignId,
     amountCents,
-    successUrl: `${origin}/dashboard/advertiser?funding=success`,
+    successUrl: `${origin}/dashboard/advertiser?funding=success&checkout_session_id={CHECKOUT_SESSION_ID}`,
     cancelUrl: `${origin}/dashboard/advertiser?funding=cancelled`,
   });
 

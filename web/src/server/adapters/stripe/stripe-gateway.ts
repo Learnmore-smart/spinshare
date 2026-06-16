@@ -135,6 +135,13 @@ export class StripeGateway implements PaymentGateway {
       campaignId =
         session.metadata?.campaignId ?? session.client_reference_id ?? "";
       amountCents = session.amount_total ?? 0;
+      return {
+        id: event.id,
+        type: event.type,
+        checkoutSessionId: session.id,
+        campaignId,
+        amountCents,
+      };
     }
 
     return {

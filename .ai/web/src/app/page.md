@@ -332,10 +332,21 @@ Bid-market header timeframe: swap bespoke button group for shared `SegmentSlider
 - Pad chart samples with window-start and window-end anchors using the first/last known bid.
 - Store `atMs` on each point and drive `XAxis` with `type="number"` + fixed `[windowStartMs, windowEndMs]` domain.
 
+## Bug Fix: Top Earners Sparkline Type Safety (2026-06-16)
+
+**Discovered**: 2026-06-16
+**Description**: Web typecheck failed because `Sparkline` read
+`points[points.length - 1].y`, which can be `undefined` under strict indexed
+access.
+**Fix:** Keep hooks at the top of the component, return `null` for fewer than
+two data points, and use a checked `lastPoint` before rendering the endpoint
+circle.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Fixed Top Earners Sparkline strict indexed access typecheck failure | Codex |
 | 2026-06-15 | Reduce live earnings increment frequency to 2000ms and scale up steps | Antigravity |
 | 2026-06-15 | Implemented friend-reference layout spine, split hero, process panel, and market proof grid | Codex |
 | 2026-06-15 | Planned friend-reference layout adaptation while preserving SpinShare styling and live data | Codex |

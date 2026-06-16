@@ -26,6 +26,7 @@ const DEFAULT_WEBHOOK_SECRET = "whsec_mock_spinshare_local";
 
 /** Base URL the mock hosted checkout "redirects" to. */
 const CHECKOUT_BASE_URL = "https://mock.spinshare.local/checkout";
+const CHECKOUT_SESSION_PLACEHOLDER = "{CHECKOUT_SESSION_ID}";
 
 export class MockPaymentGateway implements PaymentGateway {
   constructor(
@@ -37,9 +38,13 @@ export class MockPaymentGateway implements PaymentGateway {
     input: CheckoutInput,
   ): Promise<CheckoutSessionResult> {
     const sessionId = this.ids.next("cs");
+    const successUrl = input.successUrl?.replaceAll(
+      CHECKOUT_SESSION_PLACEHOLDER,
+      sessionId,
+    );
     return {
       sessionId,
-      url: input.successUrl ?? `${CHECKOUT_BASE_URL}/${sessionId}`,
+      url: successUrl ?? `${CHECKOUT_BASE_URL}/${sessionId}`,
       settled: true,
     };
   }
@@ -96,6 +101,9 @@ export class MockPaymentGateway implements PaymentGateway {
     return {
       id: obj.id,
       type: obj.type,
+      ...(typeof obj.checkoutSessionId === "string"
+        ? { checkoutSessionId: obj.checkoutSessionId }
+        : {}),
       campaignId: obj.campaignId,
       amountCents: obj.amountCents,
     };

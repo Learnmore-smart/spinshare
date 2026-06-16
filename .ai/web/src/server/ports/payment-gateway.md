@@ -40,10 +40,26 @@ Add optional `customerEmail` so the public checkout route can pass the homepage 
 
 `CheckoutInput` now includes optional `customerEmail`.
 
+## Planned Change 2026-06-16 Checkout Session Traceability
+
+Add optional `checkoutSessionId` to parsed `StripeEvent` values. Stripe
+webhook event ids (`evt_...`) are idempotency keys, but the browser success URL
+contains the Checkout Session id (`cs_...`). Preserving both ids lets activity
+history and future post-checkout diagnostics connect a redirect back to the
+confirmed funding event.
+
+## Implemented Change 2026-06-16 Checkout Session Traceability
+
+`StripeEvent` now has optional `checkoutSessionId`. It is populated by adapters
+when the verified webhook came from a Checkout Session and left absent for other
+event types or old mock payloads.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented optional parsed checkout session id on Stripe events. | Codex |
+| 2026-06-16 | Planned optional parsed checkout session id on Stripe events. | Codex |
 | 2026-06-15 | Documented optional immediate-settlement checkout result. | Codex |
 | 2026-06-13 | Created doc before adding checkout customer email support. | Codex |
 | 2026-06-13 | Synced doc with checkout customer email field. | Codex |

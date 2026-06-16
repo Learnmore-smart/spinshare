@@ -192,6 +192,8 @@ SPINSHARE_COUNTER=rtdb    ← 生产计数器（真 RTDB）
 另外还有两个相关问题：
 - 当前 `.env` 是 `SPINSHARE_MODE=local` + `STRIPE_MODE=test`。如果没有 `SPINSHARE_USE_FIRESTORE=1` 或 `FIRESTORE_EMULATOR_HOST`，campaign 创建和 webhook 入账都在同一个进程的内存 repo 里；服务重启后会丢。
 - Firestore 已支持 `SPINSHARE_FIRESTORE_NAMESPACE=test`，集合会写到 `namespaces/test/...`；并且本地模式如果用 `SPINSHARE_USE_FIRESTORE=1` 直连真实 cloud Firestore，现在会强制要求 namespace，避免 localhost 写真实顶层集合。
+- 2026-06-16 又确认一个 dashboard 归属 bug：`/dashboard/advertiser/page.tsx` 之前 mint dashboard bearer token 时只带 `userId`，没有带 `session.user.email`。结果主页按邮箱创建的 public checkout campaign 即使同邮箱登录，也不会被 `/api/campaigns` claim 到。已修：dashboard token 现在带 `email` 和 `role: "advertiser"`，production `NextAuthDeviceProvider.mintToken()` 也会保留 optional claims。
+- 2026-06-16 本机 preflight 结果：`corepack pnpm@9.12.0 verify:local-runtime` 仍失败，因为 `stripe` 不在 PATH，且 Java 是 `1.8.0_491`（Firestore emulator 需要 Java 11+）。因此本机真实 Stripe test webhook/Firebase 闭环还没有跑通。
 
 验证过的测试：`corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/advertiser-checkout/route.test.ts src/app/api/market/route.test.ts src/app/api/webhooks/stripe/route.test.ts`，9 个相关单元测试通过。这说明 mock 付款、market 排行榜、webhook 幂等入账的单元逻辑是好的；坏点更可能在本地 Stripe webhook/环境隔离，而不是纯业务函数。
 
@@ -365,7 +367,7 @@ core/web/CLI/extension/Claude Code generated hook 都已经支持短片段累计
 - **Extension 登录 token 已同步给 Claude hooks**：`AuthManager` 新增 `FileTokenMirror`，extension sign-in 成功后会写入 CLI-compatible credential file，sign-out 时清理。这样 generated Claude hook 脚本可以读取同一份 token，不需要把 token 写进 `~/.claude/settings.json`。
 - **npm CLI 登录 token 也会同步给 Claude hooks**：`spinshare login` 成功后会把 token mirror 到 file credential，并 best-effort 安装 Claude Code adapter；`spinshare setup claude-code` 会显式执行同一安装路径。
 - **Dashboard Add Funds 修复**：`/api/funds/checkout` 现在会校验 campaign 是否存在、是否属于当前 advertiser；会传 dashboard success/cancel URL；mock checkout settled 时会立即给 campaign 加预算。
-- **主页邮箱购买 → 同邮箱登录 claim**：抽出 `publicAdvertiserIdForEmail()`，主页 checkout 和 `/api/campaigns` 共用同一算法。token 内有 email 时，dashboard 会同时读取该 email 的 public checkout campaigns。
+- **主页邮箱购买 → 同邮箱登录 claim**：抽出 `publicAdvertiserIdForEmail()`，主页 checkout 和 `/api/campaigns` 共用同一算法。dashboard server page 现在会把 `session.user.email` 放进 bearer token；production `NextAuthDeviceProvider.mintToken()` 也保留 optional claims，所以同邮箱登录能读取该 email 的 public checkout campaigns。
 - **Firestore localhost 隔离**：新增 `SPINSHARE_FIRESTORE_NAMESPACE`，collection path 可变成 `namespaces/test/users`、`namespaces/test/campaigns` 等；本地模式用 `SPINSHARE_USE_FIRESTORE=1` 直连 cloud Firestore 时强制要求 namespace，避免 localhost 写真实顶层集合。
 - **LearnX seed 默认关闭**：local development 不再默认 seed funded LearnX campaign；只有显式 `SPINSHARE_SEED_LOCAL_DATA=1` 才 seed。
 - **Attempt-level activity ledger 后端**：新增 `ActivityRepository`，`POST /api/track` 会记录 tooShort、invalidToken、invalidCampaign、credited、shadowBanned、earningCapped、duplicate 等每次曝光尝试；新增/升级 `GET /api/activity/developer` 和 `GET /api/activity/advertiser`，开发者和广告主都能查询 attempt-level 活动；两个 activity API 现在都返回 newest-first 的有界页面，支持 `limit`/`cursor` 和 `nextCursor`。
@@ -542,6 +544,25 @@ core/web/CLI/extension/Claude Code generated hook 都已经支持短片段累计
 - Focused verification passed: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/activity/developer/route.test.ts src/app/api/activity/advertiser/route.test.ts`.
 - Full regression passed after the pagination update: `corepack pnpm@9.12.0 test` and `corepack pnpm@9.12.0 lint`.
 - Remaining product work: dashboard UI still needs explicit load-more/paging controls, filters, export, and detail views.
+
+## 2026-06-16 advertiser dashboard claim fix
+
+- Root cause for “I paid on the homepage but do not see the campaign in advertiser dashboard”: homepage checkout stores ownership under `publicAdvertiserIdForEmail(purchaseEmail)`, but `/dashboard/advertiser/page.tsx` minted the dashboard bearer token with only `userId`.
+- `/api/campaigns` already knew how to claim same-email public checkout campaigns, but that branch never ran when the dashboard token lacked `email`.
+- Fix: advertiser dashboard token minting now includes `session.user.email` plus `role: "advertiser"`; `NextAuthDeviceProvider.mintToken()` now preserves optional claims, matching the mock provider behavior.
+- Focused RED/GREEN verification passed: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/dashboard/advertiser/page.test.tsx src/server/adapters/auth/nextauth-device-provider.test.ts src/app/api/campaigns/route.test.ts`.
+- Full regression passed after the fix: `corepack pnpm@9.12.0 test` and `corepack pnpm@9.12.0 lint`.
+- Separate leaderboard diagnosis: homepage checkout defaults `publicOnLeaderboard=true`, but `/api/market` only shows campaigns with `budgetCents > 0`. In Stripe test/live mode, budget becomes positive only after the Stripe webhook is delivered and accepted.
+- Current local external preflight still fails: `stripe` is not on PATH and Java is `1.8.0_491`, so local Stripe webhook forwarding and Firestore emulator write-through are not yet externally verified.
+
+## 2026-06-16 checkout return session context update
+
+- Public homepage checkout and dashboard funding success URLs now include `checkout_session_id={CHECKOUT_SESSION_ID}`.
+- Real Stripe will substitute the Checkout Session id on hosted checkout completion; the mock gateway now simulates the same substitution locally.
+- This does not replace the webhook requirement for funding. It preserves the session context needed for pending-payment diagnostics, future post-checkout UI, and manual support/debugging when a campaign is not funded.
+- Focused RED/GREEN verification passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/server/adapters/memory/memory-adapters.test.ts src/app/api/advertiser-checkout/route.test.ts src/app/api/funds/checkout/route.test.ts`.
+- Full regression passed after the update: `corepack pnpm@9.12.0 test` and `corepack pnpm@9.12.0 lint`.
 
 ## 2026-06-15 local Firestore isolation update
 
@@ -759,5 +780,92 @@ core/web/CLI/extension/Claude Code generated hook 都已经支持短片段累计
   - GREEN after implementation: the same focused route test passed with 10 tests.
 - Full verification passed:
   - `corepack pnpm@9.12.0 --filter @spinshare/web test`
+  - `corepack pnpm@9.12.0 test`
+  - `corepack pnpm@9.12.0 lint`
+
+## 2026-06-16 same-email public campaign funding update
+
+- New dashboard funding bug found in the homepage purchase model: homepage
+  checkout campaigns are owned by `publicAdvertiserIdForEmail(email)`, while
+  dashboard Add Funds authorized only `claims.userId`.
+- Previous risk: after the dashboard claim fix, a same-email homepage campaign
+  could be visible in the advertiser dashboard but still return `403` when the
+  advertiser tried to buy more blocks from the dashboard.
+- Fixed `web/src/app/api/funds/checkout/route.ts`: the route now authorizes an
+  existing campaign when its owner matches either the authenticated
+  `claims.userId` or `publicAdvertiserIdForEmail(claims.email)`.
+- This does not change the real Stripe settlement rule. In `STRIPE_MODE=test`
+  or `live`, a paid checkout still reaches the leaderboard only after
+  `POST /api/webhooks/stripe` receives `checkout.session.completed` and applies
+  budget. `/api/market` still lists only campaigns with `budgetCents > 0`.
+- RED/GREEN verification passed:
+  - RED before implementation: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/funds/checkout/route.test.ts` failed with `403` for a same-email homepage campaign.
+  - GREEN after implementation: the same focused test passed with 6 tests.
+- Related dashboard/claim regression passed:
+  - `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/funds/checkout/route.test.ts src/app/api/campaigns/route.test.ts src/app/dashboard/advertiser/page.test.tsx`
+- Full regression/typecheck passed after the final workspace state:
+  - `corepack pnpm@9.12.0 test`
+  - `corepack pnpm@9.12.0 lint`
+  - path-scoped `git diff --check` passed for the files touched in this
+    investigation; it reported only CRLF conversion warnings.
+- Real external checkout verification is still blocked locally until Stripe CLI
+  is available on `PATH` and the Firestore emulator Java dependency is upgraded
+  from `1.8.0_491` to Java 11+.
+
+## 2026-06-16 Stripe webhook funding hardening update
+
+- New webhook risk found in the paid-checkout visibility path: the route claimed
+  the Stripe event id before proving that the campaign still existed. If budget
+  application then failed, a payment event could be marked applied while the
+  campaign stayed at `budgetCents=0`, which keeps it off `/api/market`.
+- Fixed `web/src/app/api/webhooks/stripe/route.ts`: funding events are now
+  validated before idempotency claim. Empty campaign ids or non-positive amounts
+  are ignored without mutation; missing campaigns return a retryable `500` and
+  do not mark the event as applied.
+- Added Checkout Session traceability: `StripeEvent` now carries optional
+  `checkoutSessionId`, `StripeGateway` parses `session.id`, the mock gateway
+  preserves it in signed payloads, and `budgetFunded` activity records it. This
+  connects `checkout_session_id=cs_...` from the success URL to the eventual
+  funding activity row.
+- RED/GREEN focused verification passed:
+  - RED: webhook route test failed because missing campaign threw after event
+    claim, and funded activity lacked `checkoutSessionId`.
+  - GREEN: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/webhooks/stripe/route.test.ts src/server/adapters/stripe/stripe-gateway.test.ts`
+- Related payment/market/activity regression passed:
+  - `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/webhooks/stripe/route.test.ts src/app/api/webhooks/stripe/payment.property.test.ts src/app/api/advertiser-checkout/route.test.ts src/app/api/funds/checkout/route.test.ts src/app/api/market/route.test.ts src/app/api/activity/advertiser/route.test.ts src/server/adapters/stripe/stripe-gateway.test.ts`
+- Full regression/typecheck passed:
+  - `corepack pnpm@9.12.0 test`
+  - `corepack pnpm@9.12.0 lint`
+- This still does not replace real webhook delivery: Stripe test/live checkout
+  must still deliver `checkout.session.completed` to the same environment that
+  stores the campaign.
+
+## 2026-06-16 checkout status diagnostics update
+
+- New observability gap found: homepage and dashboard success URLs now carry
+  `checkout_session_id=cs_...`, but there was no API to resolve that id back to
+  local SpinShare state. Users could pay successfully and still see no clear
+  answer about whether SpinShare was waiting for the webhook or had funded the
+  campaign.
+- Added `ActivityRepository.listByCheckoutSessionId(sessionId)` to resolve
+  advertiser activity rows by Checkout Session id. Memory and Firestore
+  adapters implement it and return only advertiser events.
+- Added public low-information endpoint
+  `GET /api/checkout-status?checkout_session_id=cs_...`:
+  - `400` for missing/malformed session ids;
+  - `404 { status: "unknown" }` when SpinShare has no checkout activity;
+  - `200 { status: "pending_webhook", campaign }` when checkout was created but
+    no budget-funded event exists;
+  - `200 { status: "funded", campaign }` when budget funding activity exists.
+- The campaign payload intentionally excludes contact email and identity data.
+  It includes only id, budget cents, public leaderboard flag, biddable flag, and
+  leaderboard eligibility.
+- RED/GREEN focused verification passed:
+  - RED: checkout-status route missing and memory activity repo had no
+    `listByCheckoutSessionId()`.
+  - GREEN: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/checkout-status/route.test.ts src/server/adapters/memory/memory-activity-repository.test.ts`.
+- Related checkout/payment/market regression passed:
+  - `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/checkout-status/route.test.ts src/server/adapters/memory/memory-activity-repository.test.ts src/app/api/advertiser-checkout/route.test.ts src/app/api/funds/checkout/route.test.ts src/app/api/webhooks/stripe/route.test.ts src/app/api/activity/advertiser/route.test.ts src/app/api/market/route.test.ts`
+- Full regression/typecheck passed:
   - `corepack pnpm@9.12.0 test`
   - `corepack pnpm@9.12.0 lint`

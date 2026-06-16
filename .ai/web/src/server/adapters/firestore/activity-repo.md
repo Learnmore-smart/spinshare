@@ -34,10 +34,25 @@ Firestore activity deserialization now preserves advertiser event fields
 advertiser money events; legacy/no-type rows continue to deserialize as
 impression attempts.
 
+## Planned Change 2026-06-16 Checkout Session Lookup
+
+Implement `listByCheckoutSessionId(sessionId)` with a Firestore equality query
+on `checkoutSessionId`, deserialize records through the existing mapper, and
+return only `type: "advertiser_event"` rows. This supports public
+post-checkout diagnostics without needing a campaign id first.
+
+## Implemented Change 2026-06-16 Checkout Session Lookup
+
+`FirestoreActivityRepo.listByCheckoutSessionId()` now queries by
+`checkoutSessionId`, deserializes through `toActivity()`, keeps only advertiser
+events, and sorts by `createdAtMs`.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented checkout session lookup for Firestore activity repo. | Codex |
+| 2026-06-16 | Planned checkout session lookup for Firestore activity repo. | Codex |
 | 2026-06-15 | Implemented Firestore support for advertiser money activity events. | Codex |
 | 2026-06-15 | Planned Firestore support for advertiser money activity events. | Codex |
 | 2026-06-15 | Implemented Firestore activity repository. | Codex |

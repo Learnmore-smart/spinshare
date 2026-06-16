@@ -1,6 +1,7 @@
 import type {
   ActivityRepository,
   ActivityRecord,
+  AdvertiserActivity,
   ImpressionActivity,
 } from "../../ports/activity-repository";
 
@@ -27,6 +28,18 @@ export class MemoryActivityRepository implements ActivityRepository {
     const campaignSet = new Set(campaignIds);
     return [...this.activities.values()]
       .filter((activity) => campaignSet.has(activity.campaignId))
+      .map((activity) => ({ ...activity }));
+  }
+
+  async listByCheckoutSessionId(
+    sessionId: string,
+  ): Promise<AdvertiserActivity[]> {
+    return [...this.activities.values()]
+      .filter(
+        (activity): activity is AdvertiserActivity =>
+          activity.type === "advertiser_event" &&
+          activity.checkoutSessionId === sessionId,
+      )
       .map((activity) => ({ ...activity }));
   }
 

@@ -5,6 +5,103 @@
 
 ## Current update
 
+Checkout status diagnostics update:
+
+- Root cause observability gap found: success URLs carried
+  `checkout_session_id=cs_...`, but SpinShare had no API to resolve that id
+  back to checkout/funding/campaign state.
+- `ActivityRepository` now supports `listByCheckoutSessionId(sessionId)`.
+  Memory and Firestore adapters implement it and return advertiser events only.
+- Added public low-information `GET /api/checkout-status?checkout_session_id=cs_...`.
+  It reports `unknown`, `pending_webhook`, or `funded` and includes only
+  campaign id, budget cents, public leaderboard flag, biddable flag, and
+  leaderboard eligibility.
+- Focused RED/GREEN verification passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/checkout-status/route.test.ts src/server/adapters/memory/memory-activity-repository.test.ts`.
+- Related checkout/payment/market regression passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/checkout-status/route.test.ts src/server/adapters/memory/memory-activity-repository.test.ts src/app/api/advertiser-checkout/route.test.ts src/app/api/funds/checkout/route.test.ts src/app/api/webhooks/stripe/route.test.ts src/app/api/activity/advertiser/route.test.ts src/app/api/market/route.test.ts`.
+- Full regression/typecheck passed:
+  `corepack pnpm@9.12.0 test` and `corepack pnpm@9.12.0 lint`.
+
+Stripe webhook funding hardening update:
+
+- Root cause risk found in the paid-checkout visibility path: webhook funding
+  claimed the Stripe event id before proving the campaign existed. If applying
+  budget failed after that point, the event could be recorded as applied while
+  the campaign stayed unfunded and invisible on `/api/market`.
+- `/api/webhooks/stripe` now validates funding payloads before idempotency
+  claim. Missing campaigns return a retryable `500` without marking the payment
+  event applied; empty campaign ids or non-positive amounts are ignored without
+  mutation.
+- `StripeEvent` now carries optional `checkoutSessionId`. `StripeGateway` fills
+  it from `session.id`, the mock gateway preserves it, and `budgetFunded`
+  advertiser activity writes it for post-checkout diagnostics.
+- Focused webhook/gateway verification passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/webhooks/stripe/route.test.ts src/server/adapters/stripe/stripe-gateway.test.ts`.
+- Related payment/market/activity regression passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/webhooks/stripe/route.test.ts src/app/api/webhooks/stripe/payment.property.test.ts src/app/api/advertiser-checkout/route.test.ts src/app/api/funds/checkout/route.test.ts src/app/api/market/route.test.ts src/app/api/activity/advertiser/route.test.ts src/server/adapters/stripe/stripe-gateway.test.ts`.
+- Full regression/typecheck passed:
+  `corepack pnpm@9.12.0 test` and `corepack pnpm@9.12.0 lint`.
+- Real Stripe test/live checkout still requires webhook delivery to the same
+  storage environment before a paid campaign appears on the leaderboard.
+
+Same-email public campaign funding update:
+
+- Root cause found for visible homepage-purchased campaigns failing dashboard
+  Add Funds: homepage checkout campaigns are owned by
+  `publicAdvertiserIdForEmail(email)`, but `/api/funds/checkout` authorized only
+  `claims.userId`.
+- `/api/funds/checkout` now authorizes a campaign when its owner matches either
+  the authenticated `claims.userId` or the same-email public advertiser id.
+- This keeps the non-owner `403` boundary and makes the homepage purchase model
+  consistent with advertiser dashboard block purchases.
+- Focused RED/GREEN verification passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/funds/checkout/route.test.ts`.
+- Related dashboard/claim regression passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/funds/checkout/route.test.ts src/app/api/campaigns/route.test.ts src/app/dashboard/advertiser/page.test.tsx`.
+- Full regression/typecheck passed after the final workspace state:
+  `corepack pnpm@9.12.0 test` and `corepack pnpm@9.12.0 lint`.
+- Path-scoped `git diff --check` passed for the files touched in this
+  investigation, with only CRLF conversion warnings.
+- Leaderboard still depends on Stripe webhook funding: `/api/market` only shows
+  campaigns with `budgetCents > 0`; test/live Checkout does not fund until
+  `/api/webhooks/stripe` receives `checkout.session.completed`.
+- Current local preflight still fails because `stripe` is not on PATH and Java
+  is `1.8.0_491`, below the Firestore emulator requirement.
+
+Advertiser dashboard claim fix:
+
+- Root cause found for homepage purchase not appearing in advertiser dashboard:
+  dashboard bearer tokens were minted with only `userId`, while homepage
+  checkout campaigns are claimable by same-email public advertiser id.
+- `/dashboard/advertiser/page.tsx` now passes `session.user.email` and
+  `role: "advertiser"` into the dashboard token.
+- `NextAuthDeviceProvider.mintToken()` now preserves optional claims, matching
+  the mock provider's direct-mint behavior.
+- Focused RED/GREEN verification passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/dashboard/advertiser/page.test.tsx src/server/adapters/auth/nextauth-device-provider.test.ts src/app/api/campaigns/route.test.ts`.
+- Full regression passed after the fix:
+  `corepack pnpm@9.12.0 test` and `corepack pnpm@9.12.0 lint`.
+- Leaderboard still depends on Stripe webhook funding: `/api/market` only shows
+  campaigns with `budgetCents > 0`; test/live Checkout does not fund until
+  `/api/webhooks/stripe` receives `checkout.session.completed`.
+- Current local preflight still fails because `stripe` is not on PATH and Java
+  is `1.8.0_491`, below the Firestore emulator requirement.
+
+Checkout return session context update:
+
+- Public homepage checkout and dashboard funding success URLs now include
+  `checkout_session_id={CHECKOUT_SESSION_ID}`.
+- The mock payment gateway now replaces Stripe's placeholder with the generated
+  mock session id, so localhost redirect URLs carry session context too.
+- This does not fund campaigns by itself; funding still requires mock settlement
+  or a real Stripe webhook. It gives us the session id needed for pending-payment
+  diagnostics and future post-checkout UI.
+- Focused RED/GREEN verification passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/server/adapters/memory/memory-adapters.test.ts src/app/api/advertiser-checkout/route.test.ts src/app/api/funds/checkout/route.test.ts`.
+- Full regression passed after the update:
+  `corepack pnpm@9.12.0 test` and `corepack pnpm@9.12.0 lint`.
+
 Activity ledger pagination update:
 
 - Developer and advertiser activity APIs now return bounded newest-first pages

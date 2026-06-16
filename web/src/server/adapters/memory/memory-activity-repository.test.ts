@@ -89,4 +89,46 @@ describe("MemoryActivityRepository", () => {
       },
     ]);
   });
+
+  it("lists advertiser events by checkout session id", async () => {
+    const repo = new MemoryActivityRepository();
+
+    await repo.record(baseActivity);
+    await repo.record({
+      activityId: "checkout-started",
+      campaignId: "cmp_1",
+      advertiserId: "adv_1",
+      type: "advertiser_event",
+      status: "checkoutStarted",
+      amountCents: 500,
+      amountUsd: "5.00",
+      checkoutSessionId: "cs_1",
+      createdAtMs: 2000,
+    });
+    await repo.record({
+      activityId: "checkout-other",
+      campaignId: "cmp_2",
+      advertiserId: "adv_2",
+      type: "advertiser_event",
+      status: "checkoutStarted",
+      amountCents: 600,
+      amountUsd: "6.00",
+      checkoutSessionId: "cs_2",
+      createdAtMs: 3000,
+    });
+
+    await expect(repo.listByCheckoutSessionId("cs_1")).resolves.toEqual([
+      {
+        activityId: "checkout-started",
+        campaignId: "cmp_1",
+        advertiserId: "adv_1",
+        type: "advertiser_event",
+        status: "checkoutStarted",
+        amountCents: 500,
+        amountUsd: "5.00",
+        checkoutSessionId: "cs_1",
+        createdAtMs: 2000,
+      },
+    ]);
+  });
 });

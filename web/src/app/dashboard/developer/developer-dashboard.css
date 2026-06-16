@@ -277,17 +277,17 @@
   color: var(--dev-muted);
 }
 
+/* Hero Balance Card — Light Theme (Default) */
 .dev-dash-hero {
   position: relative;
   overflow: hidden;
   border-radius: 1.25rem;
   padding: 1.25rem;
-  background:
-    linear-gradient(145deg, rgba(10, 10, 11, 0.97) 0%, rgba(15, 35, 28, 0.94) 100%);
-  border: 1px solid rgba(16, 185, 129, 0.22);
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+  border: 1px solid var(--border-callout);
   box-shadow:
-    0 24px 48px rgba(15, 23, 42, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    var(--shadow-elevation-md),
+    0 10px 30px rgba(16, 185, 129, 0.03);
 }
 
 @media (min-width: 640px) {
@@ -301,7 +301,7 @@
   position: absolute;
   inset: -40% -20% auto;
   height: 120%;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.14) 0%, transparent 62%);
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 62%);
   pointer-events: none;
 }
 
@@ -310,8 +310,78 @@
   font-weight: 900;
   letter-spacing: -0.04em;
   line-height: 1;
+  color: var(--color-primary-800);
+}
+
+.dev-dash-hero-eyebrow {
+  color: var(--color-primary-600);
+}
+
+.dev-dash-hero-sub {
+  color: var(--text-secondary);
+}
+
+.dev-dash-hero-threshold {
+  color: var(--text-secondary);
+}
+
+.dev-dash-hero-progress-track {
+  background: var(--color-primary-100);
+  height: 0.5rem;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.dev-dash-hero-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--color-primary-500), var(--color-primary-600));
+}
+
+.dev-dash-hero-divider {
+  border-color: rgba(16, 185, 129, 0.15);
+}
+
+/* Hero Balance Card — Dark Theme */
+.dark .dev-dash-hero {
+  background: linear-gradient(145deg, rgba(10, 10, 11, 0.97) 0%, rgba(15, 35, 28, 0.94) 100%);
+  border-color: rgba(16, 185, 129, 0.22);
+  box-shadow:
+    0 24px 48px rgba(15, 23, 42, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.dark .dev-dash-hero::after {
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.14) 0%, transparent 62%);
+}
+
+.dark .dev-dash-balance {
   color: #ecfdf5;
   text-shadow: 0 0 28px var(--dev-glow);
+}
+
+.dark .dev-dash-hero-eyebrow {
+  color: rgba(52, 211, 153, 0.9);
+}
+
+.dark .dev-dash-hero-sub {
+  color: rgba(209, 250, 229, 0.7);
+}
+
+.dark .dev-dash-hero-threshold {
+  color: rgba(167, 243, 208, 0.8);
+}
+
+.dark .dev-dash-hero-progress-track {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.dark .dev-dash-hero-progress-fill {
+  background: linear-gradient(90deg, #34d399, #6ee7b7);
+}
+
+.dark .dev-dash-hero-divider {
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .dev-dash-panel {

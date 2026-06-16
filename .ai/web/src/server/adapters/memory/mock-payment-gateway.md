@@ -37,8 +37,37 @@ Cause: mock checkout creates a zero-budget campaign and a fake checkout URL, but
 
 Fix: mark mock checkout sessions as immediately settled and have the public checkout route credit the campaign budget only when the payment gateway returns that explicit marker.
 
+## Planned Change 2026-06-16
+
+Stripe replaces `{CHECKOUT_SESSION_ID}` in `success_url` after hosted checkout
+completion. The mock gateway should replace the same placeholder with the mock
+session id so local redirect URLs carry the session context too.
+
+## Implemented Change 2026-06-16
+
+`createCheckoutSession()` now replaces every `{CHECKOUT_SESSION_ID}` occurrence
+in the provided success URL with the generated mock `sessionId`.
+
+## Implemented Change 2026-06-16 Webhook Checkout Session Traceability
+
+`verifyAndParseWebhook()` now preserves optional `checkoutSessionId` from signed
+mock webhook payloads. This keeps mock webhook tests aligned with Stripe's real
+`checkout.session.completed` parsing, where the event id and Checkout Session
+id are distinct.
+
+## Verification
+
+- Red focused run failed because mock checkout returned the literal placeholder.
+- Green focused run passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/server/adapters/memory/memory-adapters.test.ts src/app/api/advertiser-checkout/route.test.ts src/app/api/funds/checkout/route.test.ts`.
+- Full regression passed:
+  `corepack pnpm@9.12.0 test` and `corepack pnpm@9.12.0 lint`.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Preserved optional checkout session id in mock webhook parsing. | Codex |
+| 2026-06-16 | Implemented mock checkout success URL session-id replacement. | Codex |
+| 2026-06-16 | Planned mock checkout success URL session-id replacement. | Codex |
 | 2026-06-15 | Created doc and documented mock settlement fix. | Codex |

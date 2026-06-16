@@ -6,29 +6,10 @@
  * `layout.tsx`.
  */
 
-import { auth } from "@/server/adapters/auth/nextauth-config";
-import { getContainer } from "@/server/container";
-
-import { AdvertiserDashboard } from "./advertiser-dashboard";
+import { AdvertiserOverviewView } from "./advertiser-overview-view";
 
 export const dynamic = "force-dynamic";
 
-interface TokenMinter {
-  mintToken(userId: string): string;
-}
-
-function mintAdvertiserToken(userId: string): string {
-  const { auth: provider } = getContainer();
-  return (provider as unknown as TokenMinter).mintToken(userId);
-}
-
-export default async function AdvertiserDashboardPage() {
-  const session = await auth();
-  const user = session?.user;
-  const userId = user
-    ? ((user as { id?: string }).id ?? user.email ?? "")
-    : "";
-
-  const token = mintAdvertiserToken(userId);
-  return <AdvertiserDashboard token={token} />;
+export default function AdvertiserDashboardPage() {
+  return <AdvertiserOverviewView />;
 }

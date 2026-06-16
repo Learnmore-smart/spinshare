@@ -84,7 +84,7 @@ export async function POST(request: Request): Promise<Response> {
     campaignId: campaign.id,
     amountCents,
     customerEmail: input.email,
-    successUrl: `${origin}/?checkout=success#bid-market`,
+    successUrl: `${origin}/?checkout=success&checkout_session_id={CHECKOUT_SESSION_ID}#bid-market`,
     cancelUrl: `${origin}/?checkout=cancelled#advertiser-checkout`,
   });
   const responseCampaign = { ...campaign };

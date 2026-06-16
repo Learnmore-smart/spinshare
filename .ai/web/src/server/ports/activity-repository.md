@@ -43,10 +43,27 @@ Added `AdvertiserActivityStatus`, `AdvertiserActivity`, and `ActivityRecord`.
 `listByCampaignIds()` returns all activity records for advertiser-owned
 campaigns.
 
+## Planned Change 2026-06-16 Checkout Session Lookup
+
+Add a lookup for advertiser activity by `checkoutSessionId`. The success URL
+after Stripe Checkout carries only the Checkout Session id, so a diagnostic API
+needs to resolve `cs_...` back to our `checkoutStarted` / `budgetFunded`
+activity rows without scanning unrelated data.
+
+The lookup should return advertiser events only and avoid exposing developer
+impression attempts.
+
+## Implemented Change 2026-06-16 Checkout Session Lookup
+
+`ActivityRepository` now exposes `listByCheckoutSessionId(sessionId)`, returning
+only advertiser activity rows for the exact Checkout Session id.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented checkout session activity lookup. | Codex |
+| 2026-06-16 | Planned checkout session activity lookup. | Codex |
 | 2026-06-15 | Implemented advertiser payment/funding/debit activity events. | Codex |
 | 2026-06-15 | Planned advertiser payment/funding/debit activity events. | Codex |
 | 2026-06-15 | Implemented activity repository port and status model. | Codex |

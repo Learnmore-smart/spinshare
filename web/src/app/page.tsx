@@ -360,6 +360,159 @@ function ThreeDCard({ children, className = "" }: { children: React.ReactNode; c
   );
 }
 
+function ThreeDTableCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState({ rx: 0, ry: 0, x: 0, y: 0, isHovered: false });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    if (window.matchMedia("(pointer: coarse)").matches) return;
+
+    const card = cardRef.current;
+    const rect = card.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    // Tilt angle
+    const rY = ((mouseX / width) - 0.5) * 10;
+    const rX = (0.5 - (mouseY / height)) * 10;
+
+    const px = (mouseX / width) * 100;
+    const py = (mouseY / height) * 100;
+
+    setCoords({ rx: rX, ry: rY, x: px, y: py, isHovered: true });
+  };
+
+  const handleMouseLeave = () => {
+    setCoords((prev) => ({ ...prev, rx: 0, ry: 0, isHovered: false }));
+  };
+
+  const style: React.CSSProperties = {
+    transform: `perspective(1000px) rotateX(${coords.rx}deg) rotateY(${coords.ry}deg) scale3d(${coords.isHovered ? 1.01 : 1}, ${coords.isHovered ? 1.01 : 1}, 1)`,
+    transition: coords.isHovered ? "transform 0.1s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.15s ease-out" : "transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.5s ease-out",
+    boxShadow: coords.isHovered
+      ? "0 30px 60px -15px rgba(16, 185, 129, 0.18), 0 15px 30px -10px rgba(0, 0, 0, 0.1)"
+      : "0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02)",
+    transformStyle: "preserve-3d",
+  };
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={style}
+      className={`threed-card group relative rounded-2xl border border-[var(--border-default)] bg-[var(--surface-white)] select-none w-full overflow-hidden ${className}`}
+    >
+      {/* Glare/shine effect */}
+      <div
+        className="pointer-events-none absolute inset-0 z-10 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          background: `radial-gradient(circle 350px at ${coords.x}% ${coords.y}%, rgba(16, 185, 129, 0.16), transparent 75%)`,
+        }}
+      />
+      <div className="threed-card-content w-full relative z-20">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Sparkline({ data }: { data: number[] }) {
+  const [gradId, setGradId] = useState("");
+  useEffect(() => {
+    setGradId(`sparkline-grad-${Math.random().toString(36).substring(2, 9)}`);
+  }, []);
+
+  if (data.length < 2) {
+    return null;
+  }
+
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  const width = 100;
+  const height = 30;
+
+  const points = data.map((val, index) => {
+    const x = (index / (data.length - 1)) * width;
+    const y = height - ((val - min) / range) * (height - 6) - 3;
+    return { x, y };
+  });
+
+  const pathD = `M ${points.map(p => `${p.x} ${p.y}`).join(" L ")}`;
+  const fillD = `${pathD} L ${width} ${height} L 0 ${height} Z`;
+  const lastPoint = points[points.length - 1];
+
+  if (lastPoint === undefined) {
+    return null;
+  }
+
+  return (
+    <svg width={width} height={height} className="overflow-visible">
+      {gradId && (
+        <defs>
+          <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#10b981" stopOpacity={0.25} />
+            <stop offset="100%" stopColor="#10b981" stopOpacity={0.0} />
+          </linearGradient>
+        </defs>
+      )}
+      <path
+        d={fillD}
+        fill={gradId ? `url(#${gradId})` : "none"}
+      />
+      <path
+        d={pathD}
+        fill="none"
+        stroke="#10b981"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle
+        cx={width}
+        cy={lastPoint.y}
+        r="3"
+        fill="#10b981"
+      />
+    </svg>
+  );
+}
+
+interface TopEarner {
+  rank: number;
+  lifetimeEarned: number;
+  earningPerHour: number;
+  totalHours: number;
+  history: number[];
+}
+
+const TOP_EARNERS_DATA: TopEarner[] = [
+  // Rank 1: Steady linear growth with a slight dip in the middle, then a rise
+  { rank: 1, lifetimeEarned: 18924.50, earningPerHour: 24.50, totalHours: 772.4, history: [12000, 12500, 13100, 14200, 15800, 17200, 18924.50] },
+  // Rank 2: Exponential takeoff (very low early on, then surging rapidly)
+  { rank: 2, lifetimeEarned: 16420.80, earningPerHour: 21.80, totalHours: 753.2, history: [4000, 4200, 4800, 6500, 9000, 12800, 16420.80] },
+  // Rank 3: High early growth, then mostly flat/plateaued recently
+  { rank: 3, lifetimeEarned: 14105.00, earningPerHour: 19.50, totalHours: 723.3, history: [8000, 12500, 12700, 12800, 13500, 13800, 14105.00] },
+  // Rank 4: Decelerating growth (very high early start, then tapering off)
+  { rank: 4, lifetimeEarned: 11850.20, earningPerHour: 17.20, totalHours: 688.9, history: [3000, 7000, 9500, 10500, 11000, 11400, 11850.20] },
+  // Rank 5: Distinct double stepped growth (staircase style)
+  { rank: 5, lifetimeEarned: 9640.40, earningPerHour: 15.50, totalHours: 621.9, history: [6000, 6100, 7800, 7900, 8000, 9500, 9640.40] },
+  // Rank 6: Accelerating parabolic curve
+  { rank: 6, lifetimeEarned: 7980.15, earningPerHour: 14.10, totalHours: 565.9, history: [2000, 2300, 2800, 3700, 4900, 6500, 7980.15] },
+  // Rank 7: Steady, wavy growth (rising, slight dip, then rising)
+  { rank: 7, lifetimeEarned: 6350.60, earningPerHour: 12.80, totalHours: 496.1, history: [4500, 5200, 4900, 5600, 5400, 6000, 6350.60] },
+  // Rank 8: S-Curve / Sigmoid (slow start, rapid middle, plateauing end)
+  { rank: 8, lifetimeEarned: 5120.30, earningPerHour: 11.50, totalHours: 445.2, history: [2000, 2200, 2600, 4200, 4800, 5000, 5120.30] },
+  // Rank 9: Jagged staircase with a recent spike
+  { rank: 9, lifetimeEarned: 4050.90, earningPerHour: 10.20, totalHours: 397.1, history: [1500, 2500, 2600, 2700, 2750, 2800, 4050.90] },
+  // Rank 10: Smooth curved growth with a late surge
+  { rank: 10, lifetimeEarned: 3210.45, earningPerHour: 9.10, totalHours: 352.8, history: [1000, 1200, 1500, 1900, 2100, 2200, 3210.45] }
+];
+
 const CLAUDE_CATEGORIES = ["Bash", "Glob", "Write", "Read"] as const;
 
 const CLAUDE_STATES = LOADING_VERBS.map((verb, i) => ({
@@ -375,6 +528,13 @@ export default function HomePage() {
   const [timeframe, setTimeframe] = useState<"24h" | "all">("24h");
   const [bidHistory, setBidHistory] = useState<BidSnapshot[]>([]);
   const [mounted, setMounted] = useState(false);
+
+  const isLocalhost = mounted && (
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.hostname === "[::1]" ||
+    window.location.hostname.endsWith(".local")
+  );
 
   useEffect(() => {
     setMounted(true);
@@ -965,6 +1125,65 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {isLocalhost && (
+          <section id="top-earners" className="spinshare-frame-section spinshare-home-section-muted px-4 py-16 sm:px-6 lg:py-20">
+            <div className="mx-auto max-w-7xl">
+              <div className="mx-auto max-w-3xl text-center mb-11">
+                <p className="spinshare-home-label-accent text-xs font-black uppercase tracking-[0.18em]">
+                  {t.topEarners.title}
+                </p>
+                <h2 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
+                  {t.topEarners.title}
+                </h2>
+                <p className="spinshare-home-body mt-4 text-base font-semibold leading-7">
+                  {t.topEarners.subtitle}
+                </p>
+              </div>
+
+              <ThreeDTableCard>
+                <div className="overflow-x-auto">
+                  <div className="min-w-[680px] p-6 md:p-8">
+                    {/* Table Header */}
+                    <div className="spinshare-home-table-head grid grid-cols-[50px_1.5fr_1.2fr_1.2fr_120px] gap-4 pb-4 items-center border-b border-[var(--border-subtle)] text-xs font-black uppercase tracking-wider text-[var(--text-muted)]">
+                      <div>{t.topEarners.rank}</div>
+                      <div className="text-right sm:text-left">{t.topEarners.lifetimeEarned}</div>
+                      <div className="text-right">{t.topEarners.earningPerHour}</div>
+                      <div className="text-right">{t.topEarners.totalHours}</div>
+                      <div className="flex justify-center">{t.topEarners.growthTrend}</div>
+                    </div>
+
+                    {/* Table Body */}
+                    <div className="divide-y divide-[var(--border-subtle)]">
+                      {TOP_EARNERS_DATA.map((user) => (
+                        <div
+                          key={user.rank}
+                          className="grid grid-cols-[50px_1.5fr_1.2fr_1.2fr_120px] gap-4 py-4 items-center text-sm hover:bg-emerald-500/5 transition-colors duration-200 px-2 -mx-2 rounded-lg"
+                        >
+                          <div className="font-black text-lg text-[var(--text-muted)] flex items-center justify-center">
+                            {user.rank === 1 ? "🥇" : user.rank === 2 ? "🥈" : user.rank === 3 ? "🥉" : `#${user.rank}`}
+                          </div>
+                          <div className="font-black text-base text-[var(--text-primary)] text-right sm:text-left tabular-nums">
+                            {moneyFormatter.format(user.lifetimeEarned)}
+                          </div>
+                          <div className="font-bold text-[var(--text-secondary)] text-right tabular-nums">
+                            {moneyFormatter.format(user.earningPerHour)}/hr
+                          </div>
+                          <div className="font-bold text-[var(--text-secondary)] text-right tabular-nums">
+                            {user.totalHours.toLocaleString(undefined, { minimumFractionDigits: 1 })} hrs
+                          </div>
+                          <div className="flex justify-center items-center h-8">
+                            <Sparkline data={user.history} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </ThreeDTableCard>
+            </div>
+          </section>
+        )}
 
         <section className="spinshare-frame-section spinshare-home-section-muted px-4 py-16 sm:px-6 lg:py-20">
           <div className="mx-auto flex max-w-5xl flex-col gap-6 md:flex-row md:items-center md:justify-between">

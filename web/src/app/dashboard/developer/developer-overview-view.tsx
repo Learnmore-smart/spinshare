@@ -63,18 +63,18 @@ export function DeveloperOverviewView() {
   return (
     <>
       <section className="dev-dash-hero dev-dash-rise relative" data-testid="kpi-cards">
-        <p className="relative text-xs font-black uppercase tracking-[0.18em] text-emerald-400/90">
+        <p className="relative text-xs font-black uppercase tracking-[0.18em] dev-dash-hero-eyebrow">
           {t.developerDashboard.yourBalance}
         </p>
         <p className="dev-dash-balance relative mt-2" data-testid="kpi-total-earnings">
           ${totalEarningsUsd}
         </p>
-        <p className="relative mt-2 text-sm font-semibold text-emerald-100/70">
+        <p className="relative mt-2 text-sm font-semibold dev-dash-hero-sub">
           {t.developerDashboard.lifetimeCredit(impressionCount)}
         </p>
 
         <div className="relative mt-5">
-          <div className="mb-1.5 flex justify-between text-[11px] font-bold text-emerald-200/80">
+          <div className="mb-1.5 flex justify-between text-[11px] font-bold dev-dash-hero-threshold">
             <span>{t.developerDashboard.payoutThreshold}</span>
             <span>
               {payoutEligible
@@ -85,17 +85,17 @@ export function DeveloperOverviewView() {
                   )}
             </span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-black/40">
+          <div className="h-2 overflow-hidden rounded-full dev-dash-hero-progress-track">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-300"
+              className="h-full rounded-full dev-dash-hero-progress-fill"
               style={{ width: `${payoutProgress}%` }}
             />
           </div>
         </div>
 
         {impressionCount === 0 && (
-          <div className="relative mt-5 border-t border-white/10 pt-4">
-            <p className="text-xs font-semibold text-emerald-100/75">
+          <div className="relative mt-5 border-t dev-dash-hero-divider pt-4">
+            <p className="text-xs font-semibold dev-dash-hero-sub">
               {t.developerDashboard.noImpressionsYet}
             </p>
             <SetupGuideButton className="mt-3 w-full sm:w-auto" />
@@ -111,13 +111,6 @@ export function DeveloperOverviewView() {
         <div className="dev-dash-stat" data-testid="kpi-month">
           <p className="text-[10px] font-black uppercase tracking-wider text-[var(--dev-muted)]">{t.developerDashboard.monthUtc}</p>
           <p className="mt-1 text-xl font-black tabular-nums">${monthEarningsUsd}</p>
-        </div>
-        <div className="dev-dash-stat">
-          <p className="text-[10px] font-black uppercase tracking-wider text-[var(--dev-muted)]">{t.developerDashboard.hourlyCap}</p>
-          <p className="mt-1 text-xl font-black tabular-nums">{money(hourlyEarningsCents)}</p>
-          <p className="mt-0.5 text-[10px] font-bold text-[var(--dev-muted)]">
-            {t.developerDashboard.ofLimit(money(DEVELOPER_HOURLY_EARNING_LIMIT_CENTS))}
-          </p>
         </div>
         <div className="dev-dash-stat" data-testid="kpi-impressions">
           <p className="text-[10px] font-black uppercase tracking-wider text-[var(--dev-muted)]">{t.developerDashboard.events}</p>

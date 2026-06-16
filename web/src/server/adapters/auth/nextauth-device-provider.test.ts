@@ -75,6 +75,22 @@ describe("NextAuthDeviceProvider", () => {
     expect(claims?.userId).toBe("dev_7");
   });
 
+  it("direct-minted tokens preserve optional email and role claims", async () => {
+    const { provider } = makeProvider();
+    const token = provider.mintToken("google:buyer-123", {
+      email: "Buyer@Example.com",
+      role: "advertiser",
+    });
+
+    const claims = await provider.validateToken(token);
+
+    expect(claims).toMatchObject({
+      userId: "google:buyer-123",
+      email: "Buyer@Example.com",
+      role: "advertiser",
+    });
+  });
+
   it("validateToken returns null for garbage", async () => {
     const { provider } = makeProvider();
     expect(await provider.validateToken("garbage")).toBeNull();

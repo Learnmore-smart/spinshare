@@ -45,4 +45,5 @@ export interface ActivityRepository {
   record(activity: ActivityRecord): Promise<void>;
   listByDeveloper(developerId: string): Promise<ImpressionActivity[]>;
   listByCampaignIds(campaignIds: string[]): Promise<ActivityRecord[]>;
+  listByCheckoutSessionId(sessionId: string): Promise<AdvertiserActivity[]>;
 }

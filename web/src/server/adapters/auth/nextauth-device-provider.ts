@@ -204,9 +204,12 @@ export class NextAuthDeviceProvider implements AuthProvider {
    * Mints a valid `Device_Auth_Token` for `userId` directly (no device flow).
    * Parallels {@link MockAuthProvider.mintToken} for parity in tests/tools.
    */
-  mintToken(userId: string): string {
+  mintToken(
+    userId: string,
+    claims: Omit<Partial<AuthClaims>, "userId"> = {},
+  ): string {
     return mintDeviceToken(
-      { userId },
+      { ...claims, userId },
       { nowSec: Math.floor(this.clock.nowMs() / 1000) },
     );
   }

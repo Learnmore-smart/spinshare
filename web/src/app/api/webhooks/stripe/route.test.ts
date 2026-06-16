@@ -156,6 +156,44 @@ describe("POST /api/webhooks/stripe", () => {
     ]);
   });
 
+  it("does not mark a missing campaign funding event as applied", async () => {
+    const container = getContainer();
+    const event: StripeEvent = {
+      id: "evt_missing_campaign",
+      type: "checkout.session.completed",
+      campaignId: "cmp_missing",
+      amountCents: 7500,
+    };
+
+    const res = await POST(signedRequest(event));
+
+    expect(res.status).toBe(500);
+    await expect(container.paymentEvents.hasApplied(event.id)).resolves.toBe(
+      false,
+    );
+  });
+
+  it("keeps the checkout session id on funded activity", async () => {
+    const container = getContainer();
+    seedCampaign(container, "cmp1");
+    const event: StripeEvent = {
+      id: "evt_session_activity",
+      type: "checkout.session.completed",
+      campaignId: "cmp1",
+      amountCents: 7500,
+      checkoutSessionId: "cs_test_123",
+    };
+
+    await POST(signedRequest(event));
+
+    expect((container.activities as MemoryActivityRepository).all()).toEqual([
+      expect.objectContaining({
+        activityId: "payment_evt_session_activity",
+        checkoutSessionId: "cs_test_123",
+      }),
+    ]);
+  });
+
   it("rejects a tampered/bad signature with 400 and no mutation", async () => {
     const container = getContainer();
     seedCampaign(container, "cmp1");

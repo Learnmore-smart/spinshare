@@ -179,6 +179,15 @@ export interface Dictionary {
     languageLabel: string;
     languageAuto: string;
   };
+  topEarners: {
+    title: string;
+    subtitle: string;
+    rank: string;
+    lifetimeEarned: string;
+    earningPerHour: string;
+    totalHours: string;
+    growthTrend: string;
+  };
   developerDashboard: {
     yourBalance: string;
     lifetimeCredit: (count: number) => string;
@@ -322,6 +331,8 @@ export interface Dictionary {
     sidebarAria: string;
     navAria: string;
     navOverview: string;
+    navCampaigns: string;
+    navActivity: string;
     settings: string;
     campaignCount: (count: number) => string;
     totalBudget: string;
@@ -375,6 +386,16 @@ export interface Dictionary {
     clicks: string;
     ctr: string;
     uncredited: string;
+    shows: string;
+    tooShort: string;
+    authIssues: string;
+    outOfBudget: string;
+    antiAbuse: string;
+    duplicate: string;
+    recentActivity: string;
+    recentActivityDesc: string;
+    loadingActivity: string;
+    noActivityYet: string;
   };
   errors: {
     iconType: string;

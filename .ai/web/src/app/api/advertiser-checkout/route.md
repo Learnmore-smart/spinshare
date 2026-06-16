@@ -59,6 +59,27 @@ Public checkout now records best-effort advertiser activity events:
 Real Stripe test/live funding remains webhook-settled, so the later
 `budgetFunded` row is written by `/api/webhooks/stripe`.
 
+## Planned Change 2026-06-16 Checkout Return Context
+
+The success URL should include Stripe's `{CHECKOUT_SESSION_ID}` placeholder as
+`checkout_session_id`, so the page returned from hosted Checkout can identify
+which payment is pending/funded. This is required for better post-checkout
+diagnostics and future pending-payment UI.
+
+## Implemented Change 2026-06-16 Checkout Return Context
+
+Public checkout success URL now includes
+`checkout_session_id={CHECKOUT_SESSION_ID}` before the `#bid-market` fragment.
+
+## Verification 2026-06-16
+
+- Red focused run failed because the returned mock URL lacked
+  `checkout_session_id`.
+- Green focused run passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/server/adapters/memory/memory-adapters.test.ts src/app/api/advertiser-checkout/route.test.ts src/app/api/funds/checkout/route.test.ts`.
+- Full regression passed:
+  `corepack pnpm@9.12.0 test` and `corepack pnpm@9.12.0 lint`.
+
 ## Implemented Change
 
 Added `POST /api/advertiser-checkout`. It validates the public form payload, creates a zero-budget campaign with hashed email-derived advertiser id and metadata, starts a checkout session for `cpmCents * blockCount`, and returns `{ url, sessionId, amountCents, amountUsd, campaign }`.
@@ -73,6 +94,8 @@ Added `POST /api/advertiser-checkout`. It validates the public form payload, cre
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented public checkout success URL session context. | Codex |
+| 2026-06-16 | Planned public checkout success URL session context. | Codex |
 | 2026-06-15 | Added public checkout advertiser money activity events. | Codex |
 | 2026-06-15 | Switched public checkout to shared advertiser identity helper. | Codex |
 | 2026-06-15 | Planned shared public advertiser identity helper extraction. | Codex |
