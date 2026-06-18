@@ -67,3 +67,9 @@ exist. Ownership filtering stays unchanged.
 | 2026-06-15 | Planned unified advertiser activity timeline events. | Codex |
 | 2026-06-15 | Implemented advertiser activity route. | Codex |
 | 2026-06-15 | Created doc before adding advertiser activity route. | Codex |
+
+## Implemented Change 2026-06-16 Developer Payout Event Boundary
+
+The route now explicitly ignores `developer_event` rows if they ever appear in
+an activity record union. Advertiser timelines remain campaign-scoped and never
+show developer payout activity.

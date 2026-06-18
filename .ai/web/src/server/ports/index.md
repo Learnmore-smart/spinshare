@@ -21,10 +21,16 @@ Exports `ActivityRepository`, `ImpressionActivity`, and
 Export the unified activity record types required by advertiser activity routes:
 `ActivityRecord`, `AdvertiserActivity`, and `AdvertiserActivityStatus`.
 
+## Implemented Change 2026-06-16 Payout Attempt Ledger
+
+Exports `PayoutAttempt`, `PayoutAttemptRepository`, `PayoutAttemptStatus`, and
+`PayoutAttemptUpdate` for durable payout provider reconciliation.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Exported payout attempt repository port types. | Codex |
 | 2026-06-15 | Exported advertiser money activity record types. | Codex |
 | 2026-06-15 | Implemented activity repository port exports. | Codex |
 | 2026-06-15 | Created doc before exporting activity repository port. | Codex |

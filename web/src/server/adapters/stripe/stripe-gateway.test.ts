@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import { describe, expect, it } from "vitest";
 
 import { StripeGateway } from "./stripe-gateway";
+import { stripeCheckoutSessionToFunding } from "./stripe-gateway";
 
 describe("StripeGateway", () => {
   it("keeps checkout session id when parsing completed checkout webhooks", () => {
@@ -40,6 +41,40 @@ describe("StripeGateway", () => {
       checkoutSessionId: "cs_test_123",
       campaignId: "cmp_test_123",
       amountCents: 500,
+    });
+  });
+
+  it("projects paid checkout sessions to funding details", () => {
+    expect(
+      stripeCheckoutSessionToFunding({
+        id: "cs_test_paid",
+        payment_status: "paid",
+        metadata: { campaignId: "cmp_meta" },
+        client_reference_id: "cmp_fallback",
+        amount_total: 500,
+      }),
+    ).toEqual({
+      sessionId: "cs_test_paid",
+      status: "paid",
+      campaignId: "cmp_meta",
+      amountCents: 500,
+    });
+  });
+
+  it("falls back to client_reference_id and preserves unpaid status", () => {
+    expect(
+      stripeCheckoutSessionToFunding({
+        id: "cs_test_open",
+        payment_status: "unpaid",
+        metadata: {},
+        client_reference_id: "cmp_reference",
+        amount_total: 700,
+      }),
+    ).toEqual({
+      sessionId: "cs_test_open",
+      status: "unpaid",
+      campaignId: "cmp_reference",
+      amountCents: 700,
     });
   });
 });

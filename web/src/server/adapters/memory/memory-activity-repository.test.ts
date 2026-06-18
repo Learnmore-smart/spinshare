@@ -59,6 +59,49 @@ describe("MemoryActivityRepository", () => {
     ]);
   });
 
+  it("lists developer payout events by developer", async () => {
+    const repo = new MemoryActivityRepository();
+
+    await repo.record(baseActivity);
+    await repo.record({
+      activityId: "payout-paid",
+      campaignId: "payout",
+      type: "developer_event",
+      developerId: "dev_1",
+      status: "payoutPaid",
+      amountCents: 1234,
+      amountUsd: "12.34",
+      providerEventId: "tr_123",
+      createdAtMs: 2000,
+    } as never);
+    await repo.record({
+      activityId: "payout-other",
+      campaignId: "payout",
+      type: "developer_event",
+      developerId: "dev_2",
+      status: "payoutPaid",
+      amountCents: 9999,
+      amountUsd: "99.99",
+      providerEventId: "tr_other",
+      createdAtMs: 3000,
+    } as never);
+
+    await expect(repo.listByDeveloper("dev_1")).resolves.toEqual([
+      baseActivity,
+      {
+        activityId: "payout-paid",
+        campaignId: "payout",
+        type: "developer_event",
+        developerId: "dev_1",
+        status: "payoutPaid",
+        amountCents: 1234,
+        amountUsd: "12.34",
+        providerEventId: "tr_123",
+        createdAtMs: 2000,
+      },
+    ]);
+  });
+
   it("lists activities by campaign ids", async () => {
     const repo = new MemoryActivityRepository();
 

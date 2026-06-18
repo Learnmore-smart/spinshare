@@ -67,6 +67,16 @@ escape the namespace during localhost/testing runs.
 Namespace tests now assert all current collection paths, including
 `impressionActivities`, `impressionProgress`, and `paymentEvents`.
 
+## Implemented Change 2026-06-16 Payout Attempt Ledger
+
+Added `COLLECTIONS.payoutAttempts` through the shared namespace-aware
+`collectionPath()` helper.
+
+## Implemented Change 2026-06-16 Ad Review Status
+
+`toCampaign()` now maps missing/unknown `reviewStatus` as `approved`, preserving
+legacy campaign documents while giving new code an explicit safety review field.
+
 ## Implemented Change
 
 `toCampaign()` maps optional public checkout fields and treats missing `publicOnLeaderboard` as public.
@@ -75,6 +85,8 @@ Namespace tests now assert all current collection paths, including
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Mapped campaign review status with legacy-approved default. | Codex |
+| 2026-06-16 | Added namespace-aware `payoutAttempts` collection path. | Codex |
 | 2026-06-15 | Implemented complete namespace coverage for all collection paths. | Codex |
 | 2026-06-15 | Planned complete namespace coverage for all collection paths. | Codex |
 | 2026-06-15 | Implemented `impressionActivities` collection path. | Codex |

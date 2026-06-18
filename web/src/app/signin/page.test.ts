@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveInitialRole, SIGNIN_PAGE_COPY } from "./page";
+import {
+  localCredentialsEnabledFromEnv,
+  localTestCredentialsForRole,
+  resolveInitialRole,
+  SIGNIN_PAGE_COPY,
+} from "./page";
 
 describe("resolveInitialRole", () => {
   it("uses advertiser when role=advertiser", () => {
@@ -15,6 +20,28 @@ describe("resolveInitialRole", () => {
       "developer",
     );
   });
+
+  it("infers advertiser from advertiser dashboard callbacks", () => {
+    expect(
+      resolveInitialRole(
+        new URLSearchParams("callbackUrl=%2Fdashboard%2Fadvertiser"),
+      ),
+    ).toBe("advertiser");
+    expect(
+      resolveInitialRole(
+        new URLSearchParams(
+          "callbackUrl=%2Fdashboard%2Fadvertiser%2Fcampaigns",
+        ),
+      ),
+    ).toBe("advertiser");
+    expect(
+      resolveInitialRole(
+        new URLSearchParams(
+          "role=developer&callbackUrl=%2Fdashboard%2Fadvertiser",
+        ),
+      ),
+    ).toBe("developer");
+  });
 });
 
 describe("SIGNIN_PAGE_COPY", () => {
@@ -26,5 +53,32 @@ describe("SIGNIN_PAGE_COPY", () => {
     expect(SIGNIN_PAGE_COPY.panelLabel).toBe("Authentication");
     expect(SIGNIN_PAGE_COPY.developerRole).toBe("Developer");
     expect(SIGNIN_PAGE_COPY.advertiserRole).toBe("Advertiser");
+  });
+});
+
+describe("local credentials sign-in helpers", () => {
+  it("enables local credentials only through the public local flag", () => {
+    expect(localCredentialsEnabledFromEnv({})).toBe(false);
+    expect(
+      localCredentialsEnabledFromEnv({
+        NEXT_PUBLIC_SPINSHARE_LOCAL_CREDENTIALS: "0",
+      }),
+    ).toBe(false);
+    expect(
+      localCredentialsEnabledFromEnv({
+        NEXT_PUBLIC_SPINSHARE_LOCAL_CREDENTIALS: "1",
+      }),
+    ).toBe(true);
+  });
+
+  it("uses fixed local test accounts for each selected role", () => {
+    expect(localTestCredentialsForRole("developer")).toEqual({
+      email: "developer@spinshare.test",
+      password: "spinshare",
+    });
+    expect(localTestCredentialsForRole("advertiser")).toEqual({
+      email: "advertiser@spinshare.test",
+      password: "spinshare",
+    });
   });
 });

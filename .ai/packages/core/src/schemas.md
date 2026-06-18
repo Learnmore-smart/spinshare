@@ -121,10 +121,84 @@ Added `fundingBlockCheckoutSchema` and `FundingBlockCheckoutInput`. It validates
 `campaignId` plus a whole positive `blockCount` using the same block-count
 schema as public homepage checkout.
 
+## Planned Change (2026-06-16 Deterministic Ad Text Safety)
+
+Add a deterministic first-pass ad-copy safety review before campaign creation
+and before Stripe checkout. The first pass should be deliberately narrow and
+block only clearly unsafe/deceptive text patterns such as seed phrase/private
+key collection, asking for passwords/OTP codes, crypto giveaways/airdrops, and
+account/wallet verification lures.
+
+Implementation direction:
+
+- export a pure `reviewAdTextSafety(adText)` helper from this module;
+- attach the helper to `adTextSchema` so public checkout and authenticated
+  campaign creation both reject unsafe copy;
+- keep LLM/OpenRouter/Gemma review as a future second layer, not a dependency
+  of the synchronous checkout path.
+
+## Implemented Change (2026-06-16 Deterministic Ad Text Safety)
+
+Added `reviewAdTextSafety(adText)` and wired it into `adTextSchema`. The first
+pass rejects clearly unsafe patterns for seed phrase/private key collection,
+password/OTP collection, crypto giveaway/airdrop lures, and wallet/account/login
+verification lures. Ordinary security-tool copy such as password-manager
+training remains allowed.
+
+## Planned Change (2026-06-16 Destination URL Anti-Phishing Hardening)
+
+Extend the deterministic destination URL safety gate to reject common phishing
+or review-bypass shapes before campaign creation or Stripe checkout:
+
+- punycode/IDN hostnames (`xn--...`) because they can visually imitate trusted
+  brands;
+- single-label hostnames such as `https://example/`, which are not ordinary
+  public ad destinations;
+- known URL shortener domains such as `bit.ly` and `tinyurl.com`, because the
+  final landing page cannot be inspected from the submitted URL.
+
+This remains a deterministic first layer. It does not replace future
+LLM/reputation/landing-page review.
+
+## Implemented Change (2026-06-16 Destination URL Anti-Phishing Hardening)
+
+`destinationUrlSchema` now rejects:
+
+- punycode/IDN hostnames (`xn--...`);
+- single-label hostnames without a dot;
+- common URL shortener hostnames and their subdomains.
+
+This keeps public checkout and authenticated campaign creation from accepting
+landing pages whose real destination or visual identity is difficult to review
+synchronously.
+
+## Planned Change (2026-06-17 Create Campaign Checkout Blocks)
+
+Allow authenticated campaign creation payloads to optionally include a
+`blockCount`. This lets dashboard campaign creation reuse the same
+1,000-impression block model as public checkout and `/api/funds/checkout`.
+
+The field should be optional so older create-only callers continue to validate.
+When present, it must use `advertiserCheckoutBlockCountSchema`; total checkout
+amount bounds are enforced in the route after the campaign CPM is known.
+
+## Implemented Change (2026-06-17 Create Campaign Checkout Blocks)
+
+`advertiserCheckoutBlockCountSchema` now lives before `createCampaignSchema`,
+and `createCampaignSchema` includes optional `blockCount`. Invalid block counts
+are rejected instead of being silently stripped; valid values are preserved for
+authenticated dashboard checkout creation.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-17 | Implemented optional blockCount validation for authenticated campaign creation checkout. | Codex |
+| 2026-06-17 | Planned optional blockCount validation for authenticated campaign creation checkout. | Codex |
+| 2026-06-16 | Implemented deterministic URL anti-phishing hardening. | Codex |
+| 2026-06-16 | Planned deterministic URL anti-phishing hardening. | Codex |
+| 2026-06-16 | Implemented deterministic ad text safety review. | Codex |
+| 2026-06-16 | Planned deterministic ad text safety review. | Codex |
 | 2026-06-15 | Implemented dashboard block-based funding schema. | Codex |
 | 2026-06-15 | Planned dashboard block-based funding schema. | Codex |
 | 2026-06-15 | Implemented deterministic destination URL safety hardening. | Codex |

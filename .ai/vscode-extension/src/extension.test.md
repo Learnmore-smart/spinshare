@@ -34,6 +34,12 @@ Unit tests for the VS Code extension activation wiring.
 Add red coverage proving activation shows a persistent status bar sign-in item
 when the mocked auth manager reports no stored token.
 
+## Planned Change 2026-06-16 Activation Sign-In Prompt Coverage
+
+Add regression coverage proving activation does more than show the status bar:
+when no token is loaded, activation should call `ensureAuthenticated()` so a
+fresh install attempts the browser/device sign-in flow immediately.
+
 ## Implemented Change 2026-06-15 Persistent Sign-In Entry
 
 Added activation-level coverage that mocks VS Code and `AuthManager`, activates
@@ -41,9 +47,16 @@ the extension, flushes activation promises, and asserts that a persistent
 right-aligned status bar item is created, points at `spinshare.signIn`, and is
 shown when no token exists.
 
+## Implemented Change 2026-06-16 Activation Sign-In Prompt Coverage
+
+Added activation-level coverage that asserts unauthenticated activation calls
+`AuthManager.ensureAuthenticated()`. This locks the install-time sign-in prompt
+contract separately from the fallback status bar entry.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Added activation sign-in prompt regression coverage. | Codex |
 | 2026-06-15 | Implemented persistent sign-in activation test. | Codex |
 | 2026-06-15 | Created activation test plan for persistent sign-in entry. | Codex |

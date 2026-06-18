@@ -8,6 +8,9 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 
 import { SegmentSlider } from "@/components/SegmentSlider";
 import AdvertiserCheckoutForm from "./advertiser-checkout-form";
+import CheckoutStatusBanner, {
+  CHECKOUT_FUNDED_MARKET_REFRESH_EVENT,
+} from "./checkout-status-banner";
 import LoadingStatus, {
   ELLIPSIS_STEP_MS,
   ICON_FRAME_MS,
@@ -625,10 +628,21 @@ export default function HomePage() {
 
     void loadMarket();
     const interval = window.setInterval(loadMarket, MARKET_REFRESH_MS);
+    const refreshAfterCheckout = () => {
+      void loadMarket();
+    };
+    window.addEventListener(
+      CHECKOUT_FUNDED_MARKET_REFRESH_EVENT,
+      refreshAfterCheckout,
+    );
 
     return () => {
       cancelled = true;
       window.clearInterval(interval);
+      window.removeEventListener(
+        CHECKOUT_FUNDED_MARKET_REFRESH_EVENT,
+        refreshAfterCheckout,
+      );
     };
   }, []);
 
@@ -869,9 +883,10 @@ export default function HomePage() {
           <p className="spinshare-home-body mt-4 max-w-xl text-base font-semibold leading-7">
             {t.market.subtitle}
           </p>
+          <CheckoutStatusBanner />
         </div>
 
-        <div className="mt-10">
+        <div className="spinshare-market-proof-grid mt-10">
           <div className="liquid-glass overflow-hidden flex flex-col">
                 {/* Header Row */}
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-6 pt-6 pb-4">
@@ -1046,7 +1061,6 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-            </div>
 
             <AdvertiserCheckoutForm />
 
@@ -1067,6 +1081,7 @@ export default function HomePage() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
+          </div>
         </section>
 
         <section id="how-it-pays" className="spinshare-frame-section spinshare-home-section-muted px-4 py-16 sm:px-6 lg:py-20">

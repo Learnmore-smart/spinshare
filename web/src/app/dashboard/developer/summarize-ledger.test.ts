@@ -47,6 +47,22 @@ describe("summarizeLedger", () => {
     expect(summary.impressionCount).toBe(3);
   });
 
+  it("aggregates sub-cent credited rows into dashboard display earnings", () => {
+    const now = Date.now();
+    const summary = summarizeLedger([
+      entry({ entryId: "a", revenueMicrocents: 500, developerCreditCents: 0, createdAtMs: now }),
+      entry({ entryId: "b", revenueMicrocents: 500, developerCreditCents: 0, createdAtMs: now }),
+      entry({ entryId: "c", revenueMicrocents: 500, developerCreditCents: 0, createdAtMs: now }),
+      entry({ entryId: "d", revenueMicrocents: 500, developerCreditCents: 0, createdAtMs: now }),
+    ]);
+
+    expect(summary.totalEarningsCents).toBe(0);
+    expect(summary.totalEarningsUsd).toBe("0.012");
+    expect(summary.todayEarningsUsd).toBe("0.012");
+    expect(summary.monthEarningsUsd).toBe("0.012");
+    expect(summary.hourlyEarningsUsd).toBe("0.012");
+  });
+
   it("emits one activity row per entry with its credited amount (Req 8.3)", () => {
     const entries = [
       entry({ entryId: "a", campaignId: "camp-a", developerCreditCents: 18 }),
@@ -77,8 +93,24 @@ describe("summarizeLedger", () => {
       entry({ entryId: "b", developerCreditCents: 15 }),
     ]);
     expect(summary.series).toEqual([
-      { sequence: 1, label: "#1", creditCents: 10, cumulativeCents: 10, cumulativeUsd: 0.1 },
-      { sequence: 2, label: "#2", creditCents: 15, cumulativeCents: 25, cumulativeUsd: 0.25 },
+      {
+        sequence: 1,
+        label: "#1",
+        creditCents: 10,
+        creditDisplayMicrocents: 10_000,
+        cumulativeCents: 10,
+        cumulativeDisplayMicrocents: 10_000,
+        cumulativeUsd: 0.1,
+      },
+      {
+        sequence: 2,
+        label: "#2",
+        creditCents: 15,
+        creditDisplayMicrocents: 15_000,
+        cumulativeCents: 25,
+        cumulativeDisplayMicrocents: 25_000,
+        cumulativeUsd: 0.25,
+      },
     ]);
   });
 

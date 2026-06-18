@@ -80,6 +80,19 @@ content, raw user ids, IP addresses, or other private content.
 Added RTDB-backed `campaignTelemetry/{campaignId}/{metric}` increments and
 zero-filled reads for advertiser dashboard aggregate telemetry.
 
+## Planned Change (2026-06-16 Local Namespace Root)
+
+Keep `RealtimeDbCounterStore` itself generic: it already accepts `rootPath` and
+defaults to `spinshare/hot`. The composition root should decide which root path
+to pass. Production remains on the default root; local mode with RTDB should pass
+a namespaced root so localhost tests do not write to shared hot-path keys.
+
+## Implemented Change (2026-06-16 Local Namespace Root)
+
+No adapter internals changed. The existing `rootPath` option is now used by the
+composition root for local RTDB mode. Production behavior remains the adapter
+default `spinshare/hot`.
+
 ## Verification (2026-06-15)
 
 - `corepack pnpm@9.12.0 --filter @spinshare/web test` passed.

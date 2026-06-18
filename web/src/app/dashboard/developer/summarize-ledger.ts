@@ -19,7 +19,12 @@
  * from the ledger.
  */
 
-import { formatCentsAsUsd, type LedgerEntry } from "@spinshare/core";
+import {
+  DEVELOPER_SHARE_PERCENT,
+  MICROCENTS_PER_CENT,
+  formatCentsAsUsd,
+  type LedgerEntry,
+} from "@spinshare/core";
 
 /** One row of the activity ledger table (one impression). */
 export interface LedgerActivityRow {
@@ -33,6 +38,10 @@ export interface LedgerActivityRow {
   developerCreditCents: number;
   /** `developerCreditCents` formatted as a USD string, e.g. "0.18". */
   developerCreditUsd: string;
+  /** Developer credit used for display, preserving sub-cent credited rows. */
+  developerCreditDisplayMicrocents: number;
+  /** Display credit formatted as a USD string, e.g. "0.003". */
+  developerCreditDisplayUsd: string;
   /** When the impression was recorded, if known. */
   createdAtMs?: number;
 }
@@ -45,9 +54,13 @@ export interface EarningsSeriesPoint {
   label: string;
   /** Credit recorded at this impression, in integer cents. */
   creditCents: number;
+  /** Display credit recorded at this impression, preserving sub-cent rows. */
+  creditDisplayMicrocents: number;
   /** Running total of credited earnings through this impression, in cents. */
   cumulativeCents: number;
-  /** `cumulativeCents` as a numeric USD value (dollars) for the chart axis. */
+  /** Running display total through this impression, in micro-cents. */
+  cumulativeDisplayMicrocents: number;
+  /** Display cumulative earnings as a numeric USD value for the chart axis. */
   cumulativeUsd: number;
 }
 
@@ -58,18 +71,26 @@ export interface EarningsSeriesPoint {
 export interface DeveloperDashboardSummary {
   /** Total earnings KPI = sum of every credited amount, in integer cents. */
   totalEarningsCents: number;
+  /** Total display earnings preserving sub-cent credited rows. */
+  totalEarningsDisplayMicrocents: number;
   /** `totalEarningsCents` formatted as a USD string for the KPI card. */
   totalEarningsUsd: string;
   /** Credits recorded since UTC midnight today, in integer cents. */
   todayEarningsCents: number;
+  /** Today display earnings preserving sub-cent credited rows. */
+  todayEarningsDisplayMicrocents: number;
   /** `todayEarningsCents` formatted as a USD string. */
   todayEarningsUsd: string;
   /** Credits in the rolling last 60 minutes, in integer cents. */
   hourlyEarningsCents: number;
+  /** Hourly display earnings preserving sub-cent credited rows. */
+  hourlyEarningsDisplayMicrocents: number;
   /** `hourlyEarningsCents` formatted as a USD string. */
   hourlyEarningsUsd: string;
   /** Credits recorded in the current calendar month, in integer cents. */
   monthEarningsCents: number;
+  /** Month display earnings preserving sub-cent credited rows. */
+  monthEarningsDisplayMicrocents: number;
   /** `monthEarningsCents` formatted as a USD string. */
   monthEarningsUsd: string;
   /** Number of recorded impressions (== number of activity rows). */
@@ -90,12 +111,58 @@ function startOfUtcMonthMs(now = Date.now()): number {
   return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
 }
 
+const LOCALE_TO_BCP47: Record<string, string> = {
+  en: "en-US",
+  zh: "zh-CN",
+  fr: "fr-FR",
+};
+
 function formatShortUtcDate(ms: number): string {
   return new Date(ms).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     timeZone: "UTC",
   });
+}
+
+function formatDateLabel(ms: number, range: ChartRange, locale: string): string {
+  const bcp47 = LOCALE_TO_BCP47[locale] ?? "en-US";
+  if (range === "24h") {
+    return new Date(ms).toLocaleTimeString(bcp47, {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "UTC",
+    });
+  }
+  return new Date(ms).toLocaleDateString(bcp47, {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+function formatMicrocentsAsUsdValue(microcents: number): string {
+  if (microcents === 0) {
+    return "0.00";
+  }
+  const sign = microcents < 0 ? "-" : "";
+  const abs = Math.abs(microcents);
+  const dollars = abs / 100_000;
+  const fixed = dollars.toFixed(3);
+  const trimmed = fixed.endsWith("0") ? fixed.slice(0, -1) : fixed;
+  return `${sign}${trimmed}`;
+}
+
+function displayCreditMicrocents(entry: LedgerEntry): number {
+  if (entry.developerCreditCents > 0) {
+    return entry.developerCreditCents * MICROCENTS_PER_CENT;
+  }
+  if (entry.revenueMicrocents <= 0) {
+    return 0;
+  }
+  return Math.floor(
+    (entry.revenueMicrocents * DEVELOPER_SHARE_PERCENT + 50) / 100,
+  );
 }
 
 export type ChartRange = "24h" | "7d" | "30d" | "all";
@@ -111,6 +178,7 @@ export function buildChartSeries(
   rows: readonly LedgerActivityRow[],
   range: ChartRange,
   now = Date.now(),
+  locale = "en",
 ): EarningsSeriesPoint[] {
   const inRange =
     range === "all"
@@ -120,18 +188,22 @@ export function buildChartSeries(
           return row.createdAtMs === undefined || row.createdAtMs >= cutoff;
         });
   let cumulativeCents = 0;
+  let cumulativeDisplayMicrocents = 0;
   return inRange.map((row, index) => {
     cumulativeCents += row.developerCreditCents;
+    cumulativeDisplayMicrocents += row.developerCreditDisplayMicrocents;
     const sequence = index + 1;
     return {
       sequence,
       label:
         row.createdAtMs !== undefined
-          ? formatShortUtcDate(row.createdAtMs)
+          ? formatDateLabel(row.createdAtMs, range, locale)
           : `#${row.sequence}`,
       creditCents: row.developerCreditCents,
+      creditDisplayMicrocents: row.developerCreditDisplayMicrocents,
       cumulativeCents,
-      cumulativeUsd: cumulativeCents / 100,
+      cumulativeDisplayMicrocents,
+      cumulativeUsd: cumulativeDisplayMicrocents / 100_000,
     };
   });
 }
@@ -161,6 +233,10 @@ export function summarizeLedger(
   let todayEarningsCents = 0;
   let hourlyEarningsCents = 0;
   let monthEarningsCents = 0;
+  let totalEarningsDisplayMicrocents = 0;
+  let todayEarningsDisplayMicrocents = 0;
+  let hourlyEarningsDisplayMicrocents = 0;
+  let monthEarningsDisplayMicrocents = 0;
   const dayStart = startOfUtcDayMs();
   const monthStart = startOfUtcMonthMs();
   const hourStart = Date.now() - 60 * 60 * 1000;
@@ -168,13 +244,24 @@ export function summarizeLedger(
   entries.forEach((entry, index) => {
     const sequence = index + 1;
     const credit = entry.developerCreditCents;
+    const displayCredit = displayCreditMicrocents(entry);
     totalEarningsCents += credit;
+    totalEarningsDisplayMicrocents += displayCredit;
 
     const atMs = entry.createdAtMs;
     if (atMs !== undefined) {
-      if (atMs >= hourStart) hourlyEarningsCents += credit;
-      if (atMs >= dayStart) todayEarningsCents += credit;
-      if (atMs >= monthStart) monthEarningsCents += credit;
+      if (atMs >= hourStart) {
+        hourlyEarningsCents += credit;
+        hourlyEarningsDisplayMicrocents += displayCredit;
+      }
+      if (atMs >= dayStart) {
+        todayEarningsCents += credit;
+        todayEarningsDisplayMicrocents += displayCredit;
+      }
+      if (atMs >= monthStart) {
+        monthEarningsCents += credit;
+        monthEarningsDisplayMicrocents += displayCredit;
+      }
     }
 
     rows.push({
@@ -183,6 +270,8 @@ export function summarizeLedger(
       campaignId: entry.campaignId,
       developerCreditCents: credit,
       developerCreditUsd: formatCentsAsUsd(credit),
+      developerCreditDisplayMicrocents: displayCredit,
+      developerCreditDisplayUsd: formatMicrocentsAsUsdValue(displayCredit),
       ...(atMs !== undefined ? { createdAtMs: atMs } : {}),
     });
 
@@ -190,20 +279,26 @@ export function summarizeLedger(
       sequence,
       label: atMs !== undefined ? formatShortUtcDate(atMs) : `#${sequence}`,
       creditCents: credit,
+      creditDisplayMicrocents: displayCredit,
       cumulativeCents: totalEarningsCents,
-      cumulativeUsd: totalEarningsCents / 100,
+      cumulativeDisplayMicrocents: totalEarningsDisplayMicrocents,
+      cumulativeUsd: totalEarningsDisplayMicrocents / 100_000,
     });
   });
 
   return {
     totalEarningsCents,
-    totalEarningsUsd: formatCentsAsUsd(totalEarningsCents),
+    totalEarningsDisplayMicrocents,
+    totalEarningsUsd: formatMicrocentsAsUsdValue(totalEarningsDisplayMicrocents),
     todayEarningsCents,
-    todayEarningsUsd: formatCentsAsUsd(todayEarningsCents),
+    todayEarningsDisplayMicrocents,
+    todayEarningsUsd: formatMicrocentsAsUsdValue(todayEarningsDisplayMicrocents),
     hourlyEarningsCents,
-    hourlyEarningsUsd: formatCentsAsUsd(hourlyEarningsCents),
+    hourlyEarningsDisplayMicrocents,
+    hourlyEarningsUsd: formatMicrocentsAsUsdValue(hourlyEarningsDisplayMicrocents),
     monthEarningsCents,
-    monthEarningsUsd: formatCentsAsUsd(monthEarningsCents),
+    monthEarningsDisplayMicrocents,
+    monthEarningsUsd: formatMicrocentsAsUsdValue(monthEarningsDisplayMicrocents),
     impressionCount: entries.length,
     series,
     rows,

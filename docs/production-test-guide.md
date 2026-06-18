@@ -11,6 +11,7 @@ $env:AUTH_MODE = "oauth"
 $env:STRIPE_MODE = "test" # switch to live only after test checkout passes
 $env:NEXTAUTH_URL = "https://your-deployed-domain.example"
 $env:AUTH_VERIFICATION_URI = "https://your-deployed-domain.example/activate"
+$env:SPINSHARE_FLUSH_SECRET = "<random scheduler bearer secret>"
 ```
 
 `FIREBASE_DATABASE_URL` is required when `SPINSHARE_COUNTER=rtdb`.
@@ -18,6 +19,7 @@ The Firebase Realtime Database Management API (`firebasedatabase.googleapis.com`
 `NEXTAUTH_URL` must be the public deployed app origin, not localhost.
 If `AUTH_VERIFICATION_URI` is set, it must also use the deployed app origin; otherwise the CLI login activation link will point at localhost.
 `STRIPE_MODE` must match the secret key prefix: use `test` with `sk_test_...`, or `live` with `sk_live_...`.
+`SPINSHARE_FLUSH_SECRET` protects the internal reconciliation endpoint that moves credited impressions from RTDB hot counters into durable Firestore ledger/user/campaign state.
 
 Run the read-only production env verifier:
 
@@ -26,6 +28,29 @@ corepack pnpm@9.12.0 verify:prod-env
 ```
 
 It checks env presence, production mode flags, Firestore read access, RTDB read access, Stripe key mode, Google OAuth credentials, GitHub OAuth credentials, and Firestore index config. It does not print secret values.
+
+## Flush / Reconciliation Scheduler
+
+Production dashboards and payouts depend on the flush process. `/api/track` credits the hot RTDB queue first; `POST /api/internal/flush` moves those pending entries into durable Firestore ledger, user balances, and campaign budgets.
+
+Configure Cloud Scheduler, or the equivalent scheduler for the deployment platform, to call the deployed app at most once per minute:
+
+```powershell
+gcloud scheduler jobs create http spinshare-flush `
+  --schedule="* * * * *" `
+  --uri="https://your-deployed-domain.example/api/internal/flush" `
+  --http-method=POST `
+  --headers="Authorization=Bearer <same value as SPINSHARE_FLUSH_SECRET>"
+```
+
+Expected manual check:
+
+```powershell
+$headers = @{ Authorization = "Bearer $env:SPINSHARE_FLUSH_SECRET" }
+Invoke-RestMethod -Method Post -Uri "https://your-deployed-domain.example/api/internal/flush" -Headers $headers
+```
+
+Expected response includes `flushed: true`, `drained`, `balanceDeltaCentsByUser`, and `budgetDeltaCentsByCampaign`. A missing or wrong bearer secret must return `401`. A missing configured secret must return `503`.
 
 ## Local External Runtime Preflight
 
@@ -138,5 +163,6 @@ If Stripe rejects the request, check the server log for `requestId` and `provide
 1. `GET /api/health` returns `{ "status": "ok" }`.
 2. `GET /api/ad` with a bearer device token returns either a winning ad or `{ "adAvailable": false }`; missing/invalid tokens should return `401`.
 3. A valid `POST /api/track` with a bearer device token returns `recorded: true`.
-4. The developer dashboard reflects credited earnings after flush/reconciliation.
-5. The advertiser dashboard shows the funded campaign and reduced remaining budget after impressions.
+4. `POST /api/internal/flush` with `SPINSHARE_FLUSH_SECRET` returns `flushed: true`.
+5. The developer dashboard reflects credited earnings after flush/reconciliation.
+6. The advertiser dashboard shows the funded campaign and reduced remaining budget after impressions.

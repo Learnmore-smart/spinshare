@@ -78,10 +78,23 @@ campaign. `TrackResponse` is now a union of:
 - `recorded:false` with accumulated and remaining view duration for progress-only updates
 - `recorded:true` with developer credit fields for settled impressions
 
+## Planned Change 2026-06-16 Ad Review Status
+
+Add a campaign safety review state separate from advertiser lifecycle status:
+`approved`, `pending`, or `rejected`. Existing/legacy campaigns without the
+field must behave as approved.
+
+## Implemented Change 2026-06-16 Ad Review Status
+
+Added `CampaignReviewStatus` and optional `Campaign.reviewStatus`. The field is
+optional so existing fixtures and legacy Firestore documents remain compatible.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Added optional campaign review status type. | Codex |
+| 2026-06-16 | Planned campaign review status type. | Codex |
 | 2026-06-15 | Implemented cumulative viewability API response contract types. | Codex |
 | 2026-06-13 | Created doc before adding public advertiser checkout campaign metadata. | Codex |
 | 2026-06-13 | Synced doc with implemented optional campaign metadata fields. | Codex |

@@ -83,6 +83,22 @@ function nodeCommand(filePath: string): string {
 
 function defaultCredentialFileSnippet(): string {
   return `
+function normalizeCredentialBaseUrl(value) {
+  return typeof value === "string" ? value.replace(/\\/+$/, "").toLowerCase() : "";
+}
+
+function credentialMatchesBaseUrl(parsed) {
+  if (!parsed || typeof parsed !== "object") return false;
+  const credentialBaseUrl = normalizeCredentialBaseUrl(parsed.baseUrl);
+  // Strict: only use a stored token that was issued for this exact environment.
+  // A missing or mismatched baseUrl yields no token (no production fallback), so
+  // local and production credentials can never silently mix.
+  return (
+    credentialBaseUrl.length > 0 &&
+    credentialBaseUrl === normalizeCredentialBaseUrl(baseUrl)
+  );
+}
+
 function defaultCredentialFilePath() {
   const home = os.homedir();
   const configBase = process.env.XDG_CONFIG_HOME || process.env.APPDATA || path.join(home, ".config");
@@ -95,6 +111,7 @@ function readToken() {
   }
   try {
     const parsed = JSON.parse(fs.readFileSync(defaultCredentialFilePath(), "utf8"));
+    if (!credentialMatchesBaseUrl(parsed)) return null;
     return typeof parsed.token === "string" && parsed.token.length > 0 ? parsed.token : null;
   } catch {
     return null;
@@ -112,6 +129,7 @@ const path = require("node:path");
 const baseUrl = ${JSON.stringify(trimBaseUrl(baseUrl))};
 const stateFile = ${JSON.stringify(stateFilePath)};
 const eventName = process.argv[2] || "";
+const ACTIVE_STATE_TTL_MS = 120000;
 
 ${defaultCredentialFileSnippet()}
 
@@ -175,7 +193,10 @@ async function fetchAd(token) {
 async function trackIfViewable(state) {
   if (!state || !state.campaignId || !state.startedAtMs) return;
   if (!stateMatchesSession(state)) return;
-  const viewDurationMs = Date.now() - state.startedAtMs;
+  const endedAtMs = typeof state.expiresAtMs === "number"
+    ? Math.min(Date.now(), state.expiresAtMs)
+    : Date.now();
+  const viewDurationMs = endedAtMs - state.startedAtMs;
   if (viewDurationMs < 1) return;
   const token = readToken();
   if (!token) return;
@@ -191,17 +212,17 @@ async function trackIfViewable(state) {
 
 (async () => {
   const isPromptStart = eventName === "UserPromptSubmit";
-  const isDisplayEvent = eventName === "MessageDisplay";
-  if (isPromptStart || isDisplayEvent) {
+  if (eventName === "MessageDisplay") return;
+  if (isPromptStart) {
     const current = readState();
     if (current && current.active === true) {
-      if (!isPromptStart && stateMatchesSession(current)) return;
       clearState();
     }
     const token = readToken();
     if (!token) return;
     const ad = await fetchAd(token);
     if (ad) {
+      const startedAtMs = Date.now();
       writeState({
         active: true,
         campaignId: ad.campaignId,
@@ -209,7 +230,8 @@ async function trackIfViewable(state) {
         destinationUrl: ad.destinationUrl,
         brandName: ad.brandName,
         sessionId,
-        startedAtMs: Date.now(),
+        startedAtMs,
+        expiresAtMs: startedAtMs + ACTIVE_STATE_TTL_MS,
       });
     }
     return;
@@ -228,6 +250,7 @@ function statusLineScript(stateFilePath: string): string {
 const fs = require("node:fs");
 
 const stateFile = ${JSON.stringify(stateFilePath)};
+const ACTIVE_STATE_TTL_MS = 120000;
 
 function osc8(url, text) {
   return "\\u001b]8;;" + url + "\\u0007" + text + "\\u001b]8;;\\u0007";
@@ -259,12 +282,30 @@ function stateMatchesSession(state) {
   return !sessionId || !state || !state.sessionId || state.sessionId === sessionId;
 }
 
+function stateIsFresh(state) {
+  if (!state || state.active !== true) return false;
+  const nowMs = Date.now();
+  if (typeof state.expiresAtMs === "number") {
+    return state.expiresAtMs > nowMs;
+  }
+  return typeof state.startedAtMs === "number" && nowMs - state.startedAtMs <= ACTIVE_STATE_TTL_MS;
+}
+
 try {
   const state = JSON.parse(fs.readFileSync(stateFile, "utf8"));
-  if (state && state.active === true && state.adText && stateMatchesSession(state)) {
+  if (state && state.active === true && !stateIsFresh(state)) {
+    // Hide stale statusLine output when Claude misses Stop/StopFailure.
+  } else if (state && state.active === true && state.adText && stateMatchesSession(state)) {
     const displayText = "$ " + state.adText;
-    const styledText = accent(displayText);
-    process.stdout.write(state.destinationUrl ? osc8(state.destinationUrl, styledText) : styledText);
+    if (state.destinationUrl) {
+      // Wrap the styled text in the hyperlink so the whole ad is clickable.
+      // SGR color codes live inside the OSC 8 body, which is spec-compliant
+      // and works in iTerm2, Windows Terminal, Kitty, WezTerm, and VS Code's
+      // integrated terminal once FORCE_HYPERLINK=1 is set (see settings env).
+      process.stdout.write(osc8(state.destinationUrl, accent(displayText)));
+    } else {
+      process.stdout.write(accent(displayText));
+    }
   }
 } catch {}
 `;
@@ -403,10 +444,23 @@ export function mergeClaudeCodeSettings(
     hooks[event] = groups;
   }
 
+  const env: Record<string, unknown> =
+    settings.env && typeof settings.env === "object" && !Array.isArray(settings.env)
+      ? { ...settings.env }
+      : {};
+  // Force OSC 8 hyperlink rendering in Claude Code's statusLine. Without this,
+  // Windows Terminal (and several other terminals) strip the escape sequences
+  // and the ad link is not clickable. See Claude Code statusLine docs and the
+  // @primeinc/claude-statusline package notes.
+  if (env.FORCE_HYPERLINK !== "1") {
+    env.FORCE_HYPERLINK = "1";
+  }
+
   return {
     ...settings,
     statusLine: { type: "command", command: plan.statusLineCommand, refreshInterval: 1 },
     hooks,
+    env,
   };
 }
 

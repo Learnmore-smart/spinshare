@@ -22,6 +22,9 @@ VS Code extension manifest and build scripts for local `.vsix` packaging and Mar
 | `main` | `./out/extension.js` | Compiled output from `pnpm build` |
 | `spinshare.terminalAutoWrap` | `true` | Enables automatic terminal PATH shims |
 | `spinshare.terminalAgents` | `["claude"]` | Commands intercepted in new integrated terminals |
+| `package:prod` | script | Builds a production VSIX defaulting to `https://www.spinshare.dev`. |
+| `package:local` | script | Builds a localhost VSIX defaulting to `http://localhost:3000`. |
+| `package:all` | script | Builds both production and localhost VSIX artifacts. |
 
 ## Dependencies
 
@@ -76,6 +79,8 @@ The VSIX packaging script currently calls bare `vsce`, which fails on Windows wh
 
 - `corepack pnpm@9.12.0 --filter ./vscode-extension package` passed.
 - The generated VSIX includes `extension/cli-wrapper/dist/index.js`.
+- 2026-06-17: Planned repackaging after earnings/environment fixes so both prod and local VSIX artifacts include the latest extension auth, Claude Code adapter, and bundled CLI credential behavior.
+- 2026-06-17: Rebuilt `spinshare-prod-0.2.0.vsix` and `spinshare-local-0.2.0.vsix` after earnings/environment fixes, then refreshed the legacy `spinshare-0.2.0.vsix` filename from the rebuilt prod artifact so no stale default-named package remains. Initial `package:all` built prod but hit a transient Windows open error during post-package ZIP cleanup; rerunning `package-variant.mjs local` and `package-variant.mjs prod` completed successfully. Manifest inspection confirmed prod defaults to `https://www.spinshare.dev`, local defaults to `http://localhost:3000`, both generated Claude adapters enforce strict baseUrl token matching, and both bundled CLI builds include strict credential environment checks.
 - 2026-06-15: Rebuilt `spinshare-0.2.0.vsix` after production base URL canonicalization; package output includes rebuilt `out/api-client.js`, `out/extension.js`, and bundled `cli-wrapper/dist/index.js`.
 - 2026-06-15: Rebuilt `spinshare-0.2.0.vsix` after terminal passthrough and CLI ESM metadata fixes; package output includes `extension/cli-wrapper/package.json`.
 - 2026-06-15: Rebuilt `spinshare-0.2.0.vsix` after Claude adapter removal and BOM-safe settings parsing; package inspection confirms `spinshare.removeClaudeCodeAdapter`, bundled `setup claude-code --remove`, and `parseClaudeSettings`.
@@ -84,6 +89,10 @@ The VSIX packaging script currently calls bare `vsce`, which fails on Windows wh
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-17 | Rebuilt prod/local VSIX artifacts after earnings/environment fixes, refreshed the legacy prod filename, and verified manifest defaults plus bundled credential filtering. | Codex |
+| 2026-06-17 | Planned prod/local VSIX rebuild after earnings/environment fixes. | Codex |
+| 2026-06-16 | Implemented prod/local VSIX variant packaging. | Codex |
+| 2026-06-16 | Planned prod/local VSIX variant packaging. | Codex |
 | 2026-06-15 | Added `spinshare.removeClaudeCodeAdapter` command contribution. | Codex |
 | 2026-06-15 | Planned `spinshare.removeClaudeCodeAdapter` command contribution. | Codex |
 | 2026-06-15 | Added `spinshare.claudeCodeAdapter` setting. | Codex |
@@ -100,6 +109,26 @@ The VSIX packaging script currently calls bare `vsce`, which fails on Windows wh
 ## Notes
 
 - Extension default `spinshare.baseUrl` in `package.json` is `https://www.spinshare.dev`; workspace settings override when running Extension Development Host.
+
+## Implemented Change 2026-06-16 Prod/Local VSIX Variants
+
+Add a packaging script that can temporarily rewrite the manifest default
+`spinshare.baseUrl` while packaging, then restore the source manifest. The prod
+artifact should default to `https://www.spinshare.dev`; the local artifact
+should default to `http://localhost:3000` and use a local display name so the
+installed extension is visibly a dev build.
+
+The variants should keep one extension id for now. That means installing local
+replaces prod instead of running both simultaneously, which avoids duplicate
+command ids, terminal shims, and Claude Code adapter ownership conflicts.
+
+`package` and `package:prod` build `spinshare-prod-0.2.0.vsix`. `package:local`
+builds `spinshare-local-0.2.0.vsix`. `package:all` builds both after one CLI and
+extension build.
+
+Auth tokens are now scoped by normalized `spinshare.baseUrl`, so the local VSIX
+does not reuse a production token. Production still migrates the legacy token
+key to avoid signing out existing users.
 
 ## Planned Changes
 

@@ -38,14 +38,39 @@ import {
   STRIPE_API_VERSION,
 } from "./stripe-config";
 
-/** Fixed currency for all payouts (amounts are US-dollar cents). */
+/**
+ * Platform payout region — the single source of truth for the country and
+ * currency every Connect account is created with. Centralized so the Accounts
+ * v2 path (`identity.country`, lowercase) and the legacy fallback path
+ * (`country`, uppercase) can never drift apart.
+ *
+ * The platform settles in USD and onboards **US** connected accounts only,
+ * under Stripe's full terms of service — the path that works today. The
+ * original `identity_country_required` failure came from omitting this country
+ * on the Accounts v2 create call. Going international is deliberately deferred:
+ * it means collecting the developer's country, restricting it to Stripe's
+ * self-serve cross-border set (US/UK/EEA/CA/CH), branching US=full-ToS vs
+ * non-US=recipient agreement, and letting non-US accounts settle in their local
+ * currency. See `.ai/docs/payout-connect-country-fix.md`.
+ */
+const PAYOUT_COUNTRY = "US";
+
+/** Platform settlement currency (amounts are US-dollar cents). */
 const CURRENCY = "usd";
 
 type FetchLike = typeof fetch;
 
 interface StripeV2CoreAccountCreateParams {
   contact_email?: string;
+  identity: {
+    country: string;
+  };
   configuration: {
+    merchant: {
+      capabilities: {
+        card_payments: { requested: true };
+      };
+    };
     recipient: {
       capabilities: {
         stripe_balance: {
@@ -60,10 +85,13 @@ interface StripeV2CoreAccountCreateParams {
     responsibilities: {
       fees_collector: "application";
       losses_collector: "application";
-      requirements_collector: "stripe";
     };
   };
-  include: readonly ["configuration.recipient", "defaults"];
+  include: readonly [
+    "configuration.merchant",
+    "configuration.recipient",
+    "defaults",
+  ];
 }
 
 interface StripeV2CoreAccount {
@@ -110,7 +138,15 @@ export function buildConnectedAccountCreateParams(
 ): StripeV2CoreAccountCreateParams {
   return {
     ...(input.email !== undefined ? { contact_email: input.email } : {}),
+    identity: {
+      country: PAYOUT_COUNTRY.toLowerCase(),
+    },
     configuration: {
+      merchant: {
+        capabilities: {
+          card_payments: { requested: true },
+        },
+      },
       recipient: {
         capabilities: {
           stripe_balance: {
@@ -125,11 +161,46 @@ export function buildConnectedAccountCreateParams(
       responsibilities: {
         fees_collector: "application",
         losses_collector: "application",
-        requirements_collector: "stripe",
       },
     },
-    include: ["configuration.recipient", "defaults"],
+    include: ["configuration.merchant", "configuration.recipient", "defaults"],
   };
+}
+
+export function buildLegacyConnectedAccountCreateParams(
+  input: EnsureConnectedAccountInput,
+): Stripe.AccountCreateParams {
+  return {
+    country: PAYOUT_COUNTRY,
+    ...(input.email !== undefined ? { email: input.email } : {}),
+    capabilities: {
+      transfers: { requested: true },
+    },
+    controller: {
+      fees: { payer: "application" },
+      losses: { payments: "application" },
+      requirement_collection: "stripe",
+      stripe_dashboard: { type: "express" },
+    },
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+export function isAccountsV2UnavailableError(error: unknown): boolean {
+  if (!isRecord(error)) return false;
+
+  if (error.code === "non_connect_platform_accounts_v2_access_blocked") {
+    return true;
+  }
+
+  return (
+    error.statusCode === 404 &&
+    typeof error.message === "string" &&
+    error.message.includes("API method cannot be found")
+  );
 }
 
 export async function createConnectedAccount(
@@ -204,7 +275,14 @@ export class StripePayoutGateway implements PayoutGateway {
     const account = await createConnectedAccount(
       this.getSecretKey(),
       buildConnectedAccountCreateParams(input),
-    );
+    ).catch(async (error: unknown) => {
+      if (!isAccountsV2UnavailableError(error)) {
+        throw error;
+      }
+      return this.getClient().accounts.create(
+        buildLegacyConnectedAccountCreateParams(input),
+      );
+    });
     return { accountId: account.id };
   }
 

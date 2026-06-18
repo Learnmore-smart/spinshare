@@ -41,6 +41,28 @@ SecretStorage. Missing/empty SecretStorage tokens leave the shared file token
 mirror untouched. This lets previously signed-in extension users use generated
 Claude Code hook scripts after upgrade/restart without re-running sign-in.
 
+## Bug Fix Implemented 2026-06-16 Base URL Token Isolation
+
+Prod/local VSIX variants intentionally share one extension id, so they also
+share VS Code SecretStorage. If the user installs the local VSIX after signing
+in to prod, the local extension can load the prod token and call localhost with
+an invalid bearer token. The UI then looks authenticated but `/api/ad` returns
+no ads.
+
+Fix strategy:
+
+- make the current token secret key configurable;
+- derive the key from the normalized `spinshare.baseUrl`;
+- let production migrate the old legacy `spinshare.deviceAuthToken` key so
+  existing prod users are not signed out;
+- do not let localhost read the legacy prod key;
+- delete both primary and configured legacy keys on sign-out.
+
+`AuthManager` now accepts `tokenSecretKey` and `legacyTokenSecretKeys`, exports
+`tokenSecretKeyForBaseUrl()`, reads/writes the scoped key, migrates configured
+legacy tokens into the scoped key, and clears both scoped/legacy keys on
+sign-out.
+
 ## Verification
 
 - Red: `auth.test.ts` token mirror test failed because no mirror calls occurred.
@@ -51,6 +73,10 @@ Claude Code hook scripts after upgrade/restart without re-running sign-in.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented stored-token validation, invalid-token clearing, and baseUrl metadata in mirrored hook credentials. | Codex |
+| 2026-06-16 | Planned activation-time validation and invalid-token clearing for stored extension tokens. | Codex |
+| 2026-06-16 | Implemented base URL scoped token keys for prod/local extension variants. | Codex |
+| 2026-06-16 | Planned base URL scoped token keys for prod/local extension variants. | Codex |
 | 2026-06-15 | Implemented existing SecretStorage token mirror sync on initialize. | Codex |
 | 2026-06-15 | Planned existing SecretStorage token mirror sync on initialize. | Codex |
 | 2026-06-15 | Implemented optional file token mirror for Claude Code hook scripts. | Codex |

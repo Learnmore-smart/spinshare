@@ -51,3 +51,14 @@ with an exact `checkoutSessionId` match and returns defensive copies.
 | 2026-06-15 | Planned memory support for advertiser money activity events. | Codex |
 | 2026-06-15 | Implemented memory activity repository. | Codex |
 | 2026-06-15 | Created doc before adding memory activity repository. | Codex |
+
+## Planned Change 2026-06-16 Developer Payout Events
+
+`listByDeveloper()` should return stored `developer_event` payout rows for the
+matching developer alongside impression attempts. Campaign-id lookups should
+remain campaign-focused.
+
+## Implemented Change 2026-06-16 Developer Payout Events
+
+Memory `listByDeveloper()` now returns `DeveloperActivityRecord` union rows,
+including stored `developer_event` payout records for the matching developer.

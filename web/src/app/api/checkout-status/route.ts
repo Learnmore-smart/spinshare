@@ -1,5 +1,6 @@
-import type { Campaign } from "@spinshare/core";
+import { type Campaign } from "@spinshare/core";
 
+import { reconcilePaidCheckoutSession } from "@/server/checkout-reconciliation";
 import { getContainer } from "@/server/container";
 import type { AdvertiserActivity } from "@/server/ports/activity-repository";
 
@@ -70,7 +71,8 @@ export async function GET(request: Request): Promise<Response> {
     );
   }
 
-  const { activities, campaigns } = getContainer();
+  const container = getContainer();
+  const { activities, campaigns } = container;
   const events = await activities.listByCheckoutSessionId(sessionId);
   if (events.length === 0) {
     return Response.json(
@@ -80,9 +82,20 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   const sourceEvent = newestEvent(events);
-  const campaign =
+  let campaign =
     sourceEvent === null ? null : await campaigns.getById(sourceEvent.campaignId);
-  const status = resolveCheckoutStatus(events);
+  let status = resolveCheckoutStatus(events);
+  if (status !== "funded" && sourceEvent !== null) {
+    const reconciled = await reconcilePaidCheckoutSession(
+      container,
+      sessionId,
+      sourceEvent,
+    );
+    if (reconciled !== null) {
+      campaign = reconciled;
+      status = "funded";
+    }
+  }
 
   return Response.json(
     {

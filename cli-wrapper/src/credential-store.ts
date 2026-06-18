@@ -55,6 +55,56 @@ export interface CredentialFileFs {
 /** Owner-read/write only — the required mode for the fallback credential file. */
 export const CREDENTIAL_FILE_MODE = 0o600;
 
+/** Normalize a base URL for environment comparison (trim, drop trailing slash, lowercase). */
+function normalizeCredentialBaseUrl(value: string | undefined): string {
+  return typeof value === "string"
+    ? value.trim().replace(/\/+$/, "").toLowerCase()
+    : "";
+}
+
+/**
+ * Whether a stored credential is usable by a store configured for
+ * `configuredBaseUrl`. Prevents silently using a token issued for one
+ * environment against another (Bug B: local/prod credential mixing):
+ *   - no configured baseUrl (legacy caller) -> accept (nothing to enforce);
+ *   - configured baseUrl with no stored baseUrl -> reject as ambiguous;
+ *   - both present → must match exactly.
+ *
+ * The generated Claude Code hook applies a *stricter* rule (it rejects an
+ * untagged credential outright) because it auto-reports in the background; the
+ * interactive CLI follows the same rule whenever it knows the target base URL.
+ */
+function credentialEnvMatches(
+  configuredBaseUrl: string | undefined,
+  storedBaseUrl: string | undefined,
+): boolean {
+  const configured = normalizeCredentialBaseUrl(configuredBaseUrl);
+  const stored = normalizeCredentialBaseUrl(storedBaseUrl);
+  if (configured.length === 0) return true;
+  if (stored.length === 0) return false;
+  return configured === stored;
+}
+
+/** Parse a stored credential value, tolerating the legacy bare-token format. */
+function parseStoredCredential(raw: string): {
+  token: string | null;
+  baseUrl: string | undefined;
+} {
+  try {
+    const parsed = JSON.parse(raw) as CredentialFileShape;
+    return {
+      token:
+        typeof parsed.token === "string" && parsed.token.length > 0
+          ? parsed.token
+          : null,
+      baseUrl: typeof parsed.baseUrl === "string" ? parsed.baseUrl : undefined,
+    };
+  } catch {
+    // Legacy keytar value: a bare token string (pre-JSON format).
+    return { token: raw.length > 0 ? raw : null, baseUrl: undefined };
+  }
+}
+
 /** Default {@link CredentialFileFs} backed by `node:fs/promises`. */
 export const defaultCredentialFileFs: CredentialFileFs = {
   async readFile(filePath) {
@@ -95,10 +145,13 @@ export interface FileCredentialStoreOptions {
   filePath?: string;
   /** Injectable filesystem; defaults to {@link defaultCredentialFileFs}. */
   fs?: CredentialFileFs;
+  /** API base URL this token belongs to, written as metadata for generated hooks. */
+  baseUrl?: string;
 }
 
 interface CredentialFileShape {
   token?: unknown;
+  baseUrl?: unknown;
 }
 
 /**
@@ -109,10 +162,12 @@ interface CredentialFileShape {
 export class FileCredentialStore implements CredentialStore {
   readonly filePath: string;
   private readonly fs: CredentialFileFs;
+  private readonly baseUrl?: string;
 
   constructor(options: FileCredentialStoreOptions = {}) {
     this.filePath = options.filePath ?? defaultCredentialFilePath();
     this.fs = options.fs ?? defaultCredentialFileFs;
+    this.baseUrl = options.baseUrl;
   }
 
   async load(): Promise<string | null> {
@@ -122,19 +177,30 @@ export class FileCredentialStore implements CredentialStore {
     } catch {
       return null; // missing/unreadable file → no stored token
     }
+    let parsed: CredentialFileShape;
     try {
-      const parsed = JSON.parse(raw) as CredentialFileShape;
-      return typeof parsed.token === "string" && parsed.token.length > 0
-        ? parsed.token
-        : null;
+      parsed = JSON.parse(raw) as CredentialFileShape;
     } catch {
       return null; // corrupt file → treat as no token
     }
+    if (typeof parsed.token !== "string" || parsed.token.length === 0) {
+      return null;
+    }
+    const storedBaseUrl =
+      typeof parsed.baseUrl === "string" ? parsed.baseUrl : undefined;
+    // Refuse a token issued for a different environment than this store targets.
+    return credentialEnvMatches(this.baseUrl, storedBaseUrl)
+      ? parsed.token
+      : null;
   }
 
   async save(token: string): Promise<void> {
     await this.fs.mkdir(path.dirname(this.filePath));
-    const body = `${JSON.stringify({ token }, null, 2)}\n`;
+    const body = `${JSON.stringify(
+      this.baseUrl ? { token, baseUrl: this.baseUrl } : { token },
+      null,
+      2,
+    )}\n`;
     await this.fs.writeFile(this.filePath, body, CREDENTIAL_FILE_MODE);
     // Enforce 0600 even if the file pre-existed with looser permissions.
     try {
@@ -198,20 +264,42 @@ export async function loadKeytar(): Promise<KeytarLike | null> {
   }
 }
 
-/** Stores the token in the OS keychain via an injected/loaded `keytar`. */
+/**
+ * Stores the token in the OS keychain via an injected/loaded `keytar`.
+ *
+ * Environment-aware: when constructed with a `baseUrl`, the token is persisted
+ * as `{ token, baseUrl }` JSON and `load()` refuses a token tagged for a
+ * different environment, so a local and a production CLI login never reuse each
+ * other's token. Legacy bare-token values are read only by callers that do not
+ * configure a target base URL.
+ */
 export class KeytarCredentialStore implements CredentialStore {
   constructor(
     private readonly keytar: KeytarLike,
     private readonly service: string = KEYTAR_SERVICE,
     private readonly account: string = KEYTAR_ACCOUNT,
+    private readonly baseUrl?: string,
   ) {}
 
   async load(): Promise<string | null> {
-    return this.keytar.getPassword(this.service, this.account);
+    const raw = await this.keytar.getPassword(this.service, this.account);
+    if (raw === null || raw.length === 0) {
+      return null;
+    }
+    const { token, baseUrl } = parseStoredCredential(raw);
+    if (token === null) {
+      return null;
+    }
+    return credentialEnvMatches(this.baseUrl, baseUrl) ? token : null;
   }
 
   async save(token: string): Promise<void> {
-    await this.keytar.setPassword(this.service, this.account, token);
+    const payload = this.baseUrl ? { token, baseUrl: this.baseUrl } : { token };
+    await this.keytar.setPassword(
+      this.service,
+      this.account,
+      JSON.stringify(payload),
+    );
   }
 
   async clear(): Promise<void> {
@@ -225,6 +313,8 @@ export interface CreateCredentialStoreOptions {
   filePath?: string;
   /** Injectable filesystem for the file store. */
   fs?: CredentialFileFs;
+  /** API base URL metadata for the file store. */
+  baseUrl?: string;
   /** Injectable keytar loader; defaults to {@link loadKeytar}. */
   keytarLoader?: () => Promise<KeytarLike | null>;
 }
@@ -240,10 +330,16 @@ export async function createCredentialStore(
   const loader = options.keytarLoader ?? loadKeytar;
   const keytar = await loader();
   if (keytar !== null) {
-    return new KeytarCredentialStore(keytar);
+    return new KeytarCredentialStore(
+      keytar,
+      KEYTAR_SERVICE,
+      KEYTAR_ACCOUNT,
+      options.baseUrl,
+    );
   }
   return new FileCredentialStore({
     ...(options.filePath !== undefined ? { filePath: options.filePath } : {}),
     ...(options.fs !== undefined ? { fs: options.fs } : {}),
+    ...(options.baseUrl !== undefined ? { baseUrl: options.baseUrl } : {}),
   });
 }

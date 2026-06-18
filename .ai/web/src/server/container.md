@@ -88,10 +88,84 @@ local disposable datastore.
 repos. Local cloud Firestore opt-in without `SPINSHARE_FIRESTORE_NAMESPACE`
 throws an explicit error. Emulator and production selection are unchanged.
 
+## Planned Change 2026-06-16 Local Real Stripe Durability Guard
+
+**Bug:** The current local `.env` can pair `SPINSHARE_MODE=local` and
+`STRIPE_MODE=test` while durable repositories remain in memory because neither
+`FIRESTORE_EMULATOR_HOST` nor `SPINSHARE_USE_FIRESTORE=1` is set. This lets real
+Stripe Checkout collect a test payment while the campaign and checkout activity
+live only in the current Node process, so the leaderboard/dashboard can miss the
+paid campaign after redirect, restart, webhook delivery to a different process,
+or dashboard request in another storage namespace.
+
+**Fix strategy:** Fail fast in `buildContainer()` for local real Stripe
+(`STRIPE_MODE=test|live`) unless durable storage is Firestore via emulator or
+explicit local Firestore opt-in. The existing local Firestore namespace guard
+will continue to require `SPINSHARE_FIRESTORE_NAMESPACE` for cloud Firestore.
+
+**Risk:** This intentionally blocks the unsafe hybrid mode. Pure mock local dev,
+local sample ads, emulator-based Stripe tests, namespace-isolated cloud
+Firestore tests, and production mode should remain unchanged.
+
+## Implemented Change 2026-06-16 Local Real Stripe Durability Guard
+
+`buildContainer()` now calls a fail-fast guard before adapter construction. In
+local mode, `STRIPE_MODE=test|live` requires durable Firestore selection through
+`FIRESTORE_EMULATOR_HOST` or `SPINSHARE_USE_FIRESTORE=1`. If local cloud
+Firestore is selected, the existing namespace guard still requires
+`SPINSHARE_FIRESTORE_NAMESPACE`.
+
+The current local `.env` has been moved to the allowed namespace-isolated
+configuration: `SPINSHARE_USE_FIRESTORE=1` and
+`SPINSHARE_FIRESTORE_NAMESPACE="test"`.
+
+## Planned Change 2026-06-16 Local RTDB Hot Counter Isolation
+
+**Bug:** Local cloud Firestore can be isolated under
+`namespaces/{SPINSHARE_FIRESTORE_NAMESPACE}/...`, but local RTDB hot counters
+still default to the production/shared `spinshare/hot` root whenever
+`SPINSHARE_COUNTER=rtdb`. That means localhost ad serving, pending ledger,
+velocity, hot balances, hot campaign budget deltas, and campaign telemetry can
+mutate shared RTDB state even while Firestore writes are safely namespaced.
+
+**Fix strategy:** Add a pure root-path resolver and use it when constructing
+`RealtimeDbCounterStore`. Production keeps the default `spinshare/hot`; local
+RTDB uses `spinshare/namespaces/<safe namespace>/hot`, where the namespace is
+`SPINSHARE_FIRESTORE_NAMESPACE` when present and `local` otherwise. An explicit
+`SPINSHARE_RTDB_ROOT_PATH` should override both for staging/custom deployments.
+
+**Risk:** Existing production deployments must remain unchanged unless they set
+the explicit root override. Local test data may move from the shared hot tree to
+the new namespaced tree, which is intended.
+
+## Implemented Change 2026-06-16 Local RTDB Hot Counter Isolation
+
+`resolveRtdbRootPath(env, mode)` now keeps production on the adapter default
+root unless `SPINSHARE_RTDB_ROOT_PATH` is set. Local mode derives a namespaced
+root from `SPINSHARE_FIRESTORE_NAMESPACE` or falls back to `local`:
+
+`spinshare/namespaces/<namespace>/hot`
+
+`buildCounterStore()` passes the resolved root into `RealtimeDbCounterStore`.
+This keeps local RTDB hot balances, pending ledger, campaign budget deltas,
+velocity, and telemetry out of the shared production hot tree.
+
+## Implemented Change 2026-06-16 Payout Attempt Ledger
+
+`Container` now exposes `payoutAttempts`. Local/in-memory mode wires
+`MemoryPayoutAttemptRepository`; Firestore-selected mode wires
+`FirestorePayoutAttemptRepo`. This gives the payout service a durable provider
+reconciliation store separate from user-facing activity rows.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Wired payout attempt repository into the container. | Codex |
+| 2026-06-16 | Implemented namespace-isolated RTDB hot counter root for local mode. | Codex |
+| 2026-06-16 | Planned namespace-isolated RTDB hot counter root for local mode. | Codex |
+| 2026-06-16 | Implemented fail-fast guard for local real Stripe with memory durable storage. | Codex |
+| 2026-06-16 | Planned fail-fast guard for local real Stripe with memory durable storage. | Codex |
 | 2026-06-15 | Implemented fail-fast namespace guard for local cloud Firestore. | Codex |
 | 2026-06-15 | Planned fail-fast namespace guard for local cloud Firestore. | Codex |
 | 2026-06-15 | Planned ImpressionProgressRepository container binding. | Codex |

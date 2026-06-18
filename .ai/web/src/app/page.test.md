@@ -118,6 +118,20 @@ Update the static homepage test before implementation so it requires:
 |------|-----|-------|-----|
 | 2026-06-15 | Full web suite fails on stale homepage layout class assertions | Test still expected old reference-layout class names that current homepage no longer renders, despite the test contract saying to assert user-visible behavior | Remove implementation-class assertions and keep copy/link/visible-section assertions. |
 
+## Planned Regression: Checkout Return Status Banner (2026-06-16)
+
+Update the static homepage test before mounting the banner so the checkout
+section includes the status component's durable copy. Keep the assertion
+copy-level and avoid depending on client-side URL state in this page test; the
+component's own test covers URL parsing and status copy.
+
+## Implemented Regression: Checkout Return Status Banner (2026-06-16)
+
+No extra static homepage assertion was added because the banner intentionally
+renders `null` for ordinary homepage visits. Page coverage is limited to
+ensuring the homepage still statically renders after importing the client
+component; behavior coverage lives in `checkout-status-banner.test.tsx`.
+
 ## Planned Regression: Public Advertiser Checkout Form
 
 Update the static homepage test before implementation so it requires visible advertiser checkout affordances: email, destination URL, public leaderboard toggle copy, and Stripe checkout CTA. The test should remain copy-level and not depend on client interaction.
@@ -130,6 +144,8 @@ The homepage static-render test now requires the public checkout headline, email
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Documented why checkout banner behavior is covered by the component test, not static homepage copy. | Codex |
+| 2026-06-16 | Planned homepage regression for checkout return status banner copy. | Codex |
 | 2026-06-15 | Synced homepage layout regression notes with final visible-content assertions and red/green run | Codex |
 | 2026-06-15 | Removed stale homepage layout class assertions and kept visible content/link assertions | Codex |
 | 2026-06-15 | Planned removal of stale homepage layout class assertions from the static render test | Codex |

@@ -33,11 +33,11 @@ export function EarningsChart({ series, variant = "dark" }: EarningsChartProps) 
           <YAxis
             {...theme.axis}
             width={48}
-            tickFormatter={(value: number) => `$${value.toFixed(2)}`}
+            tickFormatter={(value: number) => `$${value.toFixed(3)}`}
           />
           <Tooltip
             {...theme.tooltip}
-            formatter={(value: number) => [`$${value.toFixed(2)}`, "Cumulative"]}
+            formatter={(value: number) => [`$${value.toFixed(3)}`, "Cumulative"]}
           />
           <Line type="monotone" dataKey="cumulativeUsd" {...theme.line} />
         </LineChart>

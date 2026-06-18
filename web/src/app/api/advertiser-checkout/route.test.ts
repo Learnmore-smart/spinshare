@@ -5,6 +5,7 @@ import {
   getContainer,
   resetContainer,
 } from "@/server/container";
+import { publicAdvertiserIdForEmail } from "@/server/advertiser-identity";
 
 import { POST } from "./route";
 import { GET as getMarket } from "../market/route";
@@ -137,5 +138,21 @@ describe("POST /api/advertiser-checkout", () => {
 
     expect(response.status).toBe(400);
     expect(body.error).toBeTruthy();
+  });
+
+  it("rejects unsafe ad copy before creating a campaign or checkout", async () => {
+    const response = await POST(
+      request({ ...validPayload, adText: "Claim free crypto airdrop now" }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Ad text appears unsafe or deceptive");
+    expect(
+      await getContainer().campaigns.listByAdvertiser(
+        publicAdvertiserIdForEmail(validPayload.email),
+      ),
+    ).toEqual([]);
+    expect((getContainer().activities as MemoryActivityRepository).all()).toEqual([]);
   });
 });

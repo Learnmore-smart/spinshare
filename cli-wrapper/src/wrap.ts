@@ -273,6 +273,7 @@ interface AdCache {
 }
 
 type TimerHandle = ReturnType<typeof setTimeout>;
+type DisposableSubscription = { dispose(): void };
 
 function terminalSize(stdout: NodeJS.WritableStream): { cols: number; rows: number } {
   const stream = stdout as NodeJS.WritableStream & {
@@ -289,6 +290,16 @@ function ptyInput(chunk: Buffer | string): string {
   return typeof chunk === "string" ? chunk : chunk.toString("utf8");
 }
 
+function disposePtySubscription(
+  subscription: void | DisposableSubscription | undefined,
+): void {
+  try {
+    subscription?.dispose();
+  } catch {
+    // Best effort cleanup; exit-code passthrough must not be affected.
+  }
+}
+
 function attachStdinToPty(
   stdin: NodeJS.ReadableStream,
   pty: PtyProcessLike,
@@ -298,17 +309,22 @@ function attachStdinToPty(
     isRaw?: boolean;
     setRawMode?: (mode: boolean) => void;
     resume?: () => unknown;
+    pause?: () => unknown;
   };
   const wasRaw = input.isRaw === true;
   const shouldRestoreRaw =
     input.isTTY === true && typeof input.setRawMode === "function";
+  let resumed = false;
 
   const onData = (chunk: Buffer | string) => {
     pty.write(ptyInput(chunk));
   };
 
   stdin.on("data", onData);
-  input.resume?.();
+  if (typeof input.resume === "function") {
+    input.resume();
+    resumed = true;
+  }
 
   if (shouldRestoreRaw) {
     try {
@@ -320,6 +336,13 @@ function attachStdinToPty(
 
   return () => {
     stdin.removeListener("data", onData);
+    if (resumed && typeof input.pause === "function") {
+      try {
+        input.pause();
+      } catch {
+        // Best effort cleanup.
+      }
+    }
     if (shouldRestoreRaw) {
       try {
         input.setRawMode?.(wasRaw);
@@ -510,15 +533,22 @@ export async function runWrap(options: RunWrapOptions): Promise<number> {
     const detachStdin = attachStdinToPty(stdin, pty);
     const detachResize = attachResizeToPty(stdout, pty);
 
-    pty.onData((data) => {
+    const dataSubscription = pty.onData((data) => {
       handleOutputChunk(data);
     });
 
     return await new Promise<number>((resolve) => {
-      pty.onExit((event) => {
+      let settled = false;
+      const exitSubscription = pty.onExit((event) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
         void flushActiveSegment().finally(() => {
           detachStdin();
           detachResize();
+          disposePtySubscription(dataSubscription);
+          disposePtySubscription(exitSubscription);
           resolve(event.exitCode ?? 0);
         });
       });

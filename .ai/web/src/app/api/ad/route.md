@@ -25,6 +25,29 @@ Successful ad selections now increment aggregate `shows`. Clickable
 destinations are rewritten to the same-origin `/api/click?campaignId=...`
 redirect endpoint.
 
+## Planned Change 2026-06-16 Signed Click Token
+
+Root cause: `/api/click?campaignId=...` currently increments click telemetry
+for any request that names a valid campaign with a destination. That keeps the
+redirect server-side and avoids open redirects, but it lets anyone who knows a
+campaign id inflate advertiser click metrics without having been served the ad.
+
+Fix plan: when authenticated `/api/ad` returns a clickable campaign, add a
+short-lived HMAC click token to the `/api/click` URL. The token should be bound
+to the served campaign id and authenticated developer id. `/api/click` will
+still redirect to the stored destination when the token is missing/invalid, but
+it should only increment `clicks` when the token verifies.
+
+Regression risk: terminal clickability must remain unchanged because the URL
+still points at `/api/click`; only telemetry counting becomes stricter.
+
+## Implemented Change 2026-06-16 Signed Click Token
+
+Authenticated clickable ad responses now append a signed `clickToken` to the
+same-origin `/api/click` URL. The token is minted with the served campaign id and
+authenticated developer id, so `/api/click` can count only links actually issued
+by `/api/ad`.
+
 ## Planned Change 2026-06-15 Cumulative Viewability
 
 Read an optional bearer token from `GET /api/ad`. When valid, resolve the
@@ -100,6 +123,8 @@ pending campaign is re-served.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented signed click token on served ad URLs. | Codex |
+| 2026-06-16 | Planned signed click token on served ad URLs. | Codex |
 | 2026-06-15 | Implemented server-side served marker on ad selection. | Codex |
 | 2026-06-15 | Planned server-side served marker on ad selection. | Codex |
 | 2026-06-15 | Implemented required auth boundary for ad serving. | Codex |

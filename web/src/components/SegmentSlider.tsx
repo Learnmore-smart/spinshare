@@ -53,6 +53,7 @@ export function SegmentSlider<T extends string>({
       style={style}
       role="tablist"
       aria-label={ariaLabel}
+      data-active-value={value}
     >
       {options.map((opt) => {
         const active = opt.value === value;
@@ -62,6 +63,7 @@ export function SegmentSlider<T extends string>({
             type="button"
             role="tab"
             aria-selected={active}
+            data-value={opt.value}
             className={`spinshare-segment-slider__option ${active ? "spinshare-segment-slider__option--active" : ""}`}
             onClick={() => onChange(opt.value)}
           >

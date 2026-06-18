@@ -121,15 +121,7 @@
     justify-content: flex-start;
   }
 
-  .spinshare-market-proof-grid {
-    grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
-    align-items: start;
-  }
 
-  .spinshare-market-proof-grid > #advertiser-checkout,
-  .spinshare-market-proof-grid > .liquid-glass-light-green {
-    grid-column: 1 / -1;
-  }
 }
 
 @media (max-width: 1023px) {
@@ -805,5 +797,80 @@ input[type="password"]:focus {
 
 .threed-card:hover .threed-card-content {
   transform: translateZ(20px);
+}
+
+/* =====================================================================
+   Shared — Interactive Tilt Card (TiltCard component)
+   Pointer-tracked parallax + cursor glare, reused across the dashboards.
+   The transform itself is applied inline by the component; these rules
+   provide the chrome (glare layer, depth context, pop-out children).
+   ===================================================================== */
+.tilt-card {
+  position: relative;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Soft radial sheen that tracks the cursor. Inherits the card's radius so it
+   stays clipped to rounded corners even when the card has no overflow clip. */
+.tilt-card-glare {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: inherit;
+  pointer-events: none;
+  /* Plain source-over overlay (matches the marketing ThreeDCard / HeroDashboardCard).
+     `screen` would lighten toward white and make the tint nearly invisible on the
+     near-white dashboard surfaces, so it is intentionally omitted. */
+  transition: opacity 0.3s ease;
+}
+
+/* Children that should lift toward the viewer while the card is hovered.
+   Works because .tilt-card establishes a perspective + preserve-3d context. */
+.tilt-pop {
+  transform: translateZ(0);
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: transform;
+}
+
+.tilt-card:hover .tilt-pop {
+  transform: translateZ(26px);
+}
+
+.tilt-pop-sm {
+  transform: translateZ(0);
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: transform;
+}
+
+.tilt-card:hover .tilt-pop-sm {
+  transform: translateZ(14px);
+}
+
+/* =====================================================================
+   Accessibility — honour reduced-motion across all sleek surfaces.
+   Disables tilt/lift transforms, gradient sweeps, and entrance animations.
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .tilt-card,
+  .tilt-pop,
+  .tilt-pop-sm,
+  .liquid-glass,
+  .threed-card,
+  .threed-card-icon,
+  .threed-card-content {
+    transition: none !important;
+    transform: none !important;
+  }
+
+  .tilt-card-glare {
+    display: none;
+  }
+
+  .spinshare-hero-highlight-3d,
+  .animate-pulse-slow,
+  .animate-marquee {
+    animation: none !important;
+  }
 }
 

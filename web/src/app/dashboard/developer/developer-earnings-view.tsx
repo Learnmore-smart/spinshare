@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 
 import { SegmentSlider } from "@/components/SegmentSlider";
-import { useT } from "@/lib/i18n/locale-provider";
+import { TiltCard } from "@/components/TiltCard";
+import { useLocale, useT } from "@/lib/i18n/locale-provider";
 import { useTheme } from "@/lib/theme/theme-provider";
 
 import { useDeveloperDashboard } from "./developer-dashboard-data";
@@ -24,6 +25,7 @@ function useChartRangeOptions() {
 
 export function DeveloperEarningsView() {
   const t = useT();
+  const locale = useLocale();
   const { resolved } = useTheme();
   const chartRangeOptions = useChartRangeOptions();
   const [chartRange, setChartRange] = useState<ChartRange>("7d");
@@ -31,12 +33,12 @@ export function DeveloperEarningsView() {
   const { impressionCount, rows } = summary;
 
   const chartSeries = useMemo(
-    () => buildChartSeries(rows, chartRange),
-    [rows, chartRange],
+    () => buildChartSeries(rows, chartRange, undefined, locale),
+    [rows, chartRange, locale],
   );
 
   return (
-    <section className="dev-dash-panel dev-dash-rise p-4 sm:p-5">
+    <TiltCard className="dev-dash-panel dev-dash-rise p-4 sm:p-5" intensity={6} scale={1.008}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="dev-dash-section-title">{t.developerDashboard.earningsCurve}</h2>
@@ -67,6 +69,6 @@ export function DeveloperEarningsView() {
           <EarningsChart series={chartSeries} variant={resolved === "dark" ? "dark" : "light"} />
         )}
       </div>
-    </section>
+    </TiltCard>
   );
 }

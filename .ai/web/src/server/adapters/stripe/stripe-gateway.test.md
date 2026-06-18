@@ -25,6 +25,19 @@ with `Stripe.webhooks.generateTestHeaderString()` and verifies that
 `StripeGateway.verifyAndParseWebhook()` returns event id, event type,
 `checkoutSessionId`, campaign id, and amount cents without making network calls.
 
+## Planned Coverage 2026-06-16 Checkout Session Funding Lookup
+
+Add pure projection coverage before implementation:
+
+- a paid Checkout Session with metadata campaign id maps to paid funding;
+- a paid Checkout Session without metadata falls back to `client_reference_id`;
+- an open/unpaid session maps to unpaid without applying funding semantics.
+
+## Implemented Coverage 2026-06-16 Checkout Session Funding Lookup
+
+Added local pure projection tests for paid metadata mapping and unpaid
+client-reference fallback mapping. These tests do not call the Stripe network.
+
 ## Dependencies
 
 - `stripe`
@@ -34,5 +47,7 @@ with `Stripe.webhooks.generateTestHeaderString()` and verifies that
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented Checkout Session funding lookup coverage. | Codex |
+| 2026-06-16 | Planned Checkout Session funding lookup coverage. | Codex |
 | 2026-06-16 | Implemented checkout session id parse coverage. | Codex |
 | 2026-06-16 | Planned checkout session id parse coverage. | Codex |

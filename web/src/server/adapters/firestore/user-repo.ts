@@ -81,18 +81,56 @@ export class FirestoreUserRepo implements UserRepository {
     });
   }
 
-  /** Applies a signed balance delta atomically (flush reconciliation only). */
+  /**
+   * Applies a signed balance delta atomically (flush reconciliation only).
+   *
+   * Upserts: a missing `users/{id}` doc is **created** carrying the delta as its
+   * balance rather than throwing. This is critical for reconciliation — under
+   * JWT browser sessions no durable user record exists until the first credit
+   * reaches here, so throwing `User not found` would abort `runFlushCycle`, nack
+   * the batch, and strand every developer's earnings in the RTDB pending queue
+   * forever (the dashboard would show $0 while the activity feed shows credits).
+   */
   async applyBalanceDeltaCents(id: string, deltaCents: number): Promise<void> {
     const ref = this.collection.doc(id);
     await this.db.runTransaction(async (tx) => {
       const doc = await tx.get(ref);
       if (!doc.exists) {
-        throw new Error(`User ${id} not found`);
+        tx.set(ref, {
+          balanceCents: deltaCents,
+          role: "developer",
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+        return;
       }
       tx.update(ref, {
         balanceCents: FieldValue.increment(deltaCents),
         updatedAt: FieldValue.serverTimestamp(),
       });
+    });
+  }
+
+  /** Atomically reserves funds for a payout without allowing negative balance. */
+  async tryDebitBalanceCents(
+    id: string,
+    amountCents: number,
+  ): Promise<boolean> {
+    const ref = this.collection.doc(id);
+    return this.db.runTransaction(async (tx) => {
+      const doc = await tx.get(ref);
+      if (!doc.exists) {
+        return false;
+      }
+      const balanceCents = Number(doc.data()?.balanceCents ?? 0);
+      if (balanceCents < amountCents) {
+        return false;
+      }
+      tx.update(ref, {
+        balanceCents: FieldValue.increment(-amountCents),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      return true;
     });
   }
 

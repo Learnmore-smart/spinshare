@@ -32,6 +32,139 @@ Support email-first advertiser claim: when the authenticated token includes an e
 - Only return campaigns owned by the authenticated advertiser.
 - Telemetry must remain aggregate and campaign-scoped.
 - Do not expose prompts, user content, or private user identifiers.
+- Campaign creation must inherit core ad-safety validation before mutation.
+
+## Planned Change 2026-06-16 Ad Safety Gate
+
+Authenticated campaign creation should use the shared core deterministic
+ad-text safety gate. Unsafe/deceptive ad copy returns the existing `400`
+validation response and creates no campaign.
+
+## Implemented Change 2026-06-16 Ad Safety Gate
+
+Authenticated campaign creation now inherits the shared core ad-text safety
+gate. Unsafe copy returns `400` and no campaign is stored.
+
+Verification passed after rebuilding core:
+`corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/advertiser-checkout/route.test.ts src/app/api/campaigns/route.test.ts`.
+
+## Planned Change 2026-06-16 Advertiser Read-Time Flush
+
+Root cause: `POST /api/track` records credited impressions through the hot
+counter store first, then a flush cycle reconciles pending entries into the
+durable ledger/user/campaign repositories. The developer dashboard and payout
+status already trigger `flushPendingForRead`, but `GET /api/campaigns` still
+reads campaign budget and durable impression counts without flushing. That can
+make an advertiser pay, receive impressions, and then briefly see stale
+remaining budget / served counts in the advertiser dashboard.
+
+Fix plan: call `flushPendingForRead(container, "advertiser-campaigns")` in
+`GET /api/campaigns` after authentication and before listing owned campaigns or
+reading telemetry/ledger counts. The helper is best-effort and logs instead of
+throwing, so dashboard reads still return if reconciliation is temporarily
+unavailable.
+
+Regression risk: this adds one reconciliation attempt to each advertiser
+campaign read. It should only use the existing flush helper and must not change
+campaign creation or unauthenticated responses.
+
+## Implemented Change 2026-06-16 Advertiser Read-Time Flush
+
+`GET /api/campaigns` now calls
+`flushPendingForRead(container, "advertiser-campaigns")` after successful
+authentication and before listing campaigns / reading telemetry / counting
+durable impressions. The helper remains best-effort, so a failed reconciliation
+logs but does not block the dashboard response.
+
+RED verification before implementation:
+`corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts`
+failed because `cmp_pending` returned `budgetCents: 5000` and `credited: 0`
+instead of the flushed `4997` / `1`.
+
+GREEN verification after implementation:
+`corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts`
+passed 5 tests.
+
+## Planned Change 2026-06-16 Dashboard Checkout Reconciliation
+
+Root cause: real Stripe local tests depend on either `/api/webhooks/stripe` or
+the homepage `/api/checkout-status` banner to apply paid Checkout Session
+funding. If the webhook is not forwarded and the user later opens the
+advertiser dashboard, `GET /api/campaigns` currently sees only the
+`checkoutStarted` activity plus a zero-budget campaign. That keeps the paid ad
+out of the market/ranking and out of the extension ad feed even though Stripe
+has marked the session as paid.
+
+Fix plan: after resolving owned campaigns, call a shared checkout
+reconciliation helper for those campaign ids. The helper should inspect owned
+`checkoutStarted` activity rows, retrieve provider-verified funding state by
+session id, and apply the budget exactly once through the existing
+`paymentEvents` idempotency gate. If reconciliation applies funding, refresh
+the owned campaign list before building the dashboard response.
+
+Regression risk: dashboard reads may call Stripe for pending checkouts owned by
+the logged-in advertiser. Keep it bounded to owned campaigns and do not let
+provider lookup failures block campaign listing.
+
+## Implemented Change 2026-06-16 Dashboard Checkout Reconciliation
+
+`GET /api/campaigns` now calls
+`reconcilePaidCheckoutSessionsForCampaigns(container, uniqueOwned)` after
+listing owned campaigns and before building the response. When reconciliation
+may have applied funding, it refreshes the owned campaign list so `budgetCents`
+and `remainingBudgetUsd` reflect the paid Checkout Session immediately.
+
+RED verification before implementation:
+`corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts`
+failed because the claimed public campaign returned `budgetCents: 0` after a
+paid provider lookup.
+
+GREEN verification after implementation:
+`corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts`
+passed 6 tests.
+
+## Planned Change 2026-06-17 Direct Checkout On Campaign Create
+
+Root cause: the authenticated dashboard campaign creation endpoint only creates
+a zero-budget campaign. The dashboard then clears the builder and asks the user
+to purchase impressions in a separate campaign-card control. The expected flow
+is a single action: Create campaign should create the campaign and immediately
+open Stripe Checkout for the selected impression blocks.
+
+Fix plan:
+
+- Accept an optional `blockCount` on `POST /api/campaigns`.
+- Preserve existing behavior when `blockCount` is omitted.
+- When present, derive the checkout amount from the newly created campaign's
+  stored CPM and the requested block count.
+- Create a Stripe Checkout Session through the existing payment gateway.
+- Return the checkout URL/session alongside the created campaign.
+- Use dashboard return URLs so success/cancel lands back on
+  `/dashboard/advertiser`; cancel must leave the campaign and form values
+  recoverable for a retry.
+- Record `checkoutStarted` and settled mock `budgetFunded` activity rows using
+  the same activity shape as `/api/funds/checkout`.
+
+Regression risk: this adds payment creation to the authenticated create route
+only when `blockCount` is included. Keep authorization, validation, and legacy
+201 campaign response behavior intact for older callers.
+
+## Implemented Change 2026-06-17 Direct Checkout On Campaign Create
+
+`POST /api/campaigns` now accepts optional `blockCount`. Without it, the route
+still returns the legacy campaign view. With it, the route validates the derived
+checkout total before campaign creation, creates the campaign, starts a Checkout
+Session, records `checkoutStarted`, applies settled mock funding when indicated,
+records `budgetFunded`, and returns `{ url, sessionId, amountCents, amountUsd,
+campaign }` with status `201`.
+
+RED verification before implementation:
+`corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts src/app/dashboard/advertiser/campaign-builder.test.tsx`
+failed because `sessionId` was undefined for create-with-blockCount.
+
+GREEN verification after implementation:
+`corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts src/app/dashboard/advertiser/campaign-builder.test.tsx`
+passed 9 tests after rebuilding `@spinshare/core`.
 
 ## Implemented Change
 
@@ -47,6 +180,14 @@ merging durable ledger impression counts into the `credited` total.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-17 | Implemented optional direct checkout on authenticated campaign creation. | Codex |
+| 2026-06-17 | Planned optional direct checkout on authenticated campaign creation. | Codex |
+| 2026-06-16 | Implemented dashboard read-time reconciliation for paid Stripe checkout sessions. | Codex |
+| 2026-06-16 | Planned dashboard read-time reconciliation for paid Stripe checkout sessions. | Codex |
+| 2026-06-16 | Implemented advertiser campaign read-time flush before dashboard reads. | Codex |
+| 2026-06-16 | Planned advertiser campaign read-time flush before dashboard reads. | Codex |
+| 2026-06-16 | Implemented authenticated campaign ad safety gate through core schema. | Codex |
+| 2026-06-16 | Planned authenticated campaign ad safety gate through core schema. | Codex |
 | 2026-06-15 | Implemented email-based claim for public checkout campaigns. | Codex |
 | 2026-06-15 | Planned email-based claim for public homepage purchases. | Codex |
 | 2026-06-15 | Planned advertiser campaign telemetry response fields. | Codex |

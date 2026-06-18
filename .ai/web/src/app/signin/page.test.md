@@ -43,6 +43,39 @@ Update sign-in tests before implementation so they require:
 
 The sign-in test now imports `SIGNIN_PAGE_COPY`, keeps the role parsing coverage, and verifies the visible clean split sign-in copy contract.
 
+## Planned Regression 2026-06-16 Local Sample Credentials Entry
+
+Add focused pure-helper coverage before implementation:
+
+- `localCredentialsEnabledFromEnv()` returns true only when
+  `NEXT_PUBLIC_SPINSHARE_LOCAL_CREDENTIALS=1`.
+- `localTestCredentialsForRole()` returns the fixed developer or advertiser
+  local test account so the UI cannot accept arbitrary browser-provided ids.
+
+## Implemented Regression 2026-06-16 Local Sample Credentials Entry
+
+The sign-in tests now import `localCredentialsEnabledFromEnv()` and
+`localTestCredentialsForRole()`, verifying the public local flag and the fixed
+developer/advertiser credentials used by the UI.
+
+## Planned Regression 2026-06-16 Advertiser Callback Role
+
+Add a focused pure-helper test before implementation:
+
+- `resolveInitialRole(new URLSearchParams("callbackUrl=/dashboard/advertiser"))`
+  should return `advertiser`.
+- Nested advertiser dashboard callbacks should also return `advertiser`.
+- Explicit `role=developer` should still win over an advertiser callback.
+
+This prevents the post-purchase advertiser dashboard path from presenting the
+developer role by default.
+
+## Implemented Regression 2026-06-16 Advertiser Callback Role
+
+`page.test.ts` now covers advertiser dashboard callback inference, nested
+advertiser dashboard callback inference, and explicit developer role precedence
+over an advertiser callback.
+
 ## Verification: Clean Split Sign-In Layout
 
 - Red: focused sign-in test failed before implementation because `SIGNIN_PAGE_COPY` was missing.
@@ -75,6 +108,10 @@ The test imports `MONEY_STREAM_ROWS`, requires at least eight rows, at least twe
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented advertiser callback role regression. | Codex |
+| 2026-06-16 | Planned advertiser callback role regression. | Codex |
+| 2026-06-16 | Added local credentials sign-in helper coverage. | Codex |
+| 2026-06-16 | Planned local credentials sign-in helper coverage. | Codex |
 | 2026-06-13 | Created documentation for sign-in role tests. | Codex |
 | 2026-06-13 | Documented money-stream row regression test before editing tests. | Codex |
 | 2026-06-13 | Documented `🤑` stream icon assertion before editing tests. | Codex |

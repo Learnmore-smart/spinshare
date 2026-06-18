@@ -8,7 +8,7 @@
  * the Flush_Process.
  */
 
-import type { Campaign } from "@spinshare/core";
+import type { Campaign, CampaignReviewStatus } from "@spinshare/core";
 import {
   FieldValue,
   type Firestore,
@@ -50,7 +50,10 @@ export class FirestoreCampaignRepo implements CampaignRepository {
     const snap = await this.collection.where("budgetCents", ">", 0).get();
     return snap.docs
       .map((doc) => toCampaign(doc.id, doc.data()))
-      .filter((c) => c.cpmCents > 0);
+      .filter(
+        (c) =>
+          c.cpmCents > 0 && (c.reviewStatus ?? "approved") === "approved",
+      );
   }
 
   async getById(id: string): Promise<Campaign | null> {
@@ -80,6 +83,7 @@ export class FirestoreCampaignRepo implements CampaignRepository {
         ? { brandIconDataUrl: input.brandIconDataUrl }
         : {}),
       publicOnLeaderboard: input.publicOnLeaderboard ?? true,
+      reviewStatus: input.reviewStatus ?? "approved",
       cpmCents: input.cpmCents,
       budgetCents: 0,
       status: "active",
@@ -110,6 +114,23 @@ export class FirestoreCampaignRepo implements CampaignRepository {
       }
       tx.update(ref, {
         budgetCents: FieldValue.increment(deltaCents),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
+  async updateReviewStatus(
+    id: string,
+    reviewStatus: CampaignReviewStatus,
+  ): Promise<void> {
+    const ref = this.collection.doc(id);
+    await this.db.runTransaction(async (tx) => {
+      const doc = await tx.get(ref);
+      if (!doc.exists) {
+        throw new Error(`Campaign ${id} not found`);
+      }
+      tx.update(ref, {
+        reviewStatus,
         updatedAt: FieldValue.serverTimestamp(),
       });
     });

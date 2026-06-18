@@ -7,6 +7,7 @@ import {
   MINIMUM_PAYOUT_CENTS,
 } from "@spinshare/core";
 
+import { TiltCard } from "@/components/TiltCard";
 import { useT } from "@/lib/i18n/locale-provider";
 import {
   formatDurationShort,
@@ -37,6 +38,7 @@ export function DeveloperOverviewView() {
     todayEarningsUsd,
     monthEarningsUsd,
     hourlyEarningsCents,
+    hourlyEarningsUsd,
     todayEarningsCents,
     impressionCount,
     rows,
@@ -62,7 +64,13 @@ export function DeveloperOverviewView() {
 
   return (
     <>
-      <section className="dev-dash-hero dev-dash-rise relative" data-testid="kpi-cards">
+      <TiltCard
+        className="dev-dash-hero dev-dash-rise relative"
+        data-testid="kpi-cards"
+        intensity={8}
+        scale={1.01}
+        glareRadius={520}
+      >
         <p className="relative text-xs font-black uppercase tracking-[0.18em] dev-dash-hero-eyebrow">
           {t.developerDashboard.yourBalance}
         </p>
@@ -101,36 +109,38 @@ export function DeveloperOverviewView() {
             <SetupGuideButton className="mt-3 w-full sm:w-auto" />
           </div>
         )}
-      </section>
+      </TiltCard>
 
       <section className="dev-dash-stat-scroll dev-dash-rise">
-        <div className="dev-dash-stat" data-testid="kpi-today">
+        <TiltCard className="dev-dash-stat" data-testid="kpi-today" intensity={15} scale={1.04} glareRadius={180}>
           <p className="text-[10px] font-black uppercase tracking-wider text-[var(--dev-muted)]">{t.developerDashboard.todayUtc}</p>
-          <p className="mt-1 text-xl font-black tabular-nums">${todayEarningsUsd}</p>
-        </div>
-        <div className="dev-dash-stat" data-testid="kpi-month">
+          <p className="tilt-pop-sm mt-1 text-xl font-black tabular-nums">${todayEarningsUsd}</p>
+        </TiltCard>
+        <TiltCard className="dev-dash-stat" data-testid="kpi-month" intensity={15} scale={1.04} glareRadius={180}>
           <p className="text-[10px] font-black uppercase tracking-wider text-[var(--dev-muted)]">{t.developerDashboard.monthUtc}</p>
-          <p className="mt-1 text-xl font-black tabular-nums">${monthEarningsUsd}</p>
-        </div>
-        <div className="dev-dash-stat" data-testid="kpi-impressions">
+          <p className="tilt-pop-sm mt-1 text-xl font-black tabular-nums">${monthEarningsUsd}</p>
+        </TiltCard>
+        <TiltCard className="dev-dash-stat" data-testid="kpi-impressions" intensity={15} scale={1.04} glareRadius={180}>
           <p className="text-[10px] font-black uppercase tracking-wider text-[var(--dev-muted)]">{t.developerDashboard.events}</p>
-          <p className="mt-1 text-xl font-black tabular-nums">{impressionCount}</p>
-        </div>
+          <p className="tilt-pop-sm mt-1 text-xl font-black tabular-nums">{impressionCount}</p>
+        </TiltCard>
       </section>
 
-      <section className="dev-dash-panel dev-dash-rise grid gap-5 p-4 sm:grid-cols-2 sm:p-5">
+      <TiltCard className="dev-dash-panel dev-dash-rise grid gap-5 p-4 sm:grid-cols-2 sm:p-5" intensity={6} scale={1.008}>
         <div>
           <h2 className="dev-dash-section-title">{t.developerDashboard.earningCaps}</h2>
           <div className="mt-4 space-y-4">
             <LimitMeter
               label={t.developerDashboard.hourlyRolling}
               usedCents={hourlyEarningsCents}
+              usedLabel={`$${hourlyEarningsUsd}`}
               limitCents={DEVELOPER_HOURLY_EARNING_LIMIT_CENTS}
               reset={hourlyReset}
             />
             <LimitMeter
               label={t.developerDashboard.dailyUtc}
               usedCents={todayEarningsCents}
+              usedLabel={`$${todayEarningsUsd}`}
               limitCents={DEVELOPER_DAILY_EARNING_LIMIT_CENTS}
               reset={dailyReset}
             />
@@ -144,7 +154,7 @@ export function DeveloperOverviewView() {
           </p>
           <PayoutPanel />
         </div>
-      </section>
+      </TiltCard>
     </>
   );
 }

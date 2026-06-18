@@ -342,10 +342,99 @@ access.
 two data points, and use a checked `lastPoint` before rendering the endpoint
 circle.
 
+## Planned Change: Homepage Checkout Return Status (2026-06-16)
+
+Stripe redirects public advertiser checkout back to the homepage with
+`checkout=success` and `checkout_session_id=cs_...`, but the homepage does not
+currently read those parameters. That makes a paid advertiser think the ad was
+lost when the webhook is still pending, failed, or the campaign is funded but
+not leaderboard-eligible.
+
+Mount a small checkout status banner near the public advertiser checkout form.
+The banner should:
+
+- stay hidden for normal homepage visits;
+- show cancelled checkout copy for `checkout=cancelled`;
+- call `/api/checkout-status?checkout_session_id=...` after a successful
+  redirect;
+- distinguish `pending_webhook`, `funded`, `unknown`, and malformed-session
+  states;
+- explain whether the campaign is eligible for the public leaderboard without
+  exposing advertiser email or authenticated identity.
+
+## Planned Fix 2026-06-17: Immediate Market Refresh After Checkout Funding
+
+Problem: the homepage polls `/api/market` every 15 seconds. When the checkout
+status banner reconciles a paid session to `funded`, the market list may still
+show the previous response until the next poll. This is especially confusing
+after a $5 test checkout because the user expects the leaderboard to update
+immediately.
+
+Fix plan:
+
+- Import the checkout-funded browser event from `checkout-status-banner`.
+- Listen for that event inside the existing market polling effect.
+- Reuse the existing `loadMarket()` function rather than adding another fetch
+  path.
+- Keep market data derived only from `/api/market`; do not add local fake rows
+  or optimistic campaign objects.
+
+## Implemented Change: Homepage Checkout Return Status (2026-06-16)
+
+Mounted `CheckoutStatusBanner` near the top of the `#bid-market` section. This
+keeps ordinary homepage visits unchanged because the banner returns `null`
+without checkout query params, but after Stripe redirects to
+`/?checkout=success&checkout_session_id=cs_...#bid-market`, the user sees a
+visible status explanation close to the landing anchor.
+
+## Implemented Fix 2026-06-17: Immediate Market Refresh After Checkout Funding
+
+The homepage now imports `CHECKOUT_FUNDED_MARKET_REFRESH_EVENT` and listens for
+it inside the existing market polling effect. When the checkout status banner
+confirms that a Stripe session funded a campaign, the homepage immediately
+reuses `loadMarket()` so the public leaderboard can show the newly biddable ad
+without waiting for the next scheduled 15-second poll.
+
+## Planned Change 2026-06-17: Market Section Row Layout
+
+User feedback: the homepage market section is too column-heavy and should read
+as a row. Reuse the existing `spinshare-market-proof-grid` hook so the live
+market module and advertiser checkout form sit side by side on desktop, then
+stack on smaller screens. Keep the advertiser CTA full-width below both panels.
+
+## Implemented Change 2026-06-17: Market Section Row Layout
+
+Wrapped the live market module, advertiser checkout form, and advertiser CTA in
+`spinshare-market-proof-grid`. The live market and checkout form now occupy a
+desktop row, while the CTA spans both columns underneath.
+
+## Verification (2026-06-16)
+
+- `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/checkout-status-banner.test.tsx src/app/page.test.tsx`
+  passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+
+## Verification (2026-06-17)
+
+- `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/page.test.tsx src/app/checkout-status-banner.test.tsx`
+  passed.
+- Related payment/leaderboard verification passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/checkout-status/route.test.ts src/app/api/market/route.test.ts src/app/api/campaigns/route.test.ts src/app/checkout-status-banner.test.tsx src/app/page.test.tsx`
+  with 5 files / 25 tests.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+- Follow-up row-layout verification passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/page.test.tsx src/app/dashboard/advertiser/campaign-list.test.tsx src/app/dashboard/advertiser/advertiser-dashboard.test.tsx`.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-17 | Implemented market section row layout around live market, checkout form, and CTA. | Codex |
+| 2026-06-17 | Planned market section row layout using the existing proof grid hook. | Codex |
+| 2026-06-17 | Implemented immediate market refresh after checkout funding. | Codex |
+| 2026-06-17 | Planned immediate market refresh after checkout funding. | Codex |
+| 2026-06-16 | Mounted checkout return status banner in the homepage market section. | Codex |
+| 2026-06-16 | Planned homepage checkout return status banner. | Codex |
 | 2026-06-16 | Fixed Top Earners Sparkline strict indexed access typecheck failure | Codex |
 | 2026-06-15 | Reduce live earnings increment frequency to 2000ms and scale up steps | Antigravity |
 | 2026-06-15 | Implemented friend-reference layout spine, split hero, process panel, and market proof grid | Codex |

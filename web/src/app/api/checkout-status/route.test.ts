@@ -2,6 +2,13 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { MemoryActivityRepository } from "@/server/adapters/memory";
 import { getContainer, resetContainer } from "@/server/container";
+import type {
+  CheckoutInput,
+  CheckoutSessionFunding,
+  CheckoutSessionResult,
+  PaymentGateway,
+  StripeEvent,
+} from "@/server/ports/payment-gateway";
 
 import { GET } from "./route";
 
@@ -17,6 +24,28 @@ let savedEnv: Record<string, string | undefined>;
 
 function checkoutStatusRequest(query = ""): Request {
   return new Request(`https://spinshare.test/api/checkout-status${query}`);
+}
+
+class CheckoutLookupGateway implements PaymentGateway {
+  constructor(
+    private readonly sessions: Record<string, CheckoutSessionFunding>,
+  ) {}
+
+  async createCheckoutSession(
+    _input: CheckoutInput,
+  ): Promise<CheckoutSessionResult> {
+    throw new Error("not used");
+  }
+
+  verifyAndParseWebhook(_rawBody: Buffer, _signature: string): StripeEvent {
+    throw new Error("not used");
+  }
+
+  async retrieveCheckoutSessionFunding(
+    sessionId: string,
+  ): Promise<CheckoutSessionFunding | null> {
+    return this.sessions[sessionId] ?? null;
+  }
 }
 
 beforeEach(() => {
@@ -157,6 +186,109 @@ describe("GET /api/checkout-status", () => {
         biddable: true,
         leaderboardEligible: true,
       },
+    });
+  });
+
+  it("reconciles a paid checkout session when the webhook has not arrived yet", async () => {
+    const container = getContainer();
+    const campaign = await container.campaigns.create({
+      advertiserId: "adv_1",
+      adText: "Paid checkout campaign",
+      cpmCents: 500,
+    });
+    await (container.activities as MemoryActivityRepository).record({
+      activityId: "checkoutStarted_cs_reconcile",
+      campaignId: campaign.id,
+      advertiserId: "adv_1",
+      type: "advertiser_event",
+      status: "checkoutStarted",
+      amountCents: 500,
+      amountUsd: "5.00",
+      checkoutSessionId: "cs_reconcile",
+      createdAtMs: 1000,
+    });
+    container.payments = new CheckoutLookupGateway({
+      cs_reconcile: {
+        sessionId: "cs_reconcile",
+        status: "paid",
+        campaignId: campaign.id,
+        amountCents: 500,
+      },
+    });
+
+    const response = await GET(
+      checkoutStatusRequest("?checkout_session_id=cs_reconcile"),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      sessionId: "cs_reconcile",
+      status: "funded",
+      campaign: {
+        id: campaign.id,
+        budgetCents: 500,
+        biddable: true,
+        leaderboardEligible: true,
+      },
+    });
+    await expect(container.campaigns.getById(campaign.id)).resolves.toMatchObject({
+      budgetCents: 500,
+    });
+    expect((container.activities as MemoryActivityRepository).all()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          status: "budgetFunded",
+          checkoutSessionId: "cs_reconcile",
+        }),
+      ]),
+    );
+
+    const repeat = await GET(
+      checkoutStatusRequest("?checkout_session_id=cs_reconcile"),
+    );
+    expect(repeat.status).toBe(200);
+    await expect(container.campaigns.getById(campaign.id)).resolves.toMatchObject({
+      budgetCents: 500,
+    });
+  });
+
+  it("does not reconcile a paid checkout session for a different campaign", async () => {
+    const container = getContainer();
+    const campaign = await container.campaigns.create({
+      advertiserId: "adv_1",
+      adText: "Mismatched checkout campaign",
+      cpmCents: 500,
+    });
+    await (container.activities as MemoryActivityRepository).record({
+      activityId: "checkoutStarted_cs_mismatch",
+      campaignId: campaign.id,
+      advertiserId: "adv_1",
+      type: "advertiser_event",
+      status: "checkoutStarted",
+      amountCents: 500,
+      amountUsd: "5.00",
+      checkoutSessionId: "cs_mismatch",
+      createdAtMs: 1000,
+    });
+    container.payments = new CheckoutLookupGateway({
+      cs_mismatch: {
+        sessionId: "cs_mismatch",
+        status: "paid",
+        campaignId: "cmp_other",
+        amountCents: 500,
+      },
+    });
+
+    const response = await GET(
+      checkoutStatusRequest("?checkout_session_id=cs_mismatch"),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.status).toBe("pending_webhook");
+    await expect(container.campaigns.getById(campaign.id)).resolves.toMatchObject({
+      budgetCents: 0,
     });
   });
 });

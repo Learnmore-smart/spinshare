@@ -127,6 +127,54 @@ describe("GET /api/activity/developer", () => {
     ]);
   });
 
+  it("returns developer payout events with amount and provider metadata", async () => {
+    const container = getContainer();
+    const activities = container.activities as MemoryActivityRepository;
+    await activities.record({
+      activityId: "payout_paid_tr_123",
+      campaignId: "payout",
+      type: "developer_event",
+      developerId: "dev-1",
+      status: "payoutPaid",
+      amountCents: 1234,
+      amountUsd: "12.34",
+      providerEventId: "tr_123",
+      providerCode: "balance_available",
+      createdAtMs: 4000,
+    } as never);
+    await activities.record({
+      activityId: "payout_other",
+      campaignId: "payout",
+      type: "developer_event",
+      developerId: "dev-2",
+      status: "payoutPaid",
+      amountCents: 9999,
+      amountUsd: "99.99",
+      providerEventId: "tr_other",
+      createdAtMs: 5000,
+    } as never);
+    const token = (container.auth as MockAuthProvider).mintToken("dev-1");
+
+    const response = await GET(activityRequest(token));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.activities).toEqual([
+      {
+        activityId: "payout_paid_tr_123",
+        campaignId: "payout",
+        type: "developer_event",
+        developerId: "dev-1",
+        status: "payoutPaid",
+        amountCents: 1234,
+        amountUsd: "12.34",
+        providerEventId: "tr_123",
+        providerCode: "balance_available",
+        createdAtMs: 4000,
+      },
+    ]);
+  });
+
   it("returns newest-first bounded pages with a cursor", async () => {
     const container = getContainer();
     const activities = container.activities as MemoryActivityRepository;

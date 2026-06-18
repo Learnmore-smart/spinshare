@@ -13,9 +13,10 @@ import type { ReactNode } from "react";
 
 import { auth } from "@/server/adapters/auth/nextauth-config";
 import { getContainer } from "@/server/container";
+import { flushPendingForRead } from "@/server/flush-before-read";
 
-import { toActivityFeedRows } from "../activity-feed";
 import { DashboardShell } from "./dashboard-shell";
+import { DeveloperActivityProviderClient } from "./developer-activity-context";
 import { DeveloperDashboardProvider } from "./developer-dashboard-data";
 import { DeveloperDashboardError } from "./developer-dashboard-parts";
 import { summarizeLedger } from "./summarize-ledger";
@@ -25,6 +26,22 @@ import "./developer-dashboard.css";
 export const dynamic = "force-dynamic";
 
 const SIGN_IN_PATH = "/api/auth/signin?callbackUrl=%2Fdashboard%2Fdeveloper";
+
+interface TokenMinter {
+  mintToken(
+    userId: string,
+    claims?: { email?: string; role?: "developer" },
+  ): string;
+}
+
+function mintDeveloperToken(userId: string, email?: string | null): string {
+  const { auth: provider } = getContainer();
+  const trimmedEmail = email?.trim();
+  return (provider as unknown as TokenMinter).mintToken(userId, {
+    ...(trimmedEmail ? { email: trimmedEmail } : {}),
+    role: "developer",
+  });
+}
 
 export default async function DeveloperDashboardLayout({
   children,
@@ -43,25 +60,25 @@ export default async function DeveloperDashboardLayout({
     email: session.user?.email ?? "—",
     userId: developerId,
   };
+  const token = mintDeveloperToken(developerId, session.user?.email);
 
   try {
     const container = getContainer();
-    const [entries, activityEntries] = await Promise.all([
-      container.ledger.listByDeveloper(developerId),
-      container.activities.listByDeveloper(developerId),
-    ]);
+    await flushPendingForRead(container, "developer-dashboard");
+    const entries = await container.ledger.listByDeveloper(developerId);
     const summary = summarizeLedger(entries);
-    const activities = toActivityFeedRows(activityEntries);
 
     return (
       <DeveloperDashboardProvider
-        activities={activities}
+        activities={[]}
         summary={summary}
         user={user}
       >
-        <div className="dev-dash">
-          <DashboardShell>{children}</DashboardShell>
-        </div>
+        <DeveloperActivityProviderClient token={token}>
+          <div className="dev-dash">
+            <DashboardShell>{children}</DashboardShell>
+          </div>
+        </DeveloperActivityProviderClient>
       </DeveloperDashboardProvider>
     );
   } catch (err) {

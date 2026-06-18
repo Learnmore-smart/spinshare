@@ -27,13 +27,11 @@
 
 .dev-dash-layout {
   display: flex;
-  min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .dev-dash-rail {
-  position: sticky;
-  top: 0;
-  z-index: 30;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -115,6 +113,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 .dev-dash-topbar {
@@ -248,6 +247,17 @@
   border: 1px solid var(--border-callout);
   background: var(--surface-callout);
   padding: 1rem;
+  box-shadow:
+    inset 0 1px 0 0 var(--shadow-inner-highlight),
+    var(--shadow-elevation-sm);
+  transition: var(--transition-smooth);
+}
+
+.dev-dash-callout:hover {
+  border-color: var(--border-accent-hover);
+  box-shadow:
+    inset 0 1px 0 0 var(--shadow-inner-highlight),
+    0 12px 28px -10px rgba(16, 185, 129, 0.2);
 }
 
 .dev-dash-empty {
@@ -286,8 +296,20 @@
   background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
   border: 1px solid var(--border-callout);
   box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.9),
+    inset 0 -3px 14px 0 rgba(16, 185, 129, 0.05),
     var(--shadow-elevation-md),
-    0 10px 30px rgba(16, 185, 129, 0.03);
+    0 18px 40px -16px rgba(16, 185, 129, 0.22);
+  transition: box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
+}
+
+.dev-dash-hero:hover {
+  border-color: var(--border-accent-strong);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.95),
+    inset 0 -3px 16px 0 rgba(16, 185, 129, 0.08),
+    0 2px 6px 0 rgba(15, 23, 42, 0.04),
+    0 30px 60px -18px rgba(16, 185, 129, 0.3);
 }
 
 @media (min-width: 640px) {
@@ -310,7 +332,21 @@
   font-weight: 900;
   letter-spacing: -0.04em;
   line-height: 1;
-  color: var(--color-primary-800);
+  color: var(--color-primary-700);
+  /* Animated emerald gradient sweep — matches the marketing hero number. */
+  background-image: linear-gradient(
+    90deg,
+    var(--color-primary-600) 0%,
+    var(--color-primary-400) 25%,
+    var(--color-primary-600) 50%,
+    var(--color-primary-400) 75%,
+    var(--color-primary-600) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: spinshare-gradient-sweep 3.5s linear infinite;
 }
 
 .dev-dash-hero-eyebrow {
@@ -347,8 +383,17 @@
   background: linear-gradient(145deg, rgba(10, 10, 11, 0.97) 0%, rgba(15, 35, 28, 0.94) 100%);
   border-color: rgba(16, 185, 129, 0.22);
   box-shadow:
-    0 24px 48px rgba(15, 23, 42, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 24px 48px rgba(0, 0, 0, 0.45),
+    0 12px 32px -12px rgba(16, 185, 129, 0.2);
+}
+
+.dark .dev-dash-hero:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 28px 60px rgba(0, 0, 0, 0.55),
+    0 24px 56px -16px rgba(16, 185, 129, 0.34);
 }
 
 .dark .dev-dash-hero::after {
@@ -356,8 +401,15 @@
 }
 
 .dark .dev-dash-balance {
-  color: #ecfdf5;
-  text-shadow: 0 0 28px var(--dev-glow);
+  background-image: linear-gradient(
+    90deg,
+    #34d399 0%,
+    #a7f3d0 25%,
+    #34d399 50%,
+    #a7f3d0 75%,
+    #34d399 100%
+  );
+  text-shadow: 0 0 32px var(--dev-glow);
 }
 
 .dark .dev-dash-hero-eyebrow {
@@ -390,7 +442,20 @@
   background: var(--surface-white);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  box-shadow: var(--shadow-elevation-md);
+  box-shadow:
+    inset 0 1px 0 0 var(--shadow-inner-highlight),
+    var(--shadow-elevation-sm),
+    var(--shadow-elevation-md);
+  transition: var(--transition-smooth);
+}
+
+.dev-dash-panel:hover {
+  border-color: var(--border-accent-hover);
+  box-shadow:
+    inset 0 1px 0 0 var(--shadow-inner-highlight),
+    0 2px 6px 0 rgba(15, 23, 42, 0.04),
+    0 22px 48px -16px rgba(16, 185, 129, 0.22),
+    var(--shadow-elevation-lg);
 }
 
 .dev-dash-stat-scroll {
@@ -399,7 +464,10 @@
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 0.25rem;
+  /* Vertical + horizontal room: shadows need ~40px vertically; 1rem horizontal
+     gives perspective-tilted card corners space to breathe without being clipped. */
+  padding: 2.5rem 1rem;
+  margin: -2.5rem -1rem;
   scrollbar-width: none;
 }
 
@@ -415,6 +483,19 @@
   border-radius: 0.875rem;
   border: 1px solid var(--dev-line);
   background: var(--surface-glass-hover-end);
+  box-shadow:
+    inset 0 1px 0 0 var(--shadow-inner-highlight),
+    var(--shadow-elevation-sm);
+  transition: var(--transition-smooth);
+}
+
+.dev-dash-stat:hover {
+  border-color: var(--border-accent-hover);
+  background: var(--surface-white);
+  box-shadow:
+    inset 0 1px 0 0 var(--shadow-inner-highlight),
+    0 16px 34px -12px rgba(16, 185, 129, 0.3),
+    var(--shadow-elevation-md);
 }
 
 .dev-dash-limit-track {
@@ -436,6 +517,15 @@
   border: 1px solid var(--dev-line);
   background: var(--surface-glass-hover);
   padding: 0.875rem 1rem;
+  box-shadow: var(--shadow-elevation-sm);
+  transition: var(--transition-smooth);
+}
+
+.dev-dash-activity-card:hover {
+  border-color: var(--border-accent-hover);
+  box-shadow:
+    0 14px 30px -12px rgba(16, 185, 129, 0.24),
+    var(--shadow-elevation-md);
 }
 
 @keyframes dev-dash-rise {
@@ -463,4 +553,23 @@
 
 .dev-dash-rise:nth-child(4) {
   animation-delay: 0.15s;
+}
+
+/* Honour reduced-motion: keep the elevated look, drop the movement. */
+@media (prefers-reduced-motion: reduce) {
+  .dev-dash-rise {
+    animation: none;
+  }
+
+  .dev-dash-hero,
+  .dev-dash-panel,
+  .dev-dash-stat,
+  .dev-dash-activity-card,
+  .dev-dash-callout {
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .dev-dash-balance {
+    animation: none;
+  }
 }

@@ -150,6 +150,9 @@ export type DeviceTokenResult =
   | { status: "expired" }
   | { status: "denied" };
 
+/** Result of validating a stored Device_Auth_Token. */
+export type DeviceTokenValidation = "valid" | "invalid" | "unknown";
+
 /** Narrow an unknown JSON value into a {@link DeviceFlowStart}, or `null`. */
 function parseDeviceFlowStart(value: unknown): DeviceFlowStart | null {
   if (typeof value !== "object" || value === null) {
@@ -294,6 +297,50 @@ export class AdApiClient {
       return parseTrackResponse(await res.json());
     } catch {
       return null;
+    }
+  }
+
+  /**
+   * Validate a stored Device_Auth_Token without triggering ad bidding.
+   *
+   * Returns `invalid` only when the server explicitly rejects the token. Network
+   * failures are `unknown` so the extension does not delete a good token while
+   * the developer is offline or localhost is not running.
+   */
+  async validateDeviceToken(token?: string): Promise<DeviceTokenValidation> {
+    const headers = this.authHeaders(token);
+    if (!headers.Authorization) {
+      return "invalid";
+    }
+
+    try {
+      const res = await this.fetchImpl(
+        `${this.baseUrl}/api/auth/device/validate`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            ...headers,
+          },
+        },
+      );
+      if (res.status === 401) {
+        return "invalid";
+      }
+      if (!res.ok) {
+        return "unknown";
+      }
+      const body = await res.json();
+      if (
+        typeof body === "object" &&
+        body !== null &&
+        (body as { valid?: unknown }).valid === true
+      ) {
+        return "valid";
+      }
+      return "unknown";
+    } catch {
+      return "unknown";
     }
   }
 

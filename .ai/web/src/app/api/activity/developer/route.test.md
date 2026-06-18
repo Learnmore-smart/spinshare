@@ -35,3 +35,12 @@ All planned cases are covered in `route.test.ts`.
 | 2026-06-15 | Planned attempt-level developer activity API tests. | Codex |
 | 2026-06-15 | Added developer activity API tests. | Codex |
 | 2026-06-15 | Created doc before adding developer activity tests. | Codex |
+
+## Planned Coverage 2026-06-16 Developer Payout Events
+
+Add a RED test proving a stored payout `developer_event` appears in the
+developer activity API response with amount and provider metadata.
+
+## Implemented Coverage 2026-06-16 Developer Payout Events
+
+Added route coverage for payout developer events in `/api/activity/developer`.

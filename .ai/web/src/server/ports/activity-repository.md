@@ -68,3 +68,21 @@ only advertiser activity rows for the exact Checkout Session id.
 | 2026-06-15 | Planned advertiser payment/funding/debit activity events. | Codex |
 | 2026-06-15 | Implemented activity repository port and status model. | Codex |
 | 2026-06-15 | Created doc before adding attempt-level activity repository port. | Codex |
+
+## Planned Change 2026-06-16 Developer Payout Events
+
+Extend the existing activity ledger with developer-facing payout events:
+
+- `DeveloperActivityStatus`: `payoutPaid`, `payoutFailed`, `payoutBlocked`
+- `DeveloperActivity`: `type: "developer_event"`, `developerId`,
+  synthetic `campaignId: "payout"`, amount fields, optional provider id, and
+  optional safe provider/error codes
+- `listByDeveloper()` returns impression attempts plus developer events
+- `listByCampaignIds()` remains campaign-focused so payout events do not appear
+  in advertiser campaign timelines
+
+## Implemented Change 2026-06-16 Developer Payout Events
+
+Added `DeveloperActivityStatus`, `DeveloperActivity`, and
+`DeveloperActivityRecord`. `ActivityRecord` now includes developer payout
+events. `listByDeveloper()` returns impression attempts plus developer events.

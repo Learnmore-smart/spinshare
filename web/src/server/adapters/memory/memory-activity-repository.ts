@@ -2,7 +2,7 @@ import type {
   ActivityRepository,
   ActivityRecord,
   AdvertiserActivity,
-  ImpressionActivity,
+  DeveloperActivityRecord,
 } from "../../ports/activity-repository";
 
 export class MemoryActivityRepository implements ActivityRepository {
@@ -14,10 +14,12 @@ export class MemoryActivityRepository implements ActivityRepository {
     }
   }
 
-  async listByDeveloper(developerId: string): Promise<ImpressionActivity[]> {
+  async listByDeveloper(
+    developerId: string,
+  ): Promise<DeveloperActivityRecord[]> {
     return [...this.activities.values()]
       .filter(
-        (activity): activity is ImpressionActivity =>
+        (activity): activity is DeveloperActivityRecord =>
           activity.type !== "advertiser_event" &&
           activity.developerId === developerId,
       )

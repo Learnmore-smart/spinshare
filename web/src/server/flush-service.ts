@@ -200,9 +200,20 @@ export async function runFlushCycle(
     for (const [campaignId, deltaCents] of Object.entries(
       budgetDeltaCentsByCampaign,
     )) {
-      if (deltaCents !== 0) {
-        await campaigns.applyBudgetDeltaCents(campaignId, deltaCents);
+      if (deltaCents === 0) {
+        continue;
       }
+      // Budget application is best-effort. The ledger entries are the durable
+      // source of truth and have already been appended above; a campaign that
+      // was deleted after its impressions were credited must not throw and
+      // poison the whole batch (which would nack it back to the pending queue
+      // and strand every developer's earnings). Skip a missing campaign rather
+      // than aborting reconciliation; transient errors still propagate to the
+      // catch below and trigger a safe, idempotent retry.
+      if ((await campaigns.getById(campaignId)) === null) {
+        continue;
+      }
+      await campaigns.applyBudgetDeltaCents(campaignId, deltaCents);
     }
   } catch (error) {
     // 5. Durable write failed: do NOT ack. Return the batch to the pending

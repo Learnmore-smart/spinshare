@@ -162,6 +162,21 @@ export async function checkJavaRuntime(options = {}) {
   }
 }
 
+export async function checkJavaRuntimeForSelectedFirestore(
+  env,
+  options = {},
+) {
+  if (!value(env, "FIRESTORE_EMULATOR_HOST")) {
+    return result(
+      "java.version",
+      true,
+      "Firestore emulator is not selected; Java runtime is not required",
+      "warning",
+    );
+  }
+  return checkJavaRuntime(options);
+}
+
 export function checkLocalFirestoreIsolation(env) {
   const usesLocalFirestore =
     value(env, "SPINSHARE_MODE") === "local" &&
@@ -195,6 +210,79 @@ export function checkLocalFirestoreIsolation(env) {
   );
 }
 
+export function checkLocalCredentialsShortcut(env) {
+  const needsLocalCredentials =
+    value(env, "SPINSHARE_MODE") === "local" &&
+    (value(env, "AUTH_MODE") === "" || value(env, "AUTH_MODE") === "mock");
+  if (!needsLocalCredentials) {
+    return result(
+      "env.local.credentialsShortcut",
+      true,
+      "local mock browser credentials are not selected",
+      "warning",
+    );
+  }
+  if (value(env, "NEXT_PUBLIC_SPINSHARE_LOCAL_CREDENTIALS") === "1") {
+    return result(
+      "env.local.credentialsShortcut",
+      true,
+      "local browser credentials shortcut is enabled",
+      "warning",
+    );
+  }
+  return result(
+    "env.local.credentialsShortcut",
+    false,
+    "local mock auth should set NEXT_PUBLIC_SPINSHARE_LOCAL_CREDENTIALS=1 so /signin can approve device login without OAuth credentials",
+    "warning",
+  );
+}
+
+export function checkLocalStripeDurability(env) {
+  const mode = value(env, "SPINSHARE_MODE") || "local";
+  const stripe = value(env, "STRIPE_MODE") || (mode === "local" ? "mock" : "live");
+
+  if (mode !== "local") {
+    return result(
+      "env.local.stripeDurability",
+      true,
+      "not running in local mode",
+      "warning",
+    );
+  }
+  if (stripe !== "test" && stripe !== "live") {
+    return result(
+      "env.local.stripeDurability",
+      true,
+      "local mock Stripe does not need durable payment storage",
+      "warning",
+    );
+  }
+  if (value(env, "FIRESTORE_EMULATOR_HOST")) {
+    return result(
+      "env.local.stripeDurability",
+      true,
+      `real Stripe is paired with Firestore emulator at ${value(env, "FIRESTORE_EMULATOR_HOST")}`,
+    );
+  }
+  if (
+    value(env, "SPINSHARE_USE_FIRESTORE") === "1" &&
+    value(env, "SPINSHARE_FIRESTORE_NAMESPACE")
+  ) {
+    return result(
+      "env.local.stripeDurability",
+      true,
+      `real Stripe is paired with namespace ${value(env, "SPINSHARE_FIRESTORE_NAMESPACE")}`,
+    );
+  }
+
+  return result(
+    "env.local.stripeDurability",
+    false,
+    "SPINSHARE_MODE=local with STRIPE_MODE=test/live is using in-memory campaign/payment storage; use STRIPE_MODE=mock for sample ads, or configure FIRESTORE_EMULATOR_HOST / SPINSHARE_USE_FIRESTORE=1 with SPINSHARE_FIRESTORE_NAMESPACE before real Stripe tests",
+  );
+}
+
 export async function runPreflightChecks(options = {}) {
   const env = options.env ?? process.env;
   const shared = {
@@ -209,7 +297,9 @@ export async function runPreflightChecks(options = {}) {
     await checkCommand("stripe", shared),
     await checkCommand("firebase", shared),
     await checkCommand("npx", shared),
-    await checkJavaRuntime({ runner: options.runner }),
+    await checkJavaRuntimeForSelectedFirestore(env, { runner: options.runner }),
     checkLocalFirestoreIsolation(env),
+    checkLocalCredentialsShortcut(env),
+    checkLocalStripeDurability(env),
   ];
 }

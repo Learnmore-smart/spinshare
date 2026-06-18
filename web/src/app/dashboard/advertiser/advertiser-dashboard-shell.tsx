@@ -4,7 +4,7 @@ import { useMemo, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ScrollText, Settings } from "lucide-react";
+import { BarChart2, LayoutDashboard, Megaphone, ScrollText, Settings } from "lucide-react";
 
 import { DashboardRoleSwitcher } from "@/components/DashboardRoleSwitcher";
 import { useT } from "@/lib/i18n/locale-provider";
@@ -14,7 +14,9 @@ export interface AdvertiserDashboardShellProps {
 }
 
 const OVERVIEW_HREF = "/dashboard/advertiser";
+const CAMPAIGNS_HREF = "/dashboard/advertiser/campaigns";
 const ACTIVITY_HREF = "/dashboard/advertiser/activity";
+const STATS_HREF = "/dashboard/advertiser/stats";
 const SETTINGS_HREF = "/dashboard/advertiser/settings";
 
 function isActive(pathname: string, href: string, exact: boolean): boolean {
@@ -27,11 +29,15 @@ export function AdvertiserDashboardShell({ children }: AdvertiserDashboardShellP
   const pathname = usePathname();
 
   const overviewActive = isActive(pathname, OVERVIEW_HREF, true);
+  const campaignsActive = isActive(pathname, CAMPAIGNS_HREF, false);
   const activityActive = isActive(pathname, ACTIVITY_HREF, false);
+  const statsActive = isActive(pathname, STATS_HREF, false);
   const settingsActive = isActive(pathname, SETTINGS_HREF, false);
 
   const overviewLabel = useMemo(() => t.advertiserDashboard.navOverview, [t]);
+  const campaignsLabel = useMemo(() => t.advertiserDashboard.navCampaigns, [t]);
   const activityLabel = useMemo(() => t.advertiserDashboard.navActivity, [t]);
+  const statsLabel = useMemo(() => t.advertiserDashboard.navStats, [t]);
 
   return (
     <div className="adv-dash-layout">
@@ -60,6 +66,16 @@ export function AdvertiserDashboardShell({ children }: AdvertiserDashboardShellP
           </Link>
 
           <Link
+            href={CAMPAIGNS_HREF}
+            className={`adv-dash-rail-link${campaignsActive ? " adv-dash-rail-link--active" : ""}`}
+            aria-label={campaignsLabel}
+            aria-current={campaignsActive ? "page" : undefined}
+            title={campaignsLabel}
+          >
+            <Megaphone className="h-[1.125rem] w-[1.125rem]" aria-hidden />
+          </Link>
+
+          <Link
             href={ACTIVITY_HREF}
             className={`adv-dash-rail-link${activityActive ? " adv-dash-rail-link--active" : ""}`}
             aria-label={activityLabel}
@@ -67,6 +83,16 @@ export function AdvertiserDashboardShell({ children }: AdvertiserDashboardShellP
             title={activityLabel}
           >
             <ScrollText className="h-[1.125rem] w-[1.125rem]" aria-hidden />
+          </Link>
+
+          <Link
+            href={STATS_HREF}
+            className={`adv-dash-rail-link${statsActive ? " adv-dash-rail-link--active" : ""}`}
+            aria-label={statsLabel}
+            aria-current={statsActive ? "page" : undefined}
+            title={statsLabel}
+          >
+            <BarChart2 className="h-[1.125rem] w-[1.125rem]" aria-hidden />
           </Link>
         </nav>
 

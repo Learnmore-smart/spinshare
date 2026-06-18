@@ -10,6 +10,7 @@
   "scripts": {
     "build": "corepack pnpm@9.12.0 --filter @spinshare/core build && corepack pnpm@9.12.0 --filter @spinshare/cli build && corepack pnpm@9.12.0 --filter ./vscode-extension build && corepack pnpm@9.12.0 --filter @spinshare/web build",
     "dev": "corepack pnpm@9.12.0 --filter @spinshare/web dev",
+    "dev:sample": "node web/scripts/dev-local-sample.mjs",
     "test": "corepack pnpm@9.12.0 --filter @spinshare/core test && corepack pnpm@9.12.0 --filter @spinshare/core build && corepack pnpm@9.12.0 --filter @spinshare/web test && corepack pnpm@9.12.0 --filter @spinshare/cli test && corepack pnpm@9.12.0 --filter ./vscode-extension test",
     "test:e2e": "corepack pnpm@9.12.0 --filter @spinshare/web test:e2e",
     "lint": "corepack pnpm@9.12.0 --filter @spinshare/core lint && corepack pnpm@9.12.0 --filter @spinshare/core build && corepack pnpm@9.12.0 --filter @spinshare/web lint && corepack pnpm@9.12.0 --filter @spinshare/cli lint && corepack pnpm@9.12.0 --filter ./vscode-extension lint",
@@ -17,6 +18,9 @@
     "deploy:indexes": "node web/scripts/deploy-firestore-indexes.mjs",
     "verify:prod-env": "node web/scripts/verify-prod-env.mjs --strict-production",
     "verify:local-runtime": "node web/scripts/verify-local-runtime.mjs",
+    "smoke:local-sample": "node web/scripts/smoke-local-sample.mjs",
+    "smoke:local-cli": "corepack pnpm@9.12.0 --filter @spinshare/cli build && node web/scripts/smoke-local-cli.mjs",
+    "smoke:local-checkout": "node web/scripts/smoke-local-checkout.mjs",
     "cli": "node cli-wrapper/dist/index.js",
     "cli:login": "node cli-wrapper/dist/index.js login",
     "cli:login:local": "node cli-wrapper/scripts/run-local.mjs login",

@@ -33,10 +33,10 @@ describe("e2e harness", () => {
     expect(body.status).toBe("ok");
   });
 
-  it("serves GET /api/ad with an explicit no-ad response when no campaigns are seeded", async () => {
+  it("rejects anonymous GET /api/ad before ad selection", async () => {
     const res = await fetch(`${app.baseUrl}/api/ad`);
-    expect(res.status).toBe(200);
-    const body = (await res.json()) as { adAvailable?: boolean };
-    expect(body).toEqual({ adAvailable: false });
+    expect(res.status).toBe(401);
+    const body = (await res.json()) as { error?: string };
+    expect(body.error).toBe("Unauthorized");
   });
 });

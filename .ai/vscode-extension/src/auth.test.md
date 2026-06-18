@@ -39,5 +39,7 @@ and does not clear the shared mirror when no stored token exists.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Added tests for clearing invalid stored tokens and preserving unknown/offline tokens. | Codex |
+| 2026-06-16 | Planned invalid stored-token clearing regression coverage. | Codex |
 | 2026-06-15 | Implemented existing-token mirror sync tests. | Codex |
 | 2026-06-15 | Created mirror doc and planned existing-token mirror sync tests. | Codex |

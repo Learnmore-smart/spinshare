@@ -14,6 +14,7 @@
 
 import { auth } from "@/server/adapters/auth/nextauth-config";
 import { getContainer } from "@/server/container";
+import { flushPendingForRead } from "@/server/flush-before-read";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,9 @@ export async function GET(): Promise<Response> {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const { users, payouts } = getContainer();
+  const container = getContainer();
+  await flushPendingForRead(container, "payouts-status");
+  const { users, payouts } = container;
   const user = await users.getById(developerId);
   const balanceCents = user?.balanceCents ?? 0;
 

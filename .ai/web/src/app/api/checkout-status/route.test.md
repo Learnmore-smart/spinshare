@@ -20,6 +20,24 @@ All planned route cases are covered in `route.test.ts`. RED failed because the
 route and activity repository lookup did not exist; GREEN passed after adding
 the route and repository lookup.
 
+## Planned Coverage 2026-06-16 Stripe Return Reconciliation
+
+Add route-level coverage before implementation:
+
+- Given a checkout-started activity and an injected payment gateway that reports
+  the same `cs_...` session as paid for the same campaign, `GET
+  /api/checkout-status` should apply the campaign budget, record funded
+  activity, and return `funded`.
+- Given a paid session for a different campaign id, the route must not apply
+  budget and should remain `pending_webhook`.
+- A repeated status read after fallback funding must not double-credit.
+
+## Implemented Coverage 2026-06-16 Stripe Return Reconciliation
+
+`route.test.ts` now injects a fake payment gateway to verify paid-session
+fallback funding, funded activity recording, repeat-read idempotency, and
+campaign-id mismatch rejection.
+
 ## Dependencies
 
 - `web/src/app/api/checkout-status/route.ts`
@@ -30,5 +48,7 @@ the route and repository lookup.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented Stripe return reconciliation coverage. | Codex |
+| 2026-06-16 | Planned Stripe return reconciliation coverage. | Codex |
 | 2026-06-16 | Implemented checkout status route coverage. | Codex |
 | 2026-06-16 | Planned checkout status route coverage. | Codex |

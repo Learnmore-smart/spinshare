@@ -5,7 +5,7 @@
  * `campaigns/{campaignId}` collection. See design "Data Models".
  */
 
-import type { Campaign } from "@spinshare/core";
+import type { Campaign, CampaignReviewStatus } from "@spinshare/core";
 
 /**
  * Inputs to create a new campaign. New campaigns always start with
@@ -27,6 +27,8 @@ export interface NewCampaign {
   brandIconDataUrl?: string;
   /** False hides this campaign from the public homepage leaderboard. */
   publicOnLeaderboard?: boolean;
+  /** Safety review state; defaults to approved when omitted. */
+  reviewStatus?: Campaign["reviewStatus"];
   /** Max CPM bid in integer cents (1–100000). */
   cpmCents: number;
 }
@@ -43,4 +45,6 @@ export interface CampaignRepository {
   listByAdvertiser(advertiserId: string): Promise<Campaign[]>;
   /** Applies a signed budget delta (flush reconciliation + funding). */
   applyBudgetDeltaCents(id: string, deltaCents: number): Promise<void>;
+  /** Updates safety review state after automated/manual review. */
+  updateReviewStatus(id: string, reviewStatus: CampaignReviewStatus): Promise<void>;
 }

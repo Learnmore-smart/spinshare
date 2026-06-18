@@ -15,6 +15,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type {
   CheckoutInput,
+  CheckoutSessionFunding,
   CheckoutSessionResult,
   PaymentGateway,
   StripeEvent,
@@ -29,6 +30,8 @@ const CHECKOUT_BASE_URL = "https://mock.spinshare.local/checkout";
 const CHECKOUT_SESSION_PLACEHOLDER = "{CHECKOUT_SESSION_ID}";
 
 export class MockPaymentGateway implements PaymentGateway {
+  private readonly checkoutSessions = new Map<string, CheckoutSessionFunding>();
+
   constructor(
     private readonly ids: IdGenerator = new RandomIdGenerator(),
     private readonly webhookSecret: string = DEFAULT_WEBHOOK_SECRET,
@@ -42,11 +45,23 @@ export class MockPaymentGateway implements PaymentGateway {
       CHECKOUT_SESSION_PLACEHOLDER,
       sessionId,
     );
+    this.checkoutSessions.set(sessionId, {
+      sessionId,
+      status: "paid",
+      campaignId: input.campaignId,
+      amountCents: input.amountCents,
+    });
     return {
       sessionId,
       url: successUrl ?? `${CHECKOUT_BASE_URL}/${sessionId}`,
       settled: true,
     };
+  }
+
+  async retrieveCheckoutSessionFunding(
+    sessionId: string,
+  ): Promise<CheckoutSessionFunding | null> {
+    return this.checkoutSessions.get(sessionId) ?? null;
   }
 
   verifyAndParseWebhook(rawBody: Buffer, signature: string): StripeEvent {

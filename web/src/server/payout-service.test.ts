@@ -14,6 +14,7 @@ import { type User } from "@spinshare/core";
 
 import {
   MemoryUserRepository,
+  MemoryPayoutAttemptRepository,
   MockPayoutGateway,
   SequentialIdGenerator,
 } from "./adapters/memory";
@@ -69,14 +70,32 @@ class SpyPayoutGateway extends MockPayoutGateway {
   }
 }
 
+class DelayedPayoutGateway extends SpyPayoutGateway {
+  override async createPayout(input: PayoutInput): Promise<PayoutResult> {
+    this.payouts.push(input);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    return MockPayoutGateway.prototype.createPayout.call(this, input);
+  }
+}
+
 describe("withdrawBalance", () => {
   it("pays out the full balance and debits it to zero", async () => {
     const users = makeUsers(developer({ balanceCents: 1_000 }));
     const payouts: PayoutGateway = new MockPayoutGateway(
       new SequentialIdGenerator(),
     );
+    const payoutAttempts = new MemoryPayoutAttemptRepository();
 
-    const result = await withdrawBalance({ users, payouts }, DEV);
+    const result = await withdrawBalance(
+      {
+        users,
+        payouts,
+        payoutAttempts,
+        nowMs: () => 1_700_000_000_000,
+        newAttemptId: () => "poa_success",
+      },
+      DEV,
+    );
 
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -85,13 +104,35 @@ describe("withdrawBalance", () => {
     }
     // Durable balance debited by exactly the amount paid out.
     expect((await users.getById(DEV))?.balanceCents).toBe(0);
+    expect(await payoutAttempts.listByDeveloper(DEV)).toEqual([
+      expect.objectContaining({
+        attemptId: "poa_success",
+        developerId: DEV,
+        amountCents: 1_000,
+        status: "paid",
+        stripeConnectAccountId: ACCT,
+        providerEventId: expect.stringMatching(/^po_mock/),
+        createdAtMs: 1_700_000_000_000,
+        updatedAtMs: 1_700_000_000_000,
+      }),
+    ]);
   });
 
   it("rejects a balance below the $5.00 minimum and moves no money", async () => {
     const users = makeUsers(developer({ balanceCents: 499 }));
     const payouts = new SpyPayoutGateway(new SequentialIdGenerator());
+    const payoutAttempts = new MemoryPayoutAttemptRepository();
 
-    const result = await withdrawBalance({ users, payouts }, DEV);
+    const result = await withdrawBalance(
+      {
+        users,
+        payouts,
+        payoutAttempts,
+        nowMs: () => 1_700_000_000_100,
+        newAttemptId: () => "poa_minimum",
+      },
+      DEV,
+    );
 
     expect(result).toEqual({
       ok: false,
@@ -100,6 +141,15 @@ describe("withdrawBalance", () => {
     });
     expect(payouts.payouts).toHaveLength(0);
     expect((await users.getById(DEV))?.balanceCents).toBe(499);
+    expect(await payoutAttempts.listByDeveloper(DEV)).toEqual([
+      expect.objectContaining({
+        attemptId: "poa_minimum",
+        developerId: DEV,
+        amountCents: 499,
+        status: "blocked",
+        providerCode: BELOW_MINIMUM_ERROR,
+      }),
+    ]);
   });
 
   it("rejects when no connected account exists (409, no money moves)", async () => {
@@ -107,8 +157,17 @@ describe("withdrawBalance", () => {
       developer({ balanceCents: 5_000, stripeConnectAccountId: undefined }),
     );
     const payouts = new SpyPayoutGateway(new SequentialIdGenerator());
+    const payoutAttempts = new MemoryPayoutAttemptRepository();
 
-    const result = await withdrawBalance({ users, payouts }, DEV);
+    const result = await withdrawBalance(
+      {
+        users,
+        payouts,
+        payoutAttempts,
+        newAttemptId: () => "poa_no_account",
+      },
+      DEV,
+    );
 
     expect(result).toEqual({
       ok: false,
@@ -117,13 +176,29 @@ describe("withdrawBalance", () => {
     });
     expect(payouts.payouts).toHaveLength(0);
     expect((await users.getById(DEV))?.balanceCents).toBe(5_000);
+    expect(await payoutAttempts.listByDeveloper(DEV)).toEqual([
+      expect.objectContaining({
+        attemptId: "poa_no_account",
+        status: "blocked",
+        providerCode: NOT_CONNECTED_ERROR,
+      }),
+    ]);
   });
 
   it("rejects when Stripe reports payouts are not enabled (409)", async () => {
     const users = makeUsers(developer({ balanceCents: 5_000 }));
     const payouts = new DisabledPayoutGateway(new SequentialIdGenerator());
+    const payoutAttempts = new MemoryPayoutAttemptRepository();
 
-    const result = await withdrawBalance({ users, payouts }, DEV);
+    const result = await withdrawBalance(
+      {
+        users,
+        payouts,
+        payoutAttempts,
+        newAttemptId: () => "poa_not_enabled",
+      },
+      DEV,
+    );
 
     expect(result).toEqual({
       ok: false,
@@ -131,5 +206,98 @@ describe("withdrawBalance", () => {
       error: NOT_CONNECTED_ERROR,
     });
     expect((await users.getById(DEV))?.balanceCents).toBe(5_000);
+    expect(await payoutAttempts.listByDeveloper(DEV)).toEqual([
+      expect.objectContaining({
+        attemptId: "poa_not_enabled",
+        status: "blocked",
+        amountCents: 5_000,
+        providerCode: NOT_CONNECTED_ERROR,
+      }),
+    ]);
+  });
+
+  it("does not double-pay when two withdrawals race for the same balance", async () => {
+    const users = makeUsers(developer({ balanceCents: 1_000 }));
+    const payouts = new DelayedPayoutGateway(new SequentialIdGenerator());
+    const payoutAttempts = new MemoryPayoutAttemptRepository();
+    let attempt = 0;
+
+    const [first, second] = await Promise.all([
+      withdrawBalance(
+        {
+          users,
+          payouts,
+          payoutAttempts,
+          newAttemptId: () => `poa_race_${++attempt}`,
+        },
+        DEV,
+      ),
+      withdrawBalance(
+        {
+          users,
+          payouts,
+          payoutAttempts,
+          newAttemptId: () => `poa_race_${++attempt}`,
+        },
+        DEV,
+      ),
+    ]);
+
+    expect(payouts.payouts).toHaveLength(1);
+    expect([first, second].filter((result) => result.ok)).toHaveLength(1);
+    expect((await users.getById(DEV))?.balanceCents).toBe(0);
+    expect(await payoutAttempts.listByDeveloper(DEV)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ status: "paid" }),
+        expect.objectContaining({
+          status: "blocked",
+          providerCode: "balance_changed",
+        }),
+      ]),
+    );
+  });
+
+  it("records a failed payout attempt when the provider transfer throws", async () => {
+    class ThrowingPayoutGateway extends SpyPayoutGateway {
+      override async createPayout(input: PayoutInput): Promise<PayoutResult> {
+        this.payouts.push(input);
+        throw Object.assign(new Error("Stripe transfer failed"), {
+          requestId: "req_fail_123",
+          statusCode: 402,
+          code: "balance_insufficient",
+        });
+      }
+    }
+
+    const users = makeUsers(developer({ balanceCents: 1_000 }));
+    const payouts = new ThrowingPayoutGateway(new SequentialIdGenerator());
+    const payoutAttempts = new MemoryPayoutAttemptRepository();
+
+    await expect(
+      withdrawBalance(
+        {
+          users,
+          payouts,
+          payoutAttempts,
+          nowMs: () => 1_700_000_000_200,
+          newAttemptId: () => "poa_failed",
+        },
+        DEV,
+      ),
+    ).rejects.toThrow("Stripe transfer failed");
+
+    expect((await users.getById(DEV))?.balanceCents).toBe(1_000);
+    expect(await payoutAttempts.listByDeveloper(DEV)).toEqual([
+      expect.objectContaining({
+        attemptId: "poa_failed",
+        developerId: DEV,
+        amountCents: 1_000,
+        status: "failed",
+        stripeConnectAccountId: ACCT,
+        providerEventId: "req_fail_123",
+        providerStatus: 402,
+        providerCode: "balance_insufficient",
+      }),
+    ]);
   });
 });

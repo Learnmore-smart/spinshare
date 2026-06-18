@@ -8,9 +8,9 @@
 // required.
 //
 // The property asserts the summary always *reflects the ledger*:
-//   - The total-earnings KPI equals the independently-summed developer credits
-//     (Requirement 8.1: KPI cards summarize the developer total earnings), and
-//     its USD string matches `formatCentsAsUsd` of that same sum.
+//   - The total-earnings accounting field equals the independently-summed
+//     developer credits (Requirement 8.1), while the visible USD string matches
+//     the display-precision sum that preserves sub-cent credited rows.
 //   - The activity table has exactly one row per ledger entry, in order, and
 //     each row carries its entry's own `developerCreditCents` /
 //     `developerCreditUsd` (Requirement 8.3: an activity ledger table listing
@@ -19,13 +19,36 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
-import { formatCentsAsUsd, type LedgerEntry } from "@spinshare/core";
+import {
+  DEVELOPER_SHARE_PERCENT,
+  MICROCENTS_PER_CENT,
+  formatCentsAsUsd,
+  type LedgerEntry,
+} from "@spinshare/core";
 
 import { summarizeLedger } from "./summarize-ledger";
 
 const RUNS = { numRuns: 100 } as const;
 
 const DEV_ID = "dev-1";
+
+function formatMicrocentsAsUsdValue(microcents: number): string {
+  if (microcents === 0) {
+    return "0.00";
+  }
+  const dollars = microcents / 100_000;
+  const fixed = dollars.toFixed(3);
+  return fixed.endsWith("0") ? fixed.slice(0, -1) : fixed;
+}
+
+function expectedDisplayMicrocents(entry: LedgerEntry): number {
+  if (entry.developerCreditCents > 0) {
+    return entry.developerCreditCents * MICROCENTS_PER_CENT;
+  }
+  return Math.floor(
+    (entry.revenueMicrocents * DEVELOPER_SHARE_PERCENT + 50) / 100,
+  );
+}
 
 /**
  * Build an arbitrary developer `LedgerEntry`. Mirrors the real money model:
@@ -77,9 +100,16 @@ describe("Property 25: Developer dashboard reflects the ledger", () => {
           (acc, e) => acc + e.developerCreditCents,
           0,
         );
+        const expectedDisplay = entries.reduce(
+          (acc, e) => acc + expectedDisplayMicrocents(e),
+          0,
+        );
 
         expect(summary.totalEarningsCents).toBe(expectedTotal);
-        expect(summary.totalEarningsUsd).toBe(formatCentsAsUsd(expectedTotal));
+        expect(summary.totalEarningsDisplayMicrocents).toBe(expectedDisplay);
+        expect(summary.totalEarningsUsd).toBe(
+          formatMicrocentsAsUsdValue(expectedDisplay),
+        );
         expect(summary.impressionCount).toBe(entries.length);
       }),
       RUNS,
@@ -105,6 +135,12 @@ describe("Property 25: Developer dashboard reflects the ledger", () => {
           expect(row.developerCreditUsd).toBe(
             formatCentsAsUsd(entry.developerCreditCents),
           );
+          expect(row.developerCreditDisplayMicrocents).toBe(
+            expectedDisplayMicrocents(entry),
+          );
+          expect(row.developerCreditDisplayUsd).toBe(
+            formatMicrocentsAsUsdValue(expectedDisplayMicrocents(entry)),
+          );
           expect(row.sequence).toBe(index + 1);
         });
       }),
@@ -123,7 +159,12 @@ describe("Property 25: Developer dashboard reflects the ledger", () => {
           (acc, r) => acc + r.developerCreditCents,
           0,
         );
+        const rowsDisplayTotal = summary.rows.reduce(
+          (acc, r) => acc + r.developerCreditDisplayMicrocents,
+          0,
+        );
         expect(rowsTotal).toBe(summary.totalEarningsCents);
+        expect(rowsDisplayTotal).toBe(summary.totalEarningsDisplayMicrocents);
       }),
       RUNS,
     );

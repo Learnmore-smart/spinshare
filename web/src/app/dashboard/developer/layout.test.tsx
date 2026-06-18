@@ -1,0 +1,90 @@
+import * as React from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const mocks = vi.hoisted(() => ({
+  auth: vi.fn(),
+  mintToken: vi.fn(),
+  listByDeveloper: vi.fn(),
+  flushPendingForRead: vi.fn(),
+  events: [] as string[],
+}));
+
+vi.mock("@/server/adapters/auth/nextauth-config", () => ({
+  auth: mocks.auth,
+}));
+
+vi.mock("@/server/flush-before-read", () => ({
+  flushPendingForRead: mocks.flushPendingForRead,
+}));
+
+vi.mock("@/server/container", () => ({
+  getContainer: () => ({
+    auth: {
+      mintToken: mocks.mintToken,
+    },
+    ledger: {
+      listByDeveloper: mocks.listByDeveloper,
+    },
+  }),
+}));
+
+vi.mock("./dashboard-shell", () => ({
+  DashboardShell: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+vi.mock("./developer-activity-context", () => ({
+  DeveloperActivityProviderClient: ({
+    children,
+    token,
+  }: {
+    children: React.ReactNode;
+    token: string;
+  }) => <div data-token={token}>{children}</div>,
+}));
+
+import DeveloperDashboardLayout from "./layout";
+
+beforeEach(() => {
+  mocks.auth.mockReset();
+  mocks.mintToken.mockReset();
+  mocks.listByDeveloper.mockReset();
+  mocks.flushPendingForRead.mockReset();
+  mocks.events.length = 0;
+});
+
+describe("DeveloperDashboardLayout", () => {
+  it("flushes pending ledger work before reading the durable earnings summary", async () => {
+    Object.assign(globalThis, { React });
+    mocks.auth.mockResolvedValue({
+      user: {
+        id: "dev_123",
+        email: "dev@example.test",
+      },
+    });
+    mocks.mintToken.mockReturnValue("tok_developer");
+    mocks.flushPendingForRead.mockImplementationOnce(async () => {
+      mocks.events.push("flush");
+    });
+    mocks.listByDeveloper.mockImplementationOnce(async () => {
+      mocks.events.push("listByDeveloper");
+      return [];
+    });
+
+    const element = await DeveloperDashboardLayout({ children: "content" });
+
+    expect(mocks.mintToken).toHaveBeenCalledWith("dev_123", {
+      email: "dev@example.test",
+      role: "developer",
+    });
+    expect(mocks.flushPendingForRead).toHaveBeenCalledWith(
+      expect.any(Object),
+      "developer-dashboard",
+    );
+    expect(mocks.listByDeveloper).toHaveBeenCalledWith("dev_123");
+    expect(mocks.events).toEqual(["flush", "listByDeveloper"]);
+    expect(element.props.user).toEqual({
+      email: "dev@example.test",
+      userId: "dev_123",
+    });
+  });
+});

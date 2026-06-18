@@ -15,13 +15,44 @@
  * See the `PayoutGateway` port and design "Provider Abstraction Layer (Ports)".
  */
 
+import { MINIMUM_PAYOUT_CENTS } from "@spinshare/core";
+
 import { auth } from "@/server/adapters/auth/nextauth-config";
 import { getContainer } from "@/server/container";
+import { flushPendingForRead } from "@/server/flush-before-read";
 import { assertSameOrigin } from "@/server/http/csrf";
 
 export const dynamic = "force-dynamic";
 
 const DASHBOARD_PATH = "/dashboard/developer";
+const GENERIC_PROVIDER_FAILURE_MESSAGE =
+  "Stripe Connect rejected the payout onboarding request. Check the request id in Stripe logs.";
+const CONNECT_NOT_ENABLED_MESSAGE =
+  "Stripe Connect is not enabled for this Stripe account. Enable Connect in Stripe Dashboard, then retry.";
+const CONNECT_SETUP_BLOCKER_CODES = new Set([
+  "account_create_activation_required",
+  "connect_identity_not_verified",
+  "connect_profile_not_submitted",
+  "platform_registration_required",
+]);
+
+function isConnectSetupBlocker(
+  stripeError:
+    | {
+        code?: unknown;
+        message?: unknown;
+      }
+    | undefined,
+): boolean {
+  if (typeof stripeError?.code === "string") {
+    if (CONNECT_SETUP_BLOCKER_CODES.has(stripeError.code)) return true;
+  }
+
+  return (
+    typeof stripeError?.message === "string" &&
+    stripeError.message.includes("signed up for Connect")
+  );
+}
 
 function providerFailureBody(error: unknown): Record<string, unknown> {
   const stripeError = error as
@@ -34,11 +65,14 @@ function providerFailureBody(error: unknown): Record<string, unknown> {
         message?: unknown;
       }
     | undefined;
+  const setupBlocked = isConnectSetupBlocker(stripeError);
 
   return {
     error: "payout_connect_failed",
-    message:
-      "Stripe Connect rejected the payout onboarding request. Check the request id in Stripe logs.",
+    ...(setupBlocked ? { reason: "stripe_connect_not_enabled" } : {}),
+    message: setupBlocked
+      ? CONNECT_NOT_ENABLED_MESSAGE
+      : GENERIC_PROVIDER_FAILURE_MESSAGE,
     ...(typeof stripeError?.requestId === "string"
       ? { requestId: stripeError.requestId }
       : {}),
@@ -67,8 +101,22 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
-    const { users, payouts } = getContainer();
+    const container = getContainer();
+    await flushPendingForRead(container, "payouts-connect");
+    const { users, payouts } = container;
     const user = await users.getById(developerId);
+    const balanceCents = user?.balanceCents ?? 0;
+    if (balanceCents < MINIMUM_PAYOUT_CENTS) {
+      return Response.json(
+        {
+          error: "below_minimum",
+          balanceCents,
+          minimumCents: MINIMUM_PAYOUT_CENTS,
+        },
+        { status: 422 },
+      );
+    }
+
     const email = user?.email ?? session.user?.email ?? undefined;
 
     // Create or reuse the developer's connected account, then persist its id.

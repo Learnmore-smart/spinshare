@@ -2,7 +2,11 @@ import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { ActivityTable } from "./developer-dashboard-parts";
+import {
+  ActivityList,
+  ActivityTable,
+  LimitMeter,
+} from "./developer-dashboard-parts";
 
 describe("developer dashboard activity table", () => {
   it("renders attempt-level status and duration", () => {
@@ -32,5 +36,53 @@ describe("developer dashboard activity table", () => {
     expect(html).toContain("Too short");
     expect(html).toContain("0.9s");
     expect(html).toContain("$0.00");
+  });
+
+  it("keeps raw ledger details out of developer-facing rows", () => {
+    Object.assign(globalThis, { React });
+
+    const row = {
+      activityId: "activity_1",
+      campaignId: "cmp_1",
+      status: "credited",
+      statusLabel: "Credited",
+      counted: true,
+      viewDurationMs: 3100,
+      durationLabel: "3.1s",
+      developerCreditCents: 2,
+      developerCreditUsd: "0.02",
+      creditLabel: "$0.02",
+      createdAtMs: 1_700_000_000_000,
+    } as const;
+
+    const listHtml = renderToStaticMarkup(
+      React.createElement(ActivityList, { rows: [row] }),
+    );
+    const tableHtml = renderToStaticMarkup(
+      React.createElement(ActivityTable, { rows: [row] }),
+    );
+
+    expect(listHtml).not.toContain("Details");
+    expect(listHtml).not.toContain("Activity ID");
+    expect(listHtml).not.toContain("activity_1");
+    expect(tableHtml).not.toContain("Details");
+    expect(tableHtml).not.toContain("Created");
+    expect(tableHtml).not.toContain("2023-11-14T22:13:20.000Z");
+  });
+
+  it("renders cap meters with a display label when provided", () => {
+    Object.assign(globalThis, { React });
+
+    const html = renderToStaticMarkup(
+      React.createElement(LimitMeter, {
+        label: "Hourly",
+        usedCents: 0,
+        usedLabel: "$0.012",
+        limitCents: 2000,
+        reset: "40m",
+      }),
+    );
+
+    expect(html).toContain("$0.012 / $20.00");
   });
 });

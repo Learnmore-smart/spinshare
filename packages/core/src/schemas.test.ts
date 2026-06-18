@@ -11,6 +11,7 @@ import {
   fundingBlockCheckoutSchema,
   fundingAmountSchema,
   getAdvertiserCheckoutAmountCents,
+  reviewAdTextSafety,
   trackRequestSchema,
 } from "./schemas";
 
@@ -26,6 +27,31 @@ describe("createCampaignSchema", () => {
         cpmCents: CPM_CENTS_MAX,
       }).success,
     ).toBe(true);
+  });
+
+  it("preserves an optional checkout block count for dashboard creation", () => {
+    const parsed = createCampaignSchema.safeParse({
+      adText: "Try SpinShare for Claude Code",
+      cpmCents: CPM_CENTS_MIN,
+      blockCount: 3,
+    });
+
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.blockCount).toBe(3);
+    }
+  });
+
+  it("rejects invalid dashboard checkout block counts", () => {
+    for (const blockCount of [0, -1, 1.5, Number.NaN, "3"]) {
+      expect(
+        createCampaignSchema.safeParse({
+          adText: "Try SpinShare for Claude Code",
+          cpmCents: CPM_CENTS_MIN,
+          blockCount,
+        }).success,
+      ).toBe(false);
+    }
   });
 
   it("rejects ad text longer than 60 characters (Requirement 9.2)", () => {
@@ -61,6 +87,39 @@ describe("createCampaignSchema", () => {
     expect(
       createCampaignSchema.safeParse({ adText: "Ad", cpmCents: "30" }).success,
     ).toBe(false);
+  });
+
+  it("rejects clearly unsafe or deceptive ad copy", () => {
+    for (const adText of [
+      "Enter your seed phrase to restore wallet",
+      "Share your password to unlock account",
+      "Claim free crypto airdrop now",
+      "Verify your wallet login today",
+    ]) {
+      const parsed = createCampaignSchema.safeParse({
+        adText,
+        cpmCents: CPM_CENTS_MIN,
+      });
+
+      expect(parsed.success).toBe(false);
+      if (!parsed.success) {
+        expect(parsed.error.issues[0]?.message).toBe(
+          "Ad text appears unsafe or deceptive",
+        );
+      }
+    }
+  });
+
+  it("allows ordinary security-tool copy while reviewing ad text narrowly", () => {
+    expect(reviewAdTextSafety("Try password manager training")).toEqual({
+      safe: true,
+    });
+    expect(
+      createCampaignSchema.safeParse({
+        adText: "Try password manager training",
+        cpmCents: CPM_CENTS_MIN,
+      }).success,
+    ).toBe(true);
   });
 });
 
@@ -193,6 +252,32 @@ describe("advertiserCheckoutSchema", () => {
         }).success,
       ).toBe(false);
     }
+  });
+
+  it("rejects phishing-prone or review-bypass destination URLs", () => {
+    for (const destinationUrl of [
+      "https://xn--pple-43d.com/",
+      "https://example/",
+      "https://bit.ly/spinshare",
+      "https://tinyurl.com/spinshare",
+      "https://t.co/spinshare",
+    ]) {
+      expect(
+        advertiserCheckoutSchema.safeParse({
+          ...validCheckout,
+          destinationUrl,
+        }).success,
+      ).toBe(false);
+    }
+  });
+
+  it("rejects unsafe public checkout ad copy before payment", () => {
+    expect(
+      advertiserCheckoutSchema.safeParse({
+        ...validCheckout,
+        adText: "Claim free crypto airdrop now",
+      }).success,
+    ).toBe(false);
   });
 
   it("rejects block counts that exceed the funding maximum", () => {

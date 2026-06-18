@@ -10,6 +10,8 @@ import { signOut, useSession } from "next-auth/react";
 
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
+import { TiltCard } from "@/components/TiltCard";
+
 import { APP_VERSION } from "@/lib/app-meta";
 
 import { useT } from "@/lib/i18n/locale-provider";
@@ -56,6 +58,8 @@ const VARIANT_STYLES = {
 
     panel: "dev-dash-panel dev-dash-rise",
 
+    tiltGlow: "16, 185, 129",
+
     headerBorder: "border-emerald-900/8",
 
     eyebrow: "text-emerald-600",
@@ -79,6 +83,8 @@ const VARIANT_STYLES = {
   advertiser: {
 
     panel: "adv-dash-panel adv-dash-rise",
+
+    tiltGlow: "245, 158, 11",
 
     headerBorder: "border-amber-900/8",
 
@@ -134,7 +140,7 @@ export function DashboardSettingsView({ variant }: DashboardSettingsViewProps) {
 
   return (
 
-    <section className={`${styles.panel} w-full p-4 sm:p-6 lg:p-8`}>
+    <TiltCard className={`${styles.panel} w-full p-4 sm:p-6 lg:p-8`} intensity={5} scale={1.006} glow={styles.tiltGlow}>
 
       <header className={`border-b ${styles.headerBorder} pb-4 sm:pb-5`}>
 
@@ -316,7 +322,7 @@ export function DashboardSettingsView({ variant }: DashboardSettingsViewProps) {
 
       </div>
 
-    </section>
+    </TiltCard>
 
   );
 

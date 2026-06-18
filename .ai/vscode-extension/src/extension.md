@@ -106,6 +106,7 @@ sign-in surface after installing the extension.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Activation now passes the normalized baseUrl into FileTokenMirror for prod/local hook credential separation. | Codex |
 | 2026-06-15 | Implemented persistent sign-in status entry on activation. | Codex |
 | 2026-06-15 | Planned persistent sign-in status entry on activation. | Codex |
 | 2026-06-15 | Implemented command palette removal path for Claude Code adapter. | Codex |

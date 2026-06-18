@@ -57,3 +57,15 @@ events, and sorts by `createdAtMs`.
 | 2026-06-15 | Planned Firestore support for advertiser money activity events. | Codex |
 | 2026-06-15 | Implemented Firestore activity repository. | Codex |
 | 2026-06-15 | Created doc before adding Firestore activity repository. | Codex |
+
+## Planned Change 2026-06-16 Developer Payout Events
+
+Deserialize and query `developer_event` payout rows in the same activity
+collection. `listByDeveloper()` should return both impression attempts and
+developer events for the matching developer; checkout-session lookups remain
+advertiser-event only.
+
+## Implemented Change 2026-06-16 Developer Payout Events
+
+Firestore deserialization now preserves developer payout fields and
+`listByDeveloper()` returns `DeveloperActivityRecord` rows.

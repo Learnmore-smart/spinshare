@@ -89,6 +89,39 @@ describe("selectAd — winner response shape (R1.3, R1.6)", () => {
     });
   });
 
+  it("ignores campaigns that are still pending safety review", async () => {
+    const campaigns = new MemoryCampaignRepository(
+      new ManualClock(0),
+      new SequentialIdGenerator(),
+    );
+    campaigns.seed(
+      campaign({
+        id: "cmp_pending_review",
+        cpmCents: 9000,
+        adText: "High bid but not reviewed",
+        reviewStatus: "pending",
+      } as Partial<Campaign> & Pick<Campaign, "id">),
+    );
+    campaigns.seed(
+      campaign({
+        id: "cmp_approved",
+        cpmCents: 1000,
+        adText: "Approved lower bid",
+        reviewStatus: "approved",
+      } as Partial<Campaign> & Pick<Campaign, "id">),
+    );
+
+    const result = await selectAd({ campaigns });
+
+    expect(result).toEqual({
+      adAvailable: true,
+      campaignId: "cmp_approved",
+      adText: "Approved lower bid",
+      cpmCents: 1000,
+      cpmUsd: "10.00",
+    });
+  });
+
   it("returns a developer's pending campaign before normal bidding", async () => {
     const campaigns = new MemoryCampaignRepository(
       new ManualClock(0),
@@ -169,6 +202,7 @@ describe("selectAd — timeout fallback (R1.7)", () => {
       },
       listByAdvertiser: async () => [],
       applyBudgetDeltaCents: async () => {},
+      updateReviewStatus: async () => {},
     };
 
     const timeoutMs = 20;
@@ -192,6 +226,7 @@ describe("selectAd — timeout fallback (R1.7)", () => {
       },
       listByAdvertiser: async () => [],
       applyBudgetDeltaCents: async () => {},
+      updateReviewStatus: async () => {},
     };
 
     const result = await selectAd({ campaigns: failing, timeoutMs: 50 });

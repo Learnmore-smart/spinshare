@@ -25,6 +25,9 @@ export type {
   ActivityRecord,
   AdvertiserActivity,
   AdvertiserActivityStatus,
+  DeveloperActivity,
+  DeveloperActivityRecord,
+  DeveloperActivityStatus,
   ImpressionActivity,
   ImpressionActivityStatus,
 } from "./activity-repository";
@@ -54,6 +57,13 @@ export type {
   PaymentEventStore,
   PaymentEventRecord,
 } from "./payment-event-store";
+
+export type {
+  PayoutAttempt,
+  PayoutAttemptRepository,
+  PayoutAttemptStatus,
+  PayoutAttemptUpdate,
+} from "./payout-attempt-repository";
 
 export type {
   AuthProvider,

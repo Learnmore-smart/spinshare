@@ -93,7 +93,10 @@
     "dev": "tsc -p ./ --watch",
     "test": "vitest run --passWithNoTests",
     "lint": "tsc --noEmit",
-    "package": "corepack pnpm@9.12.0 --filter @spinshare/cli build && corepack pnpm@9.12.0 build && corepack pnpm@9.12.0 exec vsce package --allow-missing-repository && node ./scripts/fix-vsix-readme.mjs"
+    "package": "corepack pnpm@9.12.0 --filter @spinshare/cli build && corepack pnpm@9.12.0 build && node ./scripts/package-variant.mjs prod",
+    "package:prod": "corepack pnpm@9.12.0 --filter @spinshare/cli build && corepack pnpm@9.12.0 build && node ./scripts/package-variant.mjs prod",
+    "package:local": "corepack pnpm@9.12.0 --filter @spinshare/cli build && corepack pnpm@9.12.0 build && node ./scripts/package-variant.mjs local",
+    "package:all": "corepack pnpm@9.12.0 --filter @spinshare/cli build && corepack pnpm@9.12.0 build && node ./scripts/package-variant.mjs prod && node ./scripts/package-variant.mjs local"
   },
   "devDependencies": {
     "@spinshare/core": "workspace:*",

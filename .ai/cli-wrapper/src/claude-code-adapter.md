@@ -1,6 +1,6 @@
 # claude-code-adapter.ts
 
-> Last updated: 2026-06-15 | Protection: CRITICAL
+> Last updated: 2026-06-17 | Protection: CRITICAL
 
 ## Purpose
 
@@ -149,10 +149,100 @@ OSC8 hyperlink so supported terminals can open the click-through URL.
 The npm CLI can install the same visible/clickable Claude Code surface as the
 extension, but Claude Code still controls where the statusLine is rendered.
 
+## Bug Fix Plan 2026-06-16 FORCE_HYPERLINK Parity
+
+Root cause: the VS Code extension adapter sets `env.FORCE_HYPERLINK = "1"` in
+merged Claude settings so Claude Code statusLine preserves OSC8 clickable links
+in Windows Terminal and other terminals that otherwise strip hyperlink escape
+sequences. The npm CLI adapter generates the same OSC8 statusLine output but
+does not add the env setting, so npm-only installs can render colored text that
+is not clickable even when the destination URL exists.
+
+Fix strategy: update CLI `mergeClaudeCodeSettings()` to preserve existing
+settings/env values and set `FORCE_HYPERLINK` to `"1"` when absent or different.
+Do not touch unrelated env keys. Add RED coverage before implementation.
+
+Regression risk: only Claude Code settings merge output changes. Removal should
+continue to remove statusLine/hooks only and preserve user settings.
+
+## Bug Fix Implemented 2026-06-16 FORCE_HYPERLINK Parity
+
+`mergeClaudeCodeSettings()` now merges `settings.env` and sets
+`FORCE_HYPERLINK` to `"1"` while preserving unrelated environment keys. This
+matches the VS Code extension adapter and improves OSC8 clickable ad behavior
+for npm-only Claude Code installs.
+
+RED verification before implementation:
+`corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/claude-code-adapter.test.ts`
+failed because the merged settings preserved `FORCE_HYPERLINK: "0"`.
+
+GREEN verification after implementation:
+`corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/claude-code-adapter.test.ts`
+passed 10 tests.
+
+Related verification:
+`corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/claude-code-adapter.test.ts src/index.test.ts src/credential-store.test.ts`
+passed 3 files / 23 tests, and
+`corepack pnpm@9.12.0 --filter @spinshare/cli lint` passed.
+
+## Bug Fix Plan 2026-06-17 Expiring Active StatusLine State
+
+Generated statusLine output currently renders any `active: true` state until a
+`Stop`/`StopFailure` hook clears the state file. There are two related ways the
+ad can remain visible after loading has ended: a missed stop hook, or a
+post-stop `MessageDisplay` hook that starts a fresh ad after the response is
+already displayed.
+
+Fix strategy: make only `UserPromptSubmit` start a new ad; keep `MessageDisplay`
+installed as a no-op/compatibility hook so older settings are replaced but
+cannot start a post-loading ad. Also write an `expiresAtMs` field with active ad
+state and have the generated statusLine script treat expired active state as
+hidden. Keep normal `Stop` tracking unchanged; expiry is only a fallback for
+missed/failed stop hooks.
+
+Regression risk: setting the fallback expiry too low can hide ads during long
+Claude turns. Use a conservative 2 minute expiry so normal long thinking keeps
+showing while stale state cannot survive indefinitely.
+
+## Bug Fix Implemented 2026-06-17 Expiring Active StatusLine State
+
+Generated hook scripts now start ads only on `UserPromptSubmit`; `MessageDisplay`
+returns without fetching so a post-response display event cannot recreate ad
+state after `Stop` clears it. Active state now includes `expiresAtMs`, and
+generated statusLine output hides expired state as a fallback for missed
+`Stop`/`StopFailure` hooks. `trackIfViewable()` caps reported duration at
+`expiresAtMs` when present.
+
+Verification:
+`corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/claude-code-adapter.test.ts`
+passed 10 tests.
+
+## Bug Fix Implemented 2026-06-17 Strict Hook Credential Matching (no prod fallback)
+
+Generated hook `credentialMatchesBaseUrl()` previously treated a **missing**
+credential `baseUrl` as matching production (`https://www.spinshare.dev`). Combined
+with the single shared `credentials.json`, a local setup's token (or an untagged
+one) could be used by a production-baked hook, so local ad activity was reported
+to production. The hook now uses the stored token **only** when its `baseUrl`
+exactly equals the hook's baked `baseUrl` (`credentialBaseUrl.length > 0 &&` exact
+match) — a missing/mismatched `baseUrl` yields no token and the hook reports
+nothing. Mirrored identically in the VS Code extension adapter.
+
+Verification:
+`corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/claude-code-adapter.test.ts src/credential-store.test.ts`
+passed 24 tests; the extension adapter test passed 11.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-17 | Strict hook credential matching: removed the production fallback for an untagged/mismatched baseUrl (Bug B). | Claude |
+| 2026-06-17 | Implemented expiring generated statusLine state and MessageDisplay no-op. | Codex |
+| 2026-06-17 | Planned expiring generated statusLine state to prevent ads persisting after loading. | Codex |
+| 2026-06-16 | Implemented FORCE_HYPERLINK env parity for npm CLI Claude Code adapter. | Codex |
+| 2026-06-16 | Planned FORCE_HYPERLINK env parity for npm CLI Claude Code adapter. | Codex |
+| 2026-06-16 | Implemented baseUrl-aware credential file reading for prod/local hook separation. | Codex |
+| 2026-06-16 | Planned baseUrl-aware credential file reading for prod/local hook separation. | Codex |
 | 2026-06-15 | Colorized generated statusLine output while preserving OSC8 links. | Codex |
 | 2026-06-15 | Implemented same-session stale state reset. | Codex |
 | 2026-06-15 | Planned same-session stale state reset. | Codex |

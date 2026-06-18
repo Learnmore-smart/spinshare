@@ -1,4 +1,4 @@
-import { formatCentsAsUsd } from "@spinshare/core";
+import { DEVELOPER_SHARE_PERCENT, formatCentsAsUsd } from "@spinshare/core";
 
 export type ActivityFeedStatus =
   | "tooShort"
@@ -10,9 +10,15 @@ export type ActivityFeedStatus =
   | "duplicate"
   | "checkoutStarted"
   | "budgetFunded"
-  | "budgetDebited";
+  | "budgetDebited"
+  | "payoutPaid"
+  | "payoutFailed"
+  | "payoutBlocked";
 
-export type ActivityFeedType = "impression_attempt" | "advertiser_event";
+export type ActivityFeedType =
+  | "impression_attempt"
+  | "advertiser_event"
+  | "developer_event";
 
 export interface ActivityFeedSource {
   activityId: string;
@@ -31,6 +37,8 @@ export interface ActivityFeedSource {
   amountUsd?: string;
   providerEventId?: string;
   checkoutSessionId?: string;
+  providerStatus?: number;
+  providerCode?: string;
 }
 
 export interface ActivityFeedRow extends ActivityFeedSource {
@@ -38,6 +46,11 @@ export interface ActivityFeedRow extends ActivityFeedSource {
   durationLabel: string;
   creditLabel: string;
   counted: boolean;
+}
+
+export interface ActivityDetailItem {
+  label: string;
+  value: string;
 }
 
 export function activityStatusLabel(status: ActivityFeedStatus): string {
@@ -62,6 +75,12 @@ export function activityStatusLabel(status: ActivityFeedStatus): string {
       return "Budget funded";
     case "budgetDebited":
       return "Budget charged";
+    case "payoutPaid":
+      return "Payout paid";
+    case "payoutFailed":
+      return "Payout failed";
+    case "payoutBlocked":
+      return "Payout blocked";
   }
 }
 
@@ -71,7 +90,10 @@ export function formatActivityDuration(viewDurationMs: number): string {
 }
 
 function activityCreditLabel(activity: ActivityFeedSource): string {
-  if (activity.type === "advertiser_event") {
+  if (
+    activity.type === "advertiser_event" ||
+    activity.type === "developer_event"
+  ) {
     if (activity.amountUsd !== undefined) {
       return `$${activity.amountUsd}`;
     }
@@ -83,6 +105,21 @@ function activityCreditLabel(activity: ActivityFeedSource): string {
     }
     return "$0.00";
   }
+  if (
+    activity.status === "credited" &&
+    activity.revenueMicrocents !== undefined &&
+    activity.revenueMicrocents > 0 &&
+    (activity.developerCreditCents ?? 0) === 0 &&
+    (activity.developerCreditUsd === undefined ||
+      activity.developerCreditUsd === "0.00")
+  ) {
+    const displayCreditMicrocents = Math.floor(
+      (activity.revenueMicrocents * DEVELOPER_SHARE_PERCENT + 50) / 100,
+    );
+    if (displayCreditMicrocents > 0) {
+      return formatMicrocentsAsUsd(displayCreditMicrocents);
+    }
+  }
   if (activity.developerCreditUsd !== undefined) {
     return `$${activity.developerCreditUsd}`;
   }
@@ -93,7 +130,9 @@ function formatMicrocentsAsUsd(microcents: number): string {
   const sign = microcents < 0 ? "-" : "";
   const abs = Math.abs(microcents);
   const dollars = abs / 100_000;
-  return `${sign}$${dollars >= 0.01 ? dollars.toFixed(2) : dollars.toFixed(4)}`;
+  const fixed = dollars.toFixed(3);
+  const trimmed = fixed.endsWith("0") ? fixed.slice(0, -1) : fixed;
+  return `${sign}$${trimmed}`;
 }
 
 function activityDurationLabel(activity: ActivityFeedSource): string {
@@ -107,6 +146,18 @@ function activityDurationLabel(activity: ActivityFeedSource): string {
         return "Billable impression";
       default:
         return "Advertiser event";
+    }
+  }
+  if (activity.type === "developer_event") {
+    switch (activity.status) {
+      case "payoutPaid":
+        return "Transfer sent";
+      case "payoutFailed":
+        return "Transfer failed";
+      case "payoutBlocked":
+        return "Not paid";
+      default:
+        return "Developer event";
     }
   }
   return formatActivityDuration(activity.viewDurationMs ?? 0);
@@ -124,7 +175,56 @@ export function toActivityFeedRows(
       counted:
         activity.status === "credited" ||
         activity.status === "budgetFunded" ||
-        activity.status === "budgetDebited",
+        activity.status === "budgetDebited" ||
+        activity.status === "payoutPaid",
     }))
     .sort((a, b) => b.createdAtMs - a.createdAtMs);
+}
+
+export function activityDetailItems(
+  activity: ActivityFeedRow,
+  options: { amountLabel?: string } = {},
+): ActivityDetailItem[] {
+  const items: ActivityDetailItem[] = [
+    { label: "Activity ID", value: activity.activityId },
+    { label: "Campaign ID", value: activity.campaignId },
+    { label: "Status", value: activity.statusLabel },
+    {
+      label:
+        activity.type === "advertiser_event" ||
+        activity.type === "developer_event"
+          ? "Event"
+          : "Duration",
+      value: activity.durationLabel,
+    },
+    { label: options.amountLabel ?? "Amount", value: activity.creditLabel },
+    { label: "Created", value: new Date(activity.createdAtMs).toISOString() },
+  ];
+
+  if (activity.checkoutSessionId !== undefined) {
+    items.push({
+      label: "Checkout session",
+      value: activity.checkoutSessionId,
+    });
+  }
+  if (activity.providerEventId !== undefined) {
+    items.push({
+      label: "Provider event",
+      value: activity.providerEventId,
+    });
+  }
+  if (activity.providerStatus !== undefined) {
+    items.push({
+      label: "Provider status",
+      value: String(activity.providerStatus),
+    });
+  }
+  if (activity.providerCode !== undefined) {
+    items.push({
+      label: "Provider code",
+      value: activity.providerCode,
+    });
+  }
+
+  return items;
 }

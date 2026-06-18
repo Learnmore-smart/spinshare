@@ -36,3 +36,13 @@ matching advertiser event is returned.
 | 2026-06-16 | Planned checkout session lookup coverage. | Codex |
 | 2026-06-15 | Implemented memory activity repository tests. | Codex |
 | 2026-06-15 | Created doc before adding memory activity tests. | Codex |
+
+## Planned Coverage 2026-06-16 Developer Payout Events
+
+Add a RED test proving `listByDeveloper()` returns matching `developer_event`
+payout rows and excludes payout events belonging to other developers.
+
+## Implemented Coverage 2026-06-16 Developer Payout Events
+
+Added memory repository coverage for developer payout events in
+`listByDeveloper()`.

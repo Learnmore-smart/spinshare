@@ -27,4 +27,5 @@ export { MemoryImpressionProgressRepository } from "./memory-impression-progress
 export { MockPaymentGateway } from "./mock-payment-gateway";
 export { MockPayoutGateway } from "./mock-payout-gateway";
 export { MemoryPaymentEventStore } from "./memory-payment-event-store";
+export { MemoryPayoutAttemptRepository } from "./memory-payout-attempt-repository";
 export { MockAuthProvider } from "./mock-auth-provider";

@@ -161,11 +161,20 @@ describe("buildClaudeCodeAdapterPlan", () => {
     expect(hook?.content).toContain("if (!token) return;");
     expect(hook?.content).toContain("async function fetchAd(token)");
     expect(hook?.content).toContain('authorization: "Bearer " + token');
+    expect(hook?.content).toContain("credentialMatchesBaseUrl(parsed)");
+    // Strict environment matching: no silent production fallback for an
+    // untagged/mismatched credential (Bug B — local/prod must not mix).
+    expect(hook?.content).toContain("credentialBaseUrl.length > 0 &&");
+    expect(hook?.content).not.toContain(
+      'return normalizeCredentialBaseUrl(baseUrl) === "https://www.spinshare.dev"',
+    );
     expect(hook?.content).toContain("const sessionId = readSessionId();");
     expect(hook?.content).toContain("sessionId");
     expect(hook?.content).toContain("stateMatchesSession(state)");
+    expect(hook?.content).toContain("expiresAtMs");
     expect(statusLine?.content).toContain("const sessionId = readSessionId();");
     expect(statusLine?.content).toContain("stateMatchesSession(state)");
+    expect(statusLine?.content).toContain("function stateIsFresh(state)");
     expect(statusLine?.content).toContain('"$ " + state.adText');
     expect(statusLine?.content).toContain("function accent(text)");
     expect(statusLine?.content).not.toContain("▣ ");
@@ -179,7 +188,7 @@ describe("buildClaudeCodeAdapterPlan", () => {
       await fs.mkdir(path.join(configRoot, "spinshare"), { recursive: true });
       await fs.writeFile(
         path.join(configRoot, "spinshare", "credentials.json"),
-        JSON.stringify({ token: "runtime-token" }),
+        JSON.stringify({ token: "wrong-token", baseUrl: "https://other.test" }),
         "utf8",
       );
 
@@ -207,6 +216,21 @@ describe("buildClaudeCodeAdapterPlan", () => {
         APPDATA: "",
         SPINSHARE_TOKEN: "",
       };
+      const ignored = await runGeneratedScript(
+        hookPath!,
+        ["UserPromptSubmit"],
+        { session_id: "session-wrong-env" },
+        env,
+      );
+      expect(ignored).toMatchObject({ code: 0, stderr: "" });
+      expect(requests).toHaveLength(0);
+      await expect(fs.access(plan.stateFilePath)).rejects.toThrow();
+
+      await fs.writeFile(
+        path.join(configRoot, "spinshare", "credentials.json"),
+        JSON.stringify({ token: "runtime-token", baseUrl }),
+        "utf8",
+      );
       const start = await runGeneratedScript(
         hookPath!,
         ["UserPromptSubmit"],
@@ -279,7 +303,24 @@ describe("buildClaudeCodeAdapterPlan", () => {
 
       await fs.writeFile(
         plan.stateFilePath,
-        JSON.stringify({ ...freshState, startedAtMs: Date.now() - 1234 }),
+        JSON.stringify({ ...freshState, expiresAtMs: Date.now() - 1 }),
+        "utf8",
+      );
+      const expired = await runGeneratedScript(
+        statusLinePath!,
+        [],
+        { session_id: "session-a" },
+        env,
+      );
+      expect(expired.stdout).toBe("");
+
+      await fs.writeFile(
+        plan.stateFilePath,
+        JSON.stringify({
+          ...freshState,
+          startedAtMs: Date.now() - 1234,
+          expiresAtMs: Date.now() + 120_000,
+        }),
         "utf8",
       );
       const stop = await runGeneratedScript(
@@ -295,6 +336,16 @@ describe("buildClaudeCodeAdapterPlan", () => {
       expect(
         (track?.body as { viewDurationMs?: number }).viewDurationMs,
       ).toBeGreaterThan(0);
+      await expect(fs.access(plan.stateFilePath)).rejects.toThrow();
+
+      const displayAfterStop = await runGeneratedScript(
+        hookPath!,
+        ["MessageDisplay"],
+        { session_id: "session-a" },
+        env,
+      );
+      expect(displayAfterStop).toMatchObject({ code: 0, stderr: "" });
+      expect(requests.filter((request) => request.url === "/api/ad")).toHaveLength(2);
       await expect(fs.access(plan.stateFilePath)).rejects.toThrow();
     });
   });
@@ -329,6 +380,7 @@ describe("mergeClaudeCodeSettings", () => {
       command: plan.statusLineCommand,
       refreshInterval: 1,
     });
+    expect(merged.env).toMatchObject({ FORCE_HYPERLINK: "1" });
     expect(merged.hooks.Stop).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -372,6 +424,39 @@ describe("mergeClaudeCodeSettings", () => {
     );
 
     expect(merged.hooks.Stop).toEqual([existingHandler]);
+  });
+
+  it("sets FORCE_HYPERLINK=1 in env so OSC 8 ad links are clickable on Windows Terminal", () => {
+    const plan = buildClaudeCodeAdapterPlan({
+      baseUrl: "https://www.spinshare.dev",
+      homeDir: "/home/noah",
+      storageRoot: "/tmp/spinshare",
+    });
+
+    const merged = mergeClaudeCodeSettings(
+      { env: { MY_VAR: "keep-me" } },
+      plan,
+    );
+
+    expect(merged.env).toMatchObject({
+      MY_VAR: "keep-me",
+      FORCE_HYPERLINK: "1",
+    });
+  });
+
+  it("does not overwrite FORCE_HYPERLINK when the user already set it", () => {
+    const plan = buildClaudeCodeAdapterPlan({
+      baseUrl: "https://www.spinshare.dev",
+      homeDir: "/home/noah",
+      storageRoot: "/tmp/spinshare",
+    });
+
+    const merged = mergeClaudeCodeSettings(
+      { env: { FORCE_HYPERLINK: "1" } },
+      plan,
+    );
+
+    expect(merged.env).toMatchObject({ FORCE_HYPERLINK: "1" });
   });
 
   it("replaces SpinShare hooks from another installer path", () => {

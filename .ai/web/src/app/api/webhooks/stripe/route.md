@@ -79,6 +79,24 @@ The webhook now validates funding events before claiming the Stripe event:
 - `budgetFunded` activity includes `checkoutSessionId` when the gateway parsed
   it from the Checkout Session.
 
+## Planned Change 2026-06-16 Checkout Session Idempotency Key
+
+To support safe post-return reconciliation from `/api/checkout-status`, use the
+Checkout Session id as the idempotency key when a funding event carries
+`checkoutSessionId`: `checkout_session:{sessionId}`. Keep the Stripe event id as
+the fallback key for events without a session id.
+
+This lets the webhook and the checkout-status fallback share the same
+idempotency record and prevents double-credit when the user returns before the
+webhook arrives.
+
+## Implemented Change 2026-06-16 Checkout Session Idempotency Key
+
+Webhook funding now claims `checkout_session:{checkoutSessionId}` when the
+parsed Stripe event includes a Checkout Session id, falling back to the Stripe
+event id only when no session id is available. Activity rows still retain the
+Stripe provider event id.
+
 ## Verification 2026-06-16 Funding Event Validation And Session Traceability
 
 - Red focused webhook run failed because a missing campaign threw after the
@@ -91,6 +109,8 @@ The webhook now validates funding events before claiming the Stripe event:
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented shared Checkout Session idempotency key. | Codex |
+| 2026-06-16 | Planned shared Checkout Session idempotency key. | Codex |
 | 2026-06-16 | Implemented funding event validation and checkout session traceability. | Codex |
 | 2026-06-16 | Planned funding event validation and checkout session traceability. | Codex |
 | 2026-06-15 | Implemented funding activity events for Stripe webhook. | Codex |

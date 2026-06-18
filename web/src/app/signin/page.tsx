@@ -22,6 +22,11 @@ interface RoleSearchParams {
   get(name: string): string | null;
 }
 
+interface LocalTestCredentials {
+  email: string;
+  password: string;
+}
+
 const enSignin = dictionaries.en.signin;
 
 /** English sign-in copy contract for tests — mirrors `dictionaries.en.signin`. */
@@ -33,8 +38,44 @@ export const SIGNIN_PAGE_COPY = {
   advertiserRole: enSignin.roleAdvertiser,
 } as const;
 
+function callbackPathname(callbackUrl: string | null): string | null {
+  if (!callbackUrl) return null;
+  try {
+    return new URL(callbackUrl, "https://spinshare.local").pathname;
+  } catch {
+    return null;
+  }
+}
+
 export function resolveInitialRole(searchParams: RoleSearchParams): SignInRole {
-  return searchParams.get("role") === "advertiser" ? "advertiser" : "developer";
+  const role = searchParams.get("role");
+  if (role === "advertiser") return "advertiser";
+  if (role === "developer") return "developer";
+
+  const callbackPath = callbackPathname(searchParams.get("callbackUrl"));
+  if (
+    callbackPath === "/dashboard/advertiser" ||
+    callbackPath?.startsWith("/dashboard/advertiser/")
+  ) {
+    return "advertiser";
+  }
+
+  return "developer";
+}
+
+export function localCredentialsEnabledFromEnv(
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  return env.NEXT_PUBLIC_SPINSHARE_LOCAL_CREDENTIALS === "1";
+}
+
+export function localTestCredentialsForRole(
+  role: SignInRole,
+): LocalTestCredentials {
+  if (role === "advertiser") {
+    return { email: "advertiser@spinshare.test", password: "spinshare" };
+  }
+  return { email: "developer@spinshare.test", password: "spinshare" };
 }
 
 function ThreeDCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -116,6 +157,8 @@ function SignInForm() {
   const [role, setRole] = useState<SignInRole>(() => resolveInitialRole(searchParams));
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
+  const localCredentialsEnabled = localCredentialsEnabledFromEnv();
+  const localCredentials = localTestCredentialsForRole(role);
 
   const callbackUrl =
     searchParams.get("callbackUrl") ||
@@ -128,6 +171,22 @@ function SignInForm() {
       await signIn(provider, { callbackUrl });
     } catch {
       setError(t.signin.errorOAuth);
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleLocalCredentialsSignIn = async () => {
+    setError(null);
+    setLoading("local");
+    try {
+      await signIn("credentials", {
+        email: localCredentials.email,
+        password: localCredentials.password,
+        callbackUrl,
+      });
+    } catch {
+      setError(t.signin.errorCredentials);
     } finally {
       setLoading(null);
     }
@@ -255,6 +314,31 @@ function SignInForm() {
                 </svg>
                 {loading === "github" ? t.signin.submitting : t.signin.submitGithub}
               </Button>
+
+              {localCredentialsEnabled && (
+                <div className="border-t border-[var(--border-soft)] pt-3 text-left">
+                  <p className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700 dark:text-emerald-300">
+                    {t.signin.localTestAccount(
+                      role === "developer"
+                        ? t.signin.roleDeveloper
+                        : t.signin.roleAdvertiser,
+                    )}
+                  </p>
+                  <p className="mt-1 break-all text-xs font-semibold text-[var(--text-secondary)]">
+                    {localCredentials.email}
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={handleLocalCredentialsSignIn}
+                    disabled={loading !== null}
+                    className="mt-3 flex min-h-10 w-full justify-center rounded-[10px] text-xs font-black"
+                  >
+                    {loading === "local"
+                      ? t.signin.submitting
+                      : t.signin.useThisAccount}
+                  </Button>
+                </div>
+              )}
             </div>
 
             {error && (

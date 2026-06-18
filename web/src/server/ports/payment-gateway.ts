@@ -33,6 +33,18 @@ export interface CheckoutSessionResult {
   settled?: boolean;
 }
 
+/** Narrow, provider-verified funding state for a Checkout Session. */
+export interface CheckoutSessionFunding {
+  /** Provider checkout session id. */
+  sessionId: string;
+  /** Whether the session has completed a paid payment. */
+  status: "paid" | "unpaid";
+  /** Campaign id carried through Stripe metadata / client reference id. */
+  campaignId: string;
+  /** Confirmed session amount in integer cents. */
+  amountCents: number;
+}
+
 /**
  * A verified, parsed Stripe webhook event. For `checkout.session.completed`,
  * `campaignId` and `amountCents` carry the confirmed funding; `id` is the
@@ -62,4 +74,12 @@ export interface PaymentGateway {
    * Throws if the signature is invalid (caller returns 400, no mutation).
    */
   verifyAndParseWebhook(rawBody: Buffer, signature: string): StripeEvent;
+  /**
+   * Retrieves a Checkout Session's provider-verified funding state for
+   * post-return diagnostics/reconciliation. Returns `null` when the provider
+   * has no such session or the adapter cannot retrieve it.
+   */
+  retrieveCheckoutSessionFunding(
+    sessionId: string,
+  ): Promise<CheckoutSessionFunding | null>;
 }

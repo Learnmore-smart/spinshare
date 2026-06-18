@@ -14,6 +14,9 @@ Small operator guide for manually testing CLI ads, payment funding, and end-to-e
 - Uses the root `deploy:indexes` script instead of raw Firebase CLI args.
 - Calls out that `NEXTAUTH_URL` and `AUTH_VERIFICATION_URI` must use deployed public origins, not localhost.
 - Calls out that `STRIPE_MODE` must match the Stripe key prefix.
+- Calls out that `SPINSHARE_FLUSH_SECRET` is required for the protected
+  reconciliation endpoint.
+- Documents the Cloud Scheduler / manual POST check for `/api/internal/flush`.
 - Describes how to confirm the CLI displays ads.
 - Describes how to test Stripe Checkout and webhook budget crediting.
 - Describes how to check health, market, and tracking endpoints.
@@ -41,6 +44,14 @@ Small operator guide for manually testing CLI ads, payment funding, and end-to-e
 
 - Do not include real secrets, tokens, webhook secrets, or account identifiers.
 - Keep the guide short and command-oriented.
+- Keep flush scheduler instructions secret-safe; use placeholders only.
+
+## Agent Decisions / Thoughts
+
+- **2026-06-16 Codex:** Production is documented as Cloud Run, and the design
+  requires Flush_Process at most every 60 seconds. The guide now uses a generic
+  Cloud Scheduler HTTP job example against the protected flush endpoint instead
+  of adding a Vercel-specific config file.
 
 ## Planned Update (2026-06-15)
 
@@ -62,6 +73,7 @@ explicitly authenticated through the device-flow token.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Documented `SPINSHARE_FLUSH_SECRET`, Cloud Scheduler POST to `/api/internal/flush`, and manual flush verification. | Codex |
 | 2026-06-15 | Documented authenticated `/api/ad` production test expectation. | Codex |
 | 2026-06-15 | Added Stripe Connect payout onboarding test section. | Codex |
 | 2026-06-15 | Planned Stripe Connect payout onboarding test guidance. | Codex |

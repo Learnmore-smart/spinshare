@@ -36,9 +36,23 @@ Persist optional public checkout metadata and `publicOnLeaderboard` when a campa
 
 `FirestoreCampaignRepo.create()` stores optional public checkout metadata and defaults `publicOnLeaderboard` to true.
 
+## Planned Change 2026-06-16 Ad Review Status
+
+Persist campaign `reviewStatus` and exclude pending/rejected campaigns from
+Firestore-backed `listBiddable()`. Legacy documents with no reviewStatus should
+map as approved for backward compatibility.
+
+## Implemented Change 2026-06-16 Ad Review Status
+
+`create()` stores `reviewStatus`, `listBiddable()` filters to approved campaigns
+after the budget query, and `updateReviewStatus()` transactionally updates the
+review field plus `updatedAt`.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented review-status persistence, filtering, and update. | Codex |
+| 2026-06-16 | Planned campaign review-status persistence and filtering. | Codex |
 | 2026-06-13 | Created doc before storing public checkout campaign metadata. | Codex |
 | 2026-06-13 | Synced doc with Firestore campaign metadata persistence. | Codex |

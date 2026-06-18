@@ -35,9 +35,16 @@ Allow campaign creation to carry optional public checkout metadata and the publi
 
 `NewCampaign` now accepts optional contact email, destination URL, brand name, brand icon data URL, and `publicOnLeaderboard`.
 
+## Implemented Change 2026-06-16 Ad Review Status
+
+`NewCampaign` now accepts optional `reviewStatus`, and `CampaignRepository`
+exposes `updateReviewStatus(id, reviewStatus)` so automated/manual reviewers can
+move campaigns between `pending`, `approved`, and `rejected`.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Added campaign review status creation/update contract. | Codex |
 | 2026-06-13 | Created doc before extending campaign creation metadata. | Codex |
 | 2026-06-13 | Synced doc with campaign creation metadata extension. | Codex |

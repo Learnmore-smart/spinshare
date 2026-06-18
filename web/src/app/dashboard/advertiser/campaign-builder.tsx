@@ -11,11 +11,11 @@
  * On submit it validates locally against the shared core bounds (so the UI
  * never sends a request the API would reject), then `POST`s to `/api/campaigns`
  * with the bearer `Device_Auth_Token` minted for the session. Field-level
- * server errors (`400`) are surfaced inline; on `201` the created campaign is
- * handed up via {@link onCreated} and the form resets.
+ * server errors (`400`) are surfaced inline; on direct-checkout `201` the
+ * current draft is preserved and the browser redirects to Stripe.
  */
 
-import { type ChangeEvent, type FormEvent, useState } from "react";
+import { type ChangeEvent, type FormEvent, useEffect, useState } from "react";
 import { AD_TEXT_MAX_LENGTH } from "@spinshare/core";
 import { Check, Upload } from "lucide-react";
 
@@ -23,10 +23,107 @@ import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n/locale-provider";
 import { translateValidationError } from "@/lib/i18n/translate-validation-error";
 
-import { adTextState, validateCpmDollars, type CampaignView } from "./lib";
+import {
+  adTextState,
+  validateCpmDollars,
+  validateFundingBlocks,
+  type CampaignView,
+} from "./lib";
 
 const ICON_MAX_BYTES = 64 * 1024;
 const ICON_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+export const CAMPAIGN_BUILDER_DRAFT_KEY = "spinshare:advertiser-campaign-draft";
+
+export interface CampaignBuilderDraft {
+  adText: string;
+  destinationUrl: string;
+  brandName: string;
+  brandIconDataUrl: string | null;
+  publicOnLeaderboard: boolean;
+  cpm: string;
+  blockCount: string;
+}
+
+export interface CampaignBuilderDraftStorage {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): unknown;
+  removeItem(key: string): unknown;
+}
+
+interface DirectCheckoutCampaignResponse {
+  campaign: CampaignView;
+  url: string;
+  sessionId: string;
+  amountCents: number;
+  amountUsd: string;
+}
+
+function isCampaignBuilderDraft(value: unknown): value is CampaignBuilderDraft {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const draft = value as Record<string, unknown>;
+  return (
+    typeof draft.adText === "string" &&
+    typeof draft.destinationUrl === "string" &&
+    typeof draft.brandName === "string" &&
+    (typeof draft.brandIconDataUrl === "string" ||
+      draft.brandIconDataUrl === null) &&
+    typeof draft.publicOnLeaderboard === "boolean" &&
+    typeof draft.cpm === "string" &&
+    typeof draft.blockCount === "string"
+  );
+}
+
+function getBrowserDraftStorage(): CampaignBuilderDraftStorage | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+export function readCampaignBuilderDraft(
+  storage: CampaignBuilderDraftStorage,
+): CampaignBuilderDraft | null {
+  try {
+    const raw = storage.getItem(CAMPAIGN_BUILDER_DRAFT_KEY);
+    if (raw === null) {
+      return null;
+    }
+    const parsed: unknown = JSON.parse(raw);
+    return isCampaignBuilderDraft(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+export function writeCampaignBuilderDraft(
+  storage: CampaignBuilderDraftStorage,
+  draft: CampaignBuilderDraft,
+): void {
+  storage.setItem(CAMPAIGN_BUILDER_DRAFT_KEY, JSON.stringify(draft));
+}
+
+function isDirectCheckoutCampaignResponse(
+  value: unknown,
+): value is DirectCheckoutCampaignResponse {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const response = value as Record<string, unknown>;
+  return (
+    typeof response.url === "string" &&
+    typeof response.sessionId === "string" &&
+    typeof response.amountCents === "number" &&
+    typeof response.amountUsd === "string" &&
+    typeof response.campaign === "object" &&
+    response.campaign !== null
+  );
+}
 
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -61,6 +158,7 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
   const [brandIconDataUrl, setBrandIconDataUrl] = useState<string | null>(null);
   const [publicOnLeaderboard, setPublicOnLeaderboard] = useState(true);
   const [cpm, setCpm] = useState("");
+  const [blockCount, setBlockCount] = useState("1");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -71,6 +169,36 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
     : text.remaining <= 10
       ? "text-amber-500"
       : "text-muted-foreground";
+
+  useEffect(() => {
+    const storage = getBrowserDraftStorage();
+    if (storage === null) {
+      return;
+    }
+    const draft = readCampaignBuilderDraft(storage);
+    if (draft === null) {
+      return;
+    }
+    setAdText(draft.adText);
+    setDestinationUrl(draft.destinationUrl);
+    setBrandName(draft.brandName);
+    setBrandIconDataUrl(draft.brandIconDataUrl);
+    setPublicOnLeaderboard(draft.publicOnLeaderboard);
+    setCpm(draft.cpm);
+    setBlockCount(draft.blockCount);
+  }, []);
+
+  function currentDraft(): CampaignBuilderDraft {
+    return {
+      adText,
+      destinationUrl,
+      brandName,
+      brandIconDataUrl,
+      publicOnLeaderboard,
+      cpm,
+      blockCount,
+    };
+  }
 
   async function handleIconChange(
     event: ChangeEvent<HTMLInputElement>,
@@ -122,6 +250,16 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
       setError(translateValidationError(cpmResult.error, t));
       return;
     }
+    const blockResult = validateFundingBlocks(blockCount);
+    if (!blockResult.ok) {
+      setError(translateValidationError(blockResult.error, t));
+      return;
+    }
+
+    const storage = getBrowserDraftStorage();
+    if (storage !== null) {
+      writeCampaignBuilderDraft(storage, currentDraft());
+    }
 
     setSubmitting(true);
     try {
@@ -140,11 +278,20 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
             : {}),
           ...(brandIconDataUrl ? { brandIconDataUrl } : {}),
           publicOnLeaderboard,
+          blockCount: blockResult.blocks,
         }),
       });
 
       if (response.status === 201) {
-        const created = (await response.json()) as CampaignView;
+        const body = (await response.json()) as
+          | CampaignView
+          | DirectCheckoutCampaignResponse;
+        if (isDirectCheckoutCampaignResponse(body)) {
+          onCreated(body.campaign);
+          window.location.href = body.url;
+          return;
+        }
+        const created = body as CampaignView;
         onCreated(created);
         setAdText("");
         setDestinationUrl("");
@@ -152,6 +299,7 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
         setBrandIconDataUrl(null);
         setPublicOnLeaderboard(true);
         setCpm("");
+        setBlockCount("1");
         setSuccess(t.advertiserDashboard.campaignCreated);
         return;
       }
@@ -310,6 +458,24 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
               {t.advertiserDashboard.cpmHint}
             </span>
           </label>
+          <label className="adv-dash-field-label">
+            {t.advertiserDashboard.impressionBlocks}
+            <input
+              id="blockCount"
+              name="blockCount"
+              type="number"
+              inputMode="numeric"
+              min="1"
+              step="1"
+              value={blockCount}
+              onChange={(event) => setBlockCount(event.target.value)}
+              placeholder={t.advertiserDashboard.impressionBlocksPlaceholder}
+              className="spinshare-input px-3 py-2.5 text-sm font-semibold normal-case tracking-normal"
+            />
+            <span className="text-xs font-semibold text-muted-foreground">
+              {t.advertiserDashboard.impressionBlocksHint}
+            </span>
+          </label>
         </div>
 
         {error !== null && (
@@ -328,7 +494,9 @@ export function CampaignBuilder({ token, onCreated }: CampaignBuilderProps) {
           disabled={submitting || !text.valid}
           className="adv-dash-submit-btn w-full bg-amber-600 font-bold shadow-none hover:bg-amber-500 sm:w-auto"
         >
-          {submitting ? t.advertiserDashboard.creating : t.advertiserDashboard.createCampaign}
+          {submitting
+            ? t.advertiserDashboard.creatingCheckout
+            : t.advertiserDashboard.createCampaign}
         </Button>
       </form>
     </section>

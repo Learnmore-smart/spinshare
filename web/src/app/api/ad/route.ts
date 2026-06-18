@@ -16,6 +16,7 @@
  */
 
 import { getContainer } from "@/server/container";
+import { mintClickToken } from "@/server/click-token";
 import { selectAd } from "@/server/bidding-service";
 import type { AdResponse } from "@spinshare/core";
 
@@ -33,12 +34,20 @@ function extractBearerToken(request: Request): string | null {
   return token.length > 0 ? token : null;
 }
 
-function withTrackedClickUrl(request: Request, result: AdResponse): AdResponse {
+function withTrackedClickUrl(
+  request: Request,
+  result: AdResponse,
+  developerId: string,
+): AdResponse {
   if (!result.adAvailable || result.destinationUrl === undefined) {
     return result;
   }
   const destinationUrl = new URL("/api/click", request.url);
   destinationUrl.searchParams.set("campaignId", result.campaignId);
+  destinationUrl.searchParams.set(
+    "clickToken",
+    mintClickToken({ campaignId: result.campaignId, developerId }),
+  );
   return { ...result, destinationUrl: destinationUrl.toString() };
 }
 
@@ -71,7 +80,9 @@ export async function GET(request: Request): Promise<Response> {
         // Telemetry must never block ad serving.
       }
     }
-    return Response.json(withTrackedClickUrl(request, result), { status: 200 });
+    return Response.json(withTrackedClickUrl(request, result, claims.userId), {
+      status: 200,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";
     return Response.json({ error: message }, { status: 500 });

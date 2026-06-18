@@ -78,13 +78,15 @@ export function parseArgs(argv: string[]): ParsedArgs {
 }
 
 async function runLoginCommand(): Promise<number> {
-  const store = await createCredentialStore();
   const api = new CliApiClient();
+  // Tag the stored token with this login's environment so local and production
+  // credentials never overwrite or leak into each other (Bug B).
+  const store = await createCredentialStore({ baseUrl: api.getBaseUrl() });
   return runLogin({
     api,
     store,
     afterTokenStored: async (token) => {
-      await mirrorTokenForGeneratedHooks(token);
+      await mirrorTokenForGeneratedHooks(token, api.getBaseUrl());
       await installClaudeCodeAdapter({
         baseUrl: api.getBaseUrl(),
         storageRoot: defaultClaudeCodeAdapterStorageRoot(),
@@ -95,25 +97,30 @@ async function runLoginCommand(): Promise<number> {
 
 async function mirrorTokenForGeneratedHooks(
   token: string | null | undefined,
+  baseUrl: string,
 ): Promise<void> {
   if (token === undefined || token === null || token === "") {
     return;
   }
-  await new FileCredentialStore().save(token);
+  await new FileCredentialStore({ baseUrl }).save(token);
 }
 
-async function loadTokenForGeneratedHooks(): Promise<string | null> {
+async function loadTokenForGeneratedHooks(
+  baseUrl: string,
+): Promise<string | null> {
   if (process.env.SPINSHARE_TOKEN && process.env.SPINSHARE_TOKEN.length > 0) {
     return process.env.SPINSHARE_TOKEN;
   }
-  const store = await createCredentialStore();
+  const store = await createCredentialStore({ baseUrl });
   return store.load();
 }
 
 async function runClaudeCodeSetupCommand(): Promise<number> {
   const api = new CliApiClient();
-  const token = await loadTokenForGeneratedHooks().catch(() => null);
-  await mirrorTokenForGeneratedHooks(token);
+  const token = await loadTokenForGeneratedHooks(api.getBaseUrl()).catch(
+    () => null,
+  );
+  await mirrorTokenForGeneratedHooks(token, api.getBaseUrl());
   const plan = await installClaudeCodeAdapter({
     baseUrl: api.getBaseUrl(),
     storageRoot: defaultClaudeCodeAdapterStorageRoot(),
@@ -152,12 +159,15 @@ async function runClaudeCodeRemoveCommand(): Promise<number> {
  * up front; a getter returns the cached value to the client per request.
  */
 async function buildAuthedClient(): Promise<CliApiClient> {
+  const baseUrl = new CliApiClient().getBaseUrl();
   let token: string | null | undefined = process.env.SPINSHARE_TOKEN;
   if (token === undefined || token === "") {
-    const store: CredentialStore = await createCredentialStore();
+    // Only reuse a stored token that was issued for this exact environment, so
+    // `cli:test:local` never sends a production token to localhost (Bug B).
+    const store: CredentialStore = await createCredentialStore({ baseUrl });
     token = await store.load();
   }
-  return new CliApiClient({ tokenProvider: () => token });
+  return new CliApiClient({ baseUrl, tokenProvider: () => token });
 }
 
 export async function main(argv: string[]): Promise<number> {
@@ -179,6 +189,29 @@ export async function main(argv: string[]): Promise<number> {
   }
 }
 
+type MainRunner = (argv: string[]) => Promise<number>;
+type ExitProcess = (code: number) => void;
+type ErrorWriter = (message: string) => void;
+
+export async function runDirectExecution(
+  argv: string[],
+  run: MainRunner = main,
+  exitProcess: ExitProcess = process.exit,
+  writeError: ErrorWriter = (message) => {
+    process.stderr.write(message);
+  },
+): Promise<void> {
+  try {
+    const code = await run(argv);
+    exitProcess(code);
+  } catch (err) {
+    writeError(
+      `spinshare: ${err instanceof Error ? err.message : String(err)}\n`,
+    );
+    exitProcess(1);
+  }
+}
+
 /** True when this module is the process entrypoint rather than a test import. */
 export function isDirectExecution(
   moduleUrl: string = import.meta.url,
@@ -192,12 +225,5 @@ export function isDirectExecution(
 
 // Only execute when run as a binary, not when imported by tests.
 if (isDirectExecution()) {
-  main(process.argv.slice(2))
-    .then((code) => {
-      process.exitCode = code;
-    })
-    .catch((err) => {
-      process.stderr.write(`spinshare: ${err instanceof Error ? err.message : String(err)}\n`);
-      process.exitCode = 1;
-    });
+  void runDirectExecution(process.argv.slice(2));
 }

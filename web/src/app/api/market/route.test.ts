@@ -140,4 +140,28 @@ describe("GET /api/market", () => {
       "cmp_public",
     ]);
   });
+
+  it("omits campaigns that are not approved by ad safety review", async () => {
+    const container = getContainer();
+    seedCampaign(container, { id: "cmp_approved", cpmCents: 1200 });
+    seedCampaign(container, {
+      id: "cmp_pending",
+      cpmCents: 9000,
+      reviewStatus: "pending",
+    } as Partial<Campaign> & Pick<Campaign, "id">);
+    seedCampaign(container, {
+      id: "cmp_rejected",
+      cpmCents: 8000,
+      reviewStatus: "rejected",
+    } as Partial<Campaign> & Pick<Campaign, "id">);
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.summary.liveCampaigns).toBe(1);
+    expect(body.rows.map((row: { id: string }) => row.id)).toEqual([
+      "cmp_approved",
+    ]);
+  });
 });

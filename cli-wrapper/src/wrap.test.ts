@@ -130,16 +130,28 @@ class FakeChild extends EventEmitter {
 
 class FakePty implements PtyProcessLike {
   readonly writes: string[] = [];
+  dataDisposals = 0;
+  exitDisposals = 0;
   private readonly dataHandlers: Array<(data: string) => void> = [];
   private readonly exitHandlers: Array<(event: { exitCode: number; signal?: number }) => void> =
     [];
 
-  onData(handler: (data: string) => void): void {
+  onData(handler: (data: string) => void): { dispose: () => void } {
     this.dataHandlers.push(handler);
+    return {
+      dispose: () => {
+        this.dataDisposals += 1;
+      },
+    };
   }
 
-  onExit(handler: (event: { exitCode: number; signal?: number }) => void): void {
+  onExit(handler: (event: { exitCode: number; signal?: number }) => void): { dispose: () => void } {
     this.exitHandlers.push(handler);
+    return {
+      dispose: () => {
+        this.exitDisposals += 1;
+      },
+    };
   }
 
   write(data: string): void {
@@ -358,6 +370,41 @@ describe("runWrap", () => {
     expect(joined).toContain("Buy SpinShare Pro");
     expect(joined).not.toContain("Pollinating");
     expect(joined).toContain("done\n");
+  });
+
+  it("cleans up PTY subscriptions and resumed stdin after PTY exit", async () => {
+    vi.useFakeTimers();
+    const pty = new FakePty();
+    const ptyCalls: Array<{ file: string; args: string[] }> = [];
+    const stdin = new EventEmitter() as NodeJS.ReadableStream & {
+      resume: ReturnType<typeof vi.fn>;
+      pause: ReturnType<typeof vi.fn>;
+    };
+    stdin.resume = vi.fn();
+    stdin.pause = vi.fn();
+
+    const promise = runWrap({
+      target: "claude",
+      args: [],
+      client: {
+        getAd: async () => AD,
+        reportImpression: async () => TRACK,
+      },
+      stdin,
+      stdout: { write: () => true } as unknown as NodeJS.WritableStream,
+      stderr: { write: () => true } as unknown as NodeJS.WritableStream,
+      ptySpawnImpl: fakePtySpawn(pty, ptyCalls),
+    });
+
+    await flush();
+    expect(stdin.resume).toHaveBeenCalledTimes(1);
+    pty.emitData("done\n");
+    pty.emitExit(0);
+
+    expect(await promise).toBe(0);
+    expect(stdin.pause).toHaveBeenCalledTimes(1);
+    expect(pty.dataDisposals).toBe(1);
+    expect(pty.exitDisposals).toBe(1);
   });
 
   it("records no impression when no ad is available (neutral fallback)", async () => {

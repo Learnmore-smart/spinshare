@@ -201,6 +201,29 @@ describe("MemoryCampaignRepository", () => {
     await repo.applyBudgetDeltaCents(created.id, 5000);
     expect(await repo.listBiddable()).toHaveLength(1);
   });
+
+  it("updates campaign review status before bidding", async () => {
+    const repo = new MemoryCampaignRepository(
+      new ManualClock(1234),
+      new SequentialIdGenerator(),
+    );
+    const created = await repo.create({
+      advertiserId: "adv1",
+      adText: "Hi",
+      cpmCents: CPM,
+      reviewStatus: "pending",
+    });
+    await repo.applyBudgetDeltaCents(created.id, 5000);
+
+    expect(await repo.listBiddable()).toHaveLength(0);
+
+    await repo.updateReviewStatus(created.id, "approved");
+
+    expect(await repo.getById(created.id)).toMatchObject({
+      reviewStatus: "approved",
+    });
+    expect(await repo.listBiddable()).toHaveLength(1);
+  });
 });
 
 describe("MockPaymentGateway", () => {
@@ -218,6 +241,13 @@ describe("MockPaymentGateway", () => {
     expect(session.url).toBe(
       "https://spinshare.test/?checkout=success&checkout_session_id=cs_000001#bid-market",
     );
+    await expect(gw.retrieveCheckoutSessionFunding("cs_000001")).resolves.toEqual({
+      sessionId: "cs_000001",
+      status: "paid",
+      campaignId: "cmp1",
+      amountCents: 5000,
+    });
+    await expect(gw.retrieveCheckoutSessionFunding("cs_missing")).resolves.toBeNull();
   });
 
   it("verifies a correctly-signed webhook and rejects a tampered one", () => {
@@ -253,6 +283,27 @@ describe("MockAuthProvider device flow", () => {
 
     expect(await auth.validateToken(token)).toEqual({ userId: "dev1" });
     expect(await auth.validateToken("bogus")).toBeNull();
+  });
+
+  it("preserves browser approval email claims on the minted token", async () => {
+    const clock = new ManualClock(0);
+    const auth = new MockAuthProvider(clock, new SequentialIdGenerator());
+    const handle = await auth.startDeviceFlow();
+
+    await auth.approveDeviceByUserCode(handle.userCode, {
+      userId: "adv1",
+      email: "advertiser@example.com",
+    });
+    const approved = await auth.pollDeviceToken(handle.deviceCode);
+
+    expect(approved.status).toBe("approved");
+    if (approved.status !== "approved") {
+      throw new Error("expected approved device token");
+    }
+    expect(await auth.validateToken(approved.accessToken)).toEqual({
+      userId: "adv1",
+      email: "advertiser@example.com",
+    });
   });
 
   it("returns expired_token after the device code lifetime", async () => {

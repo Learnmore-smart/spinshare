@@ -3,12 +3,17 @@ import {
   AuthManager,
   SIGN_IN_ACTION,
   TOKEN_SECRET_KEY,
+  tokenSecretKeyForBaseUrl,
   type AuthVsCodeLike,
   type DeviceAuthClientLike,
   type SecretStorageLike,
   type UriLike,
 } from "./auth";
-import type { DeviceFlowStart, DeviceTokenResult } from "./api-client";
+import type {
+  DeviceFlowStart,
+  DeviceTokenResult,
+  DeviceTokenValidation,
+} from "./api-client";
 
 /**
  * Unit tests for AuthManager (task 14.3, Requirement 6.4).
@@ -87,9 +92,13 @@ const START: DeviceFlowStart = {
 };
 
 /** Client that returns the queued poll results in order. */
-function makeClient(pollResults: DeviceTokenResult[]): DeviceAuthClientLike {
+function makeClient(
+  pollResults: DeviceTokenResult[],
+  validation: DeviceTokenValidation = "valid",
+): DeviceAuthClientLike {
   let i = 0;
   return {
+    validateDeviceToken: async () => validation,
     startDeviceFlow: async () => START,
     pollDeviceToken: async () => {
       const r = pollResults[Math.min(i, pollResults.length - 1)];
@@ -119,6 +128,46 @@ describe("AuthManager", () => {
     expect(auth.getToken()).toBe("tok_existing");
   });
 
+  it("keeps localhost and production tokens in separate secret keys", async () => {
+    const localKey = tokenSecretKeyForBaseUrl("http://localhost:3000/");
+    const prodKey = tokenSecretKeyForBaseUrl("https://www.spinshare.dev");
+
+    expect(localKey).not.toBe(prodKey);
+    expect(localKey).not.toBe(TOKEN_SECRET_KEY);
+    expect(prodKey).not.toBe(TOKEN_SECRET_KEY);
+  });
+
+  it("does not load the legacy production token for localhost", async () => {
+    const { secrets } = makeSecrets({ [TOKEN_SECRET_KEY]: "tok_prod" });
+    const auth = new AuthManager({
+      vscode: makeVscode().vscode,
+      client: makeClient([{ status: "pending" }]),
+      secrets,
+      sleep: noSleep,
+      tokenSecretKey: tokenSecretKeyForBaseUrl("http://localhost:3000"),
+    });
+
+    await expect(auth.initialize()).resolves.toBeUndefined();
+    expect(auth.getToken()).toBeUndefined();
+  });
+
+  it("migrates the legacy token into the production base-url key", async () => {
+    const prodKey = tokenSecretKeyForBaseUrl("https://www.spinshare.dev");
+    const { secrets, store } = makeSecrets({ [TOKEN_SECRET_KEY]: "tok_prod" });
+    const auth = new AuthManager({
+      vscode: makeVscode().vscode,
+      client: makeClient([{ status: "pending" }]),
+      secrets,
+      sleep: noSleep,
+      tokenSecretKey: prodKey,
+      legacyTokenSecretKeys: [TOKEN_SECRET_KEY],
+    });
+
+    await expect(auth.initialize()).resolves.toBe("tok_prod");
+    expect(store.get(prodKey)).toBe("tok_prod");
+    expect(auth.getToken()).toBe("tok_prod");
+  });
+
   it("mirrors an existing stored token during initialize", async () => {
     const { secrets } = makeSecrets({ [TOKEN_SECRET_KEY]: "tok_existing" });
     const mirrored: string[] = [];
@@ -142,6 +191,61 @@ describe("AuthManager", () => {
     expect(token).toBe("tok_existing");
     expect(auth.getToken()).toBe("tok_existing");
     expect(mirrored).toEqual(["tok_existing"]);
+  });
+
+  it("clears invalid stored tokens and the shared token mirror during initialize", async () => {
+    const prodKey = tokenSecretKeyForBaseUrl("https://www.spinshare.dev");
+    const { secrets, store } = makeSecrets({
+      [prodKey]: "tok_bad",
+      [TOKEN_SECRET_KEY]: "tok_bad_legacy",
+    });
+    const mirrored: string[] = [];
+    const auth = new AuthManager({
+      vscode: makeVscode().vscode,
+      client: makeClient([{ status: "pending" }], "invalid"),
+      secrets,
+      sleep: noSleep,
+      tokenSecretKey: prodKey,
+      legacyTokenSecretKeys: [TOKEN_SECRET_KEY],
+      tokenMirror: {
+        save: async (token) => {
+          mirrored.push(token);
+        },
+        clear: async () => {
+          mirrored.push("CLEARED");
+        },
+      },
+    });
+
+    await expect(auth.initialize()).resolves.toBeUndefined();
+
+    expect(store.has(prodKey)).toBe(false);
+    expect(store.has(TOKEN_SECRET_KEY)).toBe(false);
+    expect(auth.getToken()).toBeUndefined();
+    expect(mirrored).toEqual(["CLEARED"]);
+  });
+
+  it("keeps stored tokens when validation is unavailable", async () => {
+    const { secrets } = makeSecrets({ [TOKEN_SECRET_KEY]: "tok_offline" });
+    const mirrored: string[] = [];
+    const auth = new AuthManager({
+      vscode: makeVscode().vscode,
+      client: makeClient([{ status: "pending" }], "unknown"),
+      secrets,
+      sleep: noSleep,
+      tokenMirror: {
+        save: async (token) => {
+          mirrored.push(token);
+        },
+        clear: async () => {
+          mirrored.push("CLEARED");
+        },
+      },
+    });
+
+    await expect(auth.initialize()).resolves.toBe("tok_offline");
+    expect(auth.getToken()).toBe("tok_offline");
+    expect(mirrored).toEqual(["tok_offline"]);
   });
 
   it("does not clear the shared token mirror when initialize finds no stored token", async () => {

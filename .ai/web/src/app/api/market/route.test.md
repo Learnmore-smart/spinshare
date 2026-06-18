@@ -60,6 +60,7 @@ Added a route test that seeds public and private funded campaigns and verifies `
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Added regression for omitting pending/rejected review campaigns from market. | Codex |
 | 2026-06-13 | Created doc for market route tests | Codex |
 | 2026-06-13 | Documented private leaderboard filtering regression test | Codex |
 | 2026-06-13 | Synced docs with final private leaderboard filtering test. | Codex |

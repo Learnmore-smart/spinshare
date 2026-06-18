@@ -3,7 +3,9 @@ import { describe, expect, test } from "vitest";
 import {
   checkCommand,
   checkJavaVersionOutput,
+  checkLocalCredentialsShortcut,
   checkLocalFirestoreIsolation,
+  checkLocalStripeDurability,
   checkNodeVersion,
   parseDotEnv,
   runPreflightChecks,
@@ -155,6 +157,83 @@ describe("checkLocalFirestoreIsolation", () => {
   });
 });
 
+describe("checkLocalCredentialsShortcut", () => {
+  test("warns when local mock auth hides the browser credentials shortcut", () => {
+    expect(
+      checkLocalCredentialsShortcut({
+        SPINSHARE_MODE: "local",
+        AUTH_MODE: "mock",
+      }),
+    ).toMatchObject({
+      ok: false,
+      severity: "warning",
+      name: "env.local.credentialsShortcut",
+    });
+  });
+
+  test("passes when the local credentials shortcut is enabled or not needed", () => {
+    expect(
+      checkLocalCredentialsShortcut({
+        SPINSHARE_MODE: "local",
+        AUTH_MODE: "mock",
+        NEXT_PUBLIC_SPINSHARE_LOCAL_CREDENTIALS: "1",
+      }),
+    ).toMatchObject({ ok: true });
+
+    expect(
+      checkLocalCredentialsShortcut({
+        SPINSHARE_MODE: "production",
+        AUTH_MODE: "oauth",
+      }),
+    ).toMatchObject({ ok: true });
+  });
+});
+
+describe("checkLocalStripeDurability", () => {
+  test("passes local mock Stripe because no external payment is involved", () => {
+    expect(
+      checkLocalStripeDurability({
+        SPINSHARE_MODE: "local",
+        STRIPE_MODE: "mock",
+      }),
+    ).toMatchObject({
+      ok: true,
+      name: "env.local.stripeDurability",
+    });
+  });
+
+  test("fails local real Stripe when durable repos are memory-backed", () => {
+    expect(
+      checkLocalStripeDurability({
+        SPINSHARE_MODE: "local",
+        STRIPE_MODE: "test",
+      }),
+    ).toMatchObject({
+      ok: false,
+      name: "env.local.stripeDurability",
+    });
+  });
+
+  test("passes local real Stripe with emulator or namespace-isolated Firestore", () => {
+    expect(
+      checkLocalStripeDurability({
+        SPINSHARE_MODE: "local",
+        STRIPE_MODE: "test",
+        FIRESTORE_EMULATOR_HOST: "127.0.0.1:8080",
+      }),
+    ).toMatchObject({ ok: true });
+
+    expect(
+      checkLocalStripeDurability({
+        SPINSHARE_MODE: "local",
+        STRIPE_MODE: "test",
+        SPINSHARE_USE_FIRESTORE: "1",
+        SPINSHARE_FIRESTORE_NAMESPACE: "test",
+      }),
+    ).toMatchObject({ ok: true });
+  });
+});
+
 describe("runPreflightChecks", () => {
   test("includes external runtime and env checks", async () => {
     const result = await runPreflightChecks({
@@ -189,6 +268,8 @@ describe("runPreflightChecks", () => {
       "command.npx",
       "java.version",
       "env.local.firestoreIsolation",
+      "env.local.credentialsShortcut",
+      "env.local.stripeDurability",
     ]);
     expect(result.find((item) => item.name === "command.claude")).toMatchObject({
       ok: true,
@@ -201,6 +282,39 @@ describe("runPreflightChecks", () => {
     });
     expect(result.find((item) => item.name === "java.version")).toMatchObject({
       ok: true,
+    });
+  });
+
+  test("does not require Java when namespace Firestore is selected instead of emulator", async () => {
+    const result = await runPreflightChecks({
+      env: {
+        PATH: "/bin",
+        SPINSHARE_MODE: "local",
+        STRIPE_MODE: "test",
+        SPINSHARE_USE_FIRESTORE: "1",
+        SPINSHARE_FIRESTORE_NAMESPACE: "test",
+      },
+      nodeVersion: "22.1.0",
+      pathDelimiter: ":",
+      platform: "linux",
+      access: async (candidate) => {
+        if (candidate === "/bin/claude" || candidate === "/bin/npx") {
+          return;
+        }
+        throw new Error("missing");
+      },
+      runner: async (command, args) => {
+        if (command === "java" && args[0] === "-version") {
+          return 'java version "1.8.0_491"';
+        }
+        return "";
+      },
+    });
+
+    expect(result.find((item) => item.name === "java.version")).toMatchObject({
+      ok: true,
+      severity: "warning",
+      detail: "Firestore emulator is not selected; Java runtime is not required",
     });
   });
 });

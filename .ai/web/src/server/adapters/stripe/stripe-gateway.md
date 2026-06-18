@@ -53,10 +53,31 @@ key; the session id is for user-facing diagnostics and activity correlation.
 `checkout.session.completed` events while keeping `event.id` as the idempotency
 key.
 
+## Planned Change 2026-06-16 Checkout Session Funding Lookup
+
+Implement `retrieveCheckoutSessionFunding(sessionId)` by retrieving the Stripe
+Checkout Session from the API and projecting it to the narrow payment gateway
+funding view. Only the method call should touch Stripe; construction/import must
+remain credential-tolerant.
+
+The pure projection should be covered without network calls so tests can verify
+metadata campaign id, fallback `client_reference_id`, `payment_status`, and
+`amount_total` behavior locally.
+
+## Implemented Change 2026-06-16 Checkout Session Funding Lookup
+
+Added `stripeCheckoutSessionToFunding()` for pure projection and
+`StripeGateway.retrieveCheckoutSessionFunding(sessionId)` for live Stripe
+retrieval. The method catches retrieval errors and returns `null` so
+checkout-status diagnostics degrade back to `pending_webhook` instead of
+crashing.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented Checkout Session funding lookup. | Codex |
+| 2026-06-16 | Planned Checkout Session funding lookup. | Codex |
 | 2026-06-16 | Implemented parsed Checkout Session id preservation. | Codex |
 | 2026-06-16 | Planned parsed Checkout Session id preservation. | Codex |
 | 2026-06-15 | Documented shared Stripe API-version client plan. | Codex |

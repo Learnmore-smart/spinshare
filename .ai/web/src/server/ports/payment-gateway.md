@@ -54,10 +54,34 @@ confirmed funding event.
 when the verified webhook came from a Checkout Session and left absent for other
 event types or old mock payloads.
 
+## Planned Change 2026-06-16 Checkout Session Funding Lookup
+
+Add a gateway method for post-return diagnostics:
+`retrieveCheckoutSessionFunding(sessionId)`. It should return a narrow,
+provider-verified funding view for a Checkout Session:
+
+- session id;
+- payment status (`paid` or `unpaid`);
+- campaign id from metadata / client reference id;
+- amount in integer cents.
+
+The method is used only as a fallback/diagnostic after a checkout success
+redirect, not as a replacement for Stripe webhooks. Routes must still guard
+funding with idempotency.
+
+## Implemented Change 2026-06-16 Checkout Session Funding Lookup
+
+Added `CheckoutSessionFunding` and
+`PaymentGateway.retrieveCheckoutSessionFunding(sessionId)`. The method returns
+`null` when a session cannot be retrieved; callers decide whether/how to
+reconcile funding and must keep idempotency outside the gateway.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented Checkout Session funding lookup on payment gateway port. | Codex |
+| 2026-06-16 | Planned Checkout Session funding lookup on payment gateway port. | Codex |
 | 2026-06-16 | Implemented optional parsed checkout session id on Stripe events. | Codex |
 | 2026-06-16 | Planned optional parsed checkout session id on Stripe events. | Codex |
 | 2026-06-15 | Documented optional immediate-settlement checkout result. | Codex |

@@ -9,6 +9,7 @@
 import type {
   AuthProviderId,
   Campaign,
+  CampaignReviewStatus,
   CampaignStatus,
   LedgerEntry,
   User,
@@ -30,6 +31,12 @@ function collectionPath(name: string): string {
   return `namespaces/${namespace}/${name}`;
 }
 
+function toCampaignReviewStatus(value: unknown): CampaignReviewStatus {
+  return value === "pending" || value === "rejected" || value === "approved"
+    ? value
+    : "approved";
+}
+
 /** Collection paths (see design "Data Models"). */
 export const COLLECTIONS = {
   users: collectionPath("users"),
@@ -38,6 +45,7 @@ export const COLLECTIONS = {
   impressionActivities: collectionPath("impressionActivities"),
   impressionProgress: collectionPath("impressionProgress"),
   paymentEvents: collectionPath("paymentEvents"),
+  payoutAttempts: collectionPath("payoutAttempts"),
 } as const;
 
 /** Maps a `users/{userId}` document to the domain `User`. */
@@ -77,6 +85,7 @@ export function toCampaign(
       ? { brandIconDataUrl: String(data.brandIconDataUrl) }
       : {}),
     publicOnLeaderboard: data.publicOnLeaderboard !== false,
+    reviewStatus: toCampaignReviewStatus(data.reviewStatus),
     cpmCents: Number(data.cpmCents ?? 0),
     budgetCents: Number(data.budgetCents ?? 0),
     status: data.status as CampaignStatus,

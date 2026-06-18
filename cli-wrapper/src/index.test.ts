@@ -3,7 +3,7 @@ import { pathToFileURL } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import { isDirectExecution, parseArgs } from "./index";
+import { isDirectExecution, parseArgs, runDirectExecution } from "./index";
 
 describe("parseArgs", () => {
   it("routes Claude Code setup", () => {
@@ -40,5 +40,43 @@ describe("isDirectExecution", () => {
     expect(isDirectExecution(pathToFileURL(scriptPath).href, undefined)).toBe(
       false,
     );
+  });
+});
+
+describe("runDirectExecution", () => {
+  it("exits with the resolved main exit code", async () => {
+    const exits: number[] = [];
+
+    await runDirectExecution(
+      ["fake"],
+      async () => 7,
+      (code) => {
+        exits.push(code);
+      },
+      () => {},
+    );
+
+    expect(exits).toEqual([7]);
+  });
+
+  it("exits with 1 and writes a safe error when main rejects", async () => {
+    const exits: number[] = [];
+    const errors: string[] = [];
+
+    await runDirectExecution(
+      ["fake"],
+      async () => {
+        throw new Error("network down");
+      },
+      (code) => {
+        exits.push(code);
+      },
+      (message) => {
+        errors.push(message);
+      },
+    );
+
+    expect(exits).toEqual([1]);
+    expect(errors).toEqual(["spinshare: network down\n"]);
   });
 });

@@ -41,7 +41,34 @@ with impression reporting.
 
 | Date | Bug | Cause | Fix |
 |------|-----|-------|-----|
+| 2026-06-17 | Local CLI smoke rendered and tracked ads but the wrapper process timed out instead of exiting. | The PTY path attached stdin and PTY event subscriptions for interactive CLIs but did not explicitly release all handles after PTY exit; on Windows/non-interactive smoke this can keep the Node process alive after the child command has finished. | Planned: add regression coverage for PTY cleanup, then detach stdin, pause resumed stdin, and dispose PTY subscriptions when the PTY exits. |
 | 2026-06-15 | Claude Code interactive loading (`Pollinating...`) showed no SpinShare ads after the zero-argument passthrough fix. | The passthrough avoided breaking Claude but also skipped the wrapper entirely; the original pipe-based wrapper could observe output but broke TTY-sensitive CLIs. | Add a PTY-backed wrapper path that preserves interactive TTY semantics while still running output through `SpinnerRenderer`. |
+
+## Planned Change (2026-06-17)
+
+Add PTY cleanup to the wrapper exit path. The fix must stay scoped to
+`runWrap`/PTY resource management:
+
+- capture the disposables returned by `pty.onData()` and `pty.onExit()`;
+- dispose them once the PTY exits;
+- remove the forwarded stdin listener and pause stdin if the wrapper resumed it;
+- keep the existing PTY rendering, impression reporting, exit-code passthrough,
+  and pipe fallback behavior unchanged.
+
+## Implemented Change (2026-06-17)
+
+`runWrap` now captures PTY `onData` / `onExit` subscriptions and disposes them
+after PTY exit. It also pauses stdin if the wrapper resumed it while attaching
+stdin forwarding. This cleanup is necessary but not sufficient by itself for the
+Windows local smoke: the native `node-pty` handle can still keep the binary
+process alive after `runWrap` resolves, so the CLI entrypoint now explicitly
+exits after `main()`.
+
+## Verification (2026-06-17)
+
+- RED: `corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/wrap.test.ts`
+  failed because resumed stdin was not paused after PTY exit.
+- GREEN: the same focused test passed with 21 tests after cleanup was added.
 
 ## Planned Change (2026-06-15)
 

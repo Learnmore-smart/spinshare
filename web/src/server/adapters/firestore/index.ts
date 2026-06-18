@@ -35,3 +35,7 @@ export {
   FirestorePaymentEventStore,
   type FirestorePaymentEventStoreOptions,
 } from "./payment-event-store";
+export {
+  FirestorePayoutAttemptRepo,
+  type FirestorePayoutAttemptRepoOptions,
+} from "./payout-attempt-repo";

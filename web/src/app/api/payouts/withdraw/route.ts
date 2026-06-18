@@ -22,8 +22,64 @@ import { auth } from "@/server/adapters/auth/nextauth-config";
 import { getContainer } from "@/server/container";
 import { assertSameOrigin } from "@/server/http/csrf";
 import { withdrawBalance } from "@/server/payout-service";
+import type { ActivityRepository, DeveloperActivity } from "@/server/ports";
 
 export const dynamic = "force-dynamic";
+
+function providerFailureBody(error: unknown): Record<string, unknown> {
+  const stripeError = error as
+    | {
+        requestId?: unknown;
+        statusCode?: unknown;
+        code?: unknown;
+      }
+    | undefined;
+
+  return {
+    error: "payout_withdraw_failed",
+    message:
+      "Stripe Connect rejected the payout transfer. Check the request id in Stripe logs.",
+    ...(typeof stripeError?.requestId === "string"
+      ? { requestId: stripeError.requestId }
+      : {}),
+    ...(typeof stripeError?.statusCode === "number"
+      ? { providerStatus: stripeError.statusCode }
+      : {}),
+    ...(typeof stripeError?.code === "string"
+      ? { providerCode: stripeError.code }
+      : {}),
+  };
+}
+
+function payoutActivityId(
+  status: DeveloperActivity["status"],
+  developerId: string,
+  stableId?: string,
+): string {
+  const statusSlug =
+    status === "payoutPaid"
+      ? "paid"
+      : status === "payoutFailed"
+        ? "failed"
+        : "blocked";
+  if (stableId !== undefined && stableId.trim().length > 0) {
+    return `payout_${statusSlug}_${stableId}`;
+  }
+  const suffix =
+    globalThis.crypto?.randomUUID?.() ?? `${Date.now()}_${developerId}`;
+  return `payout_${statusSlug}_${suffix}`;
+}
+
+async function recordPayoutActivity(
+  activities: ActivityRepository,
+  activity: DeveloperActivity,
+): Promise<void> {
+  try {
+    await activities.record(activity);
+  } catch (error) {
+    console.warn("[spinshare] payout activity record failed", error);
+  }
+}
 
 export async function POST(request: Request): Promise<Response> {
   // 1. CSRF: reject cross-origin / origin-less requests before any side effect.
@@ -41,10 +97,52 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // 3. Delegate the money movement to the service and map the typed result.
-  const { users, payouts } = getContainer();
-  const result = await withdrawBalance({ users, payouts }, developerId);
+  const { users, payouts, payoutAttempts, activities } = getContainer();
+  let result: Awaited<ReturnType<typeof withdrawBalance>>;
+  try {
+    result = await withdrawBalance({ users, payouts, payoutAttempts }, developerId);
+  } catch (error) {
+    const body = providerFailureBody(error);
+    const requestId =
+      typeof body.requestId === "string" ? body.requestId : undefined;
+    await recordPayoutActivity(activities, {
+      activityId: payoutActivityId("payoutFailed", developerId, requestId),
+      campaignId: "payout",
+      type: "developer_event",
+      status: "payoutFailed",
+      developerId,
+      ...(requestId !== undefined ? { providerEventId: requestId } : {}),
+      ...(typeof body.providerStatus === "number"
+        ? { providerStatus: body.providerStatus }
+        : {}),
+      ...(typeof body.providerCode === "string"
+        ? { providerCode: body.providerCode }
+        : {}),
+      createdAtMs: Date.now(),
+    });
+    console.error(
+      "[spinshare] payout withdraw failed",
+      body,
+    );
+    return Response.json(body, { status: 502 });
+  }
 
   if (result.ok) {
+    await recordPayoutActivity(activities, {
+      activityId: payoutActivityId(
+        "payoutPaid",
+        developerId,
+        result.payoutId,
+      ),
+      campaignId: "payout",
+      type: "developer_event",
+      status: "payoutPaid",
+      developerId,
+      amountCents: result.paidOutCents,
+      amountUsd: formatCentsAsUsd(result.paidOutCents),
+      providerEventId: result.payoutId,
+      createdAtMs: Date.now(),
+    });
     return Response.json(
       {
         paidOutCents: result.paidOutCents,
@@ -54,5 +152,14 @@ export async function POST(request: Request): Promise<Response> {
       { status: 200 },
     );
   }
+  await recordPayoutActivity(activities, {
+    activityId: payoutActivityId("payoutBlocked", developerId),
+    campaignId: "payout",
+    type: "developer_event",
+    status: "payoutBlocked",
+    developerId,
+    providerCode: result.error,
+    createdAtMs: Date.now(),
+  });
   return Response.json({ error: result.error }, { status: result.status });
 }

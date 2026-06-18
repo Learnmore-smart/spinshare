@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import type { Campaign } from "@spinshare/core";
+import { MICROCENTS_PER_CENT, computeSplit, type Campaign, type User } from "@spinshare/core";
 
 import {
   getContainer,
@@ -8,11 +8,21 @@ import {
 } from "@/server/container";
 import {
   MemoryCampaignRepository,
+  MemoryActivityRepository,
   MemoryLedgerRepository,
+  MemoryUserRepository,
   MockAuthProvider,
 } from "@/server/adapters/memory";
+import { publicAdvertiserIdForEmail } from "@/server/advertiser-identity";
+import type {
+  CheckoutInput,
+  CheckoutSessionFunding,
+  CheckoutSessionResult,
+  PaymentGateway,
+  StripeEvent,
+} from "@/server/ports/payment-gateway";
 
-import { GET } from "./route";
+import { GET, POST } from "./route";
 import { POST as advertiserCheckout } from "../advertiser-checkout/route";
 
 const ENV_KEYS = [
@@ -68,12 +78,45 @@ function authRequest(token: string): Request {
   });
 }
 
+function authenticatedPostRequest(token: string, body: unknown): Request {
+  return new Request("https://spinshare.test/api/campaigns", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${token}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+}
+
 function publicCheckoutRequest(body: unknown): Request {
   return new Request("https://spinshare.test/api/advertiser-checkout", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
   });
+}
+
+class CheckoutLookupGateway implements PaymentGateway {
+  constructor(
+    private readonly sessions: Record<string, CheckoutSessionFunding>,
+  ) {}
+
+  async createCheckoutSession(
+    _input: CheckoutInput,
+  ): Promise<CheckoutSessionResult> {
+    throw new Error("not used");
+  }
+
+  verifyAndParseWebhook(_rawBody: Buffer, _signature: string): StripeEvent {
+    throw new Error("not used");
+  }
+
+  async retrieveCheckoutSessionFunding(
+    sessionId: string,
+  ): Promise<CheckoutSessionFunding | null> {
+    return this.sessions[sessionId] ?? null;
+  }
 }
 
 describe("GET /api/campaigns telemetry", () => {
@@ -137,6 +180,40 @@ describe("GET /api/campaigns telemetry", () => {
     });
   });
 
+  it("flushes pending impressions before returning campaign budget and credited counts", async () => {
+    const container = getContainer();
+    seedCampaign(container, { id: "cmp_pending", cpmCents: 3000, budgetCents: 5000 });
+    (container.users as MemoryUserRepository).seed({
+      id: "dev-1",
+      email: "dev@example.com",
+      provider: "github",
+      role: "developer",
+      balanceCents: 0,
+    } satisfies User);
+    const split = computeSplit(3000);
+    await container.counters.applyImpression({
+      developerId: "dev-1",
+      campaignId: "cmp_pending",
+      entryId: "entry-pending-1",
+      split,
+      occurredAtMs: Date.now(),
+    });
+    const token = (container.auth as MockAuthProvider).mintToken("adv1");
+
+    const response = await GET(authRequest(token));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.campaigns[0]).toMatchObject({
+      id: "cmp_pending",
+      budgetCents:
+        5000 - Math.round(split.revenueMicrocents / MICROCENTS_PER_CENT),
+      telemetry: {
+        credited: 1,
+      },
+    });
+  });
+
   it("includes public checkout campaigns claimed by the authenticated email", async () => {
     const container = getContainer();
     const checkoutResponse = await advertiserCheckout(
@@ -168,5 +245,157 @@ describe("GET /api/campaigns telemetry", () => {
         }),
       ]),
     );
+  });
+
+  it("reconciles paid checkout sessions before returning claimed public campaigns", async () => {
+    const container = getContainer();
+    const advertiserId = publicAdvertiserIdForEmail("ads@example.com");
+    const campaign = await container.campaigns.create({
+      advertiserId,
+      contactEmail: "ads@example.com",
+      adText: "Paid checkout campaign",
+      destinationUrl: "https://spinshare.dev/",
+      brandName: "SpinShare",
+      publicOnLeaderboard: true,
+      cpmCents: 500,
+    });
+    await (container.activities as MemoryActivityRepository).record({
+      activityId: "checkoutStarted_cs_dashboard",
+      campaignId: campaign.id,
+      advertiserId,
+      type: "advertiser_event",
+      status: "checkoutStarted",
+      amountCents: 500,
+      amountUsd: "5.00",
+      checkoutSessionId: "cs_dashboard",
+      createdAtMs: 1000,
+    });
+    container.payments = new CheckoutLookupGateway({
+      cs_dashboard: {
+        sessionId: "cs_dashboard",
+        status: "paid",
+        campaignId: campaign.id,
+        amountCents: 500,
+      },
+    });
+    const token = (container.auth as MockAuthProvider).mintToken("google:123", {
+      email: "ads@example.com",
+    });
+
+    const response = await GET(authRequest(token));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.campaigns).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: campaign.id,
+          budgetCents: 500,
+          remainingBudgetUsd: "5.00",
+        }),
+      ]),
+    );
+    expect((container.activities as MemoryActivityRepository).all()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          status: "budgetFunded",
+          checkoutSessionId: "cs_dashboard",
+          amountCents: 500,
+        }),
+      ]),
+    );
+
+    const repeat = await GET(authRequest(token));
+    expect(repeat.status).toBe(200);
+    await expect(container.campaigns.getById(campaign.id)).resolves.toMatchObject({
+      budgetCents: 500,
+    });
+    expect(
+      (container.activities as MemoryActivityRepository)
+        .all()
+        .filter(
+          (activity) =>
+            activity.type === "advertiser_event" &&
+            activity.status === "budgetFunded" &&
+            activity.checkoutSessionId === "cs_dashboard",
+        ),
+    ).toHaveLength(1);
+  });
+});
+
+describe("POST /api/campaigns safety", () => {
+  it("creates a campaign and starts Stripe checkout when blockCount is provided", async () => {
+    const container = getContainer();
+    const token = (container.auth as MockAuthProvider).mintToken("adv1");
+
+    const response = await POST(
+      authenticatedPostRequest(token, {
+        adText: "Try SpinShare for Claude Code",
+        cpmCents: 500,
+        destinationUrl: "https://spinshare.dev/",
+        brandName: "SpinShare",
+        publicOnLeaderboard: true,
+        blockCount: 3,
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(body.sessionId).toMatch(/^cs_/);
+    expect(body.url).toBe(
+      `https://spinshare.test/dashboard/advertiser?funding=success&checkout_session_id=${body.sessionId}`,
+    );
+    expect(body.amountCents).toBe(1500);
+    expect(body.amountUsd).toBe("$15.00");
+    expect(body.campaign).toMatchObject({
+      advertiserId: "adv1",
+      adText: "Try SpinShare for Claude Code",
+      cpmCents: 500,
+      budgetCents: 1500,
+      destinationUrl: "https://spinshare.dev/",
+      brandName: "SpinShare",
+      publicOnLeaderboard: true,
+    });
+    await expect(container.campaigns.getById(body.campaign.id)).resolves.toMatchObject({
+      budgetCents: 1500,
+    });
+    expect((container.activities as MemoryActivityRepository).all()).toEqual([
+      expect.objectContaining({
+        campaignId: body.campaign.id,
+        advertiserId: "adv1",
+        type: "advertiser_event",
+        status: "checkoutStarted",
+        amountCents: 1500,
+        amountUsd: "15.00",
+        checkoutSessionId: body.sessionId,
+      }),
+      expect.objectContaining({
+        campaignId: body.campaign.id,
+        advertiserId: "adv1",
+        type: "advertiser_event",
+        status: "budgetFunded",
+        amountCents: 1500,
+        amountUsd: "15.00",
+        checkoutSessionId: body.sessionId,
+      }),
+    ]);
+  });
+
+  it("rejects unsafe ad copy before creating an authenticated campaign", async () => {
+    const container = getContainer();
+    const token = (container.auth as MockAuthProvider).mintToken("adv1");
+
+    const response = await POST(
+      authenticatedPostRequest(token, {
+        adText: "Enter your seed phrase to restore wallet",
+        cpmCents: 500,
+        destinationUrl: "https://example.com/",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Ad text appears unsafe or deceptive");
+    expect(await container.campaigns.listByAdvertiser("adv1")).toEqual([]);
   });
 });

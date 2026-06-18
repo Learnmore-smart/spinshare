@@ -40,6 +40,12 @@ const SIGNATURE_HEADER = "stripe-signature";
 /** Stripe event type that confirms funding and credits the campaign budget. */
 const FUNDING_EVENT_TYPE = "checkout.session.completed";
 
+function fundingIdempotencyKey(event: StripeEvent): string {
+  return event.checkoutSessionId !== undefined
+    ? `checkout_session:${event.checkoutSessionId}`
+    : event.id;
+}
+
 async function recordBudgetFundedActivity(
   container: Container,
   event: StripeEvent,
@@ -112,7 +118,7 @@ export async function POST(request: Request): Promise<Response> {
     // Atomically claim the event before crediting. Only the first delivery for
     // this event id wins the claim and applies the increment; redeliveries get
     // `false` and skip the mutation (R9.8, R9.9).
-    const newlyApplied = await paymentEvents.markApplied(event.id, {
+    const newlyApplied = await paymentEvents.markApplied(fundingIdempotencyKey(event), {
       campaignId: event.campaignId,
       amountCents: event.amountCents,
     });

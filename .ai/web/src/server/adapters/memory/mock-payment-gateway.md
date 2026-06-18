@@ -55,6 +55,19 @@ mock webhook payloads. This keeps mock webhook tests aligned with Stripe's real
 `checkout.session.completed` parsing, where the event id and Checkout Session
 id are distinct.
 
+## Planned Change 2026-06-16 Checkout Session Funding Lookup
+
+Implement the new payment gateway lookup method without network calls. The mock
+gateway should remember sessions it created and return a paid funding view for
+them because mock checkouts are immediately settled. Unknown sessions should
+return `null`.
+
+## Implemented Change 2026-06-16 Checkout Session Funding Lookup
+
+`MockPaymentGateway` now records each created mock Checkout Session and returns
+a paid `CheckoutSessionFunding` view from `retrieveCheckoutSessionFunding()`.
+Unknown sessions return `null`.
+
 ## Verification
 
 - Red focused run failed because mock checkout returned the literal placeholder.
@@ -67,6 +80,8 @@ id are distinct.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented mock Checkout Session funding lookup. | Codex |
+| 2026-06-16 | Planned mock Checkout Session funding lookup. | Codex |
 | 2026-06-16 | Preserved optional checkout session id in mock webhook parsing. | Codex |
 | 2026-06-16 | Implemented mock checkout success URL session-id replacement. | Codex |
 | 2026-06-16 | Planned mock checkout success URL session-id replacement. | Codex |

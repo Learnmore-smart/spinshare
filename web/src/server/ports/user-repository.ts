@@ -32,6 +32,11 @@ export interface UserRepository {
   /** Applies a signed balance delta (flush reconciliation only). */
   applyBalanceDeltaCents(id: string, deltaCents: number): Promise<void>;
   /**
+   * Atomically reserves a payout amount by debiting only when the user exists
+   * and the current durable balance is at least `amountCents`.
+   */
+  tryDebitBalanceCents(id: string, amountCents: number): Promise<boolean>;
+  /**
    * Persists the developer's Stripe Connect account id and current payout
    * eligibility (set during payout onboarding and refreshed from Stripe).
    * Returns the updated user, or throws if the user does not exist.

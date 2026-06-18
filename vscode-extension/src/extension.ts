@@ -2,7 +2,13 @@ import * as vscode from "vscode";
 
 import { AdController } from "./ad-controller";
 import { AdApiClient, DEFAULT_BASE_URL, normalizeBaseUrl } from "./api-client";
-import { AuthManager, FileTokenMirror, formatSignInFailure } from "./auth";
+import {
+  AuthManager,
+  FileTokenMirror,
+  TOKEN_SECRET_KEY,
+  formatSignInFailure,
+  tokenSecretKeyForBaseUrl,
+} from "./auth";
 import {
   installClaudeCodeAdapter,
   removeClaudeCodeAdapter,
@@ -57,7 +63,9 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode,
     client,
     secrets: context.secrets,
-    tokenMirror: new FileTokenMirror(),
+    tokenMirror: new FileTokenMirror(undefined, undefined, baseUrl),
+    tokenSecretKey: tokenSecretKeyForBaseUrl(baseUrl),
+    legacyTokenSecretKeys: baseUrl === DEFAULT_BASE_URL ? [TOKEN_SECRET_KEY] : [],
     onError: (error) => console.error("[spinshare] auth error", error),
     runWithProgress: (title, task) =>
       vscode.window.withProgress(

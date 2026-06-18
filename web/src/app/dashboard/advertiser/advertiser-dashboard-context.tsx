@@ -1,8 +1,13 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { useT } from "@/lib/i18n/locale-provider";
-import { toActivityFeedRows, type ActivityFeedSource } from "../activity-feed";
+import {
+  toActivityFeedRows,
+  type ActivityFeedRow,
+  type ActivityFeedSource,
+} from "../activity-feed";
 import { sumCampaignTelemetry, nonCreditTotal, type CampaignView } from "./lib";
 import type { AdvertiserActivityState } from "./advertiser-activity-feed";
 
@@ -17,10 +22,32 @@ interface AdvertiserDashboardData {
   activityState: AdvertiserActivityState;
   loadCampaigns: () => Promise<void>;
   loadActivity: () => Promise<void>;
+  loadMoreActivity: () => Promise<void>;
   handleCreated: (created: CampaignView) => void;
 }
 
+interface ActivityApiResponse {
+  activities: ActivityFeedSource[];
+  nextCursor?: string;
+}
+
 const AdvertiserDashboardContext = createContext<AdvertiserDashboardData | null>(null);
+
+export function mergeActivityRows(
+  existing: readonly ActivityFeedRow[],
+  incoming: readonly ActivityFeedSource[],
+): ActivityFeedRow[] {
+  const byId = new Map<string, ActivityFeedSource>();
+  for (const activity of existing) {
+    byId.set(activity.activityId, activity);
+  }
+  for (const activity of incoming) {
+    if (!byId.has(activity.activityId)) {
+      byId.set(activity.activityId, activity);
+    }
+  }
+  return toActivityFeedRows([...byId.values()]);
+}
 
 export function AdvertiserDashboardProviderClient({
   token,
@@ -73,23 +100,82 @@ export function AdvertiserDashboardProviderClient({
         });
         return;
       }
-      const body = (await response.json()) as { activities: ActivityFeedSource[] };
+      const body = (await response.json()) as ActivityApiResponse;
       setActivityState({
         status: "ready",
         activities: toActivityFeedRows(body.activities),
+        ...(body.nextCursor !== undefined ? { nextCursor: body.nextCursor } : {}),
       });
     } catch {
       setActivityState({
         status: "error",
-        message: "Activity failed to load. Check your connection and retry.",
+        message: t.advertiserDashboard.activityLoadMoreError,
       });
     }
-  }, [token]);
+  }, [token, t]);
+
+  const loadMoreActivity = useCallback(async (): Promise<void> => {
+    if (
+      activityState.status !== "ready" ||
+      activityState.nextCursor === undefined ||
+      activityState.loadingMore === true
+    ) {
+      return;
+    }
+
+    const current = activityState;
+    const cursor = activityState.nextCursor;
+    setActivityState({
+      ...current,
+      loadingMore: true,
+      loadMoreError: undefined,
+    });
+
+    try {
+      const response = await fetch(
+        `/api/activity/advertiser?cursor=${encodeURIComponent(cursor)}`,
+        {
+          headers: { authorization: `Bearer ${token}` },
+          cache: "no-store",
+        },
+      );
+      if (!response.ok) {
+        setActivityState({
+          ...current,
+          loadingMore: false,
+          loadMoreError: `Activity failed to load (${response.status}).`,
+        });
+        return;
+      }
+
+      const body = (await response.json()) as ActivityApiResponse;
+      setActivityState({
+        status: "ready",
+        activities: mergeActivityRows(current.activities, body.activities),
+        ...(body.nextCursor !== undefined ? { nextCursor: body.nextCursor } : {}),
+      });
+    } catch {
+      setActivityState({
+        ...current,
+        loadingMore: false,
+        loadMoreError: t.advertiserDashboard.activityLoadMoreError,
+      });
+    }
+  }, [activityState, token, t]);
+
+  const pathname = usePathname();
 
   useEffect(() => {
-    void loadCampaigns();
-    void loadActivity();
-  }, [loadActivity, loadCampaigns]);
+    if (
+      pathname === "/dashboard/advertiser" ||
+      pathname === "/dashboard/advertiser/campaigns" ||
+      pathname === "/dashboard/advertiser/stats"
+    ) {
+      void loadCampaigns();
+    } else if (pathname === "/dashboard/advertiser/activity") {
+      void loadActivity();
+    }
+  }, [pathname, loadCampaigns, loadActivity]);
 
   const handleCreated = useCallback(
     (created: CampaignView): void => {
@@ -112,6 +198,7 @@ export function AdvertiserDashboardProviderClient({
         activityState,
         loadCampaigns,
         loadActivity,
+        loadMoreActivity,
         handleCreated,
       }}
     >

@@ -29,6 +29,9 @@ export type UserRole = "developer" | "advertiser";
 /** Lifecycle status of a campaign. Biddability also requires budget>0 && cpm>0. */
 export type CampaignStatus = "active" | "paused";
 
+/** Safety review status. Only approved campaigns may participate in bidding. */
+export type CampaignReviewStatus = "approved" | "pending" | "rejected";
+
 // ---------------------------------------------------------------------------
 // Firestore-backed domain entities (durable system of record)
 // ---------------------------------------------------------------------------
@@ -83,6 +86,11 @@ export interface Campaign {
   brandIconDataUrl?: string;
   /** False hides this campaign from the public market leaderboard. */
   publicOnLeaderboard?: boolean;
+  /**
+   * Safety review state. Missing legacy rows are treated as approved by
+   * repository mappers and bidding filters.
+   */
+  reviewStatus?: CampaignReviewStatus;
   /** Max CPM bid in integer cents. */
   cpmCents: number;
   /** Remaining budget in integer cents. */

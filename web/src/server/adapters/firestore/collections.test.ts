@@ -25,6 +25,7 @@ describe("Firestore collection paths", () => {
       impressionActivities: "impressionActivities",
       impressionProgress: "impressionProgress",
       paymentEvents: "paymentEvents",
+      payoutAttempts: "payoutAttempts",
     });
   });
 
@@ -41,6 +42,7 @@ describe("Firestore collection paths", () => {
       impressionActivities: "namespaces/test/impressionActivities",
       impressionProgress: "namespaces/test/impressionProgress",
       paymentEvents: "namespaces/test/paymentEvents",
+      payoutAttempts: "namespaces/test/payoutAttempts",
     });
   });
 });

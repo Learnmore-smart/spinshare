@@ -120,6 +120,8 @@ to `null` or `{ adAvailable:false }`.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented device-token validation client method for activation health checks. | Codex |
+| 2026-06-16 | Planned device-token validation client method for activation health checks. | Codex |
 | 2026-06-15 | Implemented extension ad-fetch token gate. | Codex |
 | 2026-06-15 | Planned extension ad-fetch token gate. | Codex |
 | 2026-06-15 | Implemented cumulative viewability response parsing. | Codex |

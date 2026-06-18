@@ -45,6 +45,31 @@ export const VIEWABILITY_MIN_MS = 3_000;
 /** Minimum positive view segment accepted for cumulative progress tracking. */
 export const VIEW_SEGMENT_MIN_MS = 1;
 
+export type AdTextSafetyReview =
+  | { safe: true }
+  | { safe: false; reason: string };
+
+const UNSAFE_AD_TEXT_MESSAGE = "Ad text appears unsafe or deceptive";
+
+const unsafeAdTextPatterns: RegExp[] = [
+  /\b(seed phrase|recovery phrase|private key)\b/,
+  /\b(enter|type|submit|send|share|provide)\b.{0,40}\b(password|passcode|otp|2fa|mfa|one time code|security code)\b/,
+  /\b(claim|free|giveaway|airdrop)\b.{0,40}\b(crypto|bitcoin|btc|ethereum|eth|wallet)\b/,
+  /\b(verify|unlock|restore)\b.{0,40}\b(wallet|account|login)\b/,
+];
+
+function normalizeAdTextForSafety(text: string): string {
+  return text.trim().toLowerCase().replaceAll(/[^a-z0-9]+/g, " ");
+}
+
+export function reviewAdTextSafety(adText: string): AdTextSafetyReview {
+  const normalized = normalizeAdTextForSafety(adText);
+  if (unsafeAdTextPatterns.some((pattern) => pattern.test(normalized))) {
+    return { safe: false, reason: UNSAFE_AD_TEXT_MESSAGE };
+  }
+  return { safe: true };
+}
+
 // ---------------------------------------------------------------------------
 // Campaign creation (Requirements 9.1, 9.2, 9.3, 9.4)
 // ---------------------------------------------------------------------------
@@ -65,6 +90,15 @@ export const adTextSchema = z
   })
   .refine((text) => text.trim().length > 0, {
     message: "Ad text is required",
+  })
+  .superRefine((text, ctx) => {
+    const review = reviewAdTextSafety(text);
+    if (!review.safe) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: review.reason,
+      });
+    }
   });
 
 /**
@@ -95,6 +129,36 @@ function parseIpv4Address(hostname: string): number[] | null {
   return octets.some((value) => Number.isNaN(value)) ? null : octets;
 }
 
+const URL_SHORTENER_HOSTNAMES = new Set([
+  "bit.ly",
+  "bitly.com",
+  "buff.ly",
+  "cutt.ly",
+  "goo.gl",
+  "is.gd",
+  "lnkd.in",
+  "ow.ly",
+  "rb.gy",
+  "rebrand.ly",
+  "shorturl.at",
+  "t.co",
+  "tiny.cc",
+  "tinyurl.com",
+]);
+
+function isPunycodeHostname(hostname: string): boolean {
+  return hostname.startsWith("xn--") || hostname.includes(".xn--");
+}
+
+function isUrlShortenerHostname(hostname: string): boolean {
+  for (const shortener of URL_SHORTENER_HOSTNAMES) {
+    if (hostname === shortener || hostname.endsWith(`.${shortener}`)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function isUnsafeDestinationUrl(value: string): boolean {
   let url: URL;
   try {
@@ -118,6 +182,15 @@ function isUnsafeDestinationUrl(value: string): boolean {
     return true;
   }
   if (hostname.includes(":") || parseIpv4Address(hostname) !== null) {
+    return true;
+  }
+  if (!hostname.includes(".")) {
+    return true;
+  }
+  if (isPunycodeHostname(hostname)) {
+    return true;
+  }
+  if (isUrlShortenerHostname(hostname)) {
     return true;
   }
 
@@ -167,6 +240,15 @@ export const brandIconDataUrlSchema = z
   .optional()
   .transform((value) => (value && value.length > 0 ? value : undefined));
 
+/** Number of 1,000-view blocks bought in checkout. */
+export const advertiserCheckoutBlockCountSchema = z
+  .number({ invalid_type_error: "Number of blocks must be a number" })
+  .int({ message: "Number of blocks must be a whole number" })
+  .min(1, { message: "Buy at least 1 block" })
+  .max(ADVERTISER_CHECKOUT_BLOCKS_MAX, {
+    message: `Buy at most ${ADVERTISER_CHECKOUT_BLOCKS_MAX} blocks`,
+  });
+
 /**
  * Campaign creation input. New campaigns start with a zero budget
  * (enforced by the service, not the client), so budget is not part of
@@ -184,6 +266,7 @@ export const createCampaignSchema = z.object({
   brandName: brandNameSchema,
   brandIconDataUrl: brandIconDataUrlSchema,
   publicOnLeaderboard: z.boolean().optional(),
+  blockCount: advertiserCheckoutBlockCountSchema.optional(),
 });
 
 /** Validated campaign creation payload. */
@@ -204,15 +287,6 @@ export const fundingCentsSchema = z
   .min(FUNDING_CENTS_MIN, { message: "Funding amount must be at least $1.00" })
   .max(FUNDING_CENTS_MAX, {
     message: "Funding amount must be at most $100,000.00",
-  });
-
-/** Number of 1,000-view blocks bought in checkout. */
-export const advertiserCheckoutBlockCountSchema = z
-  .number({ invalid_type_error: "Number of blocks must be a number" })
-  .int({ message: "Number of blocks must be a whole number" })
-  .min(1, { message: "Buy at least 1 block" })
-  .max(ADVERTISER_CHECKOUT_BLOCKS_MAX, {
-    message: `Buy at most ${ADVERTISER_CHECKOUT_BLOCKS_MAX} blocks`,
   });
 
 /** "Add Funds" request body. */

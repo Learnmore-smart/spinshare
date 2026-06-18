@@ -2,6 +2,7 @@
 
 import { formatCentsAsUsd } from "@spinshare/core";
 
+import { TiltCard } from "@/components/TiltCard";
 import { useT } from "@/lib/i18n/locale-provider";
 
 import type { ActivityFeedRow } from "../activity-feed";
@@ -27,11 +28,13 @@ export function DashboardChrome({ children }: { children: React.ReactNode }) {
 export function LimitMeter({
   label,
   usedCents,
+  usedLabel,
   limitCents,
   reset,
 }: {
   label: string;
   usedCents: number;
+  usedLabel?: string;
   limitCents: number;
   reset: string;
 }) {
@@ -40,7 +43,7 @@ export function LimitMeter({
       <div className="flex items-baseline justify-between gap-2 text-sm">
         <span className="font-bold text-[var(--dev-ink)]">{label}</span>
         <span className="tabular-nums text-xs font-bold text-[var(--dev-muted)]">
-          {money(usedCents)} / {money(limitCents)}
+          {usedLabel ?? money(usedCents)} / {money(limitCents)}
         </span>
       </div>
       <div className="dev-dash-limit-track" role="progressbar" aria-valuenow={usedCents} aria-valuemax={limitCents}>
@@ -61,23 +64,25 @@ export function ActivityList({
   return (
     <ul className="space-y-2 md:hidden">
       {rows.map((row) => (
-        <li key={row.activityId} className="dev-dash-activity-card" data-testid="activity-row">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="truncate font-mono text-[11px] text-slate-500">{row.campaignId}</p>
-              <p className="mt-0.5 truncate text-[10px] font-bold text-slate-400">
-                {row.statusLabel} - {row.durationLabel}
+        <li key={row.activityId}>
+          <TiltCard className="dev-dash-activity-card" intensity={10} scale={1.02} glareRadius={200} data-testid="activity-row">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate font-mono text-[11px] text-slate-500">{row.campaignId}</p>
+                <p className="mt-0.5 truncate text-[10px] font-bold text-slate-400">
+                  {row.statusLabel} - {row.durationLabel}
+                </p>
+              </div>
+              <p
+                className={`shrink-0 text-base font-black ${
+                  row.counted ? "text-emerald-700" : "text-slate-500"
+                }`}
+                data-testid="activity-credit"
+              >
+                {row.creditLabel}
               </p>
             </div>
-            <p
-              className={`shrink-0 text-base font-black ${
-                row.counted ? "text-emerald-700" : "text-slate-500"
-              }`}
-              data-testid="activity-credit"
-            >
-              {row.creditLabel}
-            </p>
-          </div>
+          </TiltCard>
         </li>
       ))}
     </ul>

@@ -7,6 +7,7 @@ import {
   type Container,
 } from "@/server/container";
 import { MemoryCampaignRepository } from "@/server/adapters/memory";
+import { mintClickToken } from "@/server/click-token";
 
 import { GET } from "./route";
 
@@ -58,7 +59,31 @@ function seedCampaign(
 }
 
 describe("GET /api/click", () => {
-  it("increments click telemetry and redirects to the stored destination", async () => {
+  it("increments click telemetry only with a valid signed click token", async () => {
+    const container = getContainer();
+    seedCampaign(container, {
+      id: "cmp_click",
+      destinationUrl: "https://linear.app/",
+    });
+    const clickToken = mintClickToken({
+      campaignId: "cmp_click",
+      developerId: "dev_1",
+      nowMs: Date.now(),
+    });
+
+    const response = await GET(
+      new Request(
+        `https://spinshare.test/api/click?campaignId=cmp_click&clickToken=${encodeURIComponent(clickToken)}`,
+      ),
+    );
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get("location")).toBe("https://linear.app/");
+    const telemetry = await container.counters.getCampaignTelemetry(["cmp_click"]);
+    expect(telemetry["cmp_click"]!.clicks).toBe(1);
+  });
+
+  it("redirects but does not count clicks when the signed token is missing", async () => {
     const container = getContainer();
     seedCampaign(container, {
       id: "cmp_click",
@@ -72,7 +97,31 @@ describe("GET /api/click", () => {
     expect(response.status).toBe(302);
     expect(response.headers.get("location")).toBe("https://linear.app/");
     const telemetry = await container.counters.getCampaignTelemetry(["cmp_click"]);
-    expect(telemetry["cmp_click"]!.clicks).toBe(1);
+    expect(telemetry["cmp_click"]!.clicks).toBe(0);
+  });
+
+  it("redirects but does not count clicks when the signed token is for another campaign", async () => {
+    const container = getContainer();
+    seedCampaign(container, {
+      id: "cmp_click",
+      destinationUrl: "https://linear.app/",
+    });
+    const clickToken = mintClickToken({
+      campaignId: "cmp_other",
+      developerId: "dev_1",
+      nowMs: 1_700_000_000_000,
+    });
+
+    const response = await GET(
+      new Request(
+        `https://spinshare.test/api/click?campaignId=cmp_click&clickToken=${encodeURIComponent(clickToken)}`,
+      ),
+    );
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get("location")).toBe("https://linear.app/");
+    const telemetry = await container.counters.getCampaignTelemetry(["cmp_click"]);
+    expect(telemetry["cmp_click"]!.clicks).toBe(0);
   });
 
   it("does not count clicks for campaigns without a destination", async () => {

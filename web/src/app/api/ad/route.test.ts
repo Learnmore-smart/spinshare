@@ -106,8 +106,10 @@ describe("GET /api/ad telemetry", () => {
     expect(body).toMatchObject({
       adAvailable: true,
       campaignId: "cmp_top",
-      destinationUrl: "https://spinshare.test/api/click?campaignId=cmp_top",
     });
+    expect(body.destinationUrl).toMatch(
+      /^https:\/\/spinshare\.test\/api\/click\?campaignId=cmp_top&clickToken=.+/,
+    );
     const telemetry = await container.counters.getCampaignTelemetry(["cmp_top"]);
     expect(telemetry["cmp_top"]!.shows).toBe(1);
     await expect(container.progress.getByDeveloper("dev_1")).resolves.toMatchObject({

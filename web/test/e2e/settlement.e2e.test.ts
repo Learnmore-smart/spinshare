@@ -72,6 +72,7 @@ import {
   MockPaymentGateway,
 } from "@/server/adapters/memory";
 import type { StripeEvent } from "@/server/ports";
+import { GET as adGet } from "@/app/api/ad/route";
 import { POST as trackPost } from "@/app/api/track/route";
 import { POST as stripeWebhookPost } from "@/app/api/webhooks/stripe/route";
 
@@ -248,6 +249,25 @@ describe("e2e settlement — 60/40 split (Requirement 11)", () => {
     expect(campaignAfterFunding?.budgetCents).toBe(FUNDING_AMOUNT_CENTS);
     const budgetBeforeCents = campaignAfterFunding?.budgetCents ?? 0;
     const balanceBeforeCents = developerBeforeImpression?.balanceCents ?? 0;
+
+    // --- Serve the funded ad to this developer before tracking it ------------
+    // The tracking route only accepts a campaign that was previously served to
+    // the same developer, because `/api/ad` creates the per-developer pending
+    // progress record used for cumulative viewability.
+    const adRes = await adGet(
+      new Request("http://in-process/api/ad", {
+        headers: { authorization: `Bearer ${token}` },
+      }),
+    );
+    expect(adRes.status).toBe(200);
+    const adBody = (await adRes.json()) as {
+      adAvailable: boolean;
+      campaignId?: string;
+    };
+    expect(adBody).toMatchObject({
+      adAvailable: true,
+      campaignId: campaign.id,
+    });
 
     // --- Record exactly ONE impression below the velocity limit (Req 11.3) --
     const trackRes = await trackPost(

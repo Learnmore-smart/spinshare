@@ -1,6 +1,6 @@
 # claude-code-adapter.test.ts
 
-> Last updated: 2026-06-15 | Protection: STANDARD
+> Last updated: 2026-06-17 | Protection: STANDARD
 
 ## Purpose
 
@@ -86,10 +86,64 @@ fresh campaign.
 The CLI adapter runtime smoke test now asserts that stdout includes bold cyan
 ANSI styling and the OSC8 hyperlink wrapper around the ad's destination URL.
 
+## Planned Change 2026-06-16 FORCE_HYPERLINK Parity
+
+Add RED coverage that CLI `mergeClaudeCodeSettings()` preserves existing env
+settings and sets `FORCE_HYPERLINK: "1"` alongside the SpinShare statusLine.
+This locks the npm CLI behavior to match the VS Code extension adapter and
+keeps OSC8 ad links clickable where Claude Code/terminal support depends on the
+flag.
+
+## Implemented Change 2026-06-16 FORCE_HYPERLINK Parity
+
+The settings-merge test now includes an existing env object with an unrelated
+key and `FORCE_HYPERLINK: "0"`, then asserts the merged output preserves the
+unrelated key and forces `FORCE_HYPERLINK: "1"`.
+
+RED verification before implementation:
+`corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/claude-code-adapter.test.ts`
+failed on the env assertion.
+
+GREEN verification after implementation:
+`corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/claude-code-adapter.test.ts`
+passed 10 tests.
+
+## Planned Change 2026-06-17 Expired StatusLine State Regression
+
+Add runtime coverage for the stuck-loading/statusLine bug. The generated
+statusLine script should suppress an active state whose `expiresAtMs` is in the
+past. This should fail before implementation because statusLine currently
+ignores state age and prints any matching active state forever.
+
+Also add runtime coverage that a `MessageDisplay` event after `Stop` does not
+fetch a new ad. This catches the post-loading restart path where Claude can
+display a completed assistant message after the stop hook has already cleared
+state.
+
+## Implemented Change 2026-06-17 Expired StatusLine State Regression
+
+The generated script runtime smoke test now writes an expired active state and
+asserts statusLine stdout is empty. It also runs `MessageDisplay` after `Stop`
+and asserts no new `/api/ad` request is made and no state file is recreated.
+
+RED verification before implementation:
+`corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/claude-code-adapter.test.ts`
+failed because generated scripts did not contain `expiresAtMs` and statusLine
+printed expired state.
+
+GREEN verification after implementation:
+`corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/claude-code-adapter.test.ts`
+passed 10 tests.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-17 | Implemented expired statusLine state and post-stop MessageDisplay regression coverage. | Codex |
+| 2026-06-17 | Planned expired statusLine state runtime regression coverage. | Codex |
+| 2026-06-16 | Implemented FORCE_HYPERLINK env merge coverage. | Codex |
+| 2026-06-16 | Planned FORCE_HYPERLINK env merge coverage. | Codex |
+| 2026-06-16 | Added runtime coverage for ignoring mismatched credential-file baseUrl values. | Codex |
 | 2026-06-15 | Added statusLine color/link runtime assertions. | Codex |
 | 2026-06-15 | Implemented same-session stale state reset tests. | Codex |
 | 2026-06-15 | Planned same-session stale state reset tests. | Codex |

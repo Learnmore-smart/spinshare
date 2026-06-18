@@ -17,10 +17,16 @@ Tests Firestore collection path resolution.
 Both default and namespace assertions now include every collection currently in
 `COLLECTIONS`, including activity and progress collections.
 
+## Implemented Coverage 2026-06-16 Payout Attempt Ledger
+
+Default and namespace assertions now include `payoutAttempts`, preventing local
+payout reconciliation records from escaping the Firestore namespace.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Added `payoutAttempts` namespace assertions. | Codex |
 | 2026-06-15 | Implemented full collection assertion coverage including activity paths. | Codex |
 | 2026-06-15 | Planned full collection assertion coverage including activity paths. | Codex |
 | 2026-06-15 | Created doc before adding namespace tests. | Codex |

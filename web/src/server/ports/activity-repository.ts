@@ -20,6 +20,27 @@ export interface ImpressionActivity {
   developerCreditCents?: number;
 }
 
+export type DeveloperActivityStatus =
+  | "payoutPaid"
+  | "payoutFailed"
+  | "payoutBlocked";
+
+export interface DeveloperActivity {
+  activityId: string;
+  campaignId: "payout";
+  type: "developer_event";
+  status: DeveloperActivityStatus;
+  createdAtMs: number;
+  developerId: string;
+  amountCents?: number;
+  amountUsd?: string;
+  providerEventId?: string;
+  providerStatus?: number;
+  providerCode?: string;
+}
+
+export type DeveloperActivityRecord = ImpressionActivity | DeveloperActivity;
+
 export type AdvertiserActivityStatus =
   | "checkoutStarted"
   | "budgetFunded"
@@ -39,11 +60,11 @@ export interface AdvertiserActivity {
   checkoutSessionId?: string;
 }
 
-export type ActivityRecord = ImpressionActivity | AdvertiserActivity;
+export type ActivityRecord = DeveloperActivityRecord | AdvertiserActivity;
 
 export interface ActivityRepository {
   record(activity: ActivityRecord): Promise<void>;
-  listByDeveloper(developerId: string): Promise<ImpressionActivity[]>;
+  listByDeveloper(developerId: string): Promise<DeveloperActivityRecord[]>;
   listByCampaignIds(campaignIds: string[]): Promise<ActivityRecord[]>;
   listByCheckoutSessionId(sessionId: string): Promise<AdvertiserActivity[]>;
 }

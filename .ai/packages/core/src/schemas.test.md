@@ -93,6 +93,72 @@ funding aligned with the public homepage "buy blocks" model.
 Added schema coverage for valid `{ campaignId, blockCount }`, invalid block
 counts, and legacy amount-only payload rejection.
 
+## Planned Change (2026-06-16 Deterministic Ad Text Safety)
+
+Add RED coverage for unsafe ad copy before implementation:
+
+- seed phrase/private key collection;
+- password/OTP collection;
+- crypto giveaway/airdrop lures;
+- account/wallet verification lures.
+
+Also cover a legitimate security-tool ad so the first pass stays narrow and does
+not block ordinary password-manager/security education copy.
+
+## Implemented Change (2026-06-16 Deterministic Ad Text Safety)
+
+Added schema tests for unsafe ad text rejection, narrow allowed security-tool
+copy, and public checkout inheritance of the same rule.
+
+## Planned Change (2026-06-16 Destination URL Anti-Phishing Hardening)
+
+Add RED coverage that public checkout rejects:
+
+- punycode/IDN domains;
+- single-label hostnames;
+- common shortener domains.
+
+Keep valid ordinary HTTPS domains accepted.
+
+## Implemented Change (2026-06-16 Destination URL Anti-Phishing Hardening)
+
+Added checkout-schema coverage for punycode/IDN domains, single-label hostnames,
+and common shortener domains (`bit.ly`, `tinyurl.com`, `t.co`).
+
+## Verification (2026-06-16 Destination URL Anti-Phishing Hardening)
+
+- RED before implementation:
+  `corepack pnpm@9.12.0 --filter @spinshare/core test -- src/schemas.test.ts`
+  failed because at least one phishing-prone/review-bypass URL was accepted.
+- GREEN after implementation: the same focused command passed with 24 tests.
+
+## Verification (2026-06-16 Deterministic Ad Text Safety)
+
+- RED before implementation:
+  `corepack pnpm@9.12.0 --filter @spinshare/core test -- src/schemas.test.ts`
+  failed because unsafe copy was accepted and `reviewAdTextSafety` did not
+  exist.
+- GREEN after implementation: the same focused command passed with 23 tests.
+
+## Planned Change (2026-06-17 Create Campaign Checkout Blocks)
+
+Add RED coverage that `createCampaignSchema` accepts an optional whole positive
+`blockCount` and rejects invalid block counts. This protects the dashboard
+direct-checkout path while keeping block-count validation centralized.
+
+## Implemented Change (2026-06-17 Create Campaign Checkout Blocks)
+
+Added schema coverage that optional valid `blockCount` is preserved and invalid
+block counts are rejected.
+
+RED verification before implementation:
+`corepack pnpm@9.12.0 --filter @spinshare/core test -- src/schemas.test.ts`
+failed because `blockCount` was stripped and invalid values were accepted.
+
+GREEN verification after implementation:
+`corepack pnpm@9.12.0 --filter @spinshare/core test -- src/schemas.test.ts`
+passed 26 tests.
+
 ## Verification (2026-06-15 Dashboard Block Funding)
 
 - Focused: `corepack pnpm@9.12.0 --filter @spinshare/core test -- src/schemas.test.ts`.
@@ -102,6 +168,12 @@ counts, and legacy amount-only payload rejection.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-17 | Implemented create campaign optional blockCount schema tests. | Codex |
+| 2026-06-17 | Planned create campaign optional blockCount schema tests. | Codex |
+| 2026-06-16 | Implemented deterministic URL anti-phishing tests. | Codex |
+| 2026-06-16 | Planned deterministic URL anti-phishing tests. | Codex |
+| 2026-06-16 | Implemented deterministic ad text safety tests. | Codex |
+| 2026-06-16 | Planned deterministic ad text safety tests. | Codex |
 | 2026-06-15 | Implemented dashboard block funding schema tests. | Codex |
 | 2026-06-15 | Planned dashboard block funding schema tests. | Codex |
 | 2026-06-15 | Implemented destination URL safety tests. | Codex |

@@ -1,6 +1,6 @@
 # claude-code-adapter.ts
 
-> Last updated: 2026-06-15 | Protection: CRITICAL
+> Last updated: 2026-06-17 | Protection: CRITICAL
 
 ## Purpose
 
@@ -196,6 +196,32 @@ Claude Code controls the physical placement of statusLine output. The adapter
 can make the status line more visible, but it cannot force the ad to appear
 directly under Claude's `Thinking...` row.
 
+## Bug Fix Plan 2026-06-17 Expiring Active StatusLine State
+
+Generated statusLine output currently trusts any `active: true` state until a
+`Stop`/`StopFailure` hook clears it. If Claude Code misses that stop hook, or if
+a post-stop `MessageDisplay` event starts a fresh ad, the ad can remain visible
+after loading has ended.
+
+Fix strategy: make only `UserPromptSubmit` start a new ad. Keep
+`MessageDisplay` installed only for compatibility/replacement of old settings,
+but make it a no-op so it cannot start ads after loading. Add an `expiresAtMs`
+timestamp to generated active state and have the generated statusLine command
+hide expired state. This keeps normal stop-based tracking intact while giving
+the statusLine a bounded fallback when Claude Code does not call our stop hook.
+
+## Bug Fix Implemented 2026-06-17 Expiring Active StatusLine State
+
+Generated hook scripts now start ads only on `UserPromptSubmit`.
+`MessageDisplay` remains in the owned hook list but returns without fetching, so
+old installed settings are replaced while post-loading display events cannot
+start a new ad. Active state includes `expiresAtMs`; generated statusLine output
+hides expired state, and tracking caps duration at the expiry timestamp.
+
+Verification:
+`corepack pnpm@9.12.0 --filter ./vscode-extension test -- src/claude-code-adapter.test.ts`
+passed 11 tests.
+
 ## Verification
 
 - Red: adapter test initially failed because `claude-code-adapter.ts` did not exist.
@@ -206,6 +232,11 @@ directly under Claude's `Thinking...` row.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-17 | Strict hook credential matching: removed the production fallback for an untagged/mismatched baseUrl so local/prod credentials never mix (Bug B; mirrors the CLI adapter). | Claude |
+| 2026-06-17 | Implemented expiring generated statusLine state and MessageDisplay no-op. | Codex |
+| 2026-06-17 | Planned expiring generated statusLine state to prevent stale ads after loading. | Codex |
+| 2026-06-16 | Implemented baseUrl-aware credential file reading for prod/local hook separation. | Codex |
+| 2026-06-16 | Planned baseUrl-aware credential file reading for prod/local hook separation. | Codex |
 | 2026-06-15 | Colorized generated statusLine output while preserving OSC8 links. | Codex |
 | 2026-06-15 | Implemented same-session stale state reset. | Codex |
 | 2026-06-15 | Planned same-session stale state reset. | Codex |

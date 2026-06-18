@@ -1,4 +1,5 @@
 import { getContainer } from "@/server/container";
+import { verifyClickToken } from "@/server/click-token";
 import { destinationUrlSchema } from "@spinshare/core";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +22,7 @@ function safeDestinationUrl(value: string | undefined): string | null {
 export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const campaignId = url.searchParams.get("campaignId")?.trim();
+  const clickToken = url.searchParams.get("clickToken");
   if (!campaignId) {
     return rootRedirect(request);
   }
@@ -33,10 +35,12 @@ export async function GET(request: Request): Promise<Response> {
       return rootRedirect(request);
     }
 
-    try {
-      await counters.incrementCampaignTelemetry(campaign.id, "clicks");
-    } catch {
-      // Click-through must still work if aggregate telemetry is unavailable.
+    if (verifyClickToken(clickToken, { campaignId: campaign.id }) !== null) {
+      try {
+        await counters.incrementCampaignTelemetry(campaign.id, "clicks");
+      } catch {
+        // Click-through must still work if aggregate telemetry is unavailable.
+      }
     }
 
     return Response.redirect(destination, 302);

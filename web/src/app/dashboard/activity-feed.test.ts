@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  activityDetailItems,
   activityStatusLabel,
   formatActivityDuration,
   toActivityFeedRows,
@@ -29,6 +30,24 @@ describe("activity feed helpers", () => {
         creditLabel: "$0.02",
       }),
     ]);
+  });
+
+  it("formats credited sub-cent rows with derived developer-share precision", () => {
+    const rows = toActivityFeedRows([
+      {
+        ...credited,
+        activityId: "activity_sub_cent",
+        revenueMicrocents: 500,
+        developerCreditCents: 0,
+        developerCreditUsd: "0.00",
+      },
+    ]);
+
+    expect(rows[0]).toMatchObject({
+      statusLabel: "Credited",
+      creditLabel: "$0.003",
+      counted: true,
+    });
   });
 
   it("formats too-short rows as zero-credit uncounted activity", () => {
@@ -83,9 +102,72 @@ describe("activity feed helpers", () => {
     });
   });
 
+  it("formats developer payout events with provider trace details", () => {
+    const [row] = toActivityFeedRows([
+      {
+        activityId: "payout_paid_tr_123",
+        campaignId: "payout",
+        type: "developer_event",
+        status: "payoutPaid",
+        amountCents: 1234,
+        amountUsd: "12.34",
+        providerEventId: "tr_123",
+        providerCode: "balance_available",
+        createdAtMs: 1_700_000_000_000,
+      } as ActivityFeedSource,
+    ]);
+    expect(row).toBeDefined();
+
+    expect(row).toMatchObject({
+      type: "developer_event",
+      statusLabel: "Payout paid",
+      durationLabel: "Transfer sent",
+      creditLabel: "$12.34",
+      counted: true,
+    });
+    expect(activityDetailItems(row!, { amountLabel: "Amount" })).toEqual([
+      { label: "Activity ID", value: "payout_paid_tr_123" },
+      { label: "Campaign ID", value: "payout" },
+      { label: "Status", value: "Payout paid" },
+      { label: "Event", value: "Transfer sent" },
+      { label: "Amount", value: "$12.34" },
+      { label: "Created", value: "2023-11-14T22:13:20.000Z" },
+      { label: "Provider event", value: "tr_123" },
+      { label: "Provider code", value: "balance_available" },
+    ]);
+  });
+
   it("keeps status and duration formatting stable", () => {
     expect(activityStatusLabel("invalidCampaign")).toBe("Invalid campaign");
     expect(activityStatusLabel("earningCapped")).toBe("Earning cap");
     expect(formatActivityDuration(12_345)).toBe("12.3s");
+  });
+
+  it("builds stable ledger detail fields including Stripe trace ids", () => {
+    const [row] = toActivityFeedRows([
+      {
+        activityId: "payment_evt_1",
+        campaignId: "cmp_1",
+        type: "advertiser_event",
+        status: "budgetFunded",
+        amountCents: 7500,
+        amountUsd: "75.00",
+        checkoutSessionId: "cs_test_123",
+        providerEventId: "evt_test_123",
+        createdAtMs: 1_700_000_000_000,
+      },
+    ]);
+    expect(row).toBeDefined();
+
+    expect(activityDetailItems(row!, { amountLabel: "Amount" })).toEqual([
+      { label: "Activity ID", value: "payment_evt_1" },
+      { label: "Campaign ID", value: "cmp_1" },
+      { label: "Status", value: "Budget funded" },
+      { label: "Event", value: "Funding confirmed" },
+      { label: "Amount", value: "$75.00" },
+      { label: "Created", value: "2023-11-14T22:13:20.000Z" },
+      { label: "Checkout session", value: "cs_test_123" },
+      { label: "Provider event", value: "evt_test_123" },
+    ]);
   });
 });

@@ -31,6 +31,29 @@ Unit and integration-style tests for the CLI wrapper wait-state logic.
 - Tests should use fake time or injected clocks for viewability behavior.
 - PTY behavior should be tested with injected fake PTY objects, not native terminal processes.
 
+## Planned Change (2026-06-17)
+
+Add a failing PTY cleanup regression test for the local CLI smoke timeout:
+
+- fake PTY subscriptions return disposable handles;
+- fake stdin exposes `resume()` and `pause()`;
+- after PTY exit, `runWrap` must resolve with the PTY exit code, remove stdin
+  forwarding, pause the resumed stdin stream, and dispose both PTY subscriptions.
+
+This test should fail against the current implementation because `runWrap`
+ignores PTY subscription disposables and never pauses stdin after cleanup.
+
+## Implemented Test (2026-06-17)
+
+Added `cleans up PTY subscriptions and resumed stdin after PTY exit`. The fake
+PTY now returns disposable handles from `onData()` and `onExit()`, and the fake
+stdin exposes `resume()` / `pause()` spies.
+
+## Verification (2026-06-17)
+
+- RED: focused `wrap.test.ts` failed because `stdin.pause()` was never called.
+- GREEN: focused `wrap.test.ts` passed with 21 tests after the wrapper cleanup.
+
 ## Planned Change (2026-06-15)
 
 Write failing tests proving `runWrap` uses an injected PTY runner when present,

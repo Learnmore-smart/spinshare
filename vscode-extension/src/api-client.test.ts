@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { AdApiClient, type FetchLike, type FetchResponseLike } from "./api-client";
+import {
+  AdApiClient,
+  type FetchLike,
+  type FetchResponseLike,
+} from "./api-client";
 
 /** Build a fetch stub that records calls and returns canned JSON. */
 function makeFetch(
@@ -141,6 +145,54 @@ describe("AdApiClient.reportImpression", () => {
     const client = new AdApiClient({ baseUrl: "https://x.test", fetchImpl });
 
     expect(await client.reportImpression("cmp_9", 3000)).toBeNull();
+  });
+});
+
+describe("AdApiClient.validateDeviceToken", () => {
+  it("GETs the side-effect-free validation endpoint with bearer auth", async () => {
+    const { fetchImpl, calls } = makeFetch(() => jsonResponse({ valid: true }));
+    const client = new AdApiClient({
+      baseUrl: "https://x.test/",
+      token: "tok",
+      fetchImpl,
+    });
+
+    await expect(client.validateDeviceToken()).resolves.toBe("valid");
+    expect(calls[0].url).toBe("https://x.test/api/auth/device/validate");
+    expect(calls[0].method).toBe("GET");
+    expect(calls[0].headers?.Authorization).toBe("Bearer tok");
+  });
+
+  it("returns invalid on a 401 validation response", async () => {
+    const { fetchImpl } = makeFetch(() => jsonResponse({ valid: false }, false, 401));
+    const client = new AdApiClient({
+      baseUrl: "https://x.test",
+      token: "tok_bad",
+      fetchImpl,
+    });
+
+    await expect(client.validateDeviceToken()).resolves.toBe("invalid");
+  });
+
+  it("returns unknown on transient validation failures", async () => {
+    const fetchImpl: FetchLike = async () => {
+      throw new Error("offline");
+    };
+    const client = new AdApiClient({
+      baseUrl: "https://x.test",
+      token: "tok_maybe",
+      fetchImpl,
+    });
+
+    await expect(client.validateDeviceToken()).resolves.toBe("unknown");
+  });
+
+  it("returns invalid without fetching when no bearer token exists", async () => {
+    const { fetchImpl, calls } = makeFetch(() => jsonResponse({ valid: true }));
+    const client = new AdApiClient({ baseUrl: "https://x.test", fetchImpl });
+
+    await expect(client.validateDeviceToken()).resolves.toBe("invalid");
+    expect(calls).toHaveLength(0);
   });
 });
 

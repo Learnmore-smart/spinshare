@@ -52,6 +52,20 @@ containers except the document root. `corepack pnpm@9.12.0 --filter
 @spinshare/web test -- src/app/page.test.tsx` passed, and `corepack
 pnpm@9.12.0 --filter @spinshare/web lint` passed.
 
+## Planned Change 2026-06-17: Market Proof Row Layout
+
+The market section currently defines `spinshare-market-proof-grid`, but the
+homepage no longer uses it around the live market and advertiser checkout form.
+Restore that grid so desktop reads as a horizontal row: live market module on
+the wider left column, advertiser checkout on the right, and the CTA spanning
+both columns below.
+
+## Implemented Change 2026-06-17: Market Proof Row Layout
+
+Desktop `spinshare-market-proof-grid` now gives the live market the wider left
+column and the advertiser checkout form a right column. Only the lower CTA spans
+the full grid width.
+
 ## Bug Fix (2026-06-14)
 
 **Bug:** Hero highlight line (`你拿钱` / `You get`) clips at the top — ascenders and emoji sit flush against a cut edge.
@@ -78,6 +92,8 @@ Homepage bid-market timeframe: replace custom `.spinshare-home-timeframe` button
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-17 | Implemented market proof row layout for live market plus checkout form. | Codex |
+| 2026-06-17 | Planned market proof row layout for the live market and checkout form. | Codex |
 | 2026-06-15 | Removed `.spinshare-home-hero` local overflow rule and verified the inner hero scrollbar is gone | Codex |
 | 2026-06-15 | Planned fix for unwanted inner hero scrollbar caused by `overflow-x: hidden` computing `overflow-y: auto` | Codex |
 | 2026-06-15 | Added responsive layout hooks for centered spine, split hero, process panel, market grid, and proof cards | Codex |

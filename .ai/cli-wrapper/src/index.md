@@ -68,17 +68,43 @@ executes the Claude Code adapter removal path.
 
 - Direct-execution detection must work on Windows paths, URL-encoded paths, and paths containing non-ASCII characters.
 - Importing this module in tests must not run the CLI.
+- When run as the actual CLI binary, the process must call `process.exit(code)`
+  after `main()` resolves. Windows `node-pty` can leave native handles alive even
+  after `onExit`, so setting only `process.exitCode` is not enough for wrapped
+  interactive commands.
 
 ## Bug Fixes
 
 | Date | Bug | Cause | Fix |
 |------|-----|-------|-----|
+| 2026-06-17 | Local CLI smoke showed and tracked the sample ad, but the CLI process timed out instead of exiting. | `node-pty` on Windows can keep the Node event loop alive after the child exits; the CLI direct-execution block only set `process.exitCode`. | Planned: route direct execution through a testable helper that calls `process.exit(code)` on success and `process.exit(1)` on failure. |
 | 2026-06-14 | Built CLI exited without running on Windows/non-ASCII workspace paths. | Guard compared `import.meta.url` to raw `file://${process.argv[1]}`, which does not normalize Windows paths or URL encoding. | Compare `fileURLToPath(import.meta.url)` with `path.resolve(process.argv[1])`. |
+
+## Implemented Change 2026-06-17: Direct Binary Exit
+
+Added `runDirectExecution(argv, run, exitProcess, writeError)` so the direct
+binary path is testable. When the CLI is run directly it now calls
+`process.exit(code)` after `main()` resolves, and calls `process.exit(1)` after
+writing a safe `spinshare:` error if `main()` rejects. Importing the module in
+tests still does not execute the CLI.
+
+## Verification 2026-06-17
+
+- RED: `corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/index.test.ts`
+  failed because `runDirectExecution` did not exist.
+- GREEN: focused `index.test.ts` + `wrap.test.ts` passed with 27 tests.
+- Full CLI tests passed with 12 files / 100 tests.
+- CLI typecheck passed with `corepack pnpm@9.12.0 --filter @spinshare/cli lint`.
+- Real runtime smoke passed:
+  `corepack pnpm@9.12.0 smoke:local-cli` built the CLI and returned
+  `cli={"exitCode":0,"renderedLocalAd":true}`.
 
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented CLI hook credential mirroring with baseUrl metadata. | Codex |
+| 2026-06-16 | Planned CLI hook credential mirroring with baseUrl metadata. | Codex |
 | 2026-06-15 | Implemented CLI Claude Code adapter removal command. | Codex |
 | 2026-06-15 | Implemented CLI Claude Code setup command and login auto-setup. | Codex |
 | 2026-06-15 | Planned CLI Claude Code adapter removal command. | Codex |

@@ -12,13 +12,17 @@
  *     payouts (`payouts_enabled`) — otherwise `409 not_connected`; and
  *   - the balance meets the {@link MINIMUM_PAYOUT_CENTS} threshold — otherwise
  *     `422 below_minimum`.
- * On success it transfers the funds and debits the balance by exactly the
- * amount paid out (an atomic delta, so concurrent credits are never lost).
+ * On success it reserves the durable balance before calling Stripe, transfers
+ * the funds, and records a provider reconciliation attempt.
  */
 
 import { MINIMUM_PAYOUT_CENTS } from "@spinshare/core";
 
-import type { PayoutGateway, UserRepository } from "./ports";
+import type {
+  PayoutAttemptRepository,
+  PayoutGateway,
+  UserRepository,
+} from "./ports";
 
 /** Dependencies for the payout service (supplied by the composition root). */
 export interface PayoutServiceDeps {
@@ -26,6 +30,12 @@ export interface PayoutServiceDeps {
   users: UserRepository;
   /** Stripe Connect payout gateway (or the mock gateway locally). */
   payouts: PayoutGateway;
+  /** Durable provider/accounting reconciliation attempts. */
+  payoutAttempts: PayoutAttemptRepository;
+  /** Clock override for deterministic tests. */
+  nowMs?: () => number;
+  /** Attempt id override for deterministic tests. */
+  newAttemptId?: () => string;
 }
 
 /** Failure status codes the route maps directly to HTTP responses. */
@@ -35,6 +45,8 @@ export type WithdrawErrorStatus = 409 | 422;
 export const NOT_CONNECTED_ERROR = "not_connected" as const;
 /** `422` error code: durable balance below the minimum payout. */
 export const BELOW_MINIMUM_ERROR = "below_minimum" as const;
+/** `409` error code: another withdrawal changed the balance first. */
+export const BALANCE_CHANGED_ERROR = "balance_changed" as const;
 
 /**
  * Outcome of {@link withdrawBalance}: a successful payout or a typed failure the
@@ -43,6 +55,42 @@ export const BELOW_MINIMUM_ERROR = "below_minimum" as const;
 export type WithdrawResult =
   | { ok: true; paidOutCents: number; payoutId: string }
   | { ok: false; status: WithdrawErrorStatus; error: string };
+
+function newAttemptId(deps: PayoutServiceDeps): string {
+  if (deps.newAttemptId) {
+    return deps.newAttemptId();
+  }
+  return `poa_${globalThis.crypto?.randomUUID?.() ?? Date.now().toString(36)}`;
+}
+
+function nowMs(deps: PayoutServiceDeps): number {
+  return deps.nowMs?.() ?? Date.now();
+}
+
+function providerFailureDetails(error: unknown): {
+  providerEventId?: string;
+  providerStatus?: number;
+  providerCode?: string;
+} {
+  const providerError = error as
+    | {
+        requestId?: unknown;
+        statusCode?: unknown;
+        code?: unknown;
+      }
+    | undefined;
+  return {
+    ...(typeof providerError?.requestId === "string"
+      ? { providerEventId: providerError.requestId }
+      : {}),
+    ...(typeof providerError?.statusCode === "number"
+      ? { providerStatus: providerError.statusCode }
+      : {}),
+    ...(typeof providerError?.code === "string"
+      ? { providerCode: providerError.code }
+      : {}),
+  };
+}
 
 /**
  * Cashes out the developer's durable balance to their connected account.
@@ -57,31 +105,101 @@ export async function withdrawBalance(
   deps: PayoutServiceDeps,
   developerId: string,
 ): Promise<WithdrawResult> {
-  const { users, payouts } = deps;
+  const { users, payouts, payoutAttempts } = deps;
+  const attemptId = newAttemptId(deps);
 
   const user = await users.getById(developerId);
   if (!user?.stripeConnectAccountId) {
+    const at = nowMs(deps);
+    await payoutAttempts.record({
+      attemptId,
+      developerId,
+      status: "blocked",
+      providerCode: NOT_CONNECTED_ERROR,
+      ...(user?.balanceCents !== undefined
+        ? { amountCents: user.balanceCents }
+        : {}),
+      createdAtMs: at,
+      updatedAtMs: at,
+    });
     return { ok: false, status: 409, error: NOT_CONNECTED_ERROR };
   }
 
   // Confirm payout eligibility with Stripe before moving any money.
   const status = await payouts.getAccountStatus(user.stripeConnectAccountId);
   if (!status.payoutsEnabled) {
+    const at = nowMs(deps);
+    await payoutAttempts.record({
+      attemptId,
+      developerId,
+      status: "blocked",
+      amountCents: user.balanceCents,
+      stripeConnectAccountId: user.stripeConnectAccountId,
+      providerCode: NOT_CONNECTED_ERROR,
+      createdAtMs: at,
+      updatedAtMs: at,
+    });
     return { ok: false, status: 409, error: NOT_CONNECTED_ERROR };
   }
 
   const amountCents = user.balanceCents;
   if (amountCents < MINIMUM_PAYOUT_CENTS) {
+    const at = nowMs(deps);
+    await payoutAttempts.record({
+      attemptId,
+      developerId,
+      status: "blocked",
+      amountCents,
+      stripeConnectAccountId: user.stripeConnectAccountId,
+      providerCode: BELOW_MINIMUM_ERROR,
+      createdAtMs: at,
+      updatedAtMs: at,
+    });
     return { ok: false, status: 422, error: BELOW_MINIMUM_ERROR };
   }
 
-  const result = await payouts.createPayout({
-    accountId: user.stripeConnectAccountId,
+  const createdAtMs = nowMs(deps);
+  await payoutAttempts.record({
+    attemptId,
+    developerId,
+    status: "pending",
     amountCents,
+    stripeConnectAccountId: user.stripeConnectAccountId,
+    createdAtMs,
+    updatedAtMs: createdAtMs,
   });
 
-  // Debit exactly what was paid out (atomic delta; concurrent credits are safe).
-  await users.applyBalanceDeltaCents(developerId, -result.amountCents);
+  const reserved = await users.tryDebitBalanceCents(developerId, amountCents);
+  if (!reserved) {
+    await payoutAttempts.update(attemptId, {
+      status: "blocked",
+      providerCode: BALANCE_CHANGED_ERROR,
+      updatedAtMs: nowMs(deps),
+    });
+    return { ok: false, status: 409, error: BALANCE_CHANGED_ERROR };
+  }
+
+  let result: Awaited<ReturnType<PayoutGateway["createPayout"]>>;
+  try {
+    result = await payouts.createPayout({
+      accountId: user.stripeConnectAccountId,
+      amountCents,
+    });
+  } catch (error) {
+    await users.applyBalanceDeltaCents(developerId, amountCents);
+    await payoutAttempts.update(attemptId, {
+      status: "failed",
+      ...providerFailureDetails(error),
+      updatedAtMs: nowMs(deps),
+    });
+    throw error;
+  }
+
+  await payoutAttempts.update(attemptId, {
+    status: "paid",
+    providerEventId: result.payoutId,
+    updatedAtMs: nowMs(deps),
+  });
 
   return {
     ok: true,

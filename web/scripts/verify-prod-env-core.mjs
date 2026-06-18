@@ -33,6 +33,9 @@ export function checkStrictModes(env) {
   if (!["test", "live"].includes(value(env, "STRIPE_MODE"))) {
     failures.push("STRIPE_MODE must be test or live");
   }
+  if (!value(env, "SPINSHARE_FLUSH_SECRET") && !value(env, "CRON_SECRET")) {
+    failures.push("SPINSHARE_FLUSH_SECRET or CRON_SECRET must be set");
+  }
   if (isLocalHttpUrl(value(env, "NEXTAUTH_URL"))) {
     warnings.push(
       "NEXTAUTH_URL is localhost - set https://www.spinshare.dev in Cloud Run variables for production",

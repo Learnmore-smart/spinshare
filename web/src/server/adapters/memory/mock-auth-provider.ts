@@ -155,7 +155,17 @@ export class MockAuthProvider implements AuthProvider {
   ): Promise<string> {
     const found = this.findByUserCode(userCode);
     if (!found) throw new Error(`unknown user code: ${userCode}`);
-    return this.approveDevice(found.deviceCode, approval.userId);
+    const accessToken = this.mintToken(approval.userId, {
+      ...(approval.email !== undefined ? { email: approval.email } : {}),
+      ...(approval.provider !== undefined ? { provider: approval.provider } : {}),
+      ...(approval.role !== undefined ? { role: approval.role } : {}),
+    });
+    found.record.state = {
+      kind: "approved",
+      userId: approval.userId,
+      accessToken,
+    };
+    return accessToken;
   }
 
   /** Denies a pending device flow identified by its short user code. */

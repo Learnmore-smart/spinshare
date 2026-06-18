@@ -54,3 +54,14 @@ Added `GET /api/activity/developer`. It authenticates bearer tokens and returns 
 | 2026-06-15 | Planned migration from credited ledger rows to attempt-level activity rows. | Codex |
 | 2026-06-15 | Implemented credited developer activity API. | Codex |
 | 2026-06-15 | Created doc before adding developer activity route. | Codex |
+
+## Planned Change 2026-06-16 Developer Payout Events
+
+Return both impression attempts and `developer_event` payout rows from
+`/api/activity/developer`, preserving amount, provider id, and safe provider
+failure metadata for dashboard display.
+
+## Implemented Change 2026-06-16 Developer Payout Events
+
+`GET /api/activity/developer` now serializes `developer_event` payout rows with
+amount, provider event id, provider status, and provider code metadata.

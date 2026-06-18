@@ -14,6 +14,7 @@
  * |--------------------------|-------------------------------------|--------------------|
  * | `SPINSHARE_MODE`         | `local` (default) \| `production`   | overall defaults   |
  * | `SPINSHARE_COUNTER`      | `memory` \| `rtdb`                  | `CounterStore`     |
+ * | `SPINSHARE_RTDB_ROOT_PATH` | RTDB path                          | optional hot root override |
  * | `FIREBASE_DATABASE_URL`  | RTDB url (required for `rtdb`)      | RTDB connection    |
  * | `FIRESTORE_EMULATOR_HOST`| host:port (presence)                | Firestore vs memory|
  * | `SPINSHARE_USE_FIRESTORE` | `1` (local only)                   | cloud Firestore in local mode |
@@ -39,6 +40,7 @@ import type {
   LedgerRepository,
   PaymentEventStore,
   PaymentGateway,
+  PayoutAttemptRepository,
   PayoutGateway,
   UserRepository,
 } from "./ports";
@@ -49,6 +51,7 @@ import {
   MemoryImpressionProgressRepository,
   MemoryLedgerRepository,
   MemoryPaymentEventStore,
+  MemoryPayoutAttemptRepository,
   MemoryUserRepository,
   MockAuthProvider,
   MockPaymentGateway,
@@ -64,6 +67,7 @@ import {
   FirestoreImpressionProgressRepo,
   FirestoreLedgerRepo,
   FirestorePaymentEventStore,
+  FirestorePayoutAttemptRepo,
   FirestoreUserRepo,
 } from "./adapters/firestore";
 import { StripeGateway, StripePayoutGateway } from "./adapters/stripe";
@@ -95,6 +99,8 @@ export interface Container {
   payouts: PayoutGateway;
   /** Stripe webhook idempotency store (`paymentEvents/{eventId}`). */
   paymentEvents: PaymentEventStore;
+  /** Durable payout provider reconciliation attempts. */
+  payoutAttempts: PayoutAttemptRepository;
   /** Device-flow authentication + token validation. */
   auth: AuthProvider;
 }
@@ -114,6 +120,33 @@ function resolveMode(env: ContainerEnv): SpinshareMode {
   throw new Error(
     `Invalid SPINSHARE_MODE="${env.SPINSHARE_MODE}". Expected "local" or "production".`,
   );
+}
+
+function rtdbNamespaceSegment(namespace: string): string {
+  const trimmed = namespace.trim();
+  if (/^[A-Za-z0-9_-]+$/.test(trimmed)) {
+    return trimmed;
+  }
+  return `b64_${Buffer.from(trimmed, "utf8").toString("base64url")}`;
+}
+
+export function resolveRtdbRootPath(
+  env: ContainerEnv,
+  mode: SpinshareMode,
+): string | undefined {
+  const explicit = (env.SPINSHARE_RTDB_ROOT_PATH ?? "")
+    .trim()
+    .replace(/^\/+|\/+$/g, "");
+  if (explicit.length > 0) {
+    return explicit;
+  }
+  if (mode !== "local") {
+    return undefined;
+  }
+
+  const namespace =
+    (env.SPINSHARE_FIRESTORE_NAMESPACE ?? "").trim() || "local";
+  return `spinshare/namespaces/${rtdbNamespaceSegment(namespace)}/hot`;
 }
 
 /**
@@ -136,7 +169,10 @@ function buildCounterStore(env: ContainerEnv, mode: SpinshareMode): CounterStore
           'https://<project>-default-rtdb.firebaseio.com). For local development use SPINSHARE_COUNTER=memory.',
       );
     }
-    return new RealtimeDbCounterStore();
+    const rootPath = resolveRtdbRootPath(env, mode);
+    return new RealtimeDbCounterStore(
+      rootPath === undefined ? {} : { rootPath },
+    );
   }
   throw new Error(
     `Invalid SPINSHARE_COUNTER="${env.SPINSHARE_COUNTER}". Expected "memory" or "rtdb".`,
@@ -201,6 +237,32 @@ function assertLocalFirestoreIsolation(
 }
 
 /**
+ * Real Stripe Checkout redirects/webhooks are multi-request and often
+ * multi-process. Local memory repos cannot safely hold the campaign/activity
+ * records that Stripe funding must reconcile against, so block this hybrid
+ * before a user can pay into an unfunded invisible campaign.
+ */
+function assertLocalRealStripeUsesDurableStorage(
+  env: ContainerEnv,
+  mode: SpinshareMode,
+): void {
+  const stripeMode = (env.STRIPE_MODE ?? (mode === "local" ? "mock" : "live")).trim();
+  if (
+    mode === "local" &&
+    (stripeMode === "test" || stripeMode === "live") &&
+    !useFirestoreInLocal(env)
+  ) {
+    throw new Error(
+      `STRIPE_MODE="${stripeMode}" in local mode requires durable Firestore ` +
+        "storage. Set FIRESTORE_EMULATOR_HOST for the emulator, or set " +
+        "SPINSHARE_USE_FIRESTORE=1 with SPINSHARE_FIRESTORE_NAMESPACE=test " +
+        "for namespace-isolated cloud Firestore. Use STRIPE_MODE=mock for " +
+        "pure in-memory local development.",
+    );
+  }
+}
+
+/**
  * Selects the durable Firestore-backed repositories. Uses Firestore in production,
  * when the emulator host is configured, or when local mode explicitly opts in
  * (`SPINSHARE_USE_FIRESTORE=1`). Otherwise — local mode — falls back to the pure
@@ -218,6 +280,7 @@ function buildDurableRepos(
   | "activities"
   | "progress"
   | "paymentEvents"
+  | "payoutAttempts"
 > {
   const useFirestore =
     mode === "production" || (mode === "local" && useFirestoreInLocal(env));
@@ -247,6 +310,7 @@ function buildDurableRepos(
       activities: new FirestoreActivityRepo(),
       progress: new FirestoreImpressionProgressRepo(),
       paymentEvents: new FirestorePaymentEventStore(),
+      payoutAttempts: new FirestorePayoutAttemptRepo(),
     };
   }
 
@@ -260,6 +324,7 @@ function buildDurableRepos(
   const activities = new MemoryActivityRepository();
   const progress = new MemoryImpressionProgressRepository();
   const paymentEvents = new MemoryPaymentEventStore();
+  const payoutAttempts = new MemoryPayoutAttemptRepository();
 
   // In local mode, provision demo data only when explicitly requested. Keeping
   // this off by default prevents the funded LearnX campaign from masking
@@ -272,7 +337,15 @@ function buildDurableRepos(
     seedLocalTestData({ users, campaigns, ledger });
   }
 
-  return { campaigns, users, ledger, activities, progress, paymentEvents };
+  return {
+    campaigns,
+    users,
+    ledger,
+    activities,
+    progress,
+    paymentEvents,
+    payoutAttempts,
+  };
 }
 
 /** Selects the {@link PaymentGateway} from `STRIPE_MODE`. */
@@ -340,6 +413,7 @@ function buildAuthProvider(env: ContainerEnv, mode: SpinshareMode): AuthProvider
  */
 export function buildContainer(env: ContainerEnv = process.env): Container {
   const mode = resolveMode(env);
+  assertLocalRealStripeUsesDurableStorage(env, mode);
   return {
     counters: buildCounterStore(env, mode),
     ...buildDurableRepos(env, mode),

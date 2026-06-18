@@ -22,6 +22,7 @@ import Stripe from "stripe";
 
 import type {
   CheckoutInput,
+  CheckoutSessionFunding,
   CheckoutSessionResult,
   PaymentGateway,
   StripeEvent,
@@ -36,6 +37,30 @@ const CHECKOUT_COMPLETED = "checkout.session.completed";
 
 /** Fixed currency for all funding (amounts are US-dollar cents). */
 const CURRENCY = "usd";
+
+interface StripeCheckoutSessionFundingSource {
+  id: string;
+  payment_status?: string | null;
+  metadata?: Record<string, string> | null;
+  client_reference_id?: string | null;
+  amount_total?: number | null;
+}
+
+export function stripeCheckoutSessionToFunding(
+  session: StripeCheckoutSessionFundingSource,
+): CheckoutSessionFunding {
+  const amountTotal = session.amount_total;
+  return {
+    sessionId: session.id,
+    status: session.payment_status === "paid" ? "paid" : "unpaid",
+    campaignId:
+      session.metadata?.campaignId ?? session.client_reference_id ?? "",
+    amountCents:
+      typeof amountTotal === "number" && Number.isSafeInteger(amountTotal)
+        ? amountTotal
+        : 0,
+  };
+}
 
 export class StripeGateway implements PaymentGateway {
   /** Lazily-initialized Stripe client; absent until first credentialed use. */
@@ -118,6 +143,17 @@ export class StripeGateway implements PaymentGateway {
       this.getWebhookSecret(),
     );
     return this.toStripeEvent(event);
+  }
+
+  async retrieveCheckoutSessionFunding(
+    sessionId: string,
+  ): Promise<CheckoutSessionFunding | null> {
+    try {
+      const session = await this.getClient().checkout.sessions.retrieve(sessionId);
+      return stripeCheckoutSessionToFunding(session);
+    } catch {
+      return null;
+    }
   }
 
   /**

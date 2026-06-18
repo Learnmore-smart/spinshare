@@ -80,6 +80,8 @@ The API client tests now assert the tracking request body includes
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Added validation endpoint client tests for valid, invalid, unknown, and no-token behavior. | Codex |
+| 2026-06-16 | Planned tests for token validation endpoint handling. | Codex |
 | 2026-06-15 | Added extension ad-fetch token gate regression coverage. | Codex |
 | 2026-06-15 | Planned extension ad-fetch token gate regression coverage. | Codex |
 | 2026-06-15 | Added regression coverage for canonical production device-start URL. | Codex |

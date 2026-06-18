@@ -1,0 +1,66 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - link "SpinShare home" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img "SpinShare Logo" [ref=e6]
+        - generic [ref=e7]: SpinShare
+      - generic [ref=e8]:
+        - 'button "语言: 自动" [ref=e10] [cursor=pointer]':
+          - img [ref=e11]
+          - generic [ref=e14]: 自动
+          - img [ref=e15]
+        - link "返回首页" [ref=e17] [cursor=pointer]:
+          - /url: /
+          - img [ref=e18]
+          - text: 返回首页
+    - main [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e22]:
+          - heading "登录查看你的 收益余额" [level=1] [ref=e23]:
+            - text: 登录查看你的
+            - generic [ref=e24]: 收益余额
+          - paragraph [ref=e25]: SpinShare 在 AI 等待期间，每展示满 3 秒的广告即向你入账。登录后查看余额、实时竞价动态，并提取收益。
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - heading "身份验证" [level=2] [ref=e29]
+            - paragraph [ref=e30]: AI 等待变现平台特性一览：
+          - generic [ref=e31]:
+            - generic [ref=e32]:
+              - paragraph [ref=e33]: 60%
+              - paragraph [ref=e34]: 分成比例
+            - generic [ref=e35]:
+              - paragraph [ref=e36]: 私密
+              - paragraph [ref=e37]: 个人看板
+            - generic [ref=e38]:
+              - paragraph [ref=e39]: 实时
+              - paragraph [ref=e40]: 提现状态
+          - list [ref=e41]:
+            - listitem [ref=e42]:
+              - img [ref=e44]
+              - generic [ref=e46]: 开发者分成 60%
+            - listitem [ref=e47]:
+              - img [ref=e49]
+              - generic [ref=e51]: 广告至少展示 3 秒才计费
+            - listitem [ref=e52]:
+              - img [ref=e54]
+              - generic [ref=e56]: 不收集任何代码，隐私安全第一
+            - listitem [ref=e57]:
+              - img [ref=e59]
+              - generic [ref=e61]: 支持 VS Code、Cursor 与 Claude Code
+      - region "身份验证" [ref=e62]:
+        - generic [ref=e64]:
+          - tablist "登录身份" [ref=e65]:
+            - tab "开发者" [ref=e66] [cursor=pointer]:
+              - generic [ref=e67]: 开发者
+            - tab "广告主" [selected] [ref=e68] [cursor=pointer]:
+              - generic [ref=e69]: 广告主
+          - generic [ref=e70]:
+            - button "使用 Google 登录" [ref=e71] [cursor=pointer]:
+              - img [ref=e72]
+              - text: 使用 Google 登录
+            - button "使用 GitHub 登录" [ref=e77] [cursor=pointer]:
+              - img [ref=e78]
+              - text: 使用 GitHub 登录
+  - button "Open Next.js Dev Tools" [ref=e85] [cursor=pointer]:
+    - img [ref=e86]

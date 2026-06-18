@@ -102,9 +102,9 @@ export function seedLocalTestData(repos: SeedableRepos): void {
     const campaign: Campaign = {
       id: DEMO_CAMPAIGN_ID,
       advertiserId: advertiser.id,
-      adText: "LearnX · Know exactly what to study",
-      destinationUrl: "https://www.learnx.pro",
-      brandName: "LearnX",
+      adText: "SpinShare Local - sample ad for localhost testing",
+      destinationUrl: "https://www.spinshare.dev",
+      brandName: "SpinShare Local",
       cpmCents: CAMPAIGN_CPM_CENTS,
       budgetCents: CAMPAIGN_BUDGET_CENTS,
       status: "active",

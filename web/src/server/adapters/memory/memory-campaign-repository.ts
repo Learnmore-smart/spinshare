@@ -8,7 +8,7 @@
  * are deterministic.
  */
 
-import type { Campaign } from "@spinshare/core";
+import type { Campaign, CampaignReviewStatus } from "@spinshare/core";
 import type {
   CampaignRepository,
   NewCampaign,
@@ -30,7 +30,10 @@ export class MemoryCampaignRepository implements CampaignRepository {
 
   async listBiddable(): Promise<Campaign[]> {
     return [...this.campaigns.values()].filter(
-      (c) => c.budgetCents > 0 && c.cpmCents > 0,
+      (c) =>
+        c.budgetCents > 0 &&
+        c.cpmCents > 0 &&
+        (c.reviewStatus ?? "approved") === "approved",
     );
   }
 
@@ -54,6 +57,7 @@ export class MemoryCampaignRepository implements CampaignRepository {
         ? { brandIconDataUrl: input.brandIconDataUrl }
         : {}),
       publicOnLeaderboard: input.publicOnLeaderboard ?? true,
+      reviewStatus: input.reviewStatus ?? "approved",
       cpmCents: input.cpmCents,
       budgetCents: 0,
       status: "active",
@@ -73,6 +77,15 @@ export class MemoryCampaignRepository implements CampaignRepository {
     const campaign = this.campaigns.get(id);
     if (!campaign) throw new Error(`campaign not found: ${id}`);
     campaign.budgetCents += deltaCents;
+  }
+
+  async updateReviewStatus(
+    id: string,
+    reviewStatus: CampaignReviewStatus,
+  ): Promise<void> {
+    const campaign = this.campaigns.get(id);
+    if (!campaign) throw new Error(`campaign not found: ${id}`);
+    campaign.reviewStatus = reviewStatus;
   }
 
   /** Test/seed helper: inserts a fully-formed campaign. */

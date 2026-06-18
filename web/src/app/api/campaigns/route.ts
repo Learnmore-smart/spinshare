@@ -22,12 +22,16 @@
 
 import {
   type Campaign,
+  FUNDING_CENTS_MAX,
   createCampaignSchema,
   formatCentsAsUsd,
+  getAdvertiserCheckoutAmountCents,
 } from "@spinshare/core";
 
 import { publicAdvertiserIdForEmail } from "@/server/advertiser-identity";
-import { getContainer } from "@/server/container";
+import { reconcilePaidCheckoutSessionsForCampaigns } from "@/server/checkout-reconciliation";
+import { getContainer, type Container } from "@/server/container";
+import { flushPendingForRead } from "@/server/flush-before-read";
 import type { CounterStore, LedgerRepository } from "@/server/ports";
 import type { AuthClaims } from "@/server/ports/auth-provider";
 import {
@@ -73,6 +77,32 @@ async function resolveAdvertiserClaims(
 /** Standard `401` response body; no mutation has occurred. */
 function unauthorized(): Response {
   return Response.json({ error: "unauthorized" }, { status: 401 });
+}
+
+async function recordCheckoutActivity(
+  container: Container,
+  input: {
+    campaign: Campaign;
+    status: "checkoutStarted" | "budgetFunded";
+    amountCents: number;
+    checkoutSessionId: string;
+  },
+): Promise<void> {
+  try {
+    await container.activities.record({
+      activityId: `${input.status}_${input.checkoutSessionId}`,
+      campaignId: input.campaign.id,
+      advertiserId: input.campaign.advertiserId,
+      type: "advertiser_event",
+      status: input.status,
+      amountCents: input.amountCents,
+      amountUsd: formatCentsAsUsd(input.amountCents),
+      checkoutSessionId: input.checkoutSessionId,
+      createdAtMs: Date.now(),
+    });
+  } catch {
+    // Activity history must not block checkout creation or mock settlement.
+  }
 }
 
 /**
@@ -158,10 +188,29 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  const directCheckoutAmountCents =
+    parsed.data.blockCount !== undefined
+      ? getAdvertiserCheckoutAmountCents({
+          cpmCents: parsed.data.cpmCents,
+          blockCount: parsed.data.blockCount,
+        })
+      : null;
+  if (
+    directCheckoutAmountCents !== null &&
+    (!Number.isSafeInteger(directCheckoutAmountCents) ||
+      directCheckoutAmountCents > FUNDING_CENTS_MAX)
+  ) {
+    return Response.json(
+      { error: "Total checkout amount must be between $1.00 and $100,000.00" },
+      { status: 400 },
+    );
+  }
+
   // 3. Create the campaign owned by the advertiser, starting at zero budget
   //    (R9.1), and return it. Optional rich fields (destination URL, brand,
   //    leaderboard visibility) match the public homepage checkout form.
-  const { campaigns } = getContainer();
+  const container = getContainer();
+  const { campaigns, payments } = container;
   const campaign = await campaigns.create({
     advertiserId,
     adText: parsed.data.adText,
@@ -180,7 +229,45 @@ export async function POST(request: Request): Promise<Response> {
       : {}),
   });
 
-  return Response.json(toCampaignView(campaign), { status: 201 });
+  if (directCheckoutAmountCents === null) {
+    return Response.json(toCampaignView(campaign), { status: 201 });
+  }
+
+  const origin = new URL(request.url).origin;
+  const checkout = await payments.createCheckoutSession({
+    campaignId: campaign.id,
+    amountCents: directCheckoutAmountCents,
+    successUrl: `${origin}/dashboard/advertiser?funding=success&checkout_session_id={CHECKOUT_SESSION_ID}`,
+    cancelUrl: `${origin}/dashboard/advertiser?funding=cancelled&fund=${encodeURIComponent(campaign.id)}`,
+  });
+  const responseCampaign = { ...campaign };
+  await recordCheckoutActivity(container, {
+    campaign,
+    status: "checkoutStarted",
+    amountCents: directCheckoutAmountCents,
+    checkoutSessionId: checkout.sessionId,
+  });
+
+  if (checkout.settled === true) {
+    await campaigns.applyBudgetDeltaCents(campaign.id, directCheckoutAmountCents);
+    responseCampaign.budgetCents += directCheckoutAmountCents;
+    await recordCheckoutActivity(container, {
+      campaign,
+      status: "budgetFunded",
+      amountCents: directCheckoutAmountCents,
+      checkoutSessionId: checkout.sessionId,
+    });
+  }
+
+  return Response.json(
+    {
+      ...checkout,
+      amountCents: directCheckoutAmountCents,
+      amountUsd: `$${formatCentsAsUsd(directCheckoutAmountCents)}`,
+      campaign: toCampaignView(responseCampaign),
+    },
+    { status: 201 },
+  );
 }
 
 export async function GET(request: Request): Promise<Response> {
@@ -190,8 +277,11 @@ export async function GET(request: Request): Promise<Response> {
     return unauthorized();
   }
 
-  // 2. List the advertiser's campaigns with remaining budget + CPM (R9.5).
-  const { campaigns, counters, ledger } = getContainer();
+  // 2. Reconcile pending impressions before reading advertiser-facing budget
+  //    and credited totals. This keeps the dashboard aligned with recent ads.
+  const container = getContainer();
+  await flushPendingForRead(container, "advertiser-campaigns");
+  const { campaigns, counters, ledger } = container;
   const advertiserIds = new Set([claims.userId]);
   if (claims.email !== undefined && claims.email.trim().length > 0) {
     advertiserIds.add(publicAdvertiserIdForEmail(claims.email));
@@ -203,7 +293,20 @@ export async function GET(request: Request): Promise<Response> {
       ),
     )
   ).flat();
-  const uniqueOwned = [...new Map(owned.map((campaign) => [campaign.id, campaign])).values()];
+  let uniqueOwned = [...new Map(owned.map((campaign) => [campaign.id, campaign])).values()];
+  await reconcilePaidCheckoutSessionsForCampaigns(container, uniqueOwned);
+  if (uniqueOwned.length > 0) {
+    const refreshed = (
+      await Promise.all(
+        [...advertiserIds].map((advertiserId) =>
+          campaigns.listByAdvertiser(advertiserId),
+        ),
+      )
+    ).flat();
+    uniqueOwned = [
+      ...new Map(refreshed.map((campaign) => [campaign.id, campaign])).values(),
+    ];
+  }
   const campaignIds = uniqueOwned.map((campaign) => campaign.id);
   const [telemetry, durableImpressions] = await Promise.all([
     readCampaignTelemetry(counters, campaignIds),

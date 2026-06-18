@@ -5,6 +5,8 @@ import {
   createCredentialStore,
   defaultCredentialFilePath,
   CREDENTIAL_FILE_MODE,
+  KEYTAR_SERVICE,
+  KEYTAR_ACCOUNT,
   type CredentialFileFs,
   type KeytarLike,
 } from "./credential-store.js";
@@ -63,6 +65,23 @@ describe("FileCredentialStore", () => {
     expect(fs.chmodMode).toBe(CREDENTIAL_FILE_MODE);
   });
 
+  it("can write baseUrl metadata while preserving token loading", async () => {
+    const fs = memoryFs();
+    const store = new FileCredentialStore({
+      filePath: "/cfg/credentials.json",
+      fs,
+      baseUrl: "http://localhost:3000",
+    });
+
+    await store.save("tok_local");
+
+    expect(JSON.parse(fs.files.get("/cfg/credentials.json")!)).toEqual({
+      token: "tok_local",
+      baseUrl: "http://localhost:3000",
+    });
+    expect(await store.load()).toBe("tok_local");
+  });
+
   it("clear removes the stored token and is idempotent", async () => {
     const fs = memoryFs();
     const store = new FileCredentialStore({ filePath: "/cfg/credentials.json", fs });
@@ -117,6 +136,115 @@ describe("KeytarCredentialStore", () => {
     expect(await store.load()).toBe("tok_keytar");
     await store.clear();
     expect(await store.load()).toBeNull();
+  });
+});
+
+describe("environment scoping (no local/prod credential mixing)", () => {
+  function fakeKeytar(): KeytarLike & { vault: Map<string, string> } {
+    const vault = new Map<string, string>();
+    return {
+      vault,
+      async getPassword(s, a) {
+        return vault.get(`${s}:${a}`) ?? null;
+      },
+      async setPassword(s, a, p) {
+        vault.set(`${s}:${a}`, p);
+      },
+      async deletePassword(s, a) {
+        return vault.delete(`${s}:${a}`);
+      },
+    };
+  }
+
+  it("FileCredentialStore.load refuses a token tagged for a different environment", async () => {
+    const fs = memoryFs();
+    fs.files.set(
+      "/cfg/credentials.json",
+      JSON.stringify({ token: "prod-tok", baseUrl: "https://www.spinshare.dev" }),
+    );
+    const localStore = new FileCredentialStore({
+      filePath: "/cfg/credentials.json",
+      fs,
+      baseUrl: "http://localhost:3000",
+    });
+    expect(await localStore.load()).toBeNull();
+  });
+
+  it("FileCredentialStore isolates local and production tokens in one file location", async () => {
+    const fs = memoryFs();
+    const local = new FileCredentialStore({
+      filePath: "/cfg/credentials.json",
+      fs,
+      baseUrl: "http://localhost:3000",
+    });
+    await local.save("local-tok");
+    expect(await local.load()).toBe("local-tok");
+    // A store configured for production sees no local token (no silent reuse).
+    const prod = new FileCredentialStore({
+      filePath: "/cfg/credentials.json",
+      fs,
+      baseUrl: "https://www.spinshare.dev",
+    });
+    expect(await prod.load()).toBeNull();
+  });
+
+  it("FileCredentialStore.load rejects a legacy untagged token when baseUrl is configured", async () => {
+    const fs = memoryFs();
+    fs.files.set("/cfg/credentials.json", JSON.stringify({ token: "legacy" }));
+    const store = new FileCredentialStore({
+      filePath: "/cfg/credentials.json",
+      fs,
+      baseUrl: "http://localhost:3000",
+    });
+    expect(await store.load()).toBeNull();
+  });
+
+  it("FileCredentialStore.load accepts a legacy untagged token only without a configured baseUrl", async () => {
+    const fs = memoryFs();
+    fs.files.set("/cfg/credentials.json", JSON.stringify({ token: "legacy" }));
+    const store = new FileCredentialStore({
+      filePath: "/cfg/credentials.json",
+      fs,
+    });
+    expect(await store.load()).toBe("legacy");
+  });
+
+  it("KeytarCredentialStore tags and verifies the environment", async () => {
+    const kt = fakeKeytar();
+    const local = new KeytarCredentialStore(
+      kt,
+      KEYTAR_SERVICE,
+      KEYTAR_ACCOUNT,
+      "http://localhost:3000",
+    );
+    await local.save("local-tok");
+    expect(await local.load()).toBe("local-tok");
+    const prod = new KeytarCredentialStore(
+      kt,
+      KEYTAR_SERVICE,
+      KEYTAR_ACCOUNT,
+      "https://www.spinshare.dev",
+    );
+    expect(await prod.load()).toBeNull();
+  });
+
+  it("KeytarCredentialStore rejects a legacy bare-token value when baseUrl is configured", async () => {
+    const kt = fakeKeytar();
+    await kt.setPassword(KEYTAR_SERVICE, KEYTAR_ACCOUNT, "bare-legacy");
+    const store = new KeytarCredentialStore(
+      kt,
+      KEYTAR_SERVICE,
+      KEYTAR_ACCOUNT,
+      "http://localhost:3000",
+    );
+    expect(await store.load()).toBeNull();
+  });
+
+  it("KeytarCredentialStore reads a legacy bare-token value only without a configured baseUrl", async () => {
+    const kt = fakeKeytar();
+    await kt.setPassword(KEYTAR_SERVICE, KEYTAR_ACCOUNT, "bare-legacy");
+    const store = new KeytarCredentialStore(kt, KEYTAR_SERVICE, KEYTAR_ACCOUNT);
+    expect(await store.load()).toBe("bare-legacy");
   });
 });
 

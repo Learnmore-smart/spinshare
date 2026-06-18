@@ -5,6 +5,7 @@ import * as path from "node:path";
 import type {
   DeviceFlowStart,
   DeviceTokenResult,
+  DeviceTokenValidation,
 } from "./api-client";
 
 /**
@@ -101,6 +102,7 @@ export interface AuthVsCodeLike {
 
 /** The device-flow client surface (see `AdApiClient`). */
 export interface DeviceAuthClientLike {
+  validateDeviceToken(token?: string): Promise<DeviceTokenValidation>;
   startDeviceFlow(): Promise<DeviceFlowStart>;
   pollDeviceToken(deviceCode: string): Promise<DeviceTokenResult>;
 }
@@ -121,6 +123,10 @@ export interface AuthManagerDeps {
   onError?: (error: unknown) => void;
   /** Optional token mirror for external Claude Code hook scripts. */
   tokenMirror?: TokenMirrorLike;
+  /** SecretStorage key for the current API environment. */
+  tokenSecretKey?: string;
+  /** Older keys that may be migrated into `tokenSecretKey` on initialize. */
+  legacyTokenSecretKeys?: string[];
   /**
    * Optional progress wrapper (e.g. `vscode.window.withProgress`) so sign-in
    * does not look like it vanished after the prompt is dismissed.
@@ -137,6 +143,11 @@ export interface AuthManagerDeps {
 
 /** Secret-store key under which the Device_Auth_Token is persisted. */
 export const TOKEN_SECRET_KEY = "spinshare.deviceAuthToken";
+
+export function tokenSecretKeyForBaseUrl(baseUrl: string): string {
+  const normalized = baseUrl.trim().replace(/\/+$/, "").toLowerCase();
+  return `${TOKEN_SECRET_KEY}:${encodeURIComponent(normalized)}`;
+}
 
 /** Action label shown in the unauthenticated prompt. */
 export const SIGN_IN_ACTION = "Sign in";
@@ -195,6 +206,7 @@ export class FileTokenMirror implements TokenMirrorLike {
   constructor(
     private readonly filePath: string = defaultTokenMirrorFilePath(),
     private readonly fileSystem: TokenMirrorFileSystem = fs,
+    private readonly baseUrl?: string,
   ) {}
 
   async save(token: string): Promise<void> {
@@ -204,7 +216,11 @@ export class FileTokenMirror implements TokenMirrorLike {
     });
     await this.fileSystem.writeFile(
       this.filePath,
-      `${JSON.stringify({ token }, null, 2)}\n`,
+      `${JSON.stringify(
+        this.baseUrl ? { token, baseUrl: this.baseUrl } : { token },
+        null,
+        2,
+      )}\n`,
       { encoding: "utf8", mode: TOKEN_FILE_MODE },
     );
     try {
@@ -235,6 +251,8 @@ export class AuthManager {
   private readonly sleep: (ms: number) => Promise<void>;
   private readonly onError: (error: unknown) => void;
   private readonly tokenMirror: TokenMirrorLike | undefined;
+  private readonly tokenSecretKey: string;
+  private readonly legacyTokenSecretKeys: string[];
   private readonly runWithProgress: <R>(
     title: string,
     task: () => Thenable<R>,
@@ -257,6 +275,8 @@ export class AuthManager {
     this.sleep = deps.sleep ?? defaultSleep;
     this.onError = deps.onError ?? (() => {});
     this.tokenMirror = deps.tokenMirror;
+    this.tokenSecretKey = deps.tokenSecretKey ?? TOKEN_SECRET_KEY;
+    this.legacyTokenSecretKeys = deps.legacyTokenSecretKeys ?? [];
     this.runWithProgress =
       deps.runWithProgress ?? (async (_title, task) => task());
   }
@@ -268,12 +288,33 @@ export class AuthManager {
   async initialize(): Promise<string | undefined> {
     if (!this.loaded) {
       try {
-        this.cachedToken = (await this.secrets.get(TOKEN_SECRET_KEY)) ?? undefined;
+        this.cachedToken =
+          (await this.secrets.get(this.tokenSecretKey)) ?? undefined;
+        if (this.cachedToken === undefined || this.cachedToken === "") {
+          for (const legacyKey of this.legacyTokenSecretKeys) {
+            const legacyToken = await this.secrets.get(legacyKey);
+            if (legacyToken !== undefined && legacyToken !== "") {
+              this.cachedToken = legacyToken;
+              try {
+                await this.secrets.store(this.tokenSecretKey, legacyToken);
+              } catch (error) {
+                this.onError(error);
+              }
+              break;
+            }
+          }
+        }
         if (this.cachedToken !== undefined && this.cachedToken !== "") {
-          try {
-            await this.tokenMirror?.save(this.cachedToken);
-          } catch (error) {
-            this.onError(error);
+          const validation = await this.validateStoredToken(this.cachedToken);
+          if (validation === "invalid") {
+            await this.clearPersistedToken();
+            this.cachedToken = undefined;
+          } else {
+            try {
+              await this.tokenMirror?.save(this.cachedToken);
+            } catch (error) {
+              this.onError(error);
+            }
           }
         }
       } catch (error) {
@@ -364,8 +405,17 @@ export class AuthManager {
 
   /** Remove the persisted token and clear the cache. */
   async signOut(): Promise<void> {
+    await this.clearPersistedToken();
+    this.cachedToken = undefined;
+    this.loaded = true;
+  }
+
+  private async clearPersistedToken(): Promise<void> {
     try {
-      await this.secrets.delete(TOKEN_SECRET_KEY);
+      await this.secrets.delete(this.tokenSecretKey);
+      for (const legacyKey of this.legacyTokenSecretKeys) {
+        await this.secrets.delete(legacyKey);
+      }
     } catch (error) {
       this.onError(error);
     }
@@ -374,8 +424,17 @@ export class AuthManager {
     } catch (error) {
       this.onError(error);
     }
-    this.cachedToken = undefined;
-    this.loaded = true;
+  }
+
+  private async validateStoredToken(
+    token: string,
+  ): Promise<DeviceTokenValidation> {
+    try {
+      return await this.client.validateDeviceToken(token);
+    } catch (error) {
+      this.onError(error);
+      return "unknown";
+    }
   }
 
   private async runDeviceFlow(): Promise<SignInResult> {
@@ -444,7 +503,7 @@ export class AuthManager {
 
   private async persistToken(token: string): Promise<void> {
     try {
-      await this.secrets.store(TOKEN_SECRET_KEY, token);
+      await this.secrets.store(this.tokenSecretKey, token);
     } catch (error) {
       // Even if persistence fails, keep the token in memory for this session.
       this.onError(error);

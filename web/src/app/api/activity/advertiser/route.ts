@@ -2,7 +2,11 @@ import { formatCentsAsUsd } from "@spinshare/core";
 
 import { publicAdvertiserIdForEmail } from "@/server/advertiser-identity";
 import { getContainer } from "@/server/container";
-import type { ActivityRecord, AuthClaims, ImpressionActivity } from "@/server/ports";
+import type {
+  ActivityRecord,
+  AuthClaims,
+  ImpressionActivity,
+} from "@/server/ports";
 import { paginateActivity } from "../pagination";
 
 export const dynamic = "force-dynamic";
@@ -56,8 +60,17 @@ function toImpressionActivityView(activity: ImpressionActivity) {
   };
 }
 
+function isImpressionActivity(
+  activity: ActivityRecord,
+): activity is ImpressionActivity {
+  return activity.type !== "advertiser_event" && activity.type !== "developer_event";
+}
+
 function toAdvertiserEventView(activity: ActivityRecord) {
-  if (activity.type !== "advertiser_event") {
+  if (activity.type === "developer_event") {
+    return null;
+  }
+  if (isImpressionActivity(activity)) {
     return toImpressionActivityView(activity);
   }
   return {
@@ -108,7 +121,10 @@ export async function GET(request: Request): Promise<Response> {
     ...new Set(owned.map((campaign) => campaign.id)),
   ];
   const entries = await activities.listByCampaignIds(campaignIds);
-  const page = paginateActivity(entries.map(toAdvertiserEventView), request.url);
+  const page = paginateActivity(
+    entries.map(toAdvertiserEventView).filter((entry) => entry !== null),
+    request.url,
+  );
 
   return Response.json(
     {

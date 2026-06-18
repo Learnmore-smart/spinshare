@@ -158,10 +158,19 @@ describe("buildClaudeCodeAdapterPlan", () => {
     expect(hook?.content).toContain("if (!token) return;");
     expect(hook?.content).toContain("async function fetchAd(token)");
     expect(hook?.content).toContain('authorization: "Bearer " + token');
+    expect(hook?.content).toContain("credentialMatchesBaseUrl(parsed)");
+    // Strict environment matching: no silent production fallback for an
+    // untagged/mismatched credential (Bug B — local/prod must not mix).
+    expect(hook?.content).toContain("credentialBaseUrl.length > 0 &&");
+    expect(hook?.content).not.toContain(
+      'return normalizeCredentialBaseUrl(baseUrl) === "https://www.spinshare.dev"',
+    );
     expect(hook?.content).toContain("const sessionId = readSessionId();");
     expect(hook?.content).toContain("stateMatchesSession(state)");
+    expect(hook?.content).toContain("expiresAtMs");
     expect(statusLine?.content).toContain("const sessionId = readSessionId();");
     expect(statusLine?.content).toContain("stateMatchesSession(state)");
+    expect(statusLine?.content).toContain("function stateIsFresh(state)");
     expect(statusLine?.content).toContain('"$ " + state.adText');
     expect(statusLine?.content).toContain("function accent(text)");
   });
@@ -175,7 +184,7 @@ describe("buildClaudeCodeAdapterPlan", () => {
       await fs.mkdir(path.join(configRoot, "spinshare"), { recursive: true });
       await fs.writeFile(
         path.join(configRoot, "spinshare", "credentials.json"),
-        JSON.stringify({ token: "cli-runtime-token" }),
+        JSON.stringify({ token: "wrong-token", baseUrl: "https://other.test" }),
         "utf8",
       );
 
@@ -203,6 +212,21 @@ describe("buildClaudeCodeAdapterPlan", () => {
         APPDATA: "",
         SPINSHARE_TOKEN: "",
       };
+      const ignored = await runGeneratedScript(
+        hookPath!,
+        ["UserPromptSubmit"],
+        { session_id: "cli-session-wrong-env" },
+        env,
+      );
+      expect(ignored).toMatchObject({ code: 0, stderr: "" });
+      expect(requests).toHaveLength(0);
+      await expect(fs.access(plan.stateFilePath)).rejects.toThrow();
+
+      await fs.writeFile(
+        path.join(configRoot, "spinshare", "credentials.json"),
+        JSON.stringify({ token: "cli-runtime-token", baseUrl }),
+        "utf8",
+      );
       const start = await runGeneratedScript(
         hookPath!,
         ["UserPromptSubmit"],
@@ -275,7 +299,24 @@ describe("buildClaudeCodeAdapterPlan", () => {
 
       await fs.writeFile(
         plan.stateFilePath,
-        JSON.stringify({ ...freshState, startedAtMs: Date.now() - 1500 }),
+        JSON.stringify({ ...freshState, expiresAtMs: Date.now() - 1 }),
+        "utf8",
+      );
+      const expired = await runGeneratedScript(
+        statusLinePath!,
+        [],
+        { session_id: "cli-session-a" },
+        env,
+      );
+      expect(expired.stdout).toBe("");
+
+      await fs.writeFile(
+        plan.stateFilePath,
+        JSON.stringify({
+          ...freshState,
+          startedAtMs: Date.now() - 1500,
+          expiresAtMs: Date.now() + 120_000,
+        }),
         "utf8",
       );
       const stop = await runGeneratedScript(
@@ -292,6 +333,16 @@ describe("buildClaudeCodeAdapterPlan", () => {
         (track?.body as { viewDurationMs?: number }).viewDurationMs,
       ).toBeGreaterThan(0);
       await expect(fs.access(plan.stateFilePath)).rejects.toThrow();
+
+      const displayAfterStop = await runGeneratedScript(
+        hookPath!,
+        ["MessageDisplay"],
+        { session_id: "cli-session-a" },
+        env,
+      );
+      expect(displayAfterStop).toMatchObject({ code: 0, stderr: "" });
+      expect(requests.filter((request) => request.url === "/api/ad")).toHaveLength(2);
+      await expect(fs.access(plan.stateFilePath)).rejects.toThrow();
     });
   });
 });
@@ -307,6 +358,7 @@ describe("mergeClaudeCodeSettings", () => {
     const merged = mergeClaudeCodeSettings(
       {
         theme: "dark",
+        env: { EXISTING_FLAG: "keep", FORCE_HYPERLINK: "0" },
         statusLine: { type: "command", command: "existing-status" },
         hooks: {
           Stop: [
@@ -320,6 +372,10 @@ describe("mergeClaudeCodeSettings", () => {
     );
 
     expect(merged.theme).toBe("dark");
+    expect(merged.env).toEqual({
+      EXISTING_FLAG: "keep",
+      FORCE_HYPERLINK: "1",
+    });
     expect(merged.statusLine).toEqual({
       type: "command",
       command: plan.statusLineCommand,

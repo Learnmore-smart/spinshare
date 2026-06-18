@@ -1,6 +1,6 @@
 # claude-code-adapter.test.ts
 
-> Last updated: 2026-06-15 | Protection: STANDARD
+> Last updated: 2026-06-17 | Protection: STANDARD
 
 ## Purpose
 
@@ -123,10 +123,40 @@ The adapter tests now assert that generated statusLine scripts contain the
 `accent(text)` helper and that runtime stdout contains both bold cyan ANSI text
 and the OSC8 hyperlink wrapper for `destinationUrl`.
 
+## Planned Change 2026-06-17 Expired StatusLine State Regression
+
+Add runtime coverage for the stuck statusLine bug. The generated statusLine
+script should suppress an active state whose `expiresAtMs` is in the past. This
+locks the extension adapter to the same behavior as the npm CLI adapter.
+
+Also add runtime coverage that `MessageDisplay` after `Stop` does not fetch a
+fresh ad or recreate state. This prevents a post-loading display event from
+leaving an ad visible after the Claude turn has ended.
+
+## Implemented Change 2026-06-17 Expired StatusLine State Regression
+
+The generated script runtime smoke test now covers expired active state and
+post-stop `MessageDisplay`. It asserts expired state prints no statusLine output
+and that a `MessageDisplay` event after `Stop` does not fetch a fresh ad or
+recreate state.
+
+RED verification before implementation:
+`corepack pnpm@9.12.0 --filter ./vscode-extension test -- src/claude-code-adapter.test.ts`
+failed because generated scripts did not contain `expiresAtMs` and statusLine
+printed expired state.
+
+GREEN verification after implementation:
+`corepack pnpm@9.12.0 --filter ./vscode-extension test -- src/claude-code-adapter.test.ts`
+passed 11 tests.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-17 | Implemented expired statusLine state and post-stop MessageDisplay regression coverage. | Codex |
+| 2026-06-17 | Planned expired statusLine state runtime regression coverage. | Codex |
+| 2026-06-16 | Added runtime coverage for ignoring mismatched credential-file baseUrl values. | Codex |
+| 2026-06-16 | Planned runtime coverage for ignoring mismatched credential-file baseUrl values. | Codex |
 | 2026-06-15 | Added statusLine color/link runtime assertions. | Codex |
 | 2026-06-15 | Implemented same-session stale state reset tests. | Codex |
 | 2026-06-15 | Planned same-session stale state reset tests. | Codex |

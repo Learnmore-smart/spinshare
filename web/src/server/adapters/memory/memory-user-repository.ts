@@ -53,8 +53,33 @@ export class MemoryUserRepository implements UserRepository {
 
   async applyBalanceDeltaCents(id: string, deltaCents: number): Promise<void> {
     const user = this.users.get(id);
-    if (!user) throw new Error(`user not found: ${id}`);
+    if (!user) {
+      // Upsert to mirror FirestoreUserRepo: a missing durable record is created
+      // carrying the credited balance rather than throwing, so a developer who
+      // has not yet been provisioned can never poison flush reconciliation.
+      // Identity fields are enriched later by `upsertFromIdentity`.
+      this.users.set(id, {
+        id,
+        email: "",
+        provider: "github",
+        role: "developer",
+        balanceCents: deltaCents,
+      });
+      return;
+    }
     user.balanceCents += deltaCents;
+  }
+
+  async tryDebitBalanceCents(
+    id: string,
+    amountCents: number,
+  ): Promise<boolean> {
+    const user = this.users.get(id);
+    if (!user || user.balanceCents < amountCents) {
+      return false;
+    }
+    user.balanceCents -= amountCents;
+    return true;
   }
 
   async setConnectAccount(

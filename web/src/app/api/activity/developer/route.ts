@@ -1,7 +1,7 @@
 import { formatCentsAsUsd } from "@spinshare/core";
 
 import { getContainer } from "@/server/container";
-import type { ImpressionActivity } from "@/server/ports";
+import type { DeveloperActivityRecord } from "@/server/ports";
 import { paginateActivity } from "../pagination";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +20,34 @@ function unauthorized(): Response {
   return Response.json({ error: "unauthorized" }, { status: 401 });
 }
 
-function toActivityView(activity: ImpressionActivity) {
+function toActivityView(activity: DeveloperActivityRecord) {
+  if (activity.type === "developer_event") {
+    return {
+      activityId: activity.activityId,
+      campaignId: activity.campaignId,
+      type: "developer_event",
+      status: activity.status,
+      developerId: activity.developerId,
+      ...(activity.amountCents !== undefined
+        ? {
+            amountCents: activity.amountCents,
+            amountUsd:
+              activity.amountUsd ?? formatCentsAsUsd(activity.amountCents),
+          }
+        : {}),
+      ...(activity.providerEventId !== undefined
+        ? { providerEventId: activity.providerEventId }
+        : {}),
+      ...(activity.providerStatus !== undefined
+        ? { providerStatus: activity.providerStatus }
+        : {}),
+      ...(activity.providerCode !== undefined
+        ? { providerCode: activity.providerCode }
+        : {}),
+      createdAtMs: activity.createdAtMs,
+    };
+  }
+
   return {
     activityId: activity.activityId,
     campaignId: activity.campaignId,

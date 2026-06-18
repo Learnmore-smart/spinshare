@@ -46,6 +46,63 @@ Renders the client-side sign-in page for developer and advertiser entry.
 - Keep the sign-in page focused on account access; do not add fake account creation actions that are not wired.
 - Keep the money icon as a restrained product cue, not a dense full-page background.
 
+## Bug Fix Plan 2026-06-16 Local Sample Credentials Entry
+
+Bug: `dev:sample` intentionally runs with `AUTH_MODE=mock` and seeded local
+data, but the sign-in UI is OAuth-only. Without Google/GitHub credentials, the
+extension opens `/activate`, redirects to `/signin`, and the user has no visible
+way to create the browser session required to approve the device flow. That
+makes local VSIX/sample ads look broken even when the backend has sample ads.
+
+Root cause: the server still registers the local NextAuth Credentials provider,
+but the client removed the credentials entry point for all environments.
+
+Fix strategy:
+
+- Keep production OAuth-only.
+- Add a local-only credentials shortcut controlled by
+  `NEXT_PUBLIC_SPINSHARE_LOCAL_CREDENTIALS=1`.
+- Use the fixed local developer/advertiser test accounts only; do not accept
+  arbitrary ids or passwords from the browser.
+- Reuse `signIn("credentials", { email, password, callbackUrl })` so this goes
+  through the real NextAuth credentials provider and creates the same browser
+  session `/activate` needs.
+- Set this flag in `dev:sample` so local VSIX testing has a complete auth path.
+
+## Bug Fix Implemented 2026-06-16 Local Sample Credentials Entry
+
+Added `localCredentialsEnabledFromEnv()` and
+`localTestCredentialsForRole()`. When
+`NEXT_PUBLIC_SPINSHARE_LOCAL_CREDENTIALS=1`, the sign-in panel shows a compact
+local test-account section for the selected role and calls
+`signIn("credentials", { email, password, callbackUrl })` with the fixed local
+developer/advertiser test account. Production remains OAuth-only by default.
+
+## Bug Fix Plan 2026-06-16 Advertiser Callback Role
+
+Bug: visiting `/dashboard/advertiser` while signed out redirects through
+NextAuth with `callbackUrl=/dashboard/advertiser`, but no `role=advertiser`
+query. The sign-in page therefore initializes as Developer, which is confusing
+for advertisers who just bought a campaign and then open the advertiser
+dashboard.
+
+Root cause: `resolveInitialRole()` only reads the explicit `role` query param
+and ignores the callback destination.
+
+Fix strategy:
+
+- Preserve explicit `role=advertiser` and `role=developer` when present.
+- When role is missing, infer advertiser from a `callbackUrl` whose pathname is
+  `/dashboard/advertiser` or below it.
+- Keep the default as developer for unknown callbacks and invalid roles.
+
+## Bug Fix Implemented 2026-06-16 Advertiser Callback Role
+
+`resolveInitialRole()` now honors explicit `role=advertiser` and
+`role=developer` first. When role is missing, it parses `callbackUrl` and
+selects advertiser for `/dashboard/advertiser` and nested advertiser dashboard
+paths. Unknown callbacks still default to developer.
+
 ## Planned Change: Clean Split Sign-In Page
 
 User correction on 2026-06-13: the requested clean reference should apply to the sign-up/sign-in page, not the public homepage.
@@ -156,6 +213,10 @@ Fix strategy:
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-16 | Implemented advertiser callback role inference. | Codex |
+| 2026-06-16 | Planned advertiser callback role inference. | Codex |
+| 2026-06-16 | Implemented local-only credentials shortcut for sample/dev sign-in. | Codex |
+| 2026-06-16 | Planned local-only credentials shortcut for sample/dev sign-in. | Codex |
 | 2026-06-14 | Denser left column, neutral glass, no role-tab icons. | Auto |
 | 2026-06-14 | Removed email/password form from sign-in card; OAuth-only panel. | Auto |
 | 2026-06-14 | Corrected sign-in body copy to describe 3-second ad impressions instead of per-second AI thinking. | Codex |

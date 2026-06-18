@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => {
     signIn: ReturnType<typeof vi.fn>;
     signOut: ReturnType<typeof vi.fn>;
     getToken: ReturnType<typeof vi.fn>;
+    deps: Record<string, unknown>;
   }> = [];
 
   class MockAuthManager {
@@ -27,7 +28,10 @@ const mocks = vi.hoisted(() => {
     signOut = vi.fn(async () => undefined);
     getToken = vi.fn(() => undefined);
 
-    constructor() {
+    deps: Record<string, unknown>;
+
+    constructor(deps: Record<string, unknown>) {
+      this.deps = deps;
       authInstances.push(this);
     }
   }
@@ -77,7 +81,12 @@ vi.mock("vscode", () => mocks.vscode);
 vi.mock("./auth", () => ({
   AuthManager: mocks.MockAuthManager,
   FileTokenMirror: class FileTokenMirror {},
+  TOKEN_SECRET_KEY: "spinshare.deviceAuthToken",
   formatSignInFailure: (reason: string, detail?: string) => detail ?? reason,
+  tokenSecretKeyForBaseUrl: (baseUrl: string) =>
+    `spinshare.deviceAuthToken:${encodeURIComponent(
+      baseUrl.trim().replace(/\/+$/, "").toLowerCase(),
+    )}`,
 }));
 
 vi.mock("./terminal-auto-wrap", () => ({
@@ -133,5 +142,23 @@ describe("activate", () => {
     expect(mocks.statusBarItem.text).toBe("$(account) SpinShare Sign in");
     expect(mocks.statusBarItem.command).toBe("spinshare.signIn");
     expect(mocks.statusBarItem.show).toHaveBeenCalledOnce();
+    expect(mocks.authInstances[0]?.deps).toMatchObject({
+      tokenSecretKey:
+        "spinshare.deviceAuthToken:https%3A%2F%2Fwww.spinshare.dev",
+      legacyTokenSecretKeys: ["spinshare.deviceAuthToken"],
+    });
+  });
+
+  it("prompts sign-in during activation when no token is loaded", async () => {
+    const { activate } = await import("./extension");
+
+    activate(makeContext() as never);
+    await flushActivationPromises();
+
+    expect(mocks.authInstances[0]?.initialize).toHaveBeenCalledOnce();
+    expect(mocks.authInstances[0]?.isAuthenticated).toHaveBeenCalledOnce();
+    expect(mocks.authInstances[0]?.ensureAuthenticated).toHaveBeenCalledOnce();
+    expect(mocks.statusBarItem.show).toHaveBeenCalledOnce();
+    expect(mocks.statusBarItem.hide).not.toHaveBeenCalled();
   });
 });

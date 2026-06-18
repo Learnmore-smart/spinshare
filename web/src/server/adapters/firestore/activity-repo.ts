@@ -10,6 +10,9 @@ import type {
   ActivityRecord,
   AdvertiserActivity,
   AdvertiserActivityStatus,
+  DeveloperActivity,
+  DeveloperActivityRecord,
+  DeveloperActivityStatus,
   ImpressionActivity,
   ImpressionActivityStatus,
 } from "../../ports/activity-repository";
@@ -49,6 +52,33 @@ function toActivity(id: string, data: DocumentData): ActivityRecord {
         : {}),
       ...(typeof data.checkoutSessionId === "string"
         ? { checkoutSessionId: data.checkoutSessionId }
+        : {}),
+    };
+    return activity;
+  }
+
+  if (data.type === "developer_event") {
+    const activity: DeveloperActivity = {
+      activityId: String(data.activityId ?? id),
+      campaignId: "payout",
+      type: "developer_event",
+      status: data.status as DeveloperActivityStatus,
+      createdAtMs: Number(data.createdAtMs ?? 0),
+      developerId: String(data.developerId ?? ""),
+      ...(toNumberOrUndefined(data.amountCents) !== undefined
+        ? { amountCents: Number(data.amountCents) }
+        : {}),
+      ...(typeof data.amountUsd === "string"
+        ? { amountUsd: data.amountUsd }
+        : {}),
+      ...(typeof data.providerEventId === "string"
+        ? { providerEventId: data.providerEventId }
+        : {}),
+      ...(toNumberOrUndefined(data.providerStatus) !== undefined
+        ? { providerStatus: Number(data.providerStatus) }
+        : {}),
+      ...(typeof data.providerCode === "string"
+        ? { providerCode: data.providerCode }
         : {}),
     };
     return activity;
@@ -108,14 +138,16 @@ export class FirestoreActivityRepo implements ActivityRepository {
     });
   }
 
-  async listByDeveloper(developerId: string): Promise<ImpressionActivity[]> {
+  async listByDeveloper(
+    developerId: string,
+  ): Promise<DeveloperActivityRecord[]> {
     const snap = await this.collection
       .where("developerId", "==", developerId)
       .get();
     return snap.docs
       .map((doc) => toActivity(doc.id, doc.data()))
       .filter(
-        (activity): activity is ImpressionActivity =>
+        (activity): activity is DeveloperActivityRecord =>
           activity.type !== "advertiser_event",
       )
       .sort((a, b) => a.createdAtMs - b.createdAtMs);
