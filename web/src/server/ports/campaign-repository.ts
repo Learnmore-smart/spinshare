@@ -33,6 +33,22 @@ export interface NewCampaign {
   cpmCents: number;
 }
 
+/**
+ * Editable fields for an advertiser-initiated campaign update. Every field is
+ * optional; only the keys present are written. `reviewStatus` is included so
+ * the route can re-gate a content edit (ad text / destination) through review
+ * in the same write.
+ */
+export interface CampaignUpdate {
+  adText?: string;
+  destinationUrl?: string;
+  brandName?: string;
+  brandIconDataUrl?: string;
+  publicOnLeaderboard?: boolean;
+  cpmCents?: number;
+  reviewStatus?: CampaignReviewStatus;
+}
+
 /** Durable campaign repository. */
 export interface CampaignRepository {
   /** Candidate set for bidding: `budgetCents > 0` AND `cpmCents > 0`. */
@@ -45,6 +61,11 @@ export interface CampaignRepository {
   listByAdvertiser(advertiserId: string): Promise<Campaign[]>;
   /** Applies a signed budget delta (flush reconciliation + funding). */
   applyBudgetDeltaCents(id: string, deltaCents: number): Promise<void>;
+  /**
+   * Applies an advertiser edit (ad text, destination, brand, leaderboard, CPM,
+   * review state). Returns the updated campaign. Throws if the id is unknown.
+   */
+  update(id: string, patch: CampaignUpdate): Promise<Campaign>;
   /** Updates safety review state after automated/manual review. */
   updateReviewStatus(id: string, reviewStatus: CampaignReviewStatus): Promise<void>;
 }

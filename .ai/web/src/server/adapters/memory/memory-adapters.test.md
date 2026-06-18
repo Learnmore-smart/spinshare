@@ -32,6 +32,17 @@ Added a regression test that starts a mock device flow, approves by user code
 with `{ userId, email }`, polls the device token, and validates that
 `validateToken(accessToken)` returns both the user id and email claim.
 
+## Planned Change 2026-06-18 Destination-Required Biddability Fixtures
+
+Update MemoryCampaignRepository biddability tests to include destination URLs
+for campaigns expected to bid, matching the new repository contract that paid
+campaigns without a link stay out of ad selection.
+
+## Implemented Change 2026-06-18 Destination-Required Biddability Fixtures
+
+Updated the biddability and review-status fixtures to include
+`https://learnx.pro/`, then reran the memory adapter suite successfully.
+
 ## Verification
 
 - `corepack pnpm@9.12.0 --filter @spinshare/web test` passed.
@@ -41,6 +52,8 @@ with `{ userId, email }`, polls the device token, and validates that
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented destination-required memory biddability fixture update. | Codex |
+| 2026-06-18 | Planned destination-required memory biddability fixture update. | Codex |
 | 2026-06-17 | Added regression for mock device approval email claims. | Codex |
 | 2026-06-17 | Planned regression for mock device approval email claims. | Codex |
 | 2026-06-16 | Added regression for updating campaign review status before bidding. | Codex |

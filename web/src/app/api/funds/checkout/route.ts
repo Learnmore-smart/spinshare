@@ -146,8 +146,22 @@ export async function POST(request: Request): Promise<Response> {
   if (!allowedAdvertiserIds.has(campaign.advertiserId)) {
     return Response.json({ error: "forbidden" }, { status: 403 });
   }
+
+  // Buy-time CPM edit: when the advertiser sets a new max CPM in the buy
+  // control, re-price this checkout off it and persist it for future bids.
+  // When omitted, fall back to the campaign's existing CPM (the UI defaults the
+  // input placeholder to it, so an empty field means "keep current").
+  const effectiveCpmCents = parsed.data.cpmCents ?? campaign.cpmCents;
+  if (
+    parsed.data.cpmCents !== undefined &&
+    parsed.data.cpmCents !== campaign.cpmCents
+  ) {
+    await campaigns.update(campaign.id, { cpmCents: parsed.data.cpmCents });
+    campaign.cpmCents = parsed.data.cpmCents;
+  }
+
   const amountCents = getAdvertiserCheckoutAmountCents({
-    cpmCents: campaign.cpmCents,
+    cpmCents: effectiveCpmCents,
     blockCount: parsed.data.blockCount,
   });
   if (!Number.isSafeInteger(amountCents) || amountCents > FUNDING_CENTS_MAX) {

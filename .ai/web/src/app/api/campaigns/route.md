@@ -33,6 +33,31 @@ Support email-first advertiser claim: when the authenticated token includes an e
 - Telemetry must remain aggregate and campaign-scoped.
 - Do not expose prompts, user content, or private user identifiers.
 - Campaign creation must inherit core ad-safety validation before mutation.
+- Campaign edits must use the same ownership boundary as reads: direct user id
+  plus the deterministic public advertiser id for the caller's email.
+- Editing ad text or destination URL must re-run the content review seam before
+  the campaign can bid again.
+
+## Planned Change 2026-06-18 Campaign Edit Endpoint
+
+Add `PATCH /api/campaigns` so advertisers can inspect and correct ad details
+before buying or resubmitting:
+
+- require a bearer advertiser token
+- require `campaignId`
+- reject missing campaigns and campaigns not owned by the caller
+- validate editable fields with the core update schema
+- support ad text, destination URL, brand name, icon, leaderboard visibility,
+  and CPM edits
+- re-run review for ad text or destination changes and persist the result
+- return the updated campaign view
+
+## Implemented Change 2026-06-18 Campaign Edit Endpoint
+
+`PATCH /api/campaigns` authenticates the advertiser, validates editable fields
+with `updateCampaignSchema`, enforces direct/same-email ownership, re-runs the
+review seam for text or destination edits, persists the patch through
+`CampaignRepository.update()`, and returns the updated campaign view.
 
 ## Planned Change 2026-06-16 Ad Safety Gate
 
@@ -180,6 +205,8 @@ merging durable ledger impression counts into the `credited` total.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented campaign PATCH edit endpoint. | Codex |
+| 2026-06-18 | Planned campaign PATCH edit endpoint and review rerun. | Codex |
 | 2026-06-17 | Implemented optional direct checkout on authenticated campaign creation. | Codex |
 | 2026-06-17 | Planned optional direct checkout on authenticated campaign creation. | Codex |
 | 2026-06-16 | Implemented dashboard read-time reconciliation for paid Stripe checkout sessions. | Codex |

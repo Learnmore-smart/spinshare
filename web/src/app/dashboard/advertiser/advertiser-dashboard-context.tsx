@@ -16,6 +16,20 @@ export type LoadState =
   | { status: "ready"; campaigns: CampaignView[] }
   | { status: "error"; message: string };
 
+/** Editable campaign fields the dashboard can PATCH. */
+export interface CampaignEditPatch {
+  adText?: string;
+  destinationUrl?: string;
+  brandName?: string;
+  brandIconDataUrl?: string;
+  publicOnLeaderboard?: boolean;
+  cpmCents?: number;
+}
+
+export type UpdateCampaignResult =
+  | { ok: true; campaign: CampaignView }
+  | { ok: false; error: string };
+
 interface AdvertiserDashboardData {
   token: string;
   campaignsState: LoadState;
@@ -24,6 +38,10 @@ interface AdvertiserDashboardData {
   loadActivity: () => Promise<void>;
   loadMoreActivity: () => Promise<void>;
   handleCreated: (created: CampaignView) => void;
+  updateCampaign: (
+    campaignId: string,
+    patch: CampaignEditPatch,
+  ) => Promise<UpdateCampaignResult>;
 }
 
 interface ActivityApiResponse {
@@ -190,6 +208,54 @@ export function AdvertiserDashboardProviderClient({
     [loadCampaigns],
   );
 
+  const updateCampaign = useCallback(
+    async (
+      campaignId: string,
+      patch: CampaignEditPatch,
+    ): Promise<UpdateCampaignResult> => {
+      try {
+        const response = await fetch("/api/campaigns", {
+          method: "PATCH",
+          headers: {
+            "content-type": "application/json",
+            authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ campaignId, ...patch }),
+        });
+        if (response.ok) {
+          const updated = (await response.json()) as CampaignView;
+          setCampaignsState((prev) =>
+            prev.status === "ready"
+              ? {
+                  status: "ready",
+                  campaigns: prev.campaigns.map((c) =>
+                    c.id === campaignId
+                      ? // Preserve live telemetry; PATCH returns a zero-telemetry view.
+                        { ...c, ...updated, telemetry: c.telemetry }
+                      : c,
+                  ),
+                }
+              : prev,
+          );
+          return { ok: true, campaign: updated };
+        }
+        if (response.status === 401) {
+          return { ok: false, error: t.advertiserDashboard.sessionExpired };
+        }
+        const body = (await response.json().catch(() => null)) as
+          | { error?: string }
+          | null;
+        return {
+          ok: false,
+          error: body?.error ?? t.advertiserDashboard.campaignRejected,
+        };
+      } catch {
+        return { ok: false, error: t.advertiserDashboard.networkError };
+      }
+    },
+    [token, t],
+  );
+
   return (
     <AdvertiserDashboardContext.Provider
       value={{
@@ -200,6 +266,7 @@ export function AdvertiserDashboardProviderClient({
         loadActivity,
         loadMoreActivity,
         handleCreated,
+        updateCampaign,
       }}
     >
       {children}

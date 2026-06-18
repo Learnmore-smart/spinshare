@@ -272,6 +272,26 @@ export const createCampaignSchema = z.object({
 /** Validated campaign creation payload. */
 export type CreateCampaignInput = z.infer<typeof createCampaignSchema>;
 
+/**
+ * Campaign edit input for `PATCH /api/campaigns`. Every field is optional — the
+ * route applies only the keys the advertiser actually sent. `adText` keeps the
+ * same 1–60 char + safety review enforced at creation; `destinationUrl` keeps
+ * the public-HTTPS rule; `cpmCents` keeps the $1–$1000 bound (it re-prices
+ * future bids). At least one editable field must be present (enforced by the
+ * route, which rejects an empty patch).
+ */
+export const updateCampaignSchema = z.object({
+  adText: adTextSchema.optional(),
+  destinationUrl: destinationUrlSchema.optional(),
+  brandName: brandNameSchema,
+  brandIconDataUrl: brandIconDataUrlSchema,
+  publicOnLeaderboard: z.boolean().optional(),
+  cpmCents: cpmCentsSchema.optional(),
+});
+
+/** Validated campaign edit payload. */
+export type UpdateCampaignInput = z.infer<typeof updateCampaignSchema>;
+
 // ---------------------------------------------------------------------------
 // Funding amount (Requirements 9.6, 9.7)
 // ---------------------------------------------------------------------------
@@ -298,10 +318,15 @@ export const fundingAmountSchema = z.object({
 /** Validated funding request payload. */
 export type FundingAmountInput = z.infer<typeof fundingAmountSchema>;
 
-/** Dashboard campaign funding request body: buy 1,000-view blocks. */
+/** Dashboard campaign funding request body: buy 1,000-view blocks.
+ *
+ * `cpmCents` is optional: when present it re-prices the campaign's max CPM for
+ * future bids and is used to compute this checkout's total. When omitted the
+ * route falls back to the campaign's existing CPM (R9 + buy-time CPM edit). */
 export const fundingBlockCheckoutSchema = z.object({
   campaignId: z.string().min(1, { message: "Campaign id is required" }),
   blockCount: advertiserCheckoutBlockCountSchema,
+  cpmCents: cpmCentsSchema.optional(),
 });
 
 /** Validated dashboard block funding payload. */

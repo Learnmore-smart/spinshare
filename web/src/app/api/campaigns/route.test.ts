@@ -22,7 +22,7 @@ import type {
   StripeEvent,
 } from "@/server/ports/payment-gateway";
 
-import { GET, POST } from "./route";
+import { GET, PATCH, POST } from "./route";
 import { POST as advertiserCheckout } from "../advertiser-checkout/route";
 
 const ENV_KEYS = [
@@ -81,6 +81,17 @@ function authRequest(token: string): Request {
 function authenticatedPostRequest(token: string, body: unknown): Request {
   return new Request("https://spinshare.test/api/campaigns", {
     method: "POST",
+    headers: {
+      authorization: `Bearer ${token}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+function authenticatedPatchRequest(token: string, body: unknown): Request {
+  return new Request("https://spinshare.test/api/campaigns", {
+    method: "PATCH",
     headers: {
       authorization: `Bearer ${token}`,
       "content-type": "application/json",
@@ -397,5 +408,130 @@ describe("POST /api/campaigns safety", () => {
     expect(response.status).toBe(400);
     expect(body.error).toBe("Ad text appears unsafe or deceptive");
     expect(await container.campaigns.listByAdvertiser("adv1")).toEqual([]);
+  });
+});
+
+describe("PATCH /api/campaigns", () => {
+  it("lets an owner update campaign details and re-approve edited content", async () => {
+    const container = getContainer();
+    seedCampaign(container, {
+      id: "cmp_edit",
+      adText: "Old ad copy",
+      destinationUrl: "https://old.example.com/",
+      brandName: "Old Brand",
+      publicOnLeaderboard: true,
+      cpmCents: 500,
+      reviewStatus: "approved",
+    });
+    const token = (container.auth as MockAuthProvider).mintToken("adv1");
+
+    const response = await PATCH(
+      authenticatedPatchRequest(token, {
+        campaignId: "cmp_edit",
+        adText: "Learn faster with LearnX",
+        destinationUrl: "https://learnx.pro/",
+        brandName: "LearnX",
+        brandIconDataUrl: "data:image/png;base64,AAAA",
+        publicOnLeaderboard: false,
+        cpmCents: 700,
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      id: "cmp_edit",
+      adText: "Learn faster with LearnX",
+      destinationUrl: "https://learnx.pro/",
+      brandName: "LearnX",
+      brandIconDataUrl: "data:image/png;base64,AAAA",
+      publicOnLeaderboard: false,
+      cpmCents: 700,
+      reviewStatus: "approved",
+      cpmUsd: "7.00",
+    });
+    await expect(container.campaigns.getById("cmp_edit")).resolves.toMatchObject({
+      adText: "Learn faster with LearnX",
+      destinationUrl: "https://learnx.pro/",
+      cpmCents: 700,
+      reviewStatus: "approved",
+    });
+  });
+
+  it("lets a signed-in same-email advertiser edit a public checkout campaign", async () => {
+    const container = getContainer();
+    const advertiserId = publicAdvertiserIdForEmail("buyer@example.com");
+    const campaign = await container.campaigns.create({
+      advertiserId,
+      contactEmail: "buyer@example.com",
+      adText: "Original public checkout ad",
+      destinationUrl: "https://old.example.com/",
+      cpmCents: 500,
+    });
+    const token = (container.auth as MockAuthProvider).mintToken("google:buyer", {
+      email: "Buyer@Example.com",
+    });
+
+    const response = await PATCH(
+      authenticatedPatchRequest(token, {
+        campaignId: campaign.id,
+        destinationUrl: "https://learnx.pro/",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      id: campaign.id,
+      advertiserId,
+      destinationUrl: "https://learnx.pro/",
+    });
+  });
+
+  it("rejects campaign edits from non-owners", async () => {
+    const container = getContainer();
+    seedCampaign(container, {
+      id: "cmp_owned",
+      destinationUrl: "https://old.example.com/",
+    });
+    const token = (container.auth as MockAuthProvider).mintToken("adv2");
+
+    const response = await PATCH(
+      authenticatedPatchRequest(token, {
+        campaignId: "cmp_owned",
+        adText: "Should not save",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(body.error).toBe("forbidden");
+    await expect(container.campaigns.getById("cmp_owned")).resolves.toMatchObject({
+      adText: "Try Linear for issue tracking",
+    });
+  });
+
+  it("rejects unsafe edited ad copy before mutating the campaign", async () => {
+    const container = getContainer();
+    seedCampaign(container, {
+      id: "cmp_safe",
+      adText: "Safe original copy",
+      destinationUrl: "https://old.example.com/",
+    });
+    const token = (container.auth as MockAuthProvider).mintToken("adv1");
+
+    const response = await PATCH(
+      authenticatedPatchRequest(token, {
+        campaignId: "cmp_safe",
+        adText: "Enter your seed phrase to restore wallet",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Ad text appears unsafe or deceptive");
+    await expect(container.campaigns.getById("cmp_safe")).resolves.toMatchObject({
+      adText: "Safe original copy",
+    });
   });
 });

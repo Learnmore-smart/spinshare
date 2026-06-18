@@ -8,7 +8,11 @@
  * the Flush_Process.
  */
 
-import type { Campaign, CampaignReviewStatus } from "@spinshare/core";
+import {
+  destinationUrlSchema,
+  type Campaign,
+  type CampaignReviewStatus,
+} from "@spinshare/core";
 import {
   FieldValue,
   type Firestore,
@@ -16,6 +20,7 @@ import {
 
 import type {
   CampaignRepository,
+  CampaignUpdate,
   NewCampaign,
 } from "../../ports/campaign-repository";
 import { getFirestoreClient } from "./client";
@@ -52,7 +57,10 @@ export class FirestoreCampaignRepo implements CampaignRepository {
       .map((doc) => toCampaign(doc.id, doc.data()))
       .filter(
         (c) =>
-          c.cpmCents > 0 && (c.reviewStatus ?? "approved") === "approved",
+          c.status === "active" &&
+          c.cpmCents > 0 &&
+          (c.reviewStatus ?? "approved") === "approved" &&
+          destinationUrlSchema.safeParse(c.destinationUrl).success,
       );
   }
 
@@ -116,6 +124,29 @@ export class FirestoreCampaignRepo implements CampaignRepository {
         budgetCents: FieldValue.increment(deltaCents),
         updatedAt: FieldValue.serverTimestamp(),
       });
+    });
+  }
+
+  /** Applies an advertiser edit atomically and returns the updated campaign. */
+  async update(id: string, patch: CampaignUpdate): Promise<Campaign> {
+    const ref = this.collection.doc(id);
+    // Build a Firestore update map containing only the keys actually provided,
+    // so absent fields are left untouched.
+    const fields: Record<string, unknown> = { updatedAt: FieldValue.serverTimestamp() };
+    if (patch.adText !== undefined) fields.adText = patch.adText;
+    if (patch.destinationUrl !== undefined) fields.destinationUrl = patch.destinationUrl;
+    if (patch.brandName !== undefined) fields.brandName = patch.brandName;
+    if (patch.brandIconDataUrl !== undefined) fields.brandIconDataUrl = patch.brandIconDataUrl;
+    if (patch.publicOnLeaderboard !== undefined) fields.publicOnLeaderboard = patch.publicOnLeaderboard;
+    if (patch.cpmCents !== undefined) fields.cpmCents = patch.cpmCents;
+    if (patch.reviewStatus !== undefined) fields.reviewStatus = patch.reviewStatus;
+    return this.db.runTransaction(async (tx) => {
+      const doc = await tx.get(ref);
+      if (!doc.exists) {
+        throw new Error(`Campaign ${id} not found`);
+      }
+      tx.update(ref, fields);
+      return toCampaign(id, { ...(doc.data() ?? {}), ...fields });
     });
   }
 

@@ -35,6 +35,19 @@ Added `validateFundingBlocks()`, returning `{ ok: true, blocks }` for whole
 positive block counts and errors for empty, zero, negative, decimal, malformed,
 or above-max values.
 
+## Planned Change 2026-06-18 Needs-Link Display Status
+
+Because ad serving now requires a valid public HTTPS destination URL, the
+dashboard's derived display status must not label a paid campaign with no link
+as `active`. Add a `needsLink` display status after review/paused checks and
+before funded-active.
+
+## Implemented Change 2026-06-18 Needs-Link Display Status
+
+`displayStatus()` now returns `needsLink` for funded campaigns without a usable
+HTTPS destination URL. Unfunded campaigns still show `unfunded` first, and
+review/paused states keep higher precedence.
+
 ## Verification
 
 - `corepack pnpm@9.12.0 --filter @spinshare/web test` passed.
@@ -44,6 +57,8 @@ or above-max values.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented needs-link display status. | Codex |
+| 2026-06-18 | Planned needs-link display status. | Codex |
 | 2026-06-15 | Implemented block-count funding helper. | Codex |
 | 2026-06-15 | Planned block-count funding helper. | Codex |
 | 2026-06-15 | Planned dashboard telemetry helpers. | Codex |

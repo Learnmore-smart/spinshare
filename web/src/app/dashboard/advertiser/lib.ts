@@ -243,3 +243,108 @@ export function formatCtr(clicks: number, shows: number): string {
   }
   return `${((clicks / shows) * 100).toFixed(1)}%`;
 }
+
+/**
+ * Formats a (possibly fractional) cent amount as USD with sub-cent precision,
+ * e.g. `2.5 → "$0.025"`. Ad spend is often a fraction of a cent (one impression
+ * at a $5 CPM costs $0.005), so rounding to whole cents — as {@link formatUsd}
+ * does — misleads. Defaults to 3 decimals; trailing-zero-free for whole dollars
+ * is intentionally NOT done so columns stay aligned.
+ */
+export function formatUsdPrecise(cents: number, decimals = 3): string {
+  return `$${(cents / 100).toFixed(decimals)}`;
+}
+
+/**
+ * Exact ad spend for a campaign in (fractional) cents: one credited impression
+ * costs `cpmCents / 1000`. Kept fractional so totals don't accumulate rounding
+ * error before display (paired with {@link formatUsdPrecise}).
+ */
+export function campaignSpendCents(campaign: CampaignView): number {
+  const credited = campaignTelemetry(campaign).credited;
+  return (credited * campaign.cpmCents) / 1000;
+}
+
+/** Sum of {@link campaignSpendCents} across campaigns, in fractional cents. */
+export function totalSpendCents(campaigns: readonly CampaignView[]): number {
+  return campaigns.reduce((sum, c) => sum + campaignSpendCents(c), 0);
+}
+
+/** Derived, display-only campaign status (the stored `status` is always
+ * "active" and never reflects funding or review state). */
+export type CampaignDisplayStatus =
+  | "active"
+  | "unfunded"
+  | "needsLink"
+  | "paused"
+  | "underReview"
+  | "rejected";
+
+function hasUsableDestinationUrl(value: string | undefined): boolean {
+  if (value === undefined || value.trim().length === 0) {
+    return false;
+  }
+  try {
+    const url = new URL(value);
+    const hostname = url.hostname.toLowerCase();
+    return (
+      url.protocol === "https:" &&
+      url.username.length === 0 &&
+      url.password.length === 0 &&
+      url.port.length === 0 &&
+      hostname.includes(".") &&
+      hostname !== "localhost" &&
+      !hostname.endsWith(".localhost") &&
+      !hostname.endsWith(".local")
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Derives the status to show the advertiser. The stored `Campaign.status` is
+ * always `"active"` at creation and never flips on funding, so a campaign with
+ * no budget would otherwise read as "active" forever. Precedence: rejected >
+ * under-review > advertiser-paused > unfunded > needs-link > active.
+ */
+export function displayStatus(campaign: CampaignView): CampaignDisplayStatus {
+  if (campaign.reviewStatus === "rejected") return "rejected";
+  if (campaign.reviewStatus === "pending") return "underReview";
+  if (campaign.status === "paused") return "paused";
+  if (campaign.budgetCents <= 0) return "unfunded";
+  return hasUsableDestinationUrl(campaign.destinationUrl) ? "active" : "needsLink";
+}
+
+/** True when a campaign has never been funded and has no delivery yet — the
+ * card should hide stats and foreground the buy CTA. */
+export function isNeverFunded(campaign: CampaignView): boolean {
+  const tel = campaignTelemetry(campaign);
+  return campaign.budgetCents === 0 && tel.shows === 0 && tel.credited === 0;
+}
+
+/**
+ * Delivery progress for a campaign's progress bar.
+ *
+ * Impressions are always purchased in 1,000-view blocks, so the denominator is
+ * a multiple of 1,000. Deriving it from remaining budget alone drifts downward
+ * (each flush rounds micro-cents → cents, e.g. 1,000 bought reads as 997), so
+ * we snap the raw budget-derived total to the nearest 1,000. `served` is the
+ * credited impression count.
+ */
+export function deliveryProgress(
+  campaign: CampaignView,
+  served: number,
+): { purchased: number; percent: number } {
+  const { budgetCents, cpmCents } = campaign;
+  const remainingImpressions =
+    cpmCents > 0 ? Math.floor((budgetCents * 1000) / cpmCents) : 0;
+  const rawTotal = served + remainingImpressions;
+  // Snap to the nearest whole 1,000-block; never below what's already served.
+  const snapped = Math.round(rawTotal / 1000) * 1000;
+  const purchased = Math.max(snapped, served);
+  return {
+    purchased,
+    percent: purchased > 0 ? Math.min(100, (served / purchased) * 100) : 0,
+  };
+}

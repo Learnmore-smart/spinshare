@@ -8,9 +8,14 @@
  * are deterministic.
  */
 
-import type { Campaign, CampaignReviewStatus } from "@spinshare/core";
+import {
+  destinationUrlSchema,
+  type Campaign,
+  type CampaignReviewStatus,
+} from "@spinshare/core";
 import type {
   CampaignRepository,
+  CampaignUpdate,
   NewCampaign,
 } from "../../ports/campaign-repository";
 import {
@@ -33,6 +38,8 @@ export class MemoryCampaignRepository implements CampaignRepository {
       (c) =>
         c.budgetCents > 0 &&
         c.cpmCents > 0 &&
+        c.status === "active" &&
+        destinationUrlSchema.safeParse(c.destinationUrl).success &&
         (c.reviewStatus ?? "approved") === "approved",
     );
   }
@@ -77,6 +84,23 @@ export class MemoryCampaignRepository implements CampaignRepository {
     const campaign = this.campaigns.get(id);
     if (!campaign) throw new Error(`campaign not found: ${id}`);
     campaign.budgetCents += deltaCents;
+  }
+
+  async update(id: string, patch: CampaignUpdate): Promise<Campaign> {
+    const campaign = this.campaigns.get(id);
+    if (!campaign) throw new Error(`campaign not found: ${id}`);
+    if (patch.adText !== undefined) campaign.adText = patch.adText;
+    if (patch.destinationUrl !== undefined)
+      campaign.destinationUrl = patch.destinationUrl;
+    if (patch.brandName !== undefined) campaign.brandName = patch.brandName;
+    if (patch.brandIconDataUrl !== undefined)
+      campaign.brandIconDataUrl = patch.brandIconDataUrl;
+    if (patch.publicOnLeaderboard !== undefined)
+      campaign.publicOnLeaderboard = patch.publicOnLeaderboard;
+    if (patch.cpmCents !== undefined) campaign.cpmCents = patch.cpmCents;
+    if (patch.reviewStatus !== undefined)
+      campaign.reviewStatus = patch.reviewStatus;
+    return { ...campaign };
   }
 
   async updateReviewStatus(

@@ -192,7 +192,12 @@ describe("MemoryCounterStore drain/ack reconciliation", () => {
 describe("MemoryCampaignRepository", () => {
   it("creates campaigns at zero budget and lists biddable ones", async () => {
     const repo = new MemoryCampaignRepository(new ManualClock(1234), new SequentialIdGenerator());
-    const created = await repo.create({ advertiserId: "adv1", adText: "Hi", cpmCents: CPM });
+    const created = await repo.create({
+      advertiserId: "adv1",
+      adText: "Hi",
+      destinationUrl: "https://learnx.pro/",
+      cpmCents: CPM,
+    });
 
     expect(created.budgetCents).toBe(0);
     expect(created.createdAtMs).toBe(1234);
@@ -210,6 +215,7 @@ describe("MemoryCampaignRepository", () => {
     const created = await repo.create({
       advertiserId: "adv1",
       adText: "Hi",
+      destinationUrl: "https://learnx.pro/",
       cpmCents: CPM,
       reviewStatus: "pending",
     });

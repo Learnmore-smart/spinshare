@@ -57,6 +57,29 @@ bar, telemetry/diagnostic counters, and a right-side buy-more-impressions
 control on desktop. The control still submits block counts to the existing
 checkout endpoint.
 
+## Planned Change 2026-06-18 Editable Detail Cards
+
+Revamp the campaigns page from full-width recharge rows into a responsive grid
+of detail cards. Each card should show ad text, destination URL, brand/icon,
+derived status, review hints, delivery stats only when meaningful, inline edit
+controls, and buy controls with block count plus optional new CPM.
+
+## Planned Change 2026-06-18 Needs-Link Status
+
+Add a `needsLink` status label for campaigns that have budget but cannot bid
+because no valid click-through URL is saved.
+
+## Implemented Change 2026-06-18 Editable Detail Cards
+
+Campaign cards now render as a responsive detail-card grid with visible ad
+copy, destination link, brand/icon, derived status, review hints, inline edit
+form, and buy controls that accept blocks plus an optional new CPM.
+
+## Implemented Change 2026-06-18 Needs-Link Status
+
+The card status map includes `needsLink`, and the status dot uses the actual
+derived status class so link-required campaigns show a warning treatment.
+
 ## Verification
 
 - `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/dashboard/advertiser/campaign-list.test.tsx` passed.
@@ -67,6 +90,8 @@ checkout endpoint.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented editable campaign detail cards and needs-link status. | Codex |
+| 2026-06-18 | Planned editable campaign detail cards and needs-link status. | Codex |
 | 2026-06-17 | Implemented compact campaign delivery progress and buy-more-impressions UI. | Codex |
 | 2026-06-17 | Planned compact campaign delivery progress and buy-more-impressions UI. | Codex |
 | 2026-06-15 | Implemented campaign block funding UI. | Codex |

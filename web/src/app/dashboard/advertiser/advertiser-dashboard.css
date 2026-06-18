@@ -56,6 +56,33 @@
   --ring-accent: rgba(245, 158, 11, 0.16);
   --surface-input: rgba(255, 255, 255, 0.82);
   --surface-input-focus: rgba(255, 255, 255, 0.98);
+
+  /* Overrides for global primary/emerald classes (like buttons and inputs) */
+  --color-primary-50:  #fffbeb;
+  --color-primary-100: #fef3c7;
+  --color-primary-200: #fde68a;
+  --color-primary-300: #fcd34d;
+  --color-primary-400: #fbbf24;
+  --color-primary-500: #f59e0b;
+  --color-primary-600: #d97706;
+  --color-primary-700: #b45309;
+  --color-primary-800: #92400e;
+  --color-primary-900: #78350f;
+  --color-primary-950: #451a03;
+
+  --color-accent:   var(--color-primary-500);
+  --color-accent-hover: var(--color-primary-400);
+
+  --border-accent:  rgba(217, 119, 6, 0.16);
+  --border-accent-hover: rgba(217, 119, 6, 0.28);
+  --border-accent-strong: rgba(217, 119, 6, 0.35);
+  --border-accent-strong-hover: rgba(217, 119, 6, 0.5);
+  --border-subtle: rgba(217, 119, 6, 0.1);
+
+  --shadow-accent-glow: rgba(217, 119, 6, 0.24);
+  --shadow-accent-btn:  rgba(217, 119, 6, 0.2);
+  --shadow-accent-btn-hover: rgba(217, 119, 6, 0.35);
+  --shadow-accent-outline-hover: rgba(217, 119, 6, 0.15);
 }
 
 .dark .adv-dash {
@@ -104,6 +131,34 @@
   --ring-accent: rgba(245, 158, 11, 0.24);
   --surface-input: rgba(15, 11, 7, 0.68);
   --surface-input-focus: rgba(15, 11, 7, 0.9);
+
+  /* Overrides for global primary/emerald classes (like buttons and inputs) in dark mode */
+  --color-primary-50:  #fffbeb;
+  --color-primary-100: #fef3c7;
+  --color-primary-200: #fde68a;
+  --color-primary-300: #fcd34d;
+  --color-primary-400: #fbbf24;
+  --color-primary-500: #f59e0b;
+  --color-primary-600: #d97706;
+  --color-primary-700: #b45309;
+  --color-primary-800: #92400e;
+  --color-primary-900: #78350f;
+  --color-primary-950: #451a03;
+
+  --color-accent:   var(--color-primary-400);
+  --color-accent-hover: var(--color-primary-300);
+
+  --border-default: rgba(245, 158, 11, 0.2);
+  --border-accent:  rgba(245, 158, 11, 0.15);
+  --border-accent-hover: rgba(245, 158, 11, 0.3);
+  --border-accent-strong: rgba(245, 158, 11, 0.35);
+  --border-accent-strong-hover: rgba(245, 158, 11, 0.5);
+  --border-subtle: rgba(245, 158, 11, 0.1);
+
+  --shadow-accent-glow: rgba(245, 158, 11, 0.2);
+  --shadow-accent-btn:  rgba(217, 119, 6, 0.25);
+  --shadow-accent-btn-hover: rgba(245, 158, 11, 0.35);
+  --shadow-accent-outline-hover: rgba(245, 158, 11, 0.15);
 }
 
 .adv-dash {
@@ -939,6 +994,19 @@
   background-color: #94a3b8;
 }
 
+.adv-status-dot--unfunded {
+  background-color: #94a3b8;
+}
+
+.adv-status-dot--needsLink,
+.adv-status-dot--underReview {
+  background-color: #f59e0b;
+}
+
+.adv-status-dot--rejected {
+  background-color: #ef4444;
+}
+
 @keyframes status-pulse {
   0%, 100% { opacity: 0.6; transform: scale(0.9); }
   50% { opacity: 1; transform: scale(1.2); }
@@ -1312,7 +1380,8 @@
 }
 
 /* Brief highlight on the campaign card a "Resume payment" link jumps to. */
-.adv-dash-campaign-card--resume {
+.adv-dash-campaign-card--resume,
+.adv-camp-card--resume {
   animation: adv-resume-flash 2.4s ease-out;
 }
 
@@ -1497,6 +1566,374 @@
   .adv-stats-breakdown-nums > span {
     font-size: 0.6875rem;
   }
+}
+
+/* ── Campaigns grid / detail cards ── */
+
+.adv-camp-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 880px) {
+  .adv-camp-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.adv-camp-grid-item {
+  display: flex;
+}
+
+/* Stretch the card (and the loading skeleton) to fill its grid column. */
+.adv-camp-grid-item > * {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.adv-camp-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.875rem;
+  border-radius: 0.875rem;
+  border: 1px solid var(--adv-line);
+  border-left: 3px solid var(--adv-line);
+  background: var(--adv-surface-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.6),
+    var(--adv-shadow-md);
+  transition: var(--transition-smooth);
+}
+
+.adv-camp-card:hover {
+  border-color: var(--adv-line-hover);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.7),
+    0 24px 50px -16px rgba(217, 119, 6, 0.26),
+    var(--adv-shadow-lg);
+}
+
+.dark .adv-camp-card {
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
+    var(--adv-shadow-md);
+}
+
+.adv-camp-card--active {
+  border-left-color: var(--adv-accent);
+}
+.adv-camp-card--unfunded,
+.adv-camp-card--paused {
+  border-left-color: rgba(148, 163, 184, 0.55);
+}
+.adv-camp-card--underReview {
+  border-left-color: #6366f1;
+}
+.adv-camp-card--rejected {
+  border-left-color: #ef4444;
+}
+
+.adv-camp-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.adv-camp-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.adv-camp-brand-icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  object-fit: contain;
+  flex-shrink: 0;
+  background: #fff;
+  border: 1px solid var(--adv-line);
+}
+
+.adv-camp-brand-icon--placeholder {
+  display: grid;
+  place-items: center;
+  color: var(--adv-muted);
+  background: var(--adv-surface-white);
+}
+
+.adv-camp-brand-name {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--adv-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.adv-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: 0.125rem;
+  border-radius: 999px;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid var(--adv-line);
+  color: var(--adv-muted);
+  background: var(--adv-surface-white);
+}
+
+.adv-status-badge--active {
+  border-color: rgba(217, 119, 6, 0.3);
+  background: rgba(255, 251, 235, 0.76);
+  color: #b45309;
+}
+.adv-status-badge--unfunded,
+.adv-status-badge--paused {
+  color: #64748b;
+}
+.adv-status-badge--needsLink {
+  border-color: rgba(217, 119, 6, 0.32);
+  background: rgba(255, 251, 235, 0.7);
+  color: #b45309;
+}
+.adv-status-badge--underReview {
+  border-color: rgba(99, 102, 241, 0.3);
+  background: rgba(99, 102, 241, 0.08);
+  color: #4f46e5;
+}
+.adv-status-badge--rejected {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.06);
+  color: #dc2626;
+}
+.dark .adv-status-badge--active {
+  border-color: rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+}
+
+.adv-camp-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--adv-line);
+  background: var(--adv-surface-white);
+  color: var(--adv-muted);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.adv-camp-edit-btn:hover {
+  border-color: var(--adv-line-hover);
+  color: var(--adv-accent-strong);
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.adv-camp-review {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.adv-camp-review--rejected {
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  background: rgba(239, 68, 68, 0.06);
+  color: #dc2626;
+}
+.adv-camp-review--pending {
+  border: 1px solid rgba(99, 102, 241, 0.28);
+  background: rgba(99, 102, 241, 0.07);
+  color: #4f46e5;
+}
+
+.adv-camp-adtext {
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.4;
+  color: var(--adv-ink);
+}
+
+.adv-camp-detail-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.adv-camp-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.adv-camp-dest {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  max-width: 100%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--adv-accent-strong);
+  text-decoration: none;
+}
+.adv-camp-dest:hover {
+  text-decoration: underline;
+}
+.adv-camp-dest-url {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.adv-camp-dest--none {
+  color: #dc2626;
+}
+
+.adv-camp-cpm {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--adv-muted);
+}
+.adv-camp-cpm strong {
+  color: var(--adv-accent-strong);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.adv-camp-unfunded {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1rem;
+  text-align: center;
+  border-radius: 0.625rem;
+  border: 1px dashed var(--adv-border-empty);
+  background: rgba(245, 158, 11, 0.04);
+}
+.adv-camp-unfunded-icon {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.625rem;
+  border: 1px solid rgba(245, 158, 11, 0.22);
+  background: rgba(255, 251, 235, 0.72);
+  color: var(--adv-accent-strong);
+}
+.dark .adv-camp-unfunded-icon {
+  background: rgba(245, 158, 11, 0.1);
+}
+.adv-camp-unfunded-title {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--adv-ink);
+}
+.adv-camp-unfunded-body {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--adv-muted);
+  max-width: 24rem;
+}
+
+.adv-camp-delivery {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+.adv-camp-delivery-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.adv-camp-delivery-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--adv-muted);
+}
+.adv-camp-delivery-value {
+  font-size: 0.8125rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: var(--adv-ink);
+}
+
+.adv-camp-buy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--adv-line);
+}
+.adv-camp-buy-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+.adv-camp-buy-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.adv-camp-buy-field-label {
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--adv-muted);
+}
+
+.adv-camp-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.adv-camp-edit-title {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--adv-accent-strong);
+}
+.adv-camp-edit-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.adv-camp-edit-actions .adv-dash-campaign-buy-button {
+  width: auto;
+  flex: 1;
 }
 
 /* Honour reduced-motion: keep the elevated look, drop the movement. */

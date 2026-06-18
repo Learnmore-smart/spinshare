@@ -88,6 +88,23 @@ This keeps the existing non-owner `403` boundary while allowing campaigns
 bought on the homepage to be topped up from the advertiser dashboard after the
 same email signs in.
 
+## Planned Change 2026-06-18 Buy-Time CPM
+
+The dashboard buy control now has an optional CPM field. When omitted, checkout
+keeps using the campaign's current CPM. When provided, the route should:
+
+- validate the new CPM with the core CPM bounds
+- persist it on the campaign for future bids before funding
+- derive this checkout's amount from `newCpmCents * blockCount`
+- keep ownership and max-funding checks unchanged
+
+## Implemented Change 2026-06-18 Buy-Time CPM
+
+`POST /api/funds/checkout` accepts optional `cpmCents`. If provided and changed,
+the route persists the new CPM through the campaign repository before creating
+checkout, derives the checkout amount from the effective CPM, and leaves the
+existing CPM untouched when the field is omitted.
+
 ## Verification 2026-06-16
 
 - Red focused run failed because the returned mock URL lacked
@@ -120,6 +137,8 @@ same email signs in.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented optional buy-time CPM update. | Codex |
+| 2026-06-18 | Planned optional buy-time CPM update. | Codex |
 | 2026-06-16 | Implemented same-email public campaign funding authorization. | Codex |
 | 2026-06-16 | Planned same-email public campaign funding authorization fix. | Codex |
 | 2026-06-16 | Implemented dashboard funding success URL session context. | Codex |

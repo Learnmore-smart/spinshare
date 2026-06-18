@@ -94,6 +94,26 @@ GREEN verification after implementation:
 `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts src/app/dashboard/advertiser/campaign-builder.test.tsx`
 passed 9 tests after rebuilding `@spinshare/core`.
 
+## Planned Coverage 2026-06-18 Campaign Edit Endpoint
+
+Add RED coverage for `PATCH /api/campaigns`:
+
+- an owner can update ad text, destination URL, brand fields, leaderboard
+  visibility, and CPM
+- same-email public checkout campaigns can be edited by the signed-in account
+  that claims the public advertiser id
+- non-owners are rejected with `403`
+- unsafe ad copy is rejected before mutating the stored campaign
+
+## Implemented Coverage 2026-06-18 Campaign Edit Endpoint
+
+Added route coverage for owner edits, same-email public checkout edits,
+non-owner rejection, and unsafe ad-copy rejection before mutation.
+
+Verification:
+`corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts src/app/api/funds/checkout/route.test.ts`
+passed 19 tests.
+
 ## Verification
 
 - `corepack pnpm@9.12.0 --filter @spinshare/web test` passed.
@@ -103,6 +123,8 @@ passed 9 tests after rebuilding `@spinshare/core`.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented PATCH endpoint regression coverage. | Codex |
+| 2026-06-18 | Planned PATCH endpoint regression coverage. | Codex |
 | 2026-06-17 | Implemented direct checkout campaign creation regression coverage. | Codex |
 | 2026-06-17 | Planned direct checkout campaign creation regression coverage. | Codex |
 | 2026-06-16 | Implemented dashboard checkout reconciliation regression coverage. | Codex |

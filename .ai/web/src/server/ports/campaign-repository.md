@@ -25,6 +25,9 @@ Defines the durable campaign storage port used by route handlers and services.
 ## Important Notes / NEVER Change
 
 - New campaigns start with zero budget and become biddable only after funding.
+- Biddable also means the campaign has a valid public HTTPS destination URL,
+  is active, and is approved for review; paid-but-incomplete campaigns stay
+  editable but must not be served.
 - Keep the port storage-oriented; Stripe and auth concerns belong in route/services.
 
 ## Planned Change
@@ -41,10 +44,22 @@ Allow campaign creation to carry optional public checkout metadata and the publi
 exposes `updateReviewStatus(id, reviewStatus)` so automated/manual reviewers can
 move campaigns between `pending`, `approved`, and `rejected`.
 
+## Planned Change 2026-06-18 Destination Required
+
+Clarify the `listBiddable()` contract: repository adapters should not return
+campaigns that cannot produce a safe click-through destination.
+
+## Implemented Change 2026-06-18 Destination Required
+
+The port documentation now defines biddable as paid, active, approved, and
+having a valid public HTTPS destination URL.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented destination-required biddability contract docs. | Codex |
+| 2026-06-18 | Documented destination-required biddability contract. | Codex |
 | 2026-06-16 | Added campaign review status creation/update contract. | Codex |
 | 2026-06-13 | Created doc before extending campaign creation metadata. | Codex |
 | 2026-06-13 | Synced doc with campaign creation metadata extension. | Codex |

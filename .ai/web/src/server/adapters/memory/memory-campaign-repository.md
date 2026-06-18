@@ -47,10 +47,24 @@ not be returned from `listBiddable()`.
 approved campaigns only, and `updateReviewStatus()` updates the in-memory record
 for future async/manual review flows.
 
+## Planned Change 2026-06-18 Destination Required
+
+`listBiddable()` must also exclude campaigns with no valid public HTTPS
+destination URL. Funding without a destination should keep the campaign editable
+in the dashboard, but it must not enter ad selection because click-through would
+fall back to the local app root.
+
+## Implemented Change 2026-06-18 Destination Required
+
+`listBiddable()` now requires active status, positive budget/CPM, approved
+review state, and a valid public HTTPS destination URL.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented destination-required biddability filtering. | Codex |
+| 2026-06-18 | Planned destination-required biddability filtering. | Codex |
 | 2026-06-16 | Implemented review-status filtering and update. | Codex |
 | 2026-06-16 | Planned review-status biddability filtering. | Codex |
 | 2026-06-13 | Created doc before mirroring public checkout metadata in memory campaigns. | Codex |

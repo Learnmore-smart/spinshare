@@ -14,6 +14,7 @@
 
 import {
   VIEWABILITY_MIN_MS,
+  destinationUrlSchema,
   type AdResponse,
   type Campaign,
   formatCentsAsUsd,
@@ -76,7 +77,14 @@ function campaignToAd(
 }
 
 function isBiddable(campaign: Campaign | null): campaign is Campaign {
-  return campaign !== null && campaign.budgetCents > 0 && campaign.cpmCents > 0;
+  return (
+    campaign !== null &&
+    campaign.status === "active" &&
+    campaign.budgetCents > 0 &&
+    campaign.cpmCents > 0 &&
+    (campaign.reviewStatus ?? "approved") === "approved" &&
+    destinationUrlSchema.safeParse(campaign.destinationUrl).success
+  );
 }
 
 /**
@@ -114,7 +122,7 @@ export async function selectAd(deps: BiddingServiceDeps): Promise<AdResponse> {
           await deps.progress.clearDeveloper(deps.developerId);
         }
       }
-      const candidates = await campaigns.listBiddable();
+      const candidates = (await campaigns.listBiddable()).filter(isBiddable);
       const winner = selectWinner(candidates);
       if (winner === null) return NO_AD;
       return campaignToAd(winner);

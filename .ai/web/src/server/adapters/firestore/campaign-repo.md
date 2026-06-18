@@ -48,10 +48,25 @@ map as approved for backward compatibility.
 after the budget query, and `updateReviewStatus()` transactionally updates the
 review field plus `updatedAt`.
 
+## Planned Change 2026-06-18 Destination Required
+
+After loading positive-budget campaigns, Firestore-backed `listBiddable()` must
+filter out rows with a missing or invalid destination URL. This protects legacy
+or partially-created campaigns from being served with a tracked click URL that
+would redirect to the local root fallback.
+
+## Implemented Change 2026-06-18 Destination Required
+
+Firestore-backed `listBiddable()` now filters the positive-budget query result
+to active, positive-CPM, approved-review campaigns with a valid public HTTPS
+destination URL.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented destination-required biddability filtering. | Codex |
+| 2026-06-18 | Planned destination-required biddability filtering. | Codex |
 | 2026-06-16 | Implemented review-status persistence, filtering, and update. | Codex |
 | 2026-06-16 | Planned campaign review-status persistence and filtering. | Codex |
 | 2026-06-13 | Created doc before storing public checkout campaign metadata. | Codex |

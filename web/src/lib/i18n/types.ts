@@ -431,6 +431,21 @@ export interface Dictionary {
     statsTotalClicks: string;
     statsAvgCtr: string;
     statsNoCampaigns: string;
+    edit: string;
+    editTitle: string;
+    save: string;
+    saving: string;
+    cancel: string;
+    noDestination: string;
+    newCpmLabel: string;
+    statusActive: string;
+    statusUnfunded: string;
+    statusNeedsLink: string;
+    statusPaused: string;
+    statusUnderReview: string;
+    statusRejected: string;
+    reviewRejectedHint: string;
+    reviewPendingHint: string;
   };
   errors: {
     iconType: string;

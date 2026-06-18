@@ -94,11 +94,11 @@ export function AdvertiserCampaignsView() {
     if (input instanceof HTMLInputElement) {
       input.focus({ preventScroll: true });
     }
-    const card = input.closest(".adv-dash-campaign-card");
+    const card = input.closest(".adv-camp-card");
     if (card !== null) {
-      card.classList.add("adv-dash-campaign-card--resume");
+      card.classList.add("adv-camp-card--resume");
       window.setTimeout(
-        () => card.classList.remove("adv-dash-campaign-card--resume"),
+        () => card.classList.remove("adv-camp-card--resume"),
         2400,
       );
     }
@@ -111,9 +111,9 @@ export function AdvertiserCampaignsView() {
       {campaignsState.status === "loading" && (
         <div data-testid="campaigns-loading" aria-busy="true">
           <span className="sr-only">{t.advertiserDashboard.loadingCampaigns}</span>
-          <ul className="flex flex-col gap-3">
-            {[1, 2, 3].map((i) => (
-              <li key={i}><CampaignCardSkeleton /></li>
+          <ul className="adv-camp-grid">
+            {[1, 2, 3, 4].map((i) => (
+              <li key={i} className="adv-camp-grid-item"><CampaignCardSkeleton /></li>
             ))}
           </ul>
         </div>

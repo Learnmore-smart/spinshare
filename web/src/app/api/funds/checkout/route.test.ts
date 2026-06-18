@@ -84,10 +84,12 @@ describe("POST /api/funds/checkout", () => {
     expect(body.campaign).toMatchObject({
       id: campaign.id,
       budgetCents: 2500,
+      cpmCents: 500,
     });
 
     await expect(container.campaigns.getById(campaign.id)).resolves.toMatchObject({
       budgetCents: 2500,
+      cpmCents: 500,
     });
     expect((container.activities as MemoryActivityRepository).all()).toEqual([
       expect.objectContaining({
@@ -109,6 +111,67 @@ describe("POST /api/funds/checkout", () => {
         checkoutSessionId: body.sessionId,
       }),
     ]);
+  });
+
+  it("updates CPM at checkout time and derives amount from the new CPM", async () => {
+    const container = getContainer();
+    const campaign = await createCampaign("adv_owner", 500);
+    const token = (container.auth as MockAuthProvider).mintToken("adv_owner");
+
+    const response = await POST(
+      checkoutRequest(token, {
+        campaignId: campaign.id,
+        blockCount: 5,
+        cpmCents: 700,
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.campaign).toMatchObject({
+      id: campaign.id,
+      cpmCents: 700,
+      budgetCents: 3500,
+    });
+    await expect(container.campaigns.getById(campaign.id)).resolves.toMatchObject({
+      cpmCents: 700,
+      budgetCents: 3500,
+    });
+    expect((container.activities as MemoryActivityRepository).all()).toEqual([
+      expect.objectContaining({
+        status: "checkoutStarted",
+        amountCents: 3500,
+        amountUsd: "35.00",
+      }),
+      expect.objectContaining({
+        status: "budgetFunded",
+        amountCents: 3500,
+        amountUsd: "35.00",
+      }),
+    ]);
+  });
+
+  it("rejects invalid checkout-time CPM before mutating the campaign", async () => {
+    const container = getContainer();
+    const campaign = await createCampaign("adv_owner", 500);
+    const token = (container.auth as MockAuthProvider).mintToken("adv_owner");
+
+    const response = await POST(
+      checkoutRequest(token, {
+        campaignId: campaign.id,
+        blockCount: 5,
+        cpmCents: 99,
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("CPM bid must be at least $1.00");
+    await expect(container.campaigns.getById(campaign.id)).resolves.toMatchObject({
+      cpmCents: 500,
+      budgetCents: 0,
+    });
+    expect((container.activities as MemoryActivityRepository).all()).toEqual([]);
   });
 
   it("rejects funding for a campaign owned by another advertiser", async () => {

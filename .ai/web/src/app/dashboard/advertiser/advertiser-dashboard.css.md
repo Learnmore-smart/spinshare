@@ -91,6 +91,18 @@ longer use green; they use amber borders, backgrounds, text, dots, and shadows.
 The top stat cards explicitly disable transitions and keep identical border,
 background, and transform values on hover.
 
+## Planned Change 2026-06-18 Detail Card Revamp
+
+Add styles for the responsive campaign detail-card grid, edit form, destination
+URL rows, review banners, unfunded CTA block, buy-time CPM fields, stats page,
+and the `needsLink` status badge. Keep the operational dashboard dense and
+scannable, not a marketing layout.
+
+## Implemented Change 2026-06-18 Detail Card Revamp
+
+Added responsive campaign detail-card, edit-form, destination, review banner,
+unfunded, buy-time CPM, stats-page, and `needsLink` status badge/dot styles.
+
 ## Verification (2026-06-18)
 
 - `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
@@ -115,6 +127,8 @@ background, and transform values on hover.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented campaign detail-card, stats, and needs-link styles. | Codex |
+| 2026-06-18 | Planned campaign detail-card, stats, and needs-link styles. | Codex |
 | 2026-06-18 | Implemented advertiser orange visibility polish and verified rendered styles. | Codex |
 | 2026-06-18 | Planned advertiser orange visibility polish and green accent removal. | Codex |
 | 2026-06-17 | Implemented fixed rail, light hero, and compact campaign card styles. | Codex |

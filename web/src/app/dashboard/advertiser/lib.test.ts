@@ -19,16 +19,39 @@ import {
 import {
   ZERO_CAMPAIGN_TELEMETRY,
   adTextState,
+  campaignSpendCents,
+  deliveryProgress,
+  displayStatus,
   formatUsd,
+  formatUsdPrecise,
   formatCtr,
+  isNeverFunded,
   nonCreditTotal,
   parseDollarsToCents,
   sumCampaignTelemetry,
+  totalSpendCents,
   validateCpmDollars,
   validateFundingBlocks,
   validateFundingDollars,
   type CampaignView,
 } from "./lib";
+
+/** Minimal CampaignView builder for the derived-display helpers. */
+function makeCampaign(overrides: Partial<CampaignView> = {}): CampaignView {
+  return {
+    id: "cmp_x",
+    advertiserId: "adv_1",
+    adText: "Ad",
+    destinationUrl: "https://learnx.pro/",
+    cpmCents: 500,
+    cpmUsd: "5.00",
+    budgetCents: 500,
+    remainingBudgetUsd: "5.00",
+    status: "active",
+    createdAtMs: 0,
+    ...overrides,
+  } as CampaignView;
+}
 
 describe("parseDollarsToCents", () => {
   it("parses whole dollars", () => {
@@ -205,5 +228,88 @@ describe("campaign telemetry helpers", () => {
     expect(nonCreditTotal(total)).toBe(20);
     expect(formatCtr(total.clicks, total.shows)).toBe("5.0%");
     expect(formatCtr(0, 0)).toBe("0.0%");
+  });
+});
+
+describe("formatUsdPrecise", () => {
+  it("renders sub-cent spend with 3 decimals", () => {
+    // 5 impressions at $5 CPM => 5 * 500 / 1000 = 2.5 cents => $0.025.
+    expect(formatUsdPrecise(2.5)).toBe("$0.025");
+    expect(formatUsdPrecise(0)).toBe("$0.000");
+    expect(formatUsdPrecise(250)).toBe("$2.500");
+  });
+});
+
+describe("campaignSpendCents / totalSpendCents", () => {
+  it("computes fractional spend from credited impressions and CPM", () => {
+    const campaign = makeCampaign({
+      cpmCents: 500,
+      telemetry: { ...ZERO_CAMPAIGN_TELEMETRY, credited: 5 },
+    });
+    // 5 * 500 / 1000 = 2.5 cents (not rounded to 3).
+    expect(campaignSpendCents(campaign)).toBe(2.5);
+    expect(totalSpendCents([campaign, campaign])).toBe(5);
+    expect(formatUsdPrecise(campaignSpendCents(campaign))).toBe("$0.025");
+  });
+});
+
+describe("deliveryProgress", () => {
+  it("snaps the denominator to the nearest 1,000-block (fixes 5/997)", () => {
+    // 1 block ($5 CPM) bought; budget drifted to 497c after rounding, 5 served.
+    const campaign = makeCampaign({ cpmCents: 500, budgetCents: 497 });
+    const { purchased, percent } = deliveryProgress(campaign, 5);
+    expect(purchased).toBe(1000);
+    expect(percent).toBeCloseTo(0.5, 5);
+  });
+
+  it("snaps multi-block totals and never drops below served", () => {
+    // 2 blocks bought; remaining budget ~ 997c => raw 1997 => snaps to 2000.
+    expect(deliveryProgress(makeCampaign({ cpmCents: 500, budgetCents: 997 }), 3).purchased).toBe(
+      2000,
+    );
+    // Fully delivered, budget exhausted: denominator equals served.
+    expect(deliveryProgress(makeCampaign({ cpmCents: 500, budgetCents: 0 }), 1000).purchased).toBe(
+      1000,
+    );
+  });
+});
+
+describe("displayStatus", () => {
+  it("derives funded vs unfunded instead of the always-active stored status", () => {
+    expect(displayStatus(makeCampaign({ budgetCents: 500 }))).toBe("active");
+    expect(displayStatus(makeCampaign({ budgetCents: 0 }))).toBe("unfunded");
+  });
+
+  it("marks funded campaigns without a destination as needing a link", () => {
+    expect(
+      displayStatus(makeCampaign({ budgetCents: 500, destinationUrl: undefined })),
+    ).toBe("needsLink");
+  });
+
+  it("prioritises review state and explicit pause", () => {
+    expect(
+      displayStatus(makeCampaign({ budgetCents: 500, reviewStatus: "rejected" })),
+    ).toBe("rejected");
+    expect(
+      displayStatus(makeCampaign({ budgetCents: 500, reviewStatus: "pending" })),
+    ).toBe("underReview");
+    expect(displayStatus(makeCampaign({ budgetCents: 500, status: "paused" }))).toBe(
+      "paused",
+    );
+  });
+});
+
+describe("isNeverFunded", () => {
+  it("is true only when there is no budget and no delivery", () => {
+    expect(isNeverFunded(makeCampaign({ budgetCents: 0 }))).toBe(true);
+    expect(isNeverFunded(makeCampaign({ budgetCents: 500 }))).toBe(false);
+    expect(
+      isNeverFunded(
+        makeCampaign({
+          budgetCents: 0,
+          telemetry: { ...ZERO_CAMPAIGN_TELEMETRY, shows: 3 },
+        }),
+      ),
+    ).toBe(false);
   });
 });

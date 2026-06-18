@@ -31,6 +31,7 @@ function campaign(overrides: Partial<Campaign> & Pick<Campaign, "id">): Campaign
   return {
     advertiserId: "adv1",
     adText: "Ship faster with Acme CI",
+    destinationUrl: "https://ads.example.com",
     cpmCents: 3000,
     budgetCents: 5000,
     status: "active",
@@ -61,6 +62,7 @@ describe("selectAd — winner response shape (R1.3, R1.6)", () => {
       adAvailable: true,
       campaignId: "cmp_top",
       adText: "Ship faster with Acme CI",
+      destinationUrl: "https://ads.example.com",
       cpmCents: 3000,
       cpmUsd: "30.00",
     });
@@ -84,8 +86,42 @@ describe("selectAd — winner response shape (R1.3, R1.6)", () => {
       adAvailable: true,
       campaignId: "cmp_winner",
       adText: "Winner",
+      destinationUrl: "https://ads.example.com",
       cpmCents: 1500,
       cpmUsd: "15.00",
+    });
+  });
+
+  it("does not serve paid campaigns without a valid destination URL", async () => {
+    const campaigns = new MemoryCampaignRepository(
+      new ManualClock(0),
+      new SequentialIdGenerator(),
+    );
+    campaigns.seed(
+      campaign({
+        id: "cmp_missing_destination",
+        cpmCents: 9000,
+        destinationUrl: undefined,
+      }),
+    );
+    campaigns.seed(
+      campaign({
+        id: "cmp_with_destination",
+        cpmCents: 1000,
+        adText: "Click through safely",
+        destinationUrl: "https://learnx.pro",
+      }),
+    );
+
+    const result = await selectAd({ campaigns });
+
+    expect(result).toEqual({
+      adAvailable: true,
+      campaignId: "cmp_with_destination",
+      adText: "Click through safely",
+      destinationUrl: "https://learnx.pro",
+      cpmCents: 1000,
+      cpmUsd: "10.00",
     });
   });
 
@@ -117,6 +153,7 @@ describe("selectAd — winner response shape (R1.3, R1.6)", () => {
       adAvailable: true,
       campaignId: "cmp_approved",
       adText: "Approved lower bid",
+      destinationUrl: "https://ads.example.com",
       cpmCents: 1000,
       cpmUsd: "10.00",
     });
@@ -159,9 +196,53 @@ describe("selectAd — winner response shape (R1.3, R1.6)", () => {
       adAvailable: true,
       campaignId: "cmp_pending",
       adText: "Continue me",
+      destinationUrl: "https://ads.example.com",
       accumulatedViewDurationMs: 1000,
       remainingViewDurationMs: 2000,
     });
+  });
+
+  it("clears destinationless pending progress and falls back to a valid campaign", async () => {
+    const campaigns = new MemoryCampaignRepository(
+      new ManualClock(0),
+      new SequentialIdGenerator(),
+    );
+    const progress = new MemoryImpressionProgressRepository();
+    campaigns.seed(
+      campaign({
+        id: "cmp_pending_without_destination",
+        cpmCents: 9000,
+        destinationUrl: undefined,
+      }),
+    );
+    campaigns.seed(
+      campaign({
+        id: "cmp_valid",
+        cpmCents: 1000,
+        adText: "Valid fallback",
+        destinationUrl: "https://learnx.pro",
+      }),
+    );
+    await progress.addDuration({
+      developerId: "dev_1",
+      campaignId: "cmp_pending_without_destination",
+      viewDurationMs: 1000,
+      nowMs: 10,
+    });
+
+    const result = await selectAd({
+      campaigns,
+      progress,
+      developerId: "dev_1",
+    });
+
+    expect(result).toMatchObject({
+      adAvailable: true,
+      campaignId: "cmp_valid",
+      adText: "Valid fallback",
+      destinationUrl: "https://learnx.pro",
+    });
+    await expect(progress.getByDeveloper("dev_1")).resolves.toBeNull();
   });
 });
 
@@ -202,6 +283,9 @@ describe("selectAd — timeout fallback (R1.7)", () => {
       },
       listByAdvertiser: async () => [],
       applyBudgetDeltaCents: async () => {},
+      update: async () => {
+        throw new Error("not implemented");
+      },
       updateReviewStatus: async () => {},
     };
 
@@ -226,6 +310,9 @@ describe("selectAd — timeout fallback (R1.7)", () => {
       },
       listByAdvertiser: async () => [],
       applyBudgetDeltaCents: async () => {},
+      update: async () => {
+        throw new Error("not implemented");
+      },
       updateReviewStatus: async () => {},
     };
 

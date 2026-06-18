@@ -26,11 +26,14 @@ import {
   createCampaignSchema,
   formatCentsAsUsd,
   getAdvertiserCheckoutAmountCents,
+  updateCampaignSchema,
 } from "@spinshare/core";
 
 import { publicAdvertiserIdForEmail } from "@/server/advertiser-identity";
+import { reviewCampaignContent } from "@/server/campaign-review";
 import { reconcilePaidCheckoutSessionsForCampaigns } from "@/server/checkout-reconciliation";
 import { getContainer, type Container } from "@/server/container";
+import type { CampaignUpdate } from "@/server/ports/campaign-repository";
 import { flushPendingForRead } from "@/server/flush-before-read";
 import type { CounterStore, LedgerRepository } from "@/server/ports";
 import type { AuthClaims } from "@/server/ports/auth-provider";
@@ -77,6 +80,19 @@ async function resolveAdvertiserClaims(
 /** Standard `401` response body; no mutation has occurred. */
 function unauthorized(): Response {
   return Response.json({ error: "unauthorized" }, { status: 401 });
+}
+
+/**
+ * The set of advertiser ids the caller may act on: their auth `userId` plus the
+ * deterministic public-checkout id derived from their email, so a campaign
+ * created via the homepage form is editable from the signed-in dashboard.
+ */
+function allowedAdvertiserIds(claims: AuthClaims): Set<string> {
+  const ids = new Set<string>([claims.userId]);
+  if (claims.email !== undefined && claims.email.trim().length > 0) {
+    ids.add(publicAdvertiserIdForEmail(claims.email));
+  }
+  return ids;
 }
 
 async function recordCheckoutActivity(
@@ -325,4 +341,92 @@ export async function GET(request: Request): Promise<Response> {
     },
     { status: 200 },
   );
+}
+
+/**
+ * `PATCH /api/campaigns` — edit an existing campaign the caller owns.
+ *
+ * Body: `{ campaignId, ...editableFields }` where editable fields are validated
+ * by {@link updateCampaignSchema} (adText, destinationUrl, brandName,
+ * brandIconDataUrl, publicOnLeaderboard, cpmCents — all optional). At least one
+ * field must change. When ad text or destination changes the content is re-run
+ * through {@link reviewCampaignContent} and the resulting `reviewStatus` is
+ * persisted in the same write (the "edit → re-review" half of pay-then-review).
+ *
+ *   - `401` missing/invalid token · `404` unknown campaign · `403` not the owner
+ *   - `400` malformed JSON, schema violation, or an empty patch
+ *   - `200` with the updated {@link Campaign} view on success
+ */
+export async function PATCH(request: Request): Promise<Response> {
+  const claims = await resolveAdvertiserClaims(request);
+  if (claims === null) {
+    return unauthorized();
+  }
+
+  let rawBody: unknown;
+  try {
+    rawBody = await request.json();
+  } catch {
+    return Response.json({ error: "invalid_request_body" }, { status: 400 });
+  }
+  if (typeof rawBody !== "object" || rawBody === null) {
+    return Response.json({ error: "invalid_request_body" }, { status: 400 });
+  }
+  const { campaignId, ...fields } = rawBody as Record<string, unknown>;
+  if (typeof campaignId !== "string" || campaignId.trim().length === 0) {
+    return Response.json({ error: "Campaign id is required" }, { status: 400 });
+  }
+
+  const parsed = updateCampaignSchema.safeParse(fields);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    return Response.json(
+      {
+        error: issue?.message ?? "invalid_request_body",
+        details: parsed.error.issues.map((i) => ({
+          field: i.path.join("."),
+          message: i.message,
+        })),
+      },
+      { status: 400 },
+    );
+  }
+
+  // Build the patch from only the keys the advertiser actually provided.
+  const patch: CampaignUpdate = {};
+  if (parsed.data.adText !== undefined) patch.adText = parsed.data.adText;
+  if (parsed.data.destinationUrl !== undefined)
+    patch.destinationUrl = parsed.data.destinationUrl;
+  if (parsed.data.brandName !== undefined) patch.brandName = parsed.data.brandName;
+  if (parsed.data.brandIconDataUrl !== undefined)
+    patch.brandIconDataUrl = parsed.data.brandIconDataUrl;
+  if (parsed.data.publicOnLeaderboard !== undefined)
+    patch.publicOnLeaderboard = parsed.data.publicOnLeaderboard;
+  if (parsed.data.cpmCents !== undefined) patch.cpmCents = parsed.data.cpmCents;
+
+  if (Object.keys(patch).length === 0) {
+    return Response.json({ error: "No fields to update" }, { status: 400 });
+  }
+
+  const container = getContainer();
+  const { campaigns } = container;
+  const existing = await campaigns.getById(campaignId);
+  if (existing === null) {
+    return Response.json({ error: "campaign_not_found" }, { status: 404 });
+  }
+  if (!allowedAdvertiserIds(claims).has(existing.advertiserId)) {
+    return Response.json({ error: "forbidden" }, { status: 403 });
+  }
+
+  // Re-gate content edits through the review seam (pay-then-review / edit path).
+  if (patch.adText !== undefined || patch.destinationUrl !== undefined) {
+    const review = await reviewCampaignContent({
+      adText: patch.adText ?? existing.adText,
+      destinationUrl: patch.destinationUrl ?? existing.destinationUrl,
+    });
+    patch.reviewStatus = review.status;
+  }
+
+  const updated = await campaigns.update(campaignId, patch);
+  return Response.json(toCampaignView(updated), { status: 200 });
 }

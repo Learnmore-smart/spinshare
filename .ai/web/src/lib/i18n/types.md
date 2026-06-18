@@ -99,10 +99,22 @@ Added advertiser dashboard copy keys:
 - `impressionBlocksHint`
 - `creatingCheckout`
 
+## Planned Change 2026-06-18 Needs-Link Status Copy
+
+Add `advertiserDashboard.statusNeedsLink` so paid campaigns missing a
+destination URL can be labeled distinctly from active campaigns in campaign and
+stats views.
+
+## Implemented Change 2026-06-18 Needs-Link Status Copy
+
+Added `advertiserDashboard.statusNeedsLink` to the dictionary contract.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Added needs-link advertiser status copy key. | Codex |
+| 2026-06-18 | Planned needs-link advertiser status copy key. | Codex |
 | 2026-06-17 | Added create-form checkout block and redirect copy keys. | Codex |
 | 2026-06-17 | Planned create-form checkout block and redirect copy keys. | Codex |
 | 2026-06-17 | Added payout minimum gate and verification copy keys. | Codex |

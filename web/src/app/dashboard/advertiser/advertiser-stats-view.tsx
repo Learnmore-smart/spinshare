@@ -7,12 +7,28 @@ import { TiltCard } from "@/components/TiltCard";
 import { useT } from "@/lib/i18n/locale-provider";
 import { useAdvertiserDashboard } from "./advertiser-dashboard-context";
 import {
+  campaignSpendCents,
   campaignTelemetry,
+  type CampaignDisplayStatus,
+  displayStatus,
   formatCount,
   formatCtr,
-  formatUsd,
+  formatUsdPrecise,
   sumCampaignTelemetry,
+  totalSpendCents,
 } from "./lib";
+
+const STATUS_LABEL: Record<
+  CampaignDisplayStatus,
+  (t: ReturnType<typeof useT>) => string
+> = {
+  active: (t) => t.advertiserDashboard.statusActive,
+  unfunded: (t) => t.advertiserDashboard.statusUnfunded,
+  needsLink: (t) => t.advertiserDashboard.statusNeedsLink,
+  paused: (t) => t.advertiserDashboard.statusPaused,
+  underReview: (t) => t.advertiserDashboard.statusUnderReview,
+  rejected: (t) => t.advertiserDashboard.statusRejected,
+};
 
 function StatCard({
   label,
@@ -51,14 +67,9 @@ export function AdvertiserStatsView() {
   const campaigns = campaignsState.status === "ready" ? campaignsState.campaigns : [];
 
   const totalTelemetry = useMemo(() => sumCampaignTelemetry(campaigns), [campaigns]);
-  const totalBudgetSpentCents = useMemo(
-    () =>
-      campaigns.reduce((sum, c) => {
-        const tel = campaignTelemetry(c);
-        return sum + Math.round((tel.credited * c.cpmCents) / 1000);
-      }, 0),
-    [campaigns],
-  );
+  // Spend is sub-cent per impression, so keep it fractional and render with
+  // 3-decimal precision instead of rounding to whole cents.
+  const spendCents = useMemo(() => totalSpendCents(campaigns), [campaigns]);
 
   const isEmpty = !loading && campaigns.length === 0;
 
@@ -83,7 +94,7 @@ export function AdvertiserStatsView() {
           <div className="adv-stats-grid">
             <StatCard
               label={t.advertiserDashboard.statsTotalSpend}
-              value={formatUsd(totalBudgetSpentCents)}
+              value={formatUsdPrecise(spendCents)}
               loading={loading}
               icon={<Coins className="h-4 w-4 text-amber-500" aria-hidden />}
             />
@@ -122,12 +133,14 @@ export function AdvertiserStatsView() {
               <div className="adv-stats-breakdown-table">
                 {campaigns.map((campaign) => {
                   const tel = campaignTelemetry(campaign);
-                  const spentCents = Math.round((tel.credited * campaign.cpmCents) / 1000);
+                  const status = displayStatus(campaign);
                   return (
                     <div key={campaign.id} className="adv-stats-breakdown-row">
                       <div className="adv-stats-breakdown-name">
                         <p className="adv-stats-breakdown-text">{campaign.adText}</p>
-                        <span className="adv-stats-breakdown-status">{campaign.status}</span>
+                        <span className={`adv-stats-breakdown-status adv-status-badge--${status}`}>
+                          {STATUS_LABEL[status](t)}
+                        </span>
                       </div>
                       <div className="adv-stats-breakdown-nums">
                         <span title={t.advertiserDashboard.statsTotalImpressions}>
@@ -144,7 +157,7 @@ export function AdvertiserStatsView() {
                         </span>
                         <span title={t.advertiserDashboard.statsTotalSpend}>
                           <Coins className="h-3 w-3" aria-hidden />
-                          {formatUsd(spentCents)}
+                          {formatUsdPrecise(campaignSpendCents(campaign))}
                         </span>
                       </div>
                     </div>

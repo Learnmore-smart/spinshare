@@ -126,10 +126,22 @@ rather than creating a zero-budget campaign that must be funded separately.
 Added en/zh/fr strings for the create-form impression block field and the
 "Opening Stripe..." submitting state.
 
+## Planned Change 2026-06-18 Needs-Link Status Copy
+
+Add en/zh/fr `statusNeedsLink` strings for campaigns that are funded but cannot
+serve because they have no valid destination URL.
+
+## Implemented Change 2026-06-18 Needs-Link Status Copy
+
+Added en/zh/fr `statusNeedsLink` strings: "Needs link", "需添加链接", and
+"Lien requis".
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Added needs-link advertiser status copy. | Codex |
+| 2026-06-18 | Planned needs-link advertiser status copy. | Codex |
 | 2026-06-17 | Added direct checkout create-form copy. | Codex |
 | 2026-06-17 | Planned direct checkout create-form copy. | Codex |
 | 2026-06-17 | Added payout minimum gate and verification copy. | Codex |
