@@ -45,6 +45,7 @@ export interface Dictionary {
     withSpinShare: string;
     ctaInstall: string;
     ctaInstallSub: string;
+    ctaCommandHint: string;
     ctaEarning: string;
     learnAdCopy: string;
     footerCopy: string;
@@ -425,6 +426,11 @@ export interface Dictionary {
     destinationHttps: string;
     campaignCreated: string;
     campaignRejected: string;
+    deleteCampaignError: (status: number) => string;
+    deleteCampaignHasBudget: string;
+    deleteCampaignHasActivity: string;
+    deleteCampaignNotFound: string;
+    deleteCampaignForbidden: string;
     sessionExpired: string;
     createError: (status: number) => string;
     noCampaignsTitle: string;
@@ -449,6 +455,11 @@ export interface Dictionary {
     outOfBudget: string;
     antiAbuse: string;
     duplicate: string;
+    uncreditedDescription: string;
+    tooShortDescription: string;
+    authIssuesDescription: string;
+    antiAbuseDescription: string;
+    duplicateDescription: string;
     recentActivity: string;
     recentActivityDesc: string;
     resumeCheckout: string;

@@ -23,29 +23,33 @@ Hourly and daily cap meters pass those display strings through `usedLabel`,
 while the meter progress and cap enforcement still use whole-cent accounting
 fields.
 
-## Planned Fix 2026-06-18 Payout Threshold Display Precision
+## Implemented Fix 2026-06-18 Payout Threshold Display Precision
 
 Bug:
 - The hero balance KPI already shows display-precision earnings such as
-  `$0.015`, but the payout-threshold helper text still computes `remaining`
-  from whole cents only.
-- That makes the UI inconsistent: with a visible balance of `$0.015`, the hero
-  still says `还差 $5.00` instead of `还差 $4.985`.
+  `$0.075`, but the payout-threshold helper text computed `remaining`
+  from whole cents only (`MINIMUM_PAYOUT_CENTS - totalEarningsCents`).
+- For a sub-cent balance, `totalEarningsCents` is `0`, so the hero showed
+  `还差 $5.00` instead of `还差 $4.925` — inconsistent with the visible balance.
 
-Fix plan:
-- Keep payout eligibility and progress based on whole-cent accounting fields.
-- Compute the hero threshold copy from display micro-cents so the visible
-  remaining amount matches the visible balance.
-- Render the hero threshold remaining/target values with exactly 3 decimals,
-  e.g. `$4.985` and `$5.000`.
+Fix:
+- Payout eligibility (`totalEarningsCents >= MINIMUM_PAYOUT_CENTS`) and the
+  progress bar still use whole-cent accounting fields (unlock logic unchanged).
+- The hero threshold copy now derives remaining/target from display
+  micro-cents: `minimumPayoutMicrocents = MINIMUM_PAYOUT_CENTS *
+  MICROCENTS_PER_CENT`, `remaining = max(0, minimum - totalEarningsDisplayMicrocents)`.
+- Remaining/target render with exactly 3 decimals via the new
+  `moneyMicrocents3` helper in `developer-dashboard-parts.tsx`
+  (e.g. `$4.925` and `$5.000`).
 
 Regression risk:
-- Do not change actual payout unlock logic; this is a display-only precision
-  fix for the hero copy.
+- Display-only precision change for the hero copy; actual payout unlock logic
+  and the progress meter are untouched.
 
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented payout-threshold display precision (3-decimal, sub-cent remaining). | Cursor |
 | 2026-06-18 | Planned payout-threshold display precision fix for sub-cent balances. | Codex |
 | 2026-06-18 | Used display-precision summary strings in overview cap meters. | Codex |

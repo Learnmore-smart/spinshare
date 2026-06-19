@@ -1,7 +1,11 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 
-export const DEFAULT_TERMINAL_AGENTS = ["claude"] as const;
+export const DEFAULT_TERMINAL_AGENTS = [
+  "claude",
+  "agy",
+  "antigravity",
+] as const;
 
 const AGENT_NAME_PATTERN = /^[A-Za-z0-9._-]+$/;
 const LAUNCHER_FILE = "spinshare-terminal-launcher.cjs";

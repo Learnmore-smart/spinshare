@@ -114,6 +114,44 @@ Verification:
 `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts src/app/api/funds/checkout/route.test.ts`
 passed 19 tests.
 
+## Planned Coverage 2026-06-18 Delete HMR Compatibility
+
+Add RED coverage for a development-HMR stale campaign repository object that
+has the legacy memory adapter shape but no `delete()` method. `DELETE
+/api/campaigns` should still remove an owned unpaid campaign instead of
+throwing `TypeError: campaigns.delete is not a function`.
+
+## Implemented Coverage 2026-06-18 Delete HMR Compatibility
+
+Added a regression that shadows `delete` on a live memory campaign repository,
+simulating the stale development singleton. RED reproduced
+`campaigns.delete is not a function`; GREEN passes after the route uses the
+compatibility delete helper.
+
+## Verification 2026-06-18 Delete HMR Compatibility
+
+- `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts src/app/dashboard/advertiser/campaign-list.test.tsx src/app/dashboard/advertiser/advertiser-dashboard-context.test.ts` passed.
+
+## Planned Coverage 2026-06-18 Brand Icon Upload Edit
+
+Add RED coverage that `PATCH /api/campaigns` accepts a 64 KiB PNG data URL for
+`brandIconDataUrl`. This reproduces the dashboard symptom where choosing an
+allowed-size logo causes the edit request to return `400`.
+
+## Implemented Coverage 2026-06-18 Brand Icon Upload Edit
+
+Added a PATCH regression that submits a 64 KiB PNG data URL as
+`brandIconDataUrl`, expects `200`, and verifies the campaign repository persists
+the icon. The test failed with the old core build and passes after rebuilding the
+updated core schema.
+
+## Verification 2026-06-18 Brand Icon Upload Edit
+
+- `corepack pnpm@9.12.0 --filter @spinshare/core build` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts src/app/dashboard/advertiser/campaign-list.test.tsx` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+
 ## Verification
 
 - `corepack pnpm@9.12.0 --filter @spinshare/web test` passed.
@@ -123,6 +161,10 @@ passed 19 tests.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented brand icon upload edit regression coverage. | Codex |
+| 2026-06-18 | Planned brand icon upload edit regression coverage. | Codex |
+| 2026-06-18 | Implemented HMR-compatible delete fallback regression coverage. | Codex |
+| 2026-06-18 | Planned HMR-compatible delete fallback regression coverage. | Codex |
 | 2026-06-18 | Implemented PATCH endpoint regression coverage. | Codex |
 | 2026-06-18 | Planned PATCH endpoint regression coverage. | Codex |
 | 2026-06-17 | Implemented direct checkout campaign creation regression coverage. | Codex |

@@ -64,7 +64,13 @@ describe("GET /api/market", () => {
   it("returns biddable campaigns sorted by auction priority", async () => {
     const container = getContainer();
     seedCampaign(container, { id: "cmp_low", cpmCents: 500 });
-    seedCampaign(container, { id: "cmp_top", cpmCents: 2200, adText: "Top bidder" });
+    // 2 blocks funded at a $22.00 CPM = $44.00 for 2,000 views.
+    seedCampaign(container, {
+      id: "cmp_top",
+      cpmCents: 2200,
+      budgetCents: 4400,
+      adText: "Top bidder",
+    });
     seedCampaign(container, { id: "cmp_unfunded", cpmCents: 9000, budgetCents: 0 });
 
     const response = await GET();
@@ -84,7 +90,9 @@ describe("GET /api/market", () => {
       adText: "Top bidder",
       bidLabel: "$22.00 / 1k imps",
       servedImpressions: 0,
-      targetImpressions: 2272,
+      targetImpressions: 2000,
+      totalPaidCents: 4400,
+      totalPaidUsd: "$44.00",
       status: "live",
     });
     expect(body.rows.some((row: { id: string }) => row.id === "cmp_unfunded")).toBe(
@@ -94,7 +102,9 @@ describe("GET /api/market", () => {
 
   it("includes served impressions from the durable ledger", async () => {
     const container = getContainer();
-    seedCampaign(container, { id: "cmp_top", cpmCents: 3000, budgetCents: 5000 });
+    // 2 blocks ($60.00) funded at a $30.00 CPM; 2 views served cost ~6c, so the
+    // budget settled to 5994c. The market still reports the 2,000 bought views.
+    seedCampaign(container, { id: "cmp_top", cpmCents: 3000, budgetCents: 5994 });
     (container.ledger as MemoryLedgerRepository).seed([
       {
         entryId: "entry-1",
@@ -102,7 +112,7 @@ describe("GET /api/market", () => {
         developerId: "dev-1",
         revenueMicrocents: 3000,
         developerCreditCents: 2,
-        spinshareRetentionMicrocents: 998,
+        spinshareRetentionMicrocents: 1000,
       },
       {
         entryId: "entry-2",
@@ -110,7 +120,7 @@ describe("GET /api/market", () => {
         developerId: "dev-1",
         revenueMicrocents: 3000,
         developerCreditCents: 2,
-        spinshareRetentionMicrocents: 998,
+        spinshareRetentionMicrocents: 1000,
       },
     ]);
 
@@ -121,7 +131,44 @@ describe("GET /api/market", () => {
     expect(body.rows[0]).toMatchObject({
       id: "cmp_top",
       servedImpressions: 2,
-      targetImpressions: 1668,
+      targetImpressions: 2000,
+      totalPaidCents: 6000,
+      totalPaidUsd: "$60.00",
+    });
+  });
+
+  it("snaps a $5 / 1k-view buy back to 1,000 views and $5.00 despite flush drift", async () => {
+    const container = getContainer();
+    // The reported bug: 1 block ($5.00) funded → 1,000 views. After 21 served,
+    // the Redis→Firestore flush rounded each sub-cent ($0.005) spend up, drifting
+    // the budget down to 485c. Reconstruction must still report the true 1,000
+    // views purchased and $5.00 paid — never "991 / $4.95".
+    seedCampaign(container, {
+      id: "cmp_learnx",
+      cpmCents: 500,
+      budgetCents: 485,
+      adText: "LearnX test",
+    });
+    const served = Array.from({ length: 21 }, (_unused, index) => ({
+      entryId: `learnx-${index}`,
+      campaignId: "cmp_learnx",
+      developerId: "dev-1",
+      revenueMicrocents: 500,
+      developerCreditCents: 0,
+      spinshareRetentionMicrocents: 500,
+    }));
+    (container.ledger as MemoryLedgerRepository).seed(served);
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.rows[0]).toMatchObject({
+      id: "cmp_learnx",
+      servedImpressions: 21,
+      targetImpressions: 1000,
+      totalPaidCents: 500,
+      totalPaidUsd: "$5.00",
     });
   });
 

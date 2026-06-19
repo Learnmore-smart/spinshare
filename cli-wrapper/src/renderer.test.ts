@@ -24,6 +24,8 @@ describe("isSpinnerFrame", () => {
     expect(isSpinnerFrame("\r\u2022 Pollinating\u2026")).toBe(true);
     expect(isSpinnerFrame("\u001b[31m\u00b7 Pollinating...\u001b[0m")).toBe(true);
     expect(isSpinnerFrame("\rThinking...")).toBe(true);
+    expect(isSpinnerFrame("\r\u28c7 Generating...")).toBe(true);
+    expect(isSpinnerFrame("\r\u2726 Generating...")).toBe(true);
   });
 
   it("rejects real text output", () => {
@@ -70,6 +72,16 @@ describe("SpinnerRenderer", () => {
     const out = res.output.toString("utf8");
     expect(out).toContain("Buy SpinShare Pro");
     expect(out).not.toContain("Pollinating");
+  });
+
+  it("replaces Antigravity-style prefixed generation lines with ad text", () => {
+    const r = new SpinnerRenderer({ getAdText: () => "Buy SpinShare Pro" });
+    const res = r.render("\r\u28c7 Generating...");
+
+    expect(res.spinner).toBe(true);
+    const out = res.output.toString("utf8");
+    expect(out).toContain("Buy SpinShare Pro");
+    expect(out).not.toContain("Generating");
   });
 
   it("suppresses spinner frames entirely when no ad is available", () => {

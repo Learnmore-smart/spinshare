@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { mergeActivityRows } from "./advertiser-dashboard-context";
+import {
+  campaignDeleteErrorMessage,
+  mergeActivityRows,
+} from "./advertiser-dashboard-context";
 import {
   defaultActivityFeedCopy,
   type ActivityFeedCopy,
@@ -17,6 +20,15 @@ const localizedCopy: ActivityFeedCopy = {
     ...defaultActivityFeedCopy.eventLabels,
     fundingConfirmed: "Financement confirme",
   },
+};
+
+const deleteCopy = {
+  campaignRejected: "Campaign details rejected.",
+  deleteCampaignError: (status: number) => `Could not cancel campaign (${status}).`,
+  deleteCampaignHasBudget: "Campaign has budget.",
+  deleteCampaignHasActivity: "Campaign has activity.",
+  deleteCampaignNotFound: "Campaign not found.",
+  deleteCampaignForbidden: "Campaign belongs to another advertiser.",
 };
 
 function row(activityId: string, createdAtMs: number): ActivityFeedRow {
@@ -91,5 +103,22 @@ describe("mergeActivityRows", () => {
       statusLabel: "Budget confirme",
       durationLabel: "Financement confirme",
     });
+  });
+});
+
+describe("campaignDeleteErrorMessage", () => {
+  it("uses a delete-specific status fallback for non-json failures", () => {
+    expect(campaignDeleteErrorMessage(405, undefined, deleteCopy)).toBe(
+      "Could not cancel campaign (405).",
+    );
+    expect(campaignDeleteErrorMessage(405, undefined, deleteCopy)).not.toBe(
+      deleteCopy.campaignRejected,
+    );
+  });
+
+  it("translates known delete API error codes", () => {
+    expect(
+      campaignDeleteErrorMessage(409, "campaign_has_activity", deleteCopy),
+    ).toBe("Campaign has activity.");
   });
 });

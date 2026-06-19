@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   DEVELOPER_DAILY_EARNING_LIMIT_CENTS,
   DEVELOPER_HOURLY_EARNING_LIMIT_CENTS,
+  MICROCENTS_PER_CENT,
   MINIMUM_PAYOUT_CENTS,
 } from "@spinshare/core";
 
@@ -17,7 +18,7 @@ import {
 } from "@/lib/time/utc-periods";
 
 import { useDeveloperDashboard } from "./developer-dashboard-data";
-import { LimitMeter, money, pct } from "./developer-dashboard-parts";
+import { LimitMeter, money, moneyMicrocents3, pct } from "./developer-dashboard-parts";
 import { PayoutPanel } from "./payout-panel";
 import { SetupGuideButton } from "./setup-guide-modal";
 import "./developer-dashboard.css";
@@ -35,6 +36,7 @@ export function DeveloperOverviewView() {
   const {
     totalEarningsUsd,
     totalEarningsCents,
+    totalEarningsDisplayMicrocents,
     todayEarningsUsd,
     monthEarningsUsd,
     hourlyEarningsCents,
@@ -44,9 +46,16 @@ export function DeveloperOverviewView() {
     rows,
   } = summary;
 
-  const payoutRemainingCents = Math.max(0, MINIMUM_PAYOUT_CENTS - totalEarningsCents);
   const payoutEligible = totalEarningsCents >= MINIMUM_PAYOUT_CENTS;
   const payoutProgress = pct(totalEarningsCents, MINIMUM_PAYOUT_CENTS);
+  // Eligibility/progress stay on whole-cent accounting, but the threshold copy
+  // mirrors the sub-cent balance KPI: derive remaining/target from display
+  // micro-cents so a $0.075 balance reads "还差 $4.925，目标 $5.000".
+  const minimumPayoutMicrocents = MINIMUM_PAYOUT_CENTS * MICROCENTS_PER_CENT;
+  const payoutRemainingMicrocents = Math.max(
+    0,
+    minimumPayoutMicrocents - totalEarningsDisplayMicrocents,
+  );
 
   const creditTimestampsMs = rows.flatMap((row) =>
     row.createdAtMs === undefined ? [] : [row.createdAtMs],
@@ -86,10 +95,12 @@ export function DeveloperOverviewView() {
             <span>{t.developerDashboard.payoutThreshold}</span>
             <span>
               {payoutEligible
-                ? t.developerDashboard.payoutReached(money(MINIMUM_PAYOUT_CENTS))
+                ? t.developerDashboard.payoutReached(
+                    moneyMicrocents3(minimumPayoutMicrocents),
+                  )
                 : t.developerDashboard.payoutRemaining(
-                    money(payoutRemainingCents),
-                    money(MINIMUM_PAYOUT_CENTS),
+                    moneyMicrocents3(payoutRemainingMicrocents),
+                    moneyMicrocents3(minimumPayoutMicrocents),
                   )}
             </span>
           </div>

@@ -42,7 +42,8 @@ const STATUS_WORD_PATTERN =
   /^(?:pollinating|thinking|generating|loading|processing|waiting|reasoning|responding|analyzing|searching)(?:[.!…]*)$/i;
 
 /** Leading symbols commonly used before transient status lines. */
-const STATUS_PREFIX_PATTERN = /^[\s\r]*(?:[\u2022\u00b7*]\s*)?/;
+const STATUS_PREFIX_PATTERN =
+  /^[\s\r]*(?:[\u2022\u00b7*\u205d\u205e\u22ee\u2726\u2727\u2731\u2736\u2800-\u28ff]\s*)?/;
 
 /** ANSI "erase to end of line" — clears stale characters from a longer prior ad. */
 const ERASE_TO_EOL = "\u001b[K";

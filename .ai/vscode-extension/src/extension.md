@@ -22,6 +22,7 @@ VS Code extension activation entry point.
 
 | Date | Bug | Cause | Fix |
 |------|-----|-------|-----|
+| 2026-06-19 | Ads worked in terminal Claude CLI but not in Claude Code's VS Code extension UI. | The extension installed Claude hooks/statusLine but did not observe the generated state file; Claude's VS Code webview does not expose a stable third-party injection point. | Wire activation to start a SpinShare state bridge after installing the Claude Code adapter, mirroring active hook state into VS Code notifications. |
 | 2026-06-15 | Fresh 0.2 installs in this workspace could fail sign-in with `device/start failed (405)`. | Workspace configuration overrode the packaged default with the redirecting apex host. | Normalize configured production base URLs before constructing the API client and terminal auto-wrap launcher. |
 | 2026-06-14 | Typing `claude` in the integrated terminal still showed Claude's loading text instead of SpinShare ads. | The extension only exposed manual notification-based generation commands and never altered terminal command resolution. | Wire activation to install PATH shims for configured terminal agents. |
 
@@ -85,6 +86,13 @@ after sign-out or auth initialization failure.
 The existing automatic prompt remains, but it is no longer the only visible
 sign-in surface after installing the extension.
 
+## Implemented Change 2026-06-19 Claude Code State Bridge
+
+Activation now starts `ClaudeCodeStateBridge` after a successful
+`installClaudeCodeAdapter()` call, using the returned `stateFilePath`. When
+`spinshare.claudeCodeAdapter` is disabled, activation disposes the bridge before
+removing the adapter. The bridge is also disposed with the extension.
+
 ## Verification (2026-06-15)
 
 - Extension TypeScript build passed as part of `corepack pnpm@9.12.0 --filter ./vscode-extension package`.
@@ -106,6 +114,8 @@ sign-in surface after installing the extension.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Implemented Claude Code state bridge activation wiring. | Codex |
+| 2026-06-19 | Planned Claude Code state bridge activation for VS Code extension sessions. | Codex |
 | 2026-06-16 | Activation now passes the normalized baseUrl into FileTokenMirror for prod/local hook credential separation. | Codex |
 | 2026-06-15 | Implemented persistent sign-in status entry on activation. | Codex |
 | 2026-06-15 | Planned persistent sign-in status entry on activation. | Codex |

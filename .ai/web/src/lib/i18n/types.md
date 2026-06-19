@@ -146,3 +146,52 @@ localized for en/zh/fr without tying them to a specific dashboard role.
 Added the top-level `activityFeed` dictionary contract with status labels,
 event labels, duration formatting, details summary text, and detail field
 labels.
+
+## Planned Change 2026-06-18 Delete Campaign Error Copy
+
+Add typed advertiser dashboard keys for delete-specific campaign cancel errors:
+
+- `deleteCampaignError(status)`
+- `deleteCampaignHasBudget`
+- `deleteCampaignHasActivity`
+- `deleteCampaignNotFound`
+- `deleteCampaignForbidden`
+
+These prevent unpaid-cancel failures from falling back to campaign edit
+rejection copy.
+
+## Implemented Change 2026-06-18 Delete Campaign Error Copy
+
+Added the typed advertiser dashboard delete error keys for status fallback,
+budget/activity blocking, not-found, and forbidden delete failures.
+
+## Planned Change 2026-06-19 Diagnostic Tooltip Copy
+
+Add typed advertiser dashboard keys for diagnostic tooltip descriptions:
+
+- `uncreditedDescription`
+- `tooShortDescription`
+- `authIssuesDescription`
+- `antiAbuseDescription`
+- `duplicateDescription`
+
+These keys keep tooltip copy localized across en/zh/fr and aligned with
+`extra-dictionaries.ts`.
+
+## Implemented Change 2026-06-19 Diagnostic Tooltip Copy
+
+Added the five advertiser dashboard diagnostic description keys to the
+`Dictionary` contract so en/zh/fr dictionaries must provide tooltip copy.
+
+## Verification 2026-06-18 Delete Campaign Error Copy
+
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+
+## Change History Addendum 2
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-19 | Added diagnostic tooltip copy keys. | Codex |
+| 2026-06-19 | Planned diagnostic tooltip copy keys. | Codex |
+| 2026-06-18 | Added delete campaign error copy keys. | Codex |
+| 2026-06-18 | Planned delete campaign error copy keys. | Codex |

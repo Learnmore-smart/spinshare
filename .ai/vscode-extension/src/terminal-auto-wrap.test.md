@@ -1,6 +1,6 @@
 # terminal-auto-wrap.test.ts
 
-> Last updated: 2026-06-15 | Protection: STANDARD
+> Last updated: 2026-06-19 | Protection: STANDARD
 
 ## Purpose
 
@@ -12,6 +12,8 @@ Unit tests for the SpinShare terminal auto-wrap shim planner.
 - Verifies the generated launcher removes the shim directory from `PATH` before spawning the real agent.
 - Verifies the terminal environment mutation prepends the shim directory with the platform path delimiter.
 - Verifies Windows and POSIX shim files are generated for configured agents.
+- Verifies Antigravity CLI default shims are generated for `agy` and
+  `antigravity`.
 
 ## Dependencies
 
@@ -58,6 +60,26 @@ The launcher regression test now asserts that generated scripts include
 `nativeAdapterAgents` with `claude`, branch on that set, direct-spawn the agent,
 and still preserve the wrapper call for fallback agents.
 
+## Planned Test 2026-06-19 Antigravity CLI defaults
+
+Add a red regression test proving that the default terminal auto-wrap plan emits
+Windows, PowerShell, and POSIX shims for Antigravity's observed `agy` command and
+the longer `antigravity` command. Keep the test separate from configured-agent
+coverage so the package default cannot silently regress back to Claude-only.
+
+## Implemented Test 2026-06-19 Antigravity CLI defaults
+
+Added coverage that `DEFAULT_TERMINAL_AGENTS` and fallback normalization include
+`claude`, `agy`, and `antigravity`; the default generated plan includes shim
+files for both Antigravity aliases; and `package.json` contributes the same
+default `spinshare.terminalAgents` list.
+
+Verification:
+- RED: focused extension terminal-auto-wrap test failed on missing `agy`,
+  missing `antigravity`, and Claude-only manifest defaults.
+- GREEN: `corepack pnpm@9.12.0 test -- src/terminal-auto-wrap.test.ts` from
+  `vscode-extension` passed 11 tests.
+
 ## Verification (2026-06-15)
 
 - Red: `src/terminal-auto-wrap.test.ts` failed before the native adapter branch
@@ -92,6 +114,8 @@ copy.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Added Antigravity default shim regression coverage. | Codex |
+| 2026-06-19 | Planned Antigravity default shim regression coverage. | Codex |
 | 2026-06-15 | Implemented native Claude direct-launch regression test. | Codex |
 | 2026-06-15 | Planned native Claude direct-launch regression test. | Codex |
 | 2026-06-15 | Added launcher/no-bypass and PTY packaging regression coverage. | Codex |

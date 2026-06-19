@@ -1,6 +1,6 @@
 # lib.ts
 
-> Last updated: 2026-06-15 | Protection: STANDARD
+> Last updated: 2026-06-18 | Protection: STANDARD
 
 ## Purpose
 
@@ -48,15 +48,24 @@ before funded-active.
 HTTPS destination URL. Unfunded campaigns still show `unfunded` first, and
 review/paused states keep higher precedence.
 
+## Implemented Change 2026-06-18 Delivery Progress Uses Core Helper
+
+`deliveryProgress()` no longer inlines its own snap-to-1,000-block math. It now
+delegates to `reconstructCampaignDelivery` in `@spinshare/core` (single source of
+truth for the budget-drift correction shared with `GET /api/market`) and keeps
+only the percent calculation. Behavior is unchanged for in-grid inputs; the core
+helper additionally rounds up to cover any over-delivered served count.
+
 ## Verification
 
-- `corepack pnpm@9.12.0 --filter @spinshare/web test` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web exec vitest run src/app/dashboard/advertiser/lib.test.ts` passed (31 tests).
 - `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
 
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | `deliveryProgress` delegates snap-to-block math to core `reconstructCampaignDelivery`. | Cursor |
 | 2026-06-18 | Implemented needs-link display status. | Codex |
 | 2026-06-18 | Planned needs-link display status. | Codex |
 | 2026-06-15 | Implemented block-count funding helper. | Codex |

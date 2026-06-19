@@ -18,6 +18,14 @@ export interface ImpressionActivity {
   developerId?: string;
   revenueMicrocents?: number;
   developerCreditCents?: number;
+  /**
+   * Salted HMAC of the caller IP at settlement (anti-fraud network signal). Used
+   * for per-IP fan-out / velocity clustering without persisting raw PII. Absent
+   * when no IP could be parsed. See `server/http/client-ip.ts`.
+   */
+  ipHash?: string;
+  /** Salted HMAC of the caller User-Agent at settlement. Absent when none. */
+  uaHash?: string;
 }
 
 export type DeveloperActivityStatus =

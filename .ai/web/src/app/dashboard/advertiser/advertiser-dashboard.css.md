@@ -115,6 +115,19 @@ Campaign cards no longer set a thicker left border or status-specific left
 border colors. Buy controls use a compact action row, and unpaid cancel buttons
 use transparent red outline styling with dark-mode variants.
 
+## Planned Change 2026-06-19 Diagnostic Tooltip Styles
+
+Add compact diagnostic tooltip styles scoped to advertiser campaign cards.
+Tooltips should appear on hover and keyboard focus with a smooth opacity/offset
+transition, preserve the dense chip layout, and support both light and dark
+dashboard themes.
+
+## Implemented Change 2026-06-19 Diagnostic Tooltip Styles
+
+Diagnostic chips now expose positioned tooltip bubbles with opacity/translate
+animation on hover and focus-visible. The zero-count chip styling no longer
+applies parent opacity to the tooltip, preserving tooltip readability.
+
 ## Verification (2026-06-18)
 
 - `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts src/app/dashboard/advertiser/campaign-list.test.tsx src/app/dashboard/advertiser/advertiser-dashboard-context.test.ts src/server/bidding-service.test.ts` passed.
@@ -140,6 +153,8 @@ use transparent red outline styling with dark-mode variants.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Implemented diagnostic tooltip styles. | Codex |
+| 2026-06-19 | Planned diagnostic tooltip styles. | Codex |
 | 2026-06-18 | Implemented campaign-card left-border removal and transparent unpaid cancel styling. | Codex |
 | 2026-06-18 | Planned campaign-card left-border removal and transparent unpaid cancel styling. | Codex |
 | 2026-06-18 | Implemented campaign detail-card, stats, and needs-link styles. | Codex |

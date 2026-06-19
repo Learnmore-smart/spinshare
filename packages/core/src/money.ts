@@ -30,6 +30,13 @@ import type { Split } from "./types";
 /** Number of micro-cents in one whole cent. */
 export const MICROCENTS_PER_CENT = 1000;
 
+/**
+ * Impressions are always sold in fixed-size blocks. One block buys this many
+ * views (priced at the campaign's CPM), so every funded budget is an exact
+ * multiple of `cpmCents × IMPRESSIONS_PER_BLOCK / 1000 === cpmCents` cents.
+ */
+export const IMPRESSIONS_PER_BLOCK = 1000;
+
 /** Developer share of per-impression revenue, as a whole-number percentage. */
 export const DEVELOPER_SHARE_PERCENT = 60;
 
@@ -113,6 +120,71 @@ export function computeSplit(cpmCents: number): Split {
   const developerCreditMicrocents = developerCreditCents * MICROCENTS_PER_CENT;
   const spinshareRetentionMicrocents = revenueMicrocents - developerCreditMicrocents;
   return { revenueMicrocents, developerCreditCents, spinshareRetentionMicrocents };
+}
+
+/**
+ * An advertiser's purchased delivery, reconstructed from the remaining budget.
+ */
+export interface CampaignDelivery {
+  /** Whole-block purchased impressions: a multiple of {@link IMPRESSIONS_PER_BLOCK}, never below served. */
+  purchasedImpressions: number;
+  /** Exact lifetime amount funded for those blocks, in integer cents. */
+  totalPaidCents: number;
+}
+
+/**
+ * Reconstruct how many impressions an advertiser bought (and how much they
+ * paid) from a campaign's *remaining* whole-cent budget.
+ *
+ * Why this is not a plain `served + budget/cpm`: impressions are bought in
+ * fixed {@link IMPRESSIONS_PER_BLOCK}-view blocks priced at the CPM, so the true
+ * purchased total and amount paid are exact multiples of `(1000, cpmCents)`. But
+ * `budgetCents` is stored in *whole cents* while a single impression costs a
+ * *sub-cent* (`cpmCents / 1000`, e.g. $0.005 at a $5 CPM). The Redis→Firestore
+ * flush rounds each batch's micro-cent spend to whole cents before decrementing
+ * the budget, so the stored budget drifts a few cents below the exact remaining.
+ * Naively deriving the purchased total from that drifted budget reads low — a
+ * 1,000-view block shows as ~991 and a $5.00 spend shows as ~$4.95.
+ *
+ * We remove the drift by snapping the budget-derived raw total back onto the
+ * 1,000-view block grid it must have come from (rounding to the nearest block),
+ * never reporting fewer blocks than already cover what has been served. The paid
+ * amount is then the exact `blocks × cpmCents`.
+ *
+ * @param cpmCents Campaign max CPM in integer cents (> 0 for biddable campaigns).
+ * @param budgetCents Remaining campaign budget in integer cents.
+ * @param servedImpressions Impressions already credited from the durable ledger.
+ * @returns The snapped purchased impressions and the exact amount paid in cents.
+ */
+export function reconstructCampaignDelivery(
+  cpmCents: number,
+  budgetCents: number,
+  servedImpressions: number,
+): CampaignDelivery {
+  const served = Math.max(0, Math.trunc(servedImpressions));
+  const budget = Math.max(0, budgetCents);
+
+  // A non-positive CPM cannot be priced into blocks; fall back to the raw budget
+  // so callers never divide by zero or surface a negative total.
+  if (cpmCents <= 0) {
+    return { purchasedImpressions: served, totalPaidCents: budget };
+  }
+
+  const remainingImpressions = Math.floor(
+    (budget * IMPRESSIONS_PER_BLOCK) / cpmCents,
+  );
+  const rawTotalImpressions = served + remainingImpressions;
+  // Snap to the whole-block grid, but never fewer blocks than cover what has
+  // already been served (guards against over-delivery edge cases).
+  const blocks = Math.max(
+    Math.round(rawTotalImpressions / IMPRESSIONS_PER_BLOCK),
+    Math.ceil(served / IMPRESSIONS_PER_BLOCK),
+  );
+
+  return {
+    purchasedImpressions: blocks * IMPRESSIONS_PER_BLOCK,
+    totalPaidCents: blocks * cpmCents,
+  };
 }
 
 /**

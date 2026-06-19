@@ -1,7 +1,7 @@
 {
   "name": "spinshare",
   "displayName": "SpinShare",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "SpinShare extension: wraps terminal AI agents and shows ads during AI generation wait states. Compatible with VSCode, Trae, and Cursor.",
   "publisher": "spinshare",
@@ -71,7 +71,9 @@
         "spinshare.terminalAgents": {
           "type": "array",
           "default": [
-            "claude"
+            "claude",
+            "agy",
+            "antigravity"
           ],
           "items": {
             "type": "string",

@@ -25,6 +25,9 @@ function toProgress(
     campaignId: String(data.campaignId ?? ""),
     accumulatedViewDurationMs: Number(data.accumulatedViewDurationMs ?? 0),
     updatedAtMs: Number(data.updatedAtMs ?? 0),
+    ...(data.servedAtMs !== undefined && data.servedAtMs !== null
+      ? { servedAtMs: Number(data.servedAtMs) }
+      : {}),
   };
 }
 
@@ -59,15 +62,19 @@ export class FirestoreImpressionProgressRepo
     await this.db.runTransaction(async (tx) => {
       const snap = await tx.get(ref);
       const existing = snap.exists ? toProgress(snap.id, snap.data() ?? {}) : null;
-      const accumulatedViewDurationMs =
-        existing && existing.campaignId === input.campaignId
-          ? existing.accumulatedViewDurationMs + input.viewDurationMs
-          : input.viewDurationMs;
+      const sameCampaign = existing && existing.campaignId === input.campaignId;
+      const accumulatedViewDurationMs = sameCampaign
+        ? existing.accumulatedViewDurationMs + input.viewDurationMs
+        : input.viewDurationMs;
+      // Preserve the immutable serve time across accumulating segments; reset it
+      // only when a different campaign is served. Only `/api/ad` passes it.
+      const servedAtMs = sameCampaign ? existing.servedAtMs : input.servedAtMs;
       next = {
         developerId: input.developerId,
         campaignId: input.campaignId,
         accumulatedViewDurationMs,
         updatedAtMs: input.nowMs,
+        ...(servedAtMs !== undefined ? { servedAtMs } : {}),
       };
       tx.set(ref, {
         ...next,

@@ -95,6 +95,51 @@ and renders a compact cancel button only for `isNeverFunded()` campaigns. The
 button calls the delete action and surfaces inline errors without showing on
 funded campaign cards.
 
+## Planned Change 2026-06-18 Brand Icon Save/Display
+
+Confirm and protect the intended card behavior: once the API accepts and persists
+`brandIconDataUrl`, the campaign card header should use the uploaded image in the
+brand icon slot. The visible placeholder should only render when no icon data is
+saved.
+
+## Implemented Change 2026-06-18 Brand Icon Save/Display
+
+The card already rendered saved `brandIconDataUrl` values as an image. Added
+coverage for that behavior so future changes do not regress the uploaded logo
+slot. The edit form now also uses the shared `BRAND_ICON_FILE_MAX_BYTES`
+constant for its 64 KiB client-side file check, matching the server schema.
+
+## Planned Change 2026-06-19 Diagnostic Tooltip Cleanup
+
+User feedback: the `outOfBudget` / budget-insufficient diagnostic badge is not
+useful in the advertiser-facing campaign card and confuses users. Remove that
+badge from the visible diagnostics list while keeping the underlying telemetry
+field intact. Add hover/focus tooltips to the remaining diagnostic badges with
+localized explanations so users can understand `uncredited`, `tooShort`,
+`authIssues`, `antiAbuse`, and `duplicate` without expanding the card.
+
+## Implemented Change 2026-06-19 Diagnostic Tooltip Cleanup
+
+Campaign diagnostics now render from a fixed visible badge list that excludes
+`outOfBudget` while leaving `telemetry.invalidCampaign` untouched for backend
+data compatibility. Added a local `DiagnosticTag` wrapper with keyboard focus
+support and localized tooltip descriptions for the remaining badges.
+
+## Verification 2026-06-19 Diagnostic Tooltip Cleanup
+
+- Red run failed before implementation because `Out of budget` still rendered:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/dashboard/advertiser/campaign-list.test.tsx`.
+- Focused run passed after implementation:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/dashboard/advertiser/campaign-list.test.tsx`.
+- Web typecheck passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web lint`.
+
+## Verification 2026-06-18 Brand Icon Save/Display
+
+- `corepack pnpm@9.12.0 --filter @spinshare/core build` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts src/app/dashboard/advertiser/campaign-list.test.tsx` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+
 ## Verification
 
 - `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts src/app/dashboard/advertiser/campaign-list.test.tsx src/app/dashboard/advertiser/advertiser-dashboard-context.test.ts src/server/bidding-service.test.ts` passed.
@@ -107,6 +152,10 @@ funded campaign cards.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Implemented diagnostic badge cleanup and tooltips. | Codex |
+| 2026-06-19 | Planned diagnostic badge cleanup and tooltips. | Codex |
+| 2026-06-18 | Implemented brand icon save/display regression coverage. | Codex |
+| 2026-06-18 | Planned brand icon save/display regression coverage. | Codex |
 | 2026-06-18 | Implemented unpaid campaign delete action in campaign cards. | Codex |
 | 2026-06-18 | Planned unpaid campaign delete action and transparent cancel control. | Codex |
 | 2026-06-18 | Implemented editable campaign detail cards and needs-link status. | Codex |

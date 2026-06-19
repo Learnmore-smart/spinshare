@@ -4,20 +4,21 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { TrendingUp } from "lucide-react";
 
-function generateMockChartData(baseValue: number) {
-  const points = [];
+// Deterministic, organic "market" wave: gentle peaks and valleys that finish
+// on an upward climb. The chart auto-scales, so values are a fixed shape.
+function generateWaveChartData() {
   const count = 60;
-  let value = baseValue - 1.5;
-  const step = 1.5 / count;
+  const points: { index: number; value: number }[] = [];
   for (let i = 0; i < count; i++) {
-    // Add a tiny bit of jitter, but keep it mostly growing
-    value += step + (Math.random() * 0.01 - 0.005);
+    const t = i / (count - 1);
+    const wave =
+      Math.sin(t * Math.PI * 5) * 0.12 +
+      Math.sin(t * Math.PI * 9 + 1) * 0.06 +
+      Math.sin(t * Math.PI * 2.3) * 0.05;
+    const drift = t * 0.12;
+    const finalClimb = Math.pow(Math.max(0, t - 0.68) / 0.32, 2) * 0.5;
+    const value = 0.45 + wave + drift + finalClimb;
     points.push({ index: i, value });
-  }
-  // Ensure the last point is exactly baseValue
-  const lastPoint = points[points.length - 1];
-  if (lastPoint) {
-    lastPoint.value = baseValue;
   }
   return points;
 }
@@ -34,8 +35,7 @@ export function HeroDashboardCard({
   totalImpressions,
 }: HeroDashboardCardProps) {
   const [mounted, setMounted] = useState(false);
-  const [chartData, setChartData] = useState<{ index: number; value: number }[]>([]);
-  const lastAppendTimeRef = useRef<number>(0);
+  const chartData = useMemo(() => generateWaveChartData(), []);
 
   const cardRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState({ rx: 0, ry: 0, x: 0, y: 0, isHovered: false });
@@ -78,39 +78,7 @@ export function HeroDashboardCard({
 
   useEffect(() => {
     setMounted(true);
-    setChartData(generateMockChartData(monthlyEstimate));
-    lastAppendTimeRef.current = Date.now();
   }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-
-    const now = Date.now();
-    const shouldAppend = now - lastAppendTimeRef.current >= 5000;
-
-    setChartData((prev) => {
-      if (prev.length === 0) return prev;
-
-      let next;
-      if (shouldAppend) {
-        next = [...prev, { index: prev.length, value: monthlyEstimate }];
-        if (next.length > 80) {
-          next.shift();
-        }
-        lastAppendTimeRef.current = now;
-      } else {
-        next = [...prev];
-        const last = next[next.length - 1];
-        if (last) {
-          next[next.length - 1] = {
-            index: last.index,
-            value: monthlyEstimate,
-          };
-        }
-      }
-      return next.map((p, i) => ({ ...p, index: i }));
-    });
-  }, [monthlyEstimate, mounted]);
 
   const formattedEarnings = `+$${monthlyEstimate.toLocaleString("en-US", {
     minimumFractionDigits: 2,

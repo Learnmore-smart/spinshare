@@ -73,6 +73,38 @@ budget, and remove the row through the campaign repository.
 with budget or activity, deletes eligible campaigns through the repository, and
 returns `{ deleted: true, campaignId }`.
 
+## Bug Fix 2026-06-18 Delete HMR Compatibility
+
+**Symptom:** In Next.js development, `DELETE /api/campaigns` can crash with
+`TypeError: campaigns.delete is not a function` even after the source repository
+adapters implement `delete()`.
+
+**Root Cause:** `getContainer()` caches a process-wide container on
+`globalThis` during development so it survives HMR. If that singleton was built
+before the repository port gained `delete()`, the live repository instance keeps
+the old prototype and the route calls a missing method.
+
+**Fix Strategy:** Route deletion through a small adapter-compatible helper that
+uses `repo.delete(id)` when present, and falls back to the legacy memory or
+Firestore adapter shape when the dev singleton is stale. Keep all ownership,
+budget, and activity checks in the route before deletion.
+
+**Regression Risk:** The fallback should only run after authorization and
+unpaid checks, and only for known repository shapes.
+
+## Implemented Fix 2026-06-18 Delete HMR Compatibility
+
+Added `deleteCampaignRecord()`, which uses `CampaignRepository.delete()` when
+available and falls back to legacy memory-map or Firestore collection deletion
+when the development singleton was created before the `delete()` method existed.
+The route still performs ownership, budget, and activity checks before calling
+the helper.
+
+## Verification 2026-06-18 Delete HMR Compatibility
+
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts src/app/dashboard/advertiser/campaign-list.test.tsx src/app/dashboard/advertiser/advertiser-dashboard-context.test.ts` passed.
+
 ## Planned Change 2026-06-16 Ad Safety Gate
 
 Authenticated campaign creation should use the shared core deterministic
@@ -221,6 +253,8 @@ merging durable ledger impression counts into the `credited` total.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented HMR-compatible delete fallback for stale campaign repositories. | Codex |
+| 2026-06-18 | Planned HMR-compatible delete fallback for stale campaign repositories. | Codex |
 | 2026-06-18 | Implemented authenticated deletion for owned unpaid campaigns. | Codex |
 | 2026-06-18 | Planned authenticated deletion for owned unpaid campaigns. | Codex |
 | 2026-06-18 | Implemented campaign PATCH edit endpoint. | Codex |

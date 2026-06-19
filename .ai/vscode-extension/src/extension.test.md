@@ -40,6 +40,12 @@ Add regression coverage proving activation does more than show the status bar:
 when no token is loaded, activation should call `ensureAuthenticated()` so a
 fresh install attempts the browser/device sign-in flow immediately.
 
+## Planned Change 2026-06-19 Claude Code State Bridge Wiring
+
+Add activation coverage proving a successful Claude Code adapter install starts
+the VS Code state bridge with the returned `stateFilePath`, and disabling the
+adapter disposes any active bridge.
+
 ## Implemented Change 2026-06-15 Persistent Sign-In Entry
 
 Added activation-level coverage that mocks VS Code and `AuthManager`, activates
@@ -53,10 +59,18 @@ Added activation-level coverage that asserts unauthenticated activation calls
 `AuthManager.ensureAuthenticated()`. This locks the install-time sign-in prompt
 contract separately from the fallback status bar entry.
 
+## Implemented Change 2026-06-19 Claude Code State Bridge Wiring
+
+Added activation-level coverage proving a returned Claude adapter
+`stateFilePath` creates and starts `ClaudeCodeStateBridge`, and that disabling
+`spinshare.claudeCodeAdapter` disposes the bridge before removing the adapter.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Implemented activation tests for Claude Code state bridge wiring and disposal. | Codex |
+| 2026-06-19 | Planned activation tests for Claude Code state bridge wiring. | Codex |
 | 2026-06-16 | Added activation sign-in prompt regression coverage. | Codex |
 | 2026-06-15 | Implemented persistent sign-in activation test. | Codex |
 | 2026-06-15 | Created activation test plan for persistent sign-in entry. | Codex |

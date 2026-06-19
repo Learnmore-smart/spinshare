@@ -189,10 +189,26 @@ and `createCampaignSchema` includes optional `blockCount`. Invalid block counts
 are rejected instead of being silently stripped; valid values are preserved for
 authenticated dashboard checkout creation.
 
+## Planned Change (2026-06-18 Brand Icon Data URL Limit)
+
+Fix the brand icon validation mismatch: the dashboard accepts image files up to
+64 KiB, but a 64 KiB file expands to roughly 87 KiB when encoded as a base64 data
+URL. Raise `BRAND_ICON_DATA_URL_MAX_LENGTH` to cover the encoded payload while
+keeping the client-facing "64 KB file" rule unchanged.
+
+## Implemented Change (2026-06-18 Brand Icon Data URL Limit)
+
+Added `BRAND_ICON_FILE_MAX_BYTES = 64 * 1024` and derive
+`BRAND_ICON_DATA_URL_MAX_LENGTH` from that raw file-size limit plus the longest
+supported data URL MIME prefix. This keeps the upload file-size limit at 64 KiB
+while allowing the resulting base64 data URL to pass server validation.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented brand icon data URL limit fix for 64 KiB uploads. | Codex |
+| 2026-06-18 | Planned brand icon data URL limit fix for 64 KiB uploads. | Codex |
 | 2026-06-17 | Implemented optional blockCount validation for authenticated campaign creation checkout. | Codex |
 | 2026-06-17 | Planned optional blockCount validation for authenticated campaign creation checkout. | Codex |
 | 2026-06-16 | Implemented deterministic URL anti-phishing hardening. | Codex |

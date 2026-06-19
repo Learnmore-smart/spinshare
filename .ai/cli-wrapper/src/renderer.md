@@ -1,6 +1,6 @@
 # renderer.ts
 
-> Last updated: 2026-06-15 | Protection: STANDARD
+> Last updated: 2026-06-19 | Protection: STANDARD
 
 ## Purpose
 
@@ -12,7 +12,8 @@ text while forwarding real command output unchanged.
 - Strips terminal control sequences for classification only.
 - Treats spinner-only animation frames as wait states.
 - Treats known agent loading/status lines, including Claude-style
-  `Pollinating...`, as wait states.
+  `Pollinating...` and Antigravity-style prefixed `Generating...`, as wait
+  states.
 - Emits a single carriage-return ad line for wait states when an ad is
   available.
 - Forwards non-wait output byte-for-byte.
@@ -43,7 +44,20 @@ text while forwarding real command output unchanged.
 
 | Date | Bug | Cause | Fix |
 |------|-----|-------|-----|
+| 2026-06-19 | Wrapped Antigravity CLI can still print its own `Generating...` line instead of a SpinShare ad. | Antigravity prefixes the transient `Generating...` wait text with a Braille/symbol status marker; the renderer only stripped bullets, middle dots, and `*` before matching wait words. | Planned: allow a single conservative symbol/Braille status prefix before known one-word AI wait messages, while keeping ordinary log lines such as `Loading config...` as pass-through. |
 | 2026-06-15 | Claude Code showed `Pollinating...` instead of a SpinShare ad. | The renderer only detected ASCII spinner glyph frames, while Claude emits text status frames during waits. | Recognize conservative AI-agent loading/status lines as wait-state frames and replace them with ads. |
+
+## Bug Fix Implemented 2026-06-19 Antigravity status prefix
+
+`STATUS_PREFIX_PATTERN` now allows a single conservative leading status symbol,
+including common sparkle/status glyphs and Braille spinner glyphs, before known
+one-word AI wait messages. The status-word allowlist still blocks ordinary log
+lines such as `Loading config...`.
+
+Verification:
+- RED: `corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/renderer.test.ts`
+  failed on prefixed Antigravity `Generating...` assertions.
+- GREEN: the same focused CLI renderer test passed 14 tests.
 
 ## Planned Change (2026-06-15)
 
@@ -70,5 +84,7 @@ command output such as `Loading config...`.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Implemented Antigravity prefixed `Generating...` wait-line classification. | Codex |
+| 2026-06-19 | Planned Antigravity prefixed `Generating...` wait-line classification. | Codex |
 | 2026-06-15 | Implemented conservative agent status-line wait detection. | Codex |
 | 2026-06-15 | Created doc before adding agent loading/status-line detection. | Codex |

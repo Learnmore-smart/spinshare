@@ -102,6 +102,8 @@ function toActivity(id: string, data: DocumentData): ActivityRecord {
     ...(toNumberOrUndefined(data.developerCreditCents) !== undefined
       ? { developerCreditCents: Number(data.developerCreditCents) }
       : {}),
+    ...(typeof data.ipHash === "string" ? { ipHash: data.ipHash } : {}),
+    ...(typeof data.uaHash === "string" ? { uaHash: data.uaHash } : {}),
   };
 }
 

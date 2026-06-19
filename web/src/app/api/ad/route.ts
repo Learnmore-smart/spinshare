@@ -68,11 +68,15 @@ export async function GET(request: Request): Promise<Response> {
       developerId: claims.userId,
     });
     if (result.adAvailable) {
+      const servedAtMs = Date.now();
       await progress.addDuration({
         developerId: claims.userId,
         campaignId: result.campaignId,
         viewDurationMs: 0,
-        nowMs: Date.now(),
+        nowMs: servedAtMs,
+        // Stamp the trusted serve time so settlement can derive a server-clocked
+        // dwell that the client-reported viewDurationMs can never forge.
+        servedAtMs,
       });
       try {
         await counters.incrementCampaignTelemetry(result.campaignId, "shows");

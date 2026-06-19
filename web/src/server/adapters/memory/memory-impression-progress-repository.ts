@@ -20,15 +20,20 @@ export class MemoryImpressionProgressRepository
     input: AddImpressionProgressInput,
   ): Promise<ImpressionProgress> {
     const existing = this.progress.get(input.developerId);
-    const accumulatedViewDurationMs =
-      existing && existing.campaignId === input.campaignId
-        ? existing.accumulatedViewDurationMs + input.viewDurationMs
-        : input.viewDurationMs;
+    const sameCampaign = existing && existing.campaignId === input.campaignId;
+    const accumulatedViewDurationMs = sameCampaign
+      ? existing.accumulatedViewDurationMs + input.viewDurationMs
+      : input.viewDurationMs;
+    // Preserve the immutable serve time on accumulating segments; reset it when a
+    // new campaign is served. Only `/api/ad` passes `servedAtMs`; plain track
+    // segments leave it untouched (and undefined on a fresh record).
+    const servedAtMs = sameCampaign ? existing.servedAtMs : input.servedAtMs;
     const record: ImpressionProgress = {
       developerId: input.developerId,
       campaignId: input.campaignId,
       accumulatedViewDurationMs,
       updatedAtMs: input.nowMs,
+      ...(servedAtMs !== undefined ? { servedAtMs } : {}),
     };
     this.progress.set(input.developerId, record);
     return { ...record };

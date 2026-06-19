@@ -38,6 +38,42 @@ USD funding label.
 - Focused run passed after implementation:
   `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/dashboard/advertiser/campaign-list.test.tsx`.
 
+## Planned Change 2026-06-18 Brand Icon Rendering
+
+Add static render coverage that a campaign with `brandIconDataUrl` renders the
+uploaded image in the card header brand slot instead of the placeholder icon.
+
+## Implemented Change 2026-06-18 Brand Icon Rendering
+
+Added static render coverage proving a saved `brandIconDataUrl` produces an
+`adv-camp-brand-icon` image in the campaign card header and omits the placeholder
+class.
+
+## Planned Change 2026-06-19 Diagnostic Tooltip Regression
+
+Extend static render coverage to assert that campaign diagnostics no longer
+render the advertiser-facing `Out of budget` badge, while visible diagnostic
+badges include tooltip markup and explanatory copy.
+
+## Implemented Change 2026-06-19 Diagnostic Tooltip Regression
+
+Added static render coverage that sets a nonzero `invalidCampaign` telemetry
+value, confirms `Out of budget` is absent, and confirms tooltip markup plus
+representative descriptions for the remaining diagnostic badges.
+
+## Verification 2026-06-19 Diagnostic Tooltip Regression
+
+- Red run failed before implementation because `Out of budget` still rendered.
+- Focused run passed after implementation:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/dashboard/advertiser/campaign-list.test.tsx`.
+- Web typecheck passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web lint`.
+
+## Verification 2026-06-18 Brand Icon Rendering
+
+- `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts src/app/dashboard/advertiser/campaign-list.test.tsx` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+
 ## Verification 2026-06-15
 
 - Focused: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/funds/checkout/route.test.ts src/app/dashboard/advertiser/lib.test.ts src/app/dashboard/advertiser/campaign-list.test.tsx`.
@@ -47,6 +83,10 @@ USD funding label.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Implemented diagnostic tooltip cleanup regression test. | Codex |
+| 2026-06-19 | Planned diagnostic tooltip cleanup regression test. | Codex |
+| 2026-06-18 | Implemented brand icon card rendering regression test. | Codex |
+| 2026-06-18 | Planned brand icon card rendering regression test. | Codex |
 | 2026-06-17 | Implemented delivery progress and buy-more copy regression test. | Codex |
 | 2026-06-17 | Planned campaign delivery progress and buy-more copy regression test. | Codex |
 | 2026-06-15 | Implemented campaign list block funding UI test. | Codex |

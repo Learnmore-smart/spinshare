@@ -2,11 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import {
   AD_TEXT_MAX_LENGTH,
+  BRAND_ICON_DATA_URL_MAX_LENGTH,
+  BRAND_ICON_FILE_MAX_BYTES,
   CPM_CENTS_MAX,
   CPM_CENTS_MIN,
   FUNDING_CENTS_MAX,
   FUNDING_CENTS_MIN,
   advertiserCheckoutSchema,
+  brandIconDataUrlSchema,
   createCampaignSchema,
   fundingBlockCheckoutSchema,
   fundingAmountSchema,
@@ -120,6 +123,15 @@ describe("createCampaignSchema", () => {
         cpmCents: CPM_CENTS_MIN,
       }).success,
     ).toBe(true);
+  });
+});
+
+describe("brandIconDataUrlSchema", () => {
+  it("accepts a 64 KiB image encoded as a data URL", () => {
+    const icon = `data:image/png;base64,${Buffer.alloc(BRAND_ICON_FILE_MAX_BYTES).toString("base64")}`;
+
+    expect(icon.length).toBeLessThanOrEqual(BRAND_ICON_DATA_URL_MAX_LENGTH);
+    expect(brandIconDataUrlSchema.safeParse(icon).success).toBe(true);
   });
 });
 

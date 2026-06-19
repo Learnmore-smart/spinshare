@@ -151,13 +151,29 @@ direct-checkout path while keeping block-count validation centralized.
 Added schema coverage that optional valid `blockCount` is preserved and invalid
 block counts are rejected.
 
+## Planned Change (2026-06-18 Brand Icon Data URL Limit)
+
+Add RED coverage that `brandIconDataUrlSchema` accepts a 64 KiB PNG encoded as a
+data URL. This guards the dashboard upload contract: the browser validates the
+file byte size, while the API schema validates the encoded data URL.
+
+## Implemented Change (2026-06-18 Brand Icon Data URL Limit)
+
+Added schema coverage for a 64 KiB PNG encoded as a data URL. The test failed
+with the old 49,152-character cap and passes after raising the encoded data URL
+limit.
+
 RED verification before implementation:
 `corepack pnpm@9.12.0 --filter @spinshare/core test -- src/schemas.test.ts`
-failed because `blockCount` was stripped and invalid values were accepted.
+failed because the 64 KiB encoded icon length was 87,406 characters, above the
+old 49,152-character limit.
 
 GREEN verification after implementation:
 `corepack pnpm@9.12.0 --filter @spinshare/core test -- src/schemas.test.ts`
-passed 26 tests.
+passed 27 tests.
+
+Additional verification:
+`corepack pnpm@9.12.0 --filter @spinshare/core lint` passed.
 
 ## Verification (2026-06-15 Dashboard Block Funding)
 
@@ -168,6 +184,8 @@ passed 26 tests.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented brand icon encoded-size schema regression test. | Codex |
+| 2026-06-18 | Planned brand icon encoded-size schema regression test. | Codex |
 | 2026-06-17 | Implemented create campaign optional blockCount schema tests. | Codex |
 | 2026-06-17 | Planned create campaign optional blockCount schema tests. | Codex |
 | 2026-06-16 | Implemented deterministic URL anti-phishing tests. | Codex |

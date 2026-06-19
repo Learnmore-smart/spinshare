@@ -358,6 +358,11 @@ export const extraEn: ExtraDictionary = {
     destinationHttps: "Destination URL must start with https://",
     campaignCreated: "Campaign created. Buy impressions below to start bidding.",
     campaignRejected: "The campaign details were rejected.",
+    deleteCampaignError: (status) => `Could not cancel this campaign (error ${status}). Refresh and try again.`,
+    deleteCampaignHasBudget: "This campaign already has budget, so it cannot be cancelled.",
+    deleteCampaignHasActivity: "This campaign already has delivery activity, so it cannot be cancelled.",
+    deleteCampaignNotFound: "This campaign was already removed.",
+    deleteCampaignForbidden: "You cannot cancel another advertiser's campaign.",
     sessionExpired: "Your session has expired. Refresh the page to sign in again.",
     createError: (status) => `Could not create the campaign (error ${status}).`,
     noCampaignsTitle: "No campaigns yet",
@@ -384,6 +389,16 @@ export const extraEn: ExtraDictionary = {
     outOfBudget: "Out of budget",
     antiAbuse: "Anti-abuse",
     duplicate: "Duplicate",
+    uncreditedDescription:
+      "Total impressions that showed but were not billed. It includes the non-billable reason buckets below.",
+    tooShortDescription:
+      "The ad was visible for less than the 3-second minimum, so it was not billed.",
+    authIssuesDescription:
+      "The impression callback used a missing or invalid device token, so it could not be attributed for billing.",
+    antiAbuseDescription:
+      "Server-side fraud or earning-cap checks suppressed billing for this impression.",
+    duplicateDescription:
+      "The same impression settlement was received more than once; only the first can be billed.",
     recentActivity: "Recent activity",
     recentActivityDesc: "Impression attempts, billable outcomes, and non-billed reasons.",
     resumeCheckout: "Resume payment",
@@ -709,6 +724,11 @@ export const extraZh: ExtraDictionary = {
     destinationHttps: "落地页 URL 须以 https:// 开头",
     campaignCreated: "广告活动已创建。请在下方购买展示次数以开始竞价。",
     campaignRejected: "广告活动详情被拒绝。",
+    deleteCampaignError: (status) => `无法取消该广告活动（错误 ${status}）。请刷新页面后重试。`,
+    deleteCampaignHasBudget: "该广告活动已有预算，不能取消。",
+    deleteCampaignHasActivity: "该广告活动已有投放记录，不能取消。",
+    deleteCampaignNotFound: "找不到该广告活动，可能已经被删除。",
+    deleteCampaignForbidden: "你不能取消其他广告主的活动。",
     sessionExpired: "会话已过期，请刷新页面重新登录。",
     createError: (status) => `无法创建广告活动（错误 ${status}）。`,
     noCampaignsTitle: "暂无广告活动",
@@ -735,6 +755,13 @@ export const extraZh: ExtraDictionary = {
     outOfBudget: "预算不足",
     antiAbuse: "防作弊过滤",
     duplicate: "重复展示",
+    uncreditedDescription:
+      "展示了但没有产生计费的总次数，包含下面所有未计费原因。",
+    tooShortDescription: "广告可见时间短于 3 秒最低要求，因此不计费。",
+    authIssuesDescription:
+      "展示回传缺少有效设备凭据，无法确认归属，因此不计费。",
+    antiAbuseDescription: "服务端防作弊或收益上限规则拦截了这次计费。",
+    duplicateDescription: "同一次展示被重复结算；系统只会给第一次计费。",
     recentActivity: "近期动态",
     recentActivityDesc: "展示尝试、计费结果以及未计费原因。",
     resumeCheckout: "继续付款",
@@ -1076,6 +1103,11 @@ export const extraFr: ExtraDictionary = {
     destinationHttps: "L'URL de destination doit commencer par https://",
     campaignCreated: "Campagne créée. Achetez des impressions ci-dessous pour commencer à enchérir.",
     campaignRejected: "Les détails de la campagne ont été rejetés.",
+    deleteCampaignError: (status) => `Impossible d'annuler cette campagne (erreur ${status}). Rafraîchissez la page et réessayez.`,
+    deleteCampaignHasBudget: "Cette campagne a déjà un budget et ne peut pas être annulée.",
+    deleteCampaignHasActivity: "Cette campagne a déjà de l'activité de diffusion et ne peut pas être annulée.",
+    deleteCampaignNotFound: "Cette campagne a déjà été supprimée.",
+    deleteCampaignForbidden: "Vous ne pouvez pas annuler la campagne d'un autre annonceur.",
     sessionExpired: "Session expirée. Rafraîchissez la page pour vous reconnecter.",
     createError: (status) => `Impossible de créer la campagne (erreur ${status}).`,
     noCampaignsTitle: "Aucune campagne",
@@ -1102,6 +1134,16 @@ export const extraFr: ExtraDictionary = {
     outOfBudget: "Budget épuisé",
     antiAbuse: "Anti-abus",
     duplicate: "Doublons",
+    uncreditedDescription:
+      "Total des impressions affichées mais non facturées, incluant les motifs ci-dessous.",
+    tooShortDescription:
+      "L'annonce a été visible moins de 3 secondes, donc elle n'est pas facturée.",
+    authIssuesDescription:
+      "Le retour d'impression n'avait pas de jeton d'appareil valide, donc l'attribution et la facturation sont bloquées.",
+    antiAbuseDescription:
+      "Les contrôles serveur de fraude ou de plafond de gains ont supprimé la facturation.",
+    duplicateDescription:
+      "Le même règlement d'impression a été reçu plusieurs fois ; seul le premier peut être facturé.",
     recentActivity: "Activité récente",
     recentActivityDesc: "Tentatives d'impression, résultats facturables et motifs de non-facturation.",
     resumeCheckout: "Reprendre le paiement",

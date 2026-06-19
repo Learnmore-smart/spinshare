@@ -4,12 +4,26 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import {
+  DEFAULT_TERMINAL_AGENTS,
   applyTerminalAutoWrapEnvironment,
   buildTerminalAutoWrapPlan,
   normalizeTerminalAgents,
 } from "./terminal-auto-wrap";
 
 describe("normalizeTerminalAgents", () => {
+  it("defaults to Claude and Antigravity CLI command aliases", () => {
+    expect(DEFAULT_TERMINAL_AGENTS).toEqual([
+      "claude",
+      "agy",
+      "antigravity",
+    ]);
+    expect(normalizeTerminalAgents(undefined)).toEqual([
+      "claude",
+      "agy",
+      "antigravity",
+    ]);
+  });
+
   it("deduplicates safe command names and drops unsafe entries", () => {
     expect(
       normalizeTerminalAgents([
@@ -25,7 +39,11 @@ describe("normalizeTerminalAgents", () => {
   });
 
   it("falls back to claude when no configured agent is valid", () => {
-    expect(normalizeTerminalAgents(["", "../escape"])).toEqual(["claude"]);
+    expect(normalizeTerminalAgents(["", "../escape"])).toEqual([
+      "claude",
+      "agy",
+      "antigravity",
+    ]);
   });
 });
 
@@ -50,6 +68,12 @@ describe("buildTerminalAutoWrapPlan", () => {
     expect(filesByName.has("claude.cmd")).toBe(true);
     expect(filesByName.has("claude.ps1")).toBe(true);
     expect(filesByName.has("claude")).toBe(true);
+    expect(filesByName.has("agy.cmd")).toBe(true);
+    expect(filesByName.has("agy.ps1")).toBe(true);
+    expect(filesByName.has("agy")).toBe(true);
+    expect(filesByName.has("antigravity.cmd")).toBe(true);
+    expect(filesByName.has("antigravity.ps1")).toBe(true);
+    expect(filesByName.has("antigravity")).toBe(true);
 
     const launcher = filesByName.get("spinshare-terminal-launcher.cjs")?.content;
     expect(launcher).toContain("const shimDir = __dirname;");
@@ -120,6 +144,26 @@ describe("buildTerminalAutoWrapPlan", () => {
         "codex",
       ]),
     );
+  });
+});
+
+describe("extension manifest terminal defaults", () => {
+  it("keeps package.json defaults aligned with generated terminal shims", () => {
+    const manifest = JSON.parse(
+      readFileSync(path.join(process.cwd(), "package.json"), "utf8"),
+    ) as {
+      contributes?: {
+        configuration?: {
+          properties?: Record<string, { default?: unknown }>;
+        };
+      };
+    };
+
+    expect(
+      manifest.contributes?.configuration?.properties?.[
+        "spinshare.terminalAgents"
+      ]?.default,
+    ).toEqual(["claude", "agy", "antigravity"]);
   });
 });
 

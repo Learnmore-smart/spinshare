@@ -18,6 +18,7 @@ import {
   FUNDING_CENTS_MAX,
   FUNDING_CENTS_MIN,
   formatCentsAsUsd,
+  reconstructCampaignDelivery,
 } from "@spinshare/core";
 
 export interface CampaignTelemetryView {
@@ -327,22 +328,22 @@ export function isNeverFunded(campaign: CampaignView): boolean {
  * Delivery progress for a campaign's progress bar.
  *
  * Impressions are always purchased in 1,000-view blocks, so the denominator is
- * a multiple of 1,000. Deriving it from remaining budget alone drifts downward
- * (each flush rounds micro-cents → cents, e.g. 1,000 bought reads as 997), so
- * we snap the raw budget-derived total to the nearest 1,000. `served` is the
+ * a multiple of 1,000. Deriving it from the remaining whole-cent budget alone
+ * drifts downward (each flush rounds micro-cents → cents, e.g. 1,000 bought
+ * reads as 997), so {@link reconstructCampaignDelivery} snaps the raw
+ * budget-derived total back onto the 1,000-view block grid. `served` is the
  * credited impression count.
  */
 export function deliveryProgress(
   campaign: CampaignView,
   served: number,
 ): { purchased: number; percent: number } {
-  const { budgetCents, cpmCents } = campaign;
-  const remainingImpressions =
-    cpmCents > 0 ? Math.floor((budgetCents * 1000) / cpmCents) : 0;
-  const rawTotal = served + remainingImpressions;
-  // Snap to the nearest whole 1,000-block; never below what's already served.
-  const snapped = Math.round(rawTotal / 1000) * 1000;
-  const purchased = Math.max(snapped, served);
+  const { purchasedImpressions } = reconstructCampaignDelivery(
+    campaign.cpmCents,
+    campaign.budgetCents,
+    served,
+  );
+  const purchased = Math.max(purchasedImpressions, served);
   return {
     purchased,
     percent: purchased > 0 ? Math.min(100, (served / purchased) * 100) : 0,

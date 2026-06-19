@@ -337,4 +337,92 @@ describe("POST /api/track viewability validation", () => {
       }),
     );
   });
+
+  it("suppresses a forged client duration when server-clocked dwell is under 3 seconds", async () => {
+    resetMocks();
+    const justNow = Date.now();
+    mocks.validateToken.mockResolvedValueOnce({ userId: "dev_1" });
+    mocks.getCampaignById.mockResolvedValueOnce({
+      id: "cmp_1",
+      advertiserId: "adv_1",
+      cpmCents: 3000,
+      budgetCents: 1000,
+    });
+    // Ad was served essentially "now": no real wall-clock dwell has elapsed.
+    mocks.getProgressByDeveloper.mockResolvedValueOnce({
+      developerId: "dev_1",
+      campaignId: "cmp_1",
+      accumulatedViewDurationMs: 0,
+      updatedAtMs: justNow,
+      servedAtMs: justNow,
+    });
+    // The scripter claims a full 3 seconds in a single POST.
+    mocks.addProgressDuration.mockResolvedValueOnce({
+      developerId: "dev_1",
+      campaignId: "cmp_1",
+      accumulatedViewDurationMs: 3000,
+      updatedAtMs: justNow,
+      servedAtMs: justNow,
+    });
+
+    const response = await POST(
+      trackRequest({ campaignId: "cmp_1", viewDurationMs: 3000 }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    // Client duration alone no longer settles: the server clock overrules it.
+    expect(body.recorded).toBe(false);
+    expect(mocks.recordImpression).not.toHaveBeenCalled();
+    expect(mocks.incrementCampaignTelemetry).toHaveBeenCalledWith(
+      "cmp_1",
+      "tooShort",
+    );
+  });
+
+  it("settles when both client duration and server-clocked dwell reach 3 seconds", async () => {
+    resetMocks();
+    const servedAtMs = Date.now() - 10_000; // genuinely served 10s ago
+    mocks.validateToken.mockResolvedValueOnce({ userId: "dev_1" });
+    mocks.getCampaignById.mockResolvedValueOnce({
+      id: "cmp_1",
+      advertiserId: "adv_1",
+      cpmCents: 3000,
+      budgetCents: 1000,
+    });
+    mocks.getProgressByDeveloper.mockResolvedValueOnce({
+      developerId: "dev_1",
+      campaignId: "cmp_1",
+      accumulatedViewDurationMs: 1000,
+      updatedAtMs: servedAtMs,
+      servedAtMs,
+    });
+    mocks.addProgressDuration.mockResolvedValueOnce({
+      developerId: "dev_1",
+      campaignId: "cmp_1",
+      accumulatedViewDurationMs: 3000,
+      updatedAtMs: Date.now(),
+      servedAtMs,
+    });
+    mocks.recordImpression.mockResolvedValueOnce({
+      ok: true,
+      settlement: "credited",
+      response: {
+        recorded: true,
+        developerCreditCents: 18,
+        developerCreditUsd: "0.18",
+      },
+    });
+
+    const response = await POST(
+      trackRequest({ campaignId: "cmp_1", viewDurationMs: 2000 }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordImpression).toHaveBeenCalledOnce();
+    expect(mocks.incrementCampaignTelemetry).toHaveBeenCalledWith(
+      "cmp_1",
+      "credited",
+    );
+  });
 });

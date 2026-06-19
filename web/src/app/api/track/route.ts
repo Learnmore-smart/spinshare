@@ -29,6 +29,10 @@ import {
 
 import { getContainer, type Container } from "@/server/container";
 import {
+  extractClientSignals,
+  type ClientSignals,
+} from "@/server/http/client-ip";
+import {
   INVALID_CAMPAIGN_ERROR,
   UNAUTHORIZED_ERROR,
   recordImpression,
@@ -119,6 +123,7 @@ async function recordTrackActivity(
     campaign: Campaign | null;
     developerCreditCents?: number;
     revenueMicrocents?: number;
+    signals?: ClientSignals;
   },
 ): Promise<void> {
   try {
@@ -138,6 +143,8 @@ async function recordTrackActivity(
       ...(input.developerCreditCents !== undefined
         ? { developerCreditCents: input.developerCreditCents }
         : {}),
+      ...(input.signals?.ipHash ? { ipHash: input.signals.ipHash } : {}),
+      ...(input.signals?.uaHash ? { uaHash: input.signals.uaHash } : {}),
     });
     if (
       input.status === "credited" &&
@@ -228,6 +235,10 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "invalid_request_body" }, { status: 400 });
   }
 
+  // Capture privacy-preserving network signals once for every activity row this
+  // request writes (anti-fraud: per-IP fan-out / velocity clustering).
+  const clientSignals = extractClientSignals(request);
+
   const token = extractBearerToken(request);
   const parsed = trackRequestSchema.safeParse(rawBody);
   if (!parsed.success) {
@@ -249,6 +260,7 @@ export async function POST(request: Request): Promise<Response> {
         campaign,
         developerCreditCents: 0,
         revenueMicrocents: 0,
+        signals: clientSignals,
       });
     }
     return Response.json(
@@ -275,6 +287,7 @@ export async function POST(request: Request): Promise<Response> {
       campaign: activityContext.campaign,
       developerCreditCents: 0,
       revenueMicrocents: 0,
+      signals: clientSignals,
     });
     await recordCampaignTelemetry(
       counters,
@@ -295,6 +308,7 @@ export async function POST(request: Request): Promise<Response> {
       campaign: activityContext.campaign,
       developerCreditCents: 0,
       revenueMicrocents: 0,
+      signals: clientSignals,
     });
     await recordCampaignTelemetry(
       counters,
@@ -322,6 +336,7 @@ export async function POST(request: Request): Promise<Response> {
       campaign: activityContext.campaign,
       developerCreditCents: 0,
       revenueMicrocents: 0,
+      signals: clientSignals,
     });
     await recordCampaignTelemetry(
       counters,
@@ -334,14 +349,29 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  const nowMs = Date.now();
   const progressRecord = await progress.addDuration({
     developerId: activityContext.claims.userId,
     campaignId: parsed.data.campaignId,
     viewDurationMs: parsed.data.viewDurationMs,
-    nowMs: Date.now(),
+    nowMs,
   });
 
-  if (progressRecord.accumulatedViewDurationMs < VIEWABILITY_MIN_MS) {
+  // Server-clocked viewability: the client-reported viewDurationMs is advisory.
+  // The real gate is wall-clock elapsed since `/api/ad` stamped servedAtMs, which
+  // a scripter POSTing viewDurationMs:3000 in a tight loop cannot forge. Require
+  // BOTH the cumulative client duration AND the server dwell to reach 3s. When
+  // servedAtMs is absent (legacy records / pre-serve), fall back to the
+  // client-only gate so older flows are not silently broken.
+  const serverDwellMs =
+    servedProgress.servedAtMs !== undefined
+      ? nowMs - servedProgress.servedAtMs
+      : null;
+  const viewable =
+    progressRecord.accumulatedViewDurationMs >= VIEWABILITY_MIN_MS &&
+    (serverDwellMs === null || serverDwellMs >= VIEWABILITY_MIN_MS);
+
+  if (!viewable) {
     await recordTrackActivity(container, {
       campaignId: parsed.data.campaignId,
       viewDurationMs: progressRecord.accumulatedViewDurationMs,
@@ -350,6 +380,7 @@ export async function POST(request: Request): Promise<Response> {
       campaign: activityContext.campaign,
       developerCreditCents: 0,
       revenueMicrocents: 0,
+      signals: clientSignals,
     });
     await recordCampaignTelemetry(counters, parsed.data.campaignId, "tooShort");
     return Response.json(
@@ -384,6 +415,7 @@ export async function POST(request: Request): Promise<Response> {
           ? result.response.developerCreditCents
           : 0,
       revenueMicrocents: split?.revenueMicrocents ?? 0,
+      signals: clientSignals,
     });
     await recordCampaignTelemetry(
       counters,
@@ -400,6 +432,7 @@ export async function POST(request: Request): Promise<Response> {
     campaign: activityContext.campaign,
     developerCreditCents: 0,
     revenueMicrocents: 0,
+    signals: clientSignals,
   });
   await recordCampaignTelemetry(
     counters,

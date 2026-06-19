@@ -81,4 +81,55 @@ describe("CampaignList", () => {
     expect(html).toContain("Cancel");
     expect(html).toContain("adv-camp-delete-btn");
   });
+
+  it("renders an uploaded brand icon in the campaign card header", () => {
+    Object.assign(globalThis, { React });
+
+    const html = renderToStaticMarkup(
+      React.createElement(CampaignList, {
+        token: "tok_123",
+        campaigns: [
+          {
+            ...campaign,
+            brandName: "LearnX",
+            brandIconDataUrl: "data:image/png;base64,AAAA",
+          },
+        ],
+      }),
+    );
+
+    expect(html).toContain('src="data:image/png;base64,AAAA"');
+    expect(html).toContain('class="adv-camp-brand-icon"');
+    expect(html).not.toContain("adv-camp-brand-icon--placeholder");
+  });
+
+  it("explains visible diagnostic badges without showing out-of-budget", () => {
+    Object.assign(globalThis, { React });
+
+    const html = renderToStaticMarkup(
+      React.createElement(CampaignList, {
+        token: "tok_123",
+        campaigns: [
+          {
+            ...campaign,
+            telemetry: {
+              ...campaign.telemetry!,
+              invalidCampaign: 42,
+              invalidToken: 7,
+              shadowBanned: 3,
+              earningCapped: 2,
+            },
+          },
+        ],
+      }),
+    );
+
+    expect(html).not.toContain("Out of budget");
+    expect(html).toContain('role="tooltip"');
+    expect(html).toContain("Total impressions that showed but were not billed");
+    expect(html).toContain("visible for less than the 3-second minimum");
+    expect(html).toContain("missing or invalid device token");
+    expect(html).toContain("fraud or earning-cap checks");
+    expect(html).toContain("received more than once");
+  });
 });

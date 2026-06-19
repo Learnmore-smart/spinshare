@@ -177,3 +177,49 @@ dashboards.
 Added `activityFeed` copy for English, Chinese, and French. This covers shared
 activity statuses, event labels, duration formatting, details summary text, and
 detail labels.
+
+## Planned Change 2026-06-18 Delete Campaign Error Copy
+
+Add en/zh/fr advertiser dashboard strings for delete-specific campaign cancel
+failures, including status-bearing fallback copy and known API error codes.
+This keeps the unpaid cancel button from showing the generic campaign detail
+rejection message.
+
+## Implemented Change 2026-06-18 Delete Campaign Error Copy
+
+Added English, Chinese, and French advertiser dashboard strings for delete
+status fallback, budget/activity blocking, not-found, and forbidden failures.
+
+## Planned Change 2026-06-19 Diagnostic Tooltip Copy
+
+Add en/zh/fr advertiser dashboard tooltip descriptions for the visible campaign
+diagnostic badges:
+
+- `uncreditedDescription`
+- `tooShortDescription`
+- `authIssuesDescription`
+- `antiAbuseDescription`
+- `duplicateDescription`
+
+Do not add a tooltip for `outOfBudget` because that badge is being removed from
+the visible diagnostics list.
+
+## Implemented Change 2026-06-19 Diagnostic Tooltip Copy
+
+Added English, Chinese, and French tooltip description strings for the five
+visible campaign diagnostic badges. The `outOfBudget` label remains available
+for compatibility, but there is no tooltip copy for it because the badge is not
+rendered.
+
+## Verification 2026-06-18 Delete Campaign Error Copy
+
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+
+## Change History Addendum 2
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-19 | Added diagnostic tooltip copy strings. | Codex |
+| 2026-06-19 | Planned diagnostic tooltip copy strings. | Codex |
+| 2026-06-18 | Added delete campaign error copy strings. | Codex |
+| 2026-06-18 | Planned delete campaign error copy strings. | Codex |

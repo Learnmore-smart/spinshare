@@ -10,6 +10,15 @@ const mocks = vi.hoisted(() => {
     dispose: vi.fn(),
   };
   const subscriptions: Array<{ dispose(): void }> = [];
+  const configurationWatchers: Array<(event: {
+    affectsConfiguration(setting: string): boolean;
+  }) => void> = [];
+  const configurationValues: Record<string, unknown> = {};
+  const bridgeInstances: Array<{
+    options: Record<string, unknown>;
+    start: ReturnType<typeof vi.fn>;
+    dispose: ReturnType<typeof vi.fn>;
+  }> = [];
   const authInstances: Array<{
     initialize: ReturnType<typeof vi.fn>;
     isAuthenticated: ReturnType<typeof vi.fn>;
@@ -39,9 +48,12 @@ const mocks = vi.hoisted(() => {
   const vscode = {
     workspace: {
       getConfiguration: vi.fn(() => ({
-        get: vi.fn((_key: string) => undefined),
+        get: vi.fn((key: string) => configurationValues[key]),
       })),
-      onDidChangeConfiguration: vi.fn(() => ({ dispose: vi.fn() })),
+      onDidChangeConfiguration: vi.fn((watcher) => {
+        configurationWatchers.push(watcher);
+        return { dispose: vi.fn() };
+      }),
     },
     window: {
       createStatusBarItem: vi.fn(() => statusBarItem),
@@ -66,6 +78,9 @@ const mocks = vi.hoisted(() => {
 
   return {
     authInstances,
+    bridgeInstances,
+    configurationValues,
+    configurationWatchers,
     statusBarItem,
     subscriptions,
     vscode,
@@ -100,6 +115,19 @@ vi.mock("./claude-code-adapter", () => ({
   removeClaudeCodeAdapter: mocks.removeClaudeCodeAdapter,
 }));
 
+vi.mock("./claude-code-state-bridge", () => ({
+  ClaudeCodeStateBridge: class ClaudeCodeStateBridge {
+    options: Record<string, unknown>;
+    start = vi.fn();
+    dispose = vi.fn();
+
+    constructor(options: Record<string, unknown>) {
+      this.options = options;
+      mocks.bridgeInstances.push(this);
+    }
+  },
+}));
+
 function makeContext() {
   return {
     secrets: {
@@ -123,6 +151,11 @@ describe("activate", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.authInstances.length = 0;
+    mocks.bridgeInstances.length = 0;
+    for (const key of Object.keys(mocks.configurationValues)) {
+      delete mocks.configurationValues[key];
+    }
+    mocks.configurationWatchers.length = 0;
     mocks.subscriptions.length = 0;
     mocks.statusBarItem.text = "";
     mocks.statusBarItem.tooltip = "";
@@ -160,5 +193,45 @@ describe("activate", () => {
     expect(mocks.authInstances[0]?.ensureAuthenticated).toHaveBeenCalledOnce();
     expect(mocks.statusBarItem.show).toHaveBeenCalledOnce();
     expect(mocks.statusBarItem.hide).not.toHaveBeenCalled();
+  });
+
+  it("starts a Claude Code state bridge after installing the adapter", async () => {
+    mocks.installClaudeCodeAdapter.mockResolvedValueOnce({
+      stateFilePath: "C:\\spinshare-storage\\claude-code-adapter\\state.json",
+    });
+    const { activate } = await import("./extension");
+
+    activate(makeContext() as never);
+    await flushActivationPromises();
+
+    expect(mocks.bridgeInstances).toHaveLength(1);
+    expect(mocks.bridgeInstances[0]?.options).toMatchObject({
+      stateFilePath: "C:\\spinshare-storage\\claude-code-adapter\\state.json",
+    });
+    expect(mocks.bridgeInstances[0]?.start).toHaveBeenCalledOnce();
+  });
+
+  it("disposes the Claude Code state bridge when the adapter is disabled", async () => {
+    mocks.installClaudeCodeAdapter.mockResolvedValueOnce({
+      stateFilePath: "C:\\spinshare-storage\\claude-code-adapter\\state.json",
+    });
+    const { activate } = await import("./extension");
+
+    activate(makeContext() as never);
+    await flushActivationPromises();
+
+    const bridge = mocks.bridgeInstances[0];
+    mocks.configurationValues.claudeCodeAdapter = false;
+    mocks.configurationWatchers[0]?.({
+      affectsConfiguration: (setting) =>
+        setting === "spinshare.claudeCodeAdapter",
+    });
+    await flushActivationPromises();
+
+    expect(bridge?.dispose).toHaveBeenCalledOnce();
+    expect(mocks.removeClaudeCodeAdapter).toHaveBeenCalledWith({
+      baseUrl: "https://www.spinshare.dev",
+      storageRoot: "C:\\spinshare-storage",
+    });
   });
 });

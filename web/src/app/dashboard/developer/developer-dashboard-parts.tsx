@@ -12,6 +12,16 @@ export function money(cents: number): string {
   return `$${formatCentsAsUsd(cents)}`;
 }
 
+/**
+ * Format display micro-cents (100,000 micro-cents = $1.00) as a fixed
+ * 3-decimal USD string, e.g. `492500 -> "$4.925"`. Used for the hero
+ * payout-threshold copy so the visible remaining/target line up with the
+ * sub-cent balance KPI rather than rounding to whole cents.
+ */
+export function moneyMicrocents3(microcents: number): string {
+  return `$${(microcents / 100_000).toFixed(3)}`;
+}
+
 export function pct(used: number, limit: number): number {
   if (limit <= 0) return 0;
   return Math.min(100, (used / limit) * 100);

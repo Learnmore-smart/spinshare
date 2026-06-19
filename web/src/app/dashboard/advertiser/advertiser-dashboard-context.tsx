@@ -36,6 +36,33 @@ export type DeleteCampaignResult =
   | { ok: true }
   | { ok: false; error: string };
 
+export interface CampaignDeleteErrorCopy {
+  deleteCampaignError: (status: number) => string;
+  deleteCampaignHasBudget: string;
+  deleteCampaignHasActivity: string;
+  deleteCampaignNotFound: string;
+  deleteCampaignForbidden: string;
+}
+
+export function campaignDeleteErrorMessage(
+  status: number,
+  error: string | undefined,
+  copy: CampaignDeleteErrorCopy,
+): string {
+  switch (error) {
+    case "campaign_has_budget":
+      return copy.deleteCampaignHasBudget;
+    case "campaign_has_activity":
+      return copy.deleteCampaignHasActivity;
+    case "campaign_not_found":
+      return copy.deleteCampaignNotFound;
+    case "forbidden":
+      return copy.deleteCampaignForbidden;
+    default:
+      return copy.deleteCampaignError(status);
+  }
+}
+
 interface AdvertiserDashboardData {
   token: string;
   campaignsState: LoadState;
@@ -259,7 +286,11 @@ export function AdvertiserDashboardProviderClient({
           | null;
         return {
           ok: false,
-          error: body?.error ?? t.advertiserDashboard.campaignRejected,
+          error: campaignDeleteErrorMessage(
+            response.status,
+            body?.error,
+            t.advertiserDashboard,
+          ),
         };
       } catch {
         return { ok: false, error: t.advertiserDashboard.networkError };

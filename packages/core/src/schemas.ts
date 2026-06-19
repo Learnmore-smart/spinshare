@@ -38,8 +38,11 @@ export const ADVERTISER_CHECKOUT_BLOCKS_MAX = 10_000;
 export const ADVERTISER_CHECKOUT_EMAIL_MAX_LENGTH = 254;
 /** Maximum optional brand name length accepted by the public checkout form. */
 export const BRAND_NAME_MAX_LENGTH = 60;
-/** Maximum data URL length for an optional small brand icon. */
-export const BRAND_ICON_DATA_URL_MAX_LENGTH = 49_152;
+/** Maximum raw image file size for optional brand icon uploads. */
+export const BRAND_ICON_FILE_MAX_BYTES = 64 * 1024;
+/** Maximum encoded data URL length for an optional 64 KiB brand icon upload. */
+export const BRAND_ICON_DATA_URL_MAX_LENGTH =
+  "data:image/jpeg;base64,".length + Math.ceil(BRAND_ICON_FILE_MAX_BYTES / 3) * 4;
 /** Minimum ad display duration required before an impression can be tracked. */
 export const VIEWABILITY_MIN_MS = 3_000;
 /** Minimum positive view segment accepted for cumulative progress tracking. */

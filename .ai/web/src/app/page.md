@@ -1,6 +1,6 @@
 # page.tsx
 
-> Last updated: 2026-06-15 | Protection: STANDARD
+> Last updated: 2026-06-18 | Protection: STANDARD
 
 ## Purpose
 
@@ -425,10 +425,25 @@ desktop row, while the CTA spans both columns underneath.
 - Follow-up row-layout verification passed:
   `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/page.test.tsx src/app/dashboard/advertiser/campaign-list.test.tsx src/app/dashboard/advertiser/advertiser-dashboard.test.tsx`.
 
+## Bug Fix 2026-06-18: Total Paid / Purchased Drift
+
+**Discovered**: 2026-06-18
+**Description**: The bid table showed "$4.95 / 991" for a campaign funded with
+$5.00 for 1,000 views.
+**Root Cause**: `computeCampaignTotalPaidCents` (now removed) and the
+`served/target` label both derived from the whole-cent `remainingBudgetCents`,
+which drifts a few cents low after the flush rounds each impression's sub-cent
+spend to whole cents.
+**Fix**: Removed the local reconstruction. The table now renders the server's
+`row.totalPaidCents` and the block-snapped `row.targetImpressions` from
+`GET /api/market` (backed by core `reconstructCampaignDelivery`), so a $5.00 /
+1,000-view buy reads as `$5.00` / `1k`.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Bid table uses server `totalPaidCents` + block-snapped `targetImpressions`; removed drifting local total-paid reconstruction. | Cursor |
 | 2026-06-17 | Implemented market section row layout around live market, checkout form, and CTA. | Codex |
 | 2026-06-17 | Planned market section row layout using the existing proof grid hook. | Codex |
 | 2026-06-17 | Implemented immediate market refresh after checkout funding. | Codex |

@@ -1,6 +1,6 @@
 # terminal-auto-wrap.ts
 
-> Last updated: 2026-06-15 | Protection: STANDARD
+> Last updated: 2026-06-19 | Protection: STANDARD
 
 ## Purpose
 
@@ -11,7 +11,7 @@ Installs SpinShare terminal shims so configured AI agent commands entered in new
 - Writes a launcher script and per-agent command shims into extension global storage.
 - Prepends the shim directory to the integrated terminal `PATH` through VS Code's environment variable collection.
 - The launcher removes the shim directory from `PATH`, then invokes the SpinShare CLI wrapper with the original agent command and arguments.
-- Defaults to wrapping `claude`, with additional agent names coming from extension configuration.
+- Defaults to wrapping `claude`, `agy`, and `antigravity`, with additional agent names coming from extension configuration.
 
 ## Public API
 
@@ -40,6 +40,36 @@ Installs SpinShare terminal shims so configured AI agent commands entered in new
   through the stdout/spinner wrapper because the native adapter is the
   authoritative lifecycle source.
 - Agents without a native adapter may still use the CLI wrapper fallback.
+
+## Bug Fix Plan 2026-06-19 Antigravity CLI no ads
+
+**Bug:** Antigravity CLI sessions launched as `agy` do not show ads in new VS
+Code-compatible integrated terminals.
+
+**Cause:** The terminal auto-wrap default agent list only generates shims for
+`claude`. Antigravity has no native hook/statusLine adapter, so it must use the
+CLI wrapper fallback, but no `agy` or `antigravity` shim exists by default.
+
+**Fix Strategy:** Add `agy` and `antigravity` to `DEFAULT_TERMINAL_AGENTS` while
+keeping `claude` as the only native-adapter direct-launch agent. Tests should
+prove the default plan emits Antigravity shim files and the launcher still sends
+non-native agents through the SpinShare CLI wrapper.
+
+**Regression Risk:** Only new integrated terminals after environment refresh
+see the new shim list. Existing custom `spinshare.terminalAgents` settings still
+override the default list.
+
+## Bug Fix Implemented 2026-06-19 Antigravity CLI no ads
+
+`DEFAULT_TERMINAL_AGENTS` now includes `claude`, `agy`, and `antigravity`.
+`claude` remains the only native-adapter direct-launch agent; Antigravity
+aliases use the existing CLI wrapper fallback.
+
+Verification:
+- RED: `corepack pnpm@9.12.0 --filter ./vscode-extension test -- src/terminal-auto-wrap.test.ts`
+  failed because default shims and manifest defaults were Claude-only.
+- GREEN: `corepack pnpm@9.12.0 test -- src/terminal-auto-wrap.test.ts`
+  from `vscode-extension` passed 11 tests.
 
 ## Bug Fixes
 
@@ -126,6 +156,8 @@ fallback.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Implemented default Antigravity CLI shims for `agy`/`antigravity`. | Codex |
+| 2026-06-19 | Planned default Antigravity CLI shims for `agy`/`antigravity`. | Codex |
 | 2026-06-15 | Implemented native Claude Code direct-launch branch in terminal shim launcher. | Codex |
 | 2026-06-15 | Planned native Claude Code direct-launch branch in terminal shim launcher. | Codex |
 | 2026-06-15 | Removed zero-argument launcher bypass so interactive agents still route through SpinShare. | Codex |

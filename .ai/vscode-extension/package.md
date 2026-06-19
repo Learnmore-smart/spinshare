@@ -1,6 +1,6 @@
 # vscode-extension/package.json
 
-> Last updated: 2026-06-15 | Protection: STANDARD
+> Last updated: 2026-06-19 | Protection: STANDARD
 
 ## Purpose
 
@@ -21,7 +21,7 @@ VS Code extension manifest and build scripts for local `.vsix` packaging and Mar
 | `publisher` | `spinshare` | Marketplace publisher id |
 | `main` | `./out/extension.js` | Compiled output from `pnpm build` |
 | `spinshare.terminalAutoWrap` | `true` | Enables automatic terminal PATH shims |
-| `spinshare.terminalAgents` | `["claude"]` | Commands intercepted in new integrated terminals |
+| `spinshare.terminalAgents` | `["claude", "agy", "antigravity"]` | Commands intercepted in new integrated terminals |
 | `package:prod` | script | Builds a production VSIX defaulting to `https://www.spinshare.dev`. |
 | `package:local` | script | Builds a localhost VSIX defaulting to `http://localhost:3000`. |
 | `package:all` | script | Builds both production and localhost VSIX artifacts. |
@@ -37,6 +37,112 @@ VS Code extension manifest and build scripts for local `.vsix` packaging and Mar
 - The terminal auto-wrap command list must stay explicit; do not attempt to intercept every executable in `PATH`.
 - A packaged extension must include `cli-wrapper/dist`, otherwise terminal shims can only work for developers who separately installed a global `spinshare` command.
 - The packaged extension root must remain CommonJS-compatible for `out/extension.js`; put CLI ESM metadata under `cli-wrapper/package.json`, not the root manifest.
+
+## Bug Fix Plan 2026-06-19 Antigravity CLI default setting
+
+**Bug:** The extension manifest default for `spinshare.terminalAgents` is still
+Claude-only. VS Code-compatible hosts read this manifest default before
+`terminal-auto-wrap.ts` fallback defaults matter, so Antigravity users get no
+`agy` shim unless they manually configure the setting.
+
+**Fix Strategy:** Update the contributed configuration default to include
+`agy` and `antigravity`, matching the TypeScript default list. Keep the setting
+explicit and sanitized; do not broaden it to intercept every command.
+
+**Test Plan:** Run focused terminal auto-wrap tests plus extension typecheck so
+the default-setting and generated-shim behavior stay aligned.
+
+## Bug Fix Implemented 2026-06-19 Antigravity CLI default setting
+
+The contributed `spinshare.terminalAgents` default now includes `claude`, `agy`,
+and `antigravity`. This matches `DEFAULT_TERMINAL_AGENTS`, so a fresh install in
+VS Code-compatible hosts generates Antigravity shims without manual settings.
+
+Verification:
+- RED: focused terminal auto-wrap test failed on the old manifest default
+  `["claude"]`.
+- GREEN: `corepack pnpm@9.12.0 test -- src/terminal-auto-wrap.test.ts` from
+  `vscode-extension` passed 11 tests.
+
+## Bug Fix Plan 2026-06-19 Stale Antigravity VSIX artifacts
+
+**Bug:** Reinstalling the extension still shows no Antigravity ads because the
+tracked VSIX artifacts were not rebuilt after adding `agy` / `antigravity`.
+Inspection confirmed `spinshare-prod-0.2.0.vsix` and
+`spinshare-local-0.2.0.vsix` still contained manifest defaults of `["claude"]`
+and bundled `terminal-auto-wrap.js` with `DEFAULT_TERMINAL_AGENTS = ["claude"]`.
+
+**Fix Strategy:** Rebuild the CLI and extension package variants, then refresh
+the legacy `spinshare-0.2.0.vsix` filename from the rebuilt production package
+so any install file the user picks contains the Antigravity changes.
+
+**Test Plan:** Inspect all three VSIX artifacts after packaging and confirm:
+`spinshare.terminalAgents` contains `["claude","agy","antigravity"]`, bundled
+`extension/out/terminal-auto-wrap.js` contains `agy` and `antigravity`, and
+bundled `extension/cli-wrapper/dist/index.js` contains the Antigravity-prefixed
+wait-line classifier.
+
+## Bug Fix Implemented 2026-06-19 Stale Antigravity VSIX artifacts
+
+Rebuilt `spinshare-prod-0.2.0.vsix` and `spinshare-local-0.2.0.vsix` with
+`corepack pnpm@9.12.0 package:all`, then refreshed the legacy
+`spinshare-0.2.0.vsix` from the rebuilt production artifact.
+
+Verification:
+- Before rebuild, VSIX inspection showed package defaults of `["claude"]` and
+  bundled `DEFAULT_TERMINAL_AGENTS = ["claude"]`.
+- After rebuild, all three VSIX artifacts report
+  `spinshare.terminalAgents = claude,agy,antigravity`.
+- After rebuild, packaged `extension/out/terminal-auto-wrap.js` contains both
+  `agy` and `antigravity`.
+- After rebuild, packaged `extension/cli-wrapper/dist/index.js` contains the
+  updated `STATUS_PREFIX_PATTERN` with `\u2800-\u28ff`.
+
+## Bug Fix Plan 2026-06-19 Same-version reinstall keeps stale install
+
+**Bug:** The live installed extension at
+`C:\Users\noahz\.vscode\extensions\spinshare.spinshare-0.2.0` still contains
+the old manifest default `["claude"]`, even though the rebuilt source artifacts
+contain Antigravity defaults. Same-version VSIX reinstall makes it too easy to
+keep testing a stale versioned install folder.
+
+**Fix Strategy:** Bump the extension manifest version to `0.2.1` and rebuild
+prod and local VSIX variants. This forces installation into a new versioned
+folder for the Antigravity compatibility build.
+
+**Test Plan:** Re-run terminal auto-wrap tests, extension typecheck/build, build
+the new VSIX variants, and inspect the packaged manifests plus bundled launcher
+for `claude,agy,antigravity`.
+
+## Bug Fix Implemented 2026-06-19 Same-version reinstall keeps stale install
+
+Bumped the extension manifest to `0.2.1` and rebuilt prod/local package
+variants. This avoids the stale live `spinshare.spinshare-0.2.0` install folder
+that still had
+`spinshare.terminalAgents = ["claude"]`.
+
+Verification:
+- `corepack pnpm@9.12.0 test -- src/terminal-auto-wrap.test.ts` passed 11 tests.
+- `corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/renderer.test.ts src/wrap.test.ts`
+  passed 35 tests.
+- `corepack pnpm@9.12.0 lint` from `vscode-extension` passed.
+- `corepack pnpm@9.12.0 package:all` produced
+  `spinshare-prod-0.2.1.vsix` and `spinshare-local-0.2.1.vsix`.
+- Inspection of `spinshare-prod-0.2.1.vsix` and
+  `spinshare-local-0.2.1.vsix` confirmed version `0.2.1`, agents
+  `claude,agy,antigravity`, Antigravity shims in bundled
+  `terminal-auto-wrap.js`, and `\u2800-\u28ff` status-prefix support in bundled
+  `cli-wrapper/dist/index.js`.
+
+## Artifact Cleanup 2026-06-19
+
+Cleaned the VSIX output folder down to the two supported install artifacts:
+
+- `spinshare-prod-0.2.1.vsix`
+- `spinshare-local-0.2.1.vsix`
+
+Removed old `0.2.0` packages and the extra unflavored `spinshare-0.2.1.vsix`
+alias so users do not accidentally install a stale or ambiguous build.
 
 ## Bug Fixes
 
@@ -89,6 +195,14 @@ The VSIX packaging script currently calls bare `vsce`, which fails on Windows wh
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Cleaned VSIX artifacts down to one prod and one local `0.2.1` package. | Codex |
+| 2026-06-19 | Implemented `0.2.1` VSIX rebuild to avoid stale same-version Antigravity installs. | Codex |
+| 2026-06-19 | Planned `0.2.1` VSIX rebuild to avoid stale same-version Antigravity installs. | Codex |
+| 2026-06-19 | Planned production publish path and manifest stability guard for later Marketplace auto-update support. | Codex |
+| 2026-06-19 | Rebuilt prod/local/legacy VSIX artifacts after Antigravity compatibility fix and verified packaged contents. | Codex |
+| 2026-06-19 | Planned rebuild of stale VSIX artifacts after Antigravity compatibility fix. | Codex |
+| 2026-06-19 | Implemented Antigravity CLI default terminal agent setting. | Codex |
+| 2026-06-19 | Planned Antigravity CLI default terminal agent setting. | Codex |
 | 2026-06-17 | Rebuilt prod/local VSIX artifacts after earnings/environment fixes, refreshed the legacy prod filename, and verified manifest defaults plus bundled credential filtering. | Codex |
 | 2026-06-17 | Planned prod/local VSIX rebuild after earnings/environment fixes. | Codex |
 | 2026-06-16 | Implemented prod/local VSIX variant packaging. | Codex |
@@ -109,6 +223,20 @@ The VSIX packaging script currently calls bare `vsce`, which fails on Windows wh
 ## Notes
 
 - Extension default `spinshare.baseUrl` in `package.json` is `https://www.spinshare.dev`; workspace settings override when running Extension Development Host.
+
+## Planned Change 2026-06-19 Marketplace auto-update support
+
+VS Code extension auto-update is provided by the Marketplace for enabled
+extensions installed from Marketplace; VSIX installs disable auto-update by
+default. Keep the manifest stable for later deployment and expose a production
+publish script that uses the prod package artifact:
+
+- Preserve `publisher: spinshare`, `name: spinshare`, and SemVer `version` as
+  the update identity and version signal.
+- Add `publish:prod` so deployment publishes the production VSIX through `vsce`
+  instead of sharing the VSIX as the final user install path.
+- Keep `package:local` as a development artifact; it remains a VSIX install and
+  should not be represented as auto-updating.
 
 ## Implemented Change 2026-06-16 Prod/Local VSIX Variants
 

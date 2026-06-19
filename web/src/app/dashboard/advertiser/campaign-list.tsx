@@ -14,7 +14,7 @@
  * delivered; an unfunded campaign foregrounds the buy CTA instead.
  */
 
-import { type ChangeEvent, useState } from "react";
+import { type ChangeEvent, useId, useState } from "react";
 import {
   BarChart3,
   CreditCard,
@@ -36,7 +36,7 @@ import {
   Clock,
 } from "lucide-react";
 
-import { AD_TEXT_MAX_LENGTH } from "@spinshare/core";
+import { AD_TEXT_MAX_LENGTH, BRAND_ICON_FILE_MAX_BYTES } from "@spinshare/core";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n/locale-provider";
 import { translateValidationError } from "@/lib/i18n/translate-validation-error";
@@ -61,8 +61,32 @@ import {
   type CampaignView,
 } from "./lib";
 
-const ICON_MAX_BYTES = 64 * 1024;
 const ICON_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+
+type DiagnosticLabelKey =
+  | "uncredited"
+  | "tooShort"
+  | "authIssues"
+  | "antiAbuse"
+  | "duplicate";
+
+type DiagnosticDescriptionKey =
+  | "uncreditedDescription"
+  | "tooShortDescription"
+  | "authIssuesDescription"
+  | "antiAbuseDescription"
+  | "duplicateDescription";
+
+const DIAGNOSTIC_BADGES: readonly {
+  key: DiagnosticLabelKey;
+  descriptionKey: DiagnosticDescriptionKey;
+}[] = [
+  { key: "uncredited", descriptionKey: "uncreditedDescription" },
+  { key: "tooShort", descriptionKey: "tooShortDescription" },
+  { key: "authIssues", descriptionKey: "authIssuesDescription" },
+  { key: "antiAbuse", descriptionKey: "antiAbuseDescription" },
+  { key: "duplicate", descriptionKey: "duplicateDescription" },
+];
 
 /** Props for {@link CampaignList}. */
 export interface CampaignListProps {
@@ -122,6 +146,33 @@ function StatusBadge({ status }: { status: CampaignDisplayStatus }) {
     <span className={`adv-status-badge adv-status-badge--${status}`}>
       <span className={`adv-status-dot adv-status-dot--${status}`} />
       {STATUS_LABEL[status](t)}
+    </span>
+  );
+}
+
+function DiagnosticTag({
+  label,
+  description,
+  value,
+}: {
+  label: string;
+  description: string;
+  value: number;
+}) {
+  const tooltipId = useId();
+
+  return (
+    <span
+      className={`adv-diag-tag ${value > 0 ? "adv-diag-tag--warning" : "adv-diag-tag--zero"}`}
+      tabIndex={0}
+      aria-describedby={tooltipId}
+    >
+      <Info className="h-3 w-3" aria-hidden />
+      <span className="adv-diag-label">{label}</span>
+      <strong>{formatCount(value)}</strong>
+      <span id={tooltipId} role="tooltip" className="adv-diag-tooltip">
+        {description}
+      </span>
     </span>
   );
 }
@@ -224,6 +275,13 @@ function CampaignCardBody({
   const uncredited = nonCreditTotal(telemetry);
   const antiAbuse = telemetry.shadowBanned + telemetry.earningCapped;
   const delivery = deliveryProgress(campaign, telemetry.credited);
+  const diagnosticValues: Record<DiagnosticLabelKey, number> = {
+    uncredited,
+    tooShort: telemetry.tooShort,
+    authIssues: telemetry.invalidToken,
+    antiAbuse,
+    duplicate: telemetry.duplicate,
+  };
 
   return (
     <>
@@ -339,24 +397,13 @@ function CampaignCardBody({
           </div>
 
           <div className="adv-dash-campaign-diagnostics" aria-label="Campaign diagnostics">
-            {(
-              [
-                ["uncredited", uncredited],
-                ["tooShort", telemetry.tooShort],
-                ["authIssues", telemetry.invalidToken],
-                ["outOfBudget", telemetry.invalidCampaign],
-                ["antiAbuse", antiAbuse],
-                ["duplicate", telemetry.duplicate],
-              ] as const
-            ).map(([key, value]) => (
-              <div
+            {DIAGNOSTIC_BADGES.map(({ key, descriptionKey }) => (
+              <DiagnosticTag
                 key={key}
-                className={`adv-diag-tag ${value > 0 ? "adv-diag-tag--warning" : "adv-diag-tag--zero"}`}
-              >
-                <Info className="h-3 w-3" aria-hidden />
-                <span>{t.advertiserDashboard[key]}</span>
-                <strong>{formatCount(value)}</strong>
-              </div>
+                label={t.advertiserDashboard[key]}
+                description={t.advertiserDashboard[descriptionKey]}
+                value={diagnosticValues[key]}
+              />
             ))}
           </div>
         </>
@@ -405,7 +452,7 @@ function CampaignEditForm({
       event.target.value = "";
       return;
     }
-    if (file.size > ICON_MAX_BYTES) {
+    if (file.size > BRAND_ICON_FILE_MAX_BYTES) {
       setError(t.errors.iconSize);
       event.target.value = "";
       return;

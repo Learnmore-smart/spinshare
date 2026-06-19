@@ -36,7 +36,10 @@ import {
 } from "@/server/campaign-review";
 import { reconcilePaidCheckoutSessionsForCampaigns } from "@/server/checkout-reconciliation";
 import { getContainer, type Container } from "@/server/container";
-import type { CampaignUpdate } from "@/server/ports/campaign-repository";
+import type {
+  CampaignRepository,
+  CampaignUpdate,
+} from "@/server/ports/campaign-repository";
 import { flushPendingForRead } from "@/server/flush-before-read";
 import type { CounterStore, LedgerRepository } from "@/server/ports";
 import type { AuthClaims } from "@/server/ports/auth-provider";
@@ -172,6 +175,35 @@ async function readDurableImpressions(
   } catch {
     return Object.fromEntries(campaignIds.map((id) => [id, 0]));
   }
+}
+
+async function deleteCampaignRecord(
+  campaigns: CampaignRepository,
+  campaignId: string,
+): Promise<void> {
+  const maybeDelete = (campaigns as { delete?: unknown }).delete;
+  if (typeof maybeDelete === "function") {
+    await maybeDelete.call(campaigns, campaignId);
+    return;
+  }
+
+  const maybeMemoryStore = (campaigns as { campaigns?: unknown }).campaigns;
+  if (maybeMemoryStore instanceof Map) {
+    if (!maybeMemoryStore.delete(campaignId)) {
+      throw new Error(`campaign not found: ${campaignId}`);
+    }
+    return;
+  }
+
+  const maybeCollection = (campaigns as {
+    collection?: { doc?: (id: string) => { delete: () => Promise<void> } };
+  }).collection;
+  if (maybeCollection && typeof maybeCollection.doc === "function") {
+    await maybeCollection.doc(campaignId).delete();
+    return;
+  }
+
+  throw new Error("campaign repository does not support delete");
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -492,6 +524,6 @@ export async function DELETE(request: Request): Promise<Response> {
     return Response.json({ error: "campaign_has_activity" }, { status: 409 });
   }
 
-  await campaigns.delete(campaignId);
+  await deleteCampaignRecord(campaigns, campaignId);
   return Response.json({ deleted: true, campaignId });
 }

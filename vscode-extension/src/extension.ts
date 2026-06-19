@@ -13,6 +13,7 @@ import {
   installClaudeCodeAdapter,
   removeClaudeCodeAdapter,
 } from "./claude-code-adapter";
+import { ClaudeCodeStateBridge } from "./claude-code-state-bridge";
 import {
   installTerminalAutoWrap,
   normalizeTerminalAgents,
@@ -50,6 +51,11 @@ export function activate(context: vscode.ExtensionContext): void {
   signInStatus.text = "$(account) SpinShare Sign in";
   signInStatus.tooltip = "Sign in to SpinShare so Claude Code ads can be credited to you.";
   signInStatus.command = "spinshare.signIn";
+  let claudeCodeStateBridge: ClaudeCodeStateBridge | null = null;
+
+  const openExternal = (url: string): void => {
+    void vscode.env.openExternal(vscode.Uri.parse(url));
+  };
 
   const showSignInStatus = (): void => {
     signInStatus.show();
@@ -85,11 +91,29 @@ export function activate(context: vscode.ExtensionContext): void {
     getToken: () => auth.getToken(),
     // Open the ad's click-through URL in the system browser when the developer
     // clicks the "Open" action on a clickable ad.
-    openUrl: (url) => {
-      void vscode.env.openExternal(vscode.Uri.parse(url));
-    },
+    openUrl: openExternal,
     onError: (error) => console.error("[spinshare] ad error", error),
   });
+
+  const stopClaudeCodeStateBridge = (): void => {
+    if (claudeCodeStateBridge === null) {
+      return;
+    }
+    claudeCodeStateBridge.dispose();
+    claudeCodeStateBridge = null;
+  };
+
+  const startClaudeCodeStateBridge = (stateFilePath: string): void => {
+    stopClaudeCodeStateBridge();
+    claudeCodeStateBridge = new ClaudeCodeStateBridge({
+      vscode,
+      stateFilePath,
+      openUrl: openExternal,
+      onError: (error) =>
+        console.error("[spinshare] claude code state bridge error", error),
+    });
+    claudeCodeStateBridge.start();
+  };
 
   const refreshTerminalAutoWrap = async (
     showMessage = false,
@@ -154,6 +178,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
     try {
       if (!enabled) {
+        stopClaudeCodeStateBridge();
         await removeClaudeCodeAdapter({
           baseUrl: adapterBaseUrl,
           storageRoot: context.globalStorageUri.fsPath,
@@ -171,13 +196,19 @@ export function activate(context: vscode.ExtensionContext): void {
         storageRoot: context.globalStorageUri.fsPath,
       });
 
-      if (!showMessage) {
-        return;
-      }
       if (plan === null) {
+        stopClaudeCodeStateBridge();
+        if (!showMessage) {
+          return;
+        }
         void vscode.window.showInformationMessage(
           "SpinShare Claude Code adapter is disabled.",
         );
+        return;
+      }
+      startClaudeCodeStateBridge(plan.stateFilePath);
+
+      if (!showMessage) {
         return;
       }
       void vscode.window.showInformationMessage(
@@ -326,7 +357,12 @@ export function activate(context: vscode.ExtensionContext): void {
     removeClaudeAdapter,
     terminalAutoWrapConfigWatcher,
     signInStatus,
-    { dispose: () => controller.dispose() },
+    {
+      dispose: () => {
+        controller.dispose();
+        stopClaudeCodeStateBridge();
+      },
+    },
   );
 }
 

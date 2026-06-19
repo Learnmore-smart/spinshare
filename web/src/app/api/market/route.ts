@@ -1,4 +1,9 @@
-import { type Campaign, formatCentsAsUsd, isBetterBid } from "@spinshare/core";
+import {
+  type Campaign,
+  formatCentsAsUsd,
+  isBetterBid,
+  reconstructCampaignDelivery,
+} from "@spinshare/core";
 
 import { getContainer } from "@/server/container";
 
@@ -14,7 +19,12 @@ export interface MarketRow {
   remainingBudgetCents: number;
   remainingBudgetUsd: string;
   servedImpressions: number;
+  /** Whole-block impressions purchased (snapped to the 1k-view grid). */
   targetImpressions: number;
+  /** Exact lifetime amount the advertiser paid for this campaign, in cents. */
+  totalPaidCents: number;
+  /** {@link totalPaidCents} formatted as a `$`-prefixed USD string. */
+  totalPaidUsd: string;
   status: "live";
 }
 
@@ -34,20 +44,6 @@ function usd(cents: number): string {
   return `$${formatCentsAsUsd(cents)}`;
 }
 
-function impressionCapacity(
-  cpmCents: number,
-  budgetCents: number,
-  servedImpressions: number,
-): { servedImpressions: number; targetImpressions: number } {
-  const remainingImpressions =
-    cpmCents > 0 ? Math.floor((budgetCents * 1000) / cpmCents) : 0;
-
-  return {
-    servedImpressions,
-    targetImpressions: servedImpressions + remainingImpressions,
-  };
-}
-
 function byAuctionPriority(a: Campaign, b: Campaign): number {
   if (isBetterBid(a, b)) return -1;
   if (isBetterBid(b, a)) return 1;
@@ -60,7 +56,10 @@ function toMarketRow(
   servedImpressions: number,
 ): MarketRow {
   const cpmUsd = usd(campaign.cpmCents);
-  const impressions = impressionCapacity(
+  // Reconstruct purchased views + paid amount from the (lossy) whole-cent
+  // budget, snapping back onto the 1k-view block grid so flush rounding never
+  // makes a $5.00 / 1,000-view buy read as "$4.95 / 991". See core money.ts.
+  const delivery = reconstructCampaignDelivery(
     campaign.cpmCents,
     campaign.budgetCents,
     servedImpressions,
@@ -75,8 +74,10 @@ function toMarketRow(
     bidLabel: `${cpmUsd} / 1k imps`,
     remainingBudgetCents: campaign.budgetCents,
     remainingBudgetUsd: usd(campaign.budgetCents),
-    servedImpressions: impressions.servedImpressions,
-    targetImpressions: impressions.targetImpressions,
+    servedImpressions,
+    targetImpressions: delivery.purchasedImpressions,
+    totalPaidCents: delivery.totalPaidCents,
+    totalPaidUsd: usd(delivery.totalPaidCents),
     status: "live",
   };
 }

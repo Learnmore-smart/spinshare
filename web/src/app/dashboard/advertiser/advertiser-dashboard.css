@@ -923,6 +923,7 @@
 }
 
 .adv-diag-tag {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -933,6 +934,13 @@
   color: var(--adv-muted);
   font-size: 0.625rem;
   font-weight: 700;
+  cursor: help;
+  outline: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease,
+    background-color 160ms ease;
 }
 
 .adv-diag-tag strong {
@@ -940,8 +948,15 @@
   font-variant-numeric: tabular-nums;
 }
 
-.adv-diag-tag--zero {
+.adv-diag-tag--zero > svg,
+.adv-diag-tag--zero .adv-diag-label,
+.adv-diag-tag--zero strong {
   opacity: 0.7;
+}
+
+.adv-diag-tag:focus-visible {
+  border-color: rgba(217, 119, 6, 0.45);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.16);
 }
 
 .adv-diag-tag--warning {
@@ -952,6 +967,63 @@
 
 .adv-diag-tag--warning strong {
   color: #dc2626;
+}
+
+.adv-diag-tooltip {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  z-index: 30;
+  width: max-content;
+  max-width: min(16rem, calc(100vw - 2rem));
+  padding: 0.5rem 0.625rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(24, 20, 15, 0.96);
+  box-shadow: 0 16px 36px -20px rgba(15, 23, 42, 0.5);
+  color: #fff7ed;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transform: translate(-50%, 0.25rem) scale(0.98);
+  transform-origin: bottom center;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease,
+    visibility 160ms ease;
+}
+
+.adv-diag-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 0.5rem;
+  height: 0.5rem;
+  background: inherit;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.adv-diag-tag:hover .adv-diag-tooltip,
+.adv-diag-tag:focus-visible .adv-diag-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adv-diag-tag,
+  .adv-diag-tooltip {
+    transition: none;
+  }
 }
 
 .adv-dash-status {

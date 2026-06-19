@@ -469,6 +469,34 @@ describe("PATCH /api/campaigns", () => {
     });
   });
 
+  it("accepts a 64 KiB uploaded brand icon during edits", async () => {
+    const container = getContainer();
+    seedCampaign(container, {
+      id: "cmp_icon_upload",
+      adText: "Try LearnX for faster study",
+      destinationUrl: "https://learnx.pro/",
+    });
+    const token = (container.auth as MockAuthProvider).mintToken("adv1");
+    const icon = `data:image/png;base64,${Buffer.alloc(64 * 1024).toString("base64")}`;
+
+    const response = await PATCH(
+      authenticatedPatchRequest(token, {
+        campaignId: "cmp_icon_upload",
+        brandIconDataUrl: icon,
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      id: "cmp_icon_upload",
+      brandIconDataUrl: icon,
+    });
+    await expect(container.campaigns.getById("cmp_icon_upload")).resolves.toMatchObject({
+      brandIconDataUrl: icon,
+    });
+  });
+
   it("lets a signed-in same-email advertiser edit a public checkout campaign", async () => {
     const container = getContainer();
     const advertiserId = publicAdvertiserIdForEmail("buyer@example.com");
@@ -565,6 +593,29 @@ describe("DELETE /api/campaigns", () => {
     expect(response.status).toBe(200);
     expect(body).toEqual({ deleted: true, campaignId: "cmp_unpaid" });
     await expect(container.campaigns.getById("cmp_unpaid")).resolves.toBeNull();
+  });
+
+  it("deletes through a stale development memory repository without delete()", async () => {
+    const container = getContainer();
+    seedCampaign(container, {
+      id: "cmp_stale",
+      budgetCents: 0,
+      destinationUrl: "https://example.com/",
+    });
+    const token = (container.auth as MockAuthProvider).mintToken("adv1");
+    const staleCampaigns = Object.create(Object.getPrototypeOf(container.campaigns));
+    Object.assign(staleCampaigns, container.campaigns);
+    staleCampaigns.delete = undefined;
+    container.campaigns = staleCampaigns;
+
+    const response = await DELETE(
+      authenticatedDeleteRequest(token, { campaignId: "cmp_stale" }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({ deleted: true, campaignId: "cmp_stale" });
+    await expect(container.campaigns.getById("cmp_stale")).resolves.toBeNull();
   });
 
   it("rejects deletion for funded campaigns", async () => {

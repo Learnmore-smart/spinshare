@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Clock, PieChart, RefreshCw } from "lucide-react";
+import { ArrowRight, Check, Clock, Copy, PieChart, RefreshCw } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { SegmentSlider } from "@/components/SegmentSlider";
@@ -62,6 +62,8 @@ interface MarketRow {
   remainingBudgetUsd: string;
   servedImpressions: number;
   targetImpressions: number;
+  totalPaidCents: number;
+  totalPaidUsd: string;
   status: "live";
 }
 
@@ -93,15 +95,6 @@ function formatUpdatedAt(updatedAtMs: number | undefined, loadingLabel: string):
     hour: "numeric",
     minute: "2-digit",
   }).format(updatedAtMs);
-}
-
-function computeCampaignTotalPaidCents(
-  remainingBudgetCents: number,
-  servedImpressions: number,
-  cpmCents: number,
-): number {
-  const spentCents = Math.floor((servedImpressions * cpmCents) / 1000);
-  return remainingBudgetCents + spentCents;
 }
 
 function formatImpressionsCount(val: number): string {
@@ -260,6 +253,64 @@ export function buildBidChartData(
       time: formatChartTime(sample.atMs, timeframe),
     })),
   };
+}
+
+const INSTALL_COMMAND =
+  "curl -L https://spinshare.dev/vsix -o spinshare.vsix && code --install-extension spinshare.vsix";
+
+function HeroInstallCommand({
+  command,
+  title,
+  hint,
+  copyLabel,
+  copiedLabel,
+}: {
+  command: string;
+  title: string;
+  hint: string;
+  copyLabel: string;
+  copiedLabel: string;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(command);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* clipboard denied — ignore */
+    }
+  };
+
+  return (
+    <div className="spinshare-btn-primary w-full max-w-3xl rounded-[24px] p-4 text-white sm:p-5">
+      <div className="flex items-center gap-3">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/15 text-2xl">
+          <MoneyIcon />
+        </span>
+        <div className="min-w-0">
+          <p className="text-lg font-black leading-tight sm:text-xl">{title}</p>
+          <p className="mt-0.5 text-sm font-bold text-emerald-50">{hint}</p>
+        </div>
+      </div>
+      <div className="mt-3.5 flex flex-col items-stretch gap-2 rounded-2xl border border-black/25 bg-[#0a0a0b] p-2 sm:flex-row sm:items-start">
+        <code className="flex min-w-0 flex-1 items-start gap-2 px-2 py-1 font-mono text-xs leading-relaxed text-emerald-100 sm:text-sm">
+          <span className="shrink-0 select-none font-black text-emerald-500">$</span>
+          <span className="min-w-0 break-all">{command}</span>
+        </code>
+        <button
+          type="button"
+          onClick={() => void copy()}
+          aria-live="polite"
+          className="inline-flex shrink-0 items-center justify-center gap-1.5 self-stretch rounded-xl bg-white px-4 py-2 text-xs font-black text-[var(--color-primary-700)] transition hover:bg-emerald-50 sm:self-start sm:text-sm"
+        >
+          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+          {copied ? copiedLabel : copyLabel}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function MoneyIcon({ className = "" }: { className?: string }) {
@@ -579,13 +630,13 @@ export default function HomePage() {
   }, [claudeStateIndex, currentClaudeState.duration]);
 
   useEffect(() => {
-    const startVal = 42.5;
+    const startVal = 31.27;
     setLiveEarnings(startVal);
 
     const interval = window.setInterval(() => {
       setLiveEarnings((prev) => {
         if (prev === 0) return startVal;
-        const increment = 0.02 + Math.random() * 0.04;
+        const increment = 0.01 + Math.random() * 0.02;
         return prev + increment;
       });
     }, 350);
@@ -651,7 +702,6 @@ export default function HomePage() {
   const marketPreviewRows = visibleRows.slice(0, 3);
   const topBid = rows[0];
   const sponsorLetter = topBid?.adText ? topBid.adText.trim().charAt(0).toUpperCase() : "R";
-  const monthlyEstimateLabel = `${moneyFormatter.format(liveEarnings)}${t.home.monthlyEstimateSuffix}`;
   const lastUpdatedLabel = formatUpdatedAt(market?.updatedAtMs, t.market.loadingLiveBidsShort);
 
   const topBidPrice = topBid?.cpmCents ? topBid.cpmCents / 100 : 0;
@@ -759,26 +809,13 @@ export default function HomePage() {
             </div>
 
             <div className="spinshare-hero-primary-cta mt-11 flex justify-center lg:justify-start">
-              <Link
-                href={DEVELOPER_SIGNIN_HREF}
-                className="spinshare-btn-primary group flex w-full max-w-3xl flex-col items-stretch gap-3 rounded-full p-3 text-white sm:flex-row sm:items-center"
-              >
-                <span className="liquid-glass-light-green grid h-14 w-14 shrink-0 place-items-center rounded-full text-3xl text-[var(--text-accent-strong)]">
-                  <MoneyIcon />
-                </span>
-                <span className="min-w-0 flex-1 px-1 text-left">
-                  <span className="block text-xl font-black leading-tight">
-                    {t.home.ctaInstall}
-                  </span>
-                  <span className="mt-1 block text-sm font-bold text-emerald-50">
-                    {t.home.ctaInstallSub}
-                  </span>
-                </span>
-                <span className="liquid-glass-light-green inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full px-5 text-sm font-black text-[var(--text-accent-strong)]">
-                  {monthlyEstimateLabel}
-                  <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-                </span>
-              </Link>
+              <HeroInstallCommand
+                command={INSTALL_COMMAND}
+                title={t.home.ctaInstall}
+                hint={t.home.ctaCommandHint}
+                copyLabel={t.setupGuide.copy}
+                copiedLabel={t.setupGuide.copied}
+              />
             </div>
 
             <div className="spinshare-hero-secondary-cta spinshare-home-body mx-auto mt-4 flex max-w-3xl flex-col items-center justify-center gap-2 text-sm font-bold sm:flex-row lg:mx-0 lg:justify-start">
@@ -1009,11 +1046,7 @@ export default function HomePage() {
                     {visibleRows.length > 0 ? (
                       <div className="divide-y divide-[var(--border-subtle)]">
                         {visibleRows.map((row) => {
-                          const totalPaidCents = computeCampaignTotalPaidCents(
-                            row.remainingBudgetCents,
-                            row.servedImpressions,
-                            row.cpmCents,
-                          );
+                          const totalPaidCents = row.totalPaidCents;
                           const servedLabel = formatImpressionsCount(row.servedImpressions);
                           const targetLabel = formatImpressionsCount(row.targetImpressions);
                           const pct =

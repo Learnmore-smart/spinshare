@@ -6,7 +6,17 @@ import {
   ActivityList,
   ActivityTable,
   LimitMeter,
+  moneyMicrocents3,
 } from "./developer-dashboard-parts";
+
+describe("moneyMicrocents3 (hero payout-threshold copy)", () => {
+  it("renders display micro-cents with exactly 3 decimals", () => {
+    // $5.000 minimum minus a $0.075 balance (7_500 micro-cents) => $4.925 left.
+    expect(moneyMicrocents3(500_000)).toBe("$5.000");
+    expect(moneyMicrocents3(500_000 - 7_500)).toBe("$4.925");
+    expect(moneyMicrocents3(0)).toBe("$0.000");
+  });
+});
 
 describe("developer dashboard activity table", () => {
   it("renders attempt-level status and duration", () => {
