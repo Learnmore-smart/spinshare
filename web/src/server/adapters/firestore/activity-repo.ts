@@ -177,6 +177,20 @@ export class FirestoreActivityRepo implements ActivityRepository {
     return activities.sort((a, b) => a.createdAtMs - b.createdAtMs);
   }
 
+  async listRecentImpressions(sinceMs: number): Promise<ImpressionActivity[]> {
+    const snap = await this.collection
+      .where("createdAtMs", ">=", sinceMs)
+      .get();
+    return snap.docs
+      .map((doc) => toActivity(doc.id, doc.data()))
+      .filter(
+        (activity): activity is ImpressionActivity =>
+          activity.type === undefined ||
+          activity.type === "impression_attempt",
+      )
+      .sort((a, b) => a.createdAtMs - b.createdAtMs);
+  }
+
   async listByCheckoutSessionId(
     sessionId: string,
   ): Promise<AdvertiserActivity[]> {

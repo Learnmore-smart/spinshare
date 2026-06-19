@@ -1,17 +1,15 @@
 "use client";
 
 /**
- * Setup guide modal — explains how to connect the VS Code extension or CLI
- * wrapper so impressions start crediting to the signed-in developer account.
+ * Setup guide modal — explains how to install the VS Code extension and connect
+ * it so impressions start crediting to the signed-in developer account.
  */
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { BookOpen, Check, Copy, Terminal, X } from "lucide-react";
+import { BookOpen, Check, Copy, X } from "lucide-react";
 
-import { SegmentSlider } from "@/components/SegmentSlider";
 import { useT } from "@/lib/i18n/locale-provider";
-
-type SetupPath = "extension" | "cli";
+import { SPINSHARE_INSTALL_COMMAND } from "@/lib/spinshare-install-command";
 
 function CopyBlock({ code, label }: { code: string; label: string }) {
   const t = useT();
@@ -63,9 +61,9 @@ function Step({
       <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-emerald-600 text-xs font-black text-white">
         {n}
       </span>
-      <div className="min-w-0 flex-1 pt-0.5">
+      <div className="min-w-0 flex-1 pt-0.5 text-left">
         <p className="text-sm font-black text-slate-900">{title}</p>
-        <div className="mt-1.5 space-y-2 text-sm font-semibold leading-relaxed text-slate-600">
+        <div className="mt-1.5 space-y-2 text-left text-sm font-semibold leading-relaxed text-slate-600">
           {children}
         </div>
       </div>
@@ -80,13 +78,8 @@ export interface SetupGuideModalProps {
 
 export function SetupGuideModal({ open, onClose }: SetupGuideModalProps) {
   const t = useT();
-  const setupPathOptions = [
-    { value: "extension" as const, label: t.setupGuide.pathExtension },
-    { value: "cli" as const, label: t.setupGuide.pathCli },
-  ];
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
-  const [path, setPath] = useState<SetupPath>("extension");
 
   useEffect(() => {
     const el = dialogRef.current;
@@ -113,90 +106,44 @@ export function SetupGuideModal({ open, onClose }: SetupGuideModalProps) {
         className="spinshare-modal-sheet relative flex max-h-[92dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-emerald-900/10 bg-[#f4fbf6] shadow-[0_24px_80px_rgba(15,23,42,0.28)] sm:max-h-[85dvh] sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="shrink-0 border-b border-emerald-900/8 bg-white/80 px-4 py-4 sm:px-5">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-600">
-                {t.setupGuide.eyebrow}
-              </p>
-              <h2 id={titleId} className="mt-1 text-lg font-black text-slate-950">
-                {t.setupGuide.title}
-              </h2>
-              <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-500">
-                {t.setupGuide.subtitle}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-emerald-300 hover:text-emerald-700"
-              aria-label={t.setupGuide.closeAria}
-            >
-              <X className="h-4 w-4" />
-            </button>
+        <header className="relative shrink-0 border-b border-emerald-900/8 bg-white/80 px-4 py-4 sm:px-5">
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-emerald-300 hover:text-emerald-700 sm:right-4 sm:top-4"
+            aria-label={t.setupGuide.closeAria}
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <div className="px-10 text-center">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-600">
+              {t.setupGuide.eyebrow}
+            </p>
+            <h2 id={titleId} className="mt-1 text-lg font-black text-slate-950">
+              {t.setupGuide.title}
+            </h2>
+            <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-500">
+              {t.setupGuide.subtitle}
+            </p>
           </div>
-
-          <SegmentSlider
-            ariaLabel={t.setupGuide.setupMethodAria}
-            className="mt-4 w-full"
-            value={path}
-            onChange={setPath}
-            options={setupPathOptions}
-          />
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5">
-          {path === "extension" ? (
-            <ol className="space-y-5">
-              <Step n={1} title={t.setupGuide.extStep1Title}>
-                <p>{t.setupGuide.extStep1Body}</p>
-                <p className="text-xs text-slate-500">{t.setupGuide.extStep1Hint}</p>
-              </Step>
-              <Step n={2} title={t.setupGuide.extStep2Title}>
-                <p>{t.setupGuide.extStep2Body}</p>
-              </Step>
-              <Step n={3} title={t.setupGuide.extStep3Title}>
-                <p>{t.setupGuide.extStep3Body}</p>
-              </Step>
-              <Step n={4} title={t.setupGuide.extStep4Title}>
-                <p>{t.setupGuide.extStep4Body}</p>
-              </Step>
-            </ol>
-          ) : (
-            <ol className="space-y-5">
-              <Step n={1} title={t.setupGuide.cliStep1Title}>
-                <p>{t.setupGuide.cliStep1Body}</p>
-                <CopyBlock
-                  label={t.setupGuide.labelBuild}
-                  code={"corepack pnpm@9.12.0 --filter @spinshare/cli build"}
-                />
-              </Step>
-              <Step n={2} title={t.setupGuide.cliStep2Title}>
-                <p>{t.setupGuide.cliStep2Body}</p>
-                <CopyBlock
-                  label={t.setupGuide.labelAuthenticate}
-                  code={"node cli-wrapper/dist/index.js login"}
-                />
-              </Step>
-              <Step n={3} title={t.setupGuide.cliStep3Title}>
-                <p>{t.setupGuide.cliStep3Body}</p>
-                <CopyBlock
-                  label={t.setupGuide.labelExample}
-                  code={"node cli-wrapper/dist/index.js claude"}
-                />
-                <CopyBlock
-                  label={t.setupGuide.labelQuickTest}
-                  code={
-                    'node cli-wrapper/dist/index.js node -e "let i=0; setInterval(() => process.stdout.write(\'\\r\' + [\'|\',\'/\',\'-\',\'\\\\\'][i++%4]), 100); setTimeout(() => process.exit(0), 4500)"'
-                  }
-                />
-              </Step>
-              <Step n={4} title={t.setupGuide.cliStep4Title}>
-                <p>{t.setupGuide.cliStep4Body}</p>
-                <CopyBlock label={t.setupGuide.labelLocalDev} code={'$env:SPINSHARE_API_URL = "http://localhost:3000"'} />
-              </Step>
-            </ol>
-          )}
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 text-left sm:px-5">
+          <ol className="space-y-5">
+            <Step n={1} title={t.setupGuide.extStep1Title}>
+              <p>{t.setupGuide.extStep1Body}</p>
+              <CopyBlock label={t.setupGuide.labelInstall} code={SPINSHARE_INSTALL_COMMAND} />
+            </Step>
+            <Step n={2} title={t.setupGuide.extStep2Title}>
+              <p>{t.setupGuide.extStep2Body}</p>
+            </Step>
+            <Step n={3} title={t.setupGuide.extStep3Title}>
+              <p>{t.setupGuide.extStep3Body}</p>
+            </Step>
+            <Step n={4} title={t.setupGuide.extStep4Title}>
+              <p>{t.setupGuide.extStep4Body}</p>
+            </Step>
+          </ol>
         </div>
 
         <footer className="shrink-0 border-t border-emerald-900/8 bg-white/90 px-4 py-3 sm:px-5">
@@ -254,7 +201,7 @@ export function SetupGuideLinkButton({ className = "" }: { className?: string })
         onClick={() => setOpen(true)}
         className={`spinshare-btn-outline inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full px-4 text-xs ${className}`}
       >
-        <Terminal className="h-3.5 w-3.5" aria-hidden />
+        <BookOpen className="h-3.5 w-3.5" aria-hidden />
         {t.setupGuide.howToSetUp}
       </button>
       <SetupGuideModal open={open} onClose={() => setOpen(false)} />

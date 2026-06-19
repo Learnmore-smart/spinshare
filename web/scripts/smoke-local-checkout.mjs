@@ -229,8 +229,7 @@ export function isPurchasedCampaignMarketResponse(body, campaignId) {
     row.adText === PURCHASED_AD_TEXT &&
     row.cpmCents === PURCHASED_CPM_CENTS &&
     typeof row.bidLabel === "string" &&
-    row.remainingBudgetCents > 0 &&
-    typeof row.remainingBudgetUsd === "string" &&
+    typeof row.rank === "number" &&
     isRecord(body.summary) &&
     body.summary.liveCampaigns >= 1
   );
@@ -246,7 +245,7 @@ export function summarizePurchasedCampaignMarket(body, campaignId) {
     campaignId: row.id,
     rank: row.rank,
     bidLabel: row.bidLabel,
-    remainingBudgetUsd: row.remainingBudgetUsd,
+    cpmCents: row.cpmCents,
   };
 }
 

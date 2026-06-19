@@ -50,8 +50,15 @@ export class MockPayoutGateway implements PayoutGateway {
   }
 
   async getAccountStatus(accountId: string): Promise<ConnectAccountStatus> {
-    // Mock accounts are always fully onboarded so local cash-outs work.
-    return { accountId, payoutsEnabled: true, detailsSubmitted: true };
+    // Mock accounts are always fully onboarded so local cash-outs work. The
+    // fingerprint is derived from the account id, so each mock account is
+    // distinct (no false-positive Sybil-fingerprint collisions locally).
+    return {
+      accountId,
+      payoutsEnabled: true,
+      detailsSubmitted: true,
+      payoutFingerprint: `fp_mock_${accountId}`,
+    };
   }
 
   async createPayout(input: PayoutInput): Promise<PayoutResult> {

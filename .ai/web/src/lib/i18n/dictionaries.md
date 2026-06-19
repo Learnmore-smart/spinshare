@@ -21,6 +21,7 @@ SpinShare web UI copy for `en`, `zh`, and `fr`. All user-visible strings must re
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Reworded `signin.bulletExtension` to "Supports Claude Code and Antigravity CLI — more coming soon" (en/zh/fr). | Auto |
 | 2026-06-14 | Added `signin.bullet*` strings for denser sign-in fact list. | Auto |
 | 2026-06-15 | Planned market delivery and setup-guide copy clarification. | Codex |
 | 2026-06-14 | Full privacy + terms legal body en/zh/fr | AI |

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Clock3, X } from "lucide-react";
 import {
   DEVELOPER_DAILY_EARNING_LIMIT_CENTS,
   DEVELOPER_HOURLY_EARNING_LIMIT_CENTS,
@@ -23,15 +24,28 @@ import { PayoutPanel } from "./payout-panel";
 import { SetupGuideButton } from "./setup-guide-modal";
 import "./developer-dashboard.css";
 
+const SIGNUP_BONUS_DISMISS_KEY = "spinshare:signup-bonus-alert-dismissed";
+
 export function DeveloperOverviewView() {
   const t = useT();
   const { summary } = useDeveloperDashboard();
   const [now, setNow] = useState(() => Date.now());
+  const [signupBonusDismissed, setSignupBonusDismissed] = useState(true);
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 60_000);
     return () => window.clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    if (!summary.hasSignupBonus) {
+      setSignupBonusDismissed(true);
+      return;
+    }
+    setSignupBonusDismissed(
+      window.sessionStorage.getItem(SIGNUP_BONUS_DISMISS_KEY) === "1",
+    );
+  }, [summary.hasSignupBonus]);
 
   const {
     totalEarningsUsd,
@@ -43,6 +57,7 @@ export function DeveloperOverviewView() {
     hourlyEarningsUsd,
     todayEarningsCents,
     impressionCount,
+    hasSignupBonus,
     rows,
   } = summary;
 
@@ -73,6 +88,27 @@ export function DeveloperOverviewView() {
 
   return (
     <>
+      {hasSignupBonus && !signupBonusDismissed ? (
+        <div
+          className="dev-dash-notice dev-dash-rise dev-dash-signup-bonus"
+          role="status"
+          data-testid="signup-bonus-alert"
+        >
+          <p className="dev-dash-notice-body">{t.developerDashboard.signupBonusCredited}</p>
+          <button
+            type="button"
+            className="dev-dash-signup-bonus-dismiss"
+            aria-label="Dismiss"
+            onClick={() => {
+              window.sessionStorage.setItem(SIGNUP_BONUS_DISMISS_KEY, "1");
+              setSignupBonusDismissed(true);
+            }}
+          >
+            <X className="h-4 w-4" aria-hidden />
+          </button>
+        </div>
+      ) : null}
+
       <TiltCard
         className="dev-dash-hero dev-dash-rise relative"
         data-testid="kpi-cards"
@@ -121,6 +157,17 @@ export function DeveloperOverviewView() {
           </div>
         )}
       </TiltCard>
+
+      <div
+        className="dev-dash-notice dev-dash-rise"
+        role="status"
+        data-testid="payout-timing-notice"
+      >
+        <span className="dev-dash-notice-icon" aria-hidden>
+          <Clock3 className="h-4 w-4" />
+        </span>
+        <p className="dev-dash-notice-body">{t.developerDashboard.payoutTimingNotice}</p>
+      </div>
 
       <section className="dev-dash-stat-scroll dev-dash-rise">
         <TiltCard className="dev-dash-stat" data-testid="kpi-today" intensity={15} scale={1.04} glareRadius={180}>

@@ -42,11 +42,7 @@ const market = {
       adText: "SpinShare Checkout Smoke - funded local purchase",
       bidLabel: "$50.00 / 1k imps",
       cpmCents: 5000,
-      remainingBudgetCents: 5000,
-      remainingBudgetUsd: "$50.00",
-      servedImpressions: 0,
-      targetImpressions: 1000,
-      status: "live",
+      cpmUsd: "$50.00",
     },
     {
       id: "cmp-local-demo",
@@ -54,17 +50,14 @@ const market = {
       adText: "SpinShare Local - sample ad for localhost testing",
       bidLabel: "$30.00 / 1k imps",
       cpmCents: 3000,
-      remainingBudgetCents: 5000,
-      remainingBudgetUsd: "$50.00",
-      servedImpressions: 0,
-      targetImpressions: 1666,
-      status: "live",
+      cpmUsd: "$30.00",
     },
   ],
   summary: {
     liveCampaigns: 2,
     topCpmCents: 5000,
     topCpmUsd: "$50.00",
+    totalServedImpressions: 0,
   },
 };
 
@@ -162,7 +155,7 @@ describe("local checkout smoke helpers", () => {
       campaignId,
       rank: 1,
       bidLabel: "$50.00 / 1k imps",
-      remainingBudgetUsd: "$50.00",
+      cpmCents: 5000,
     });
   });
 

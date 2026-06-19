@@ -10,45 +10,53 @@ import {
 } from "./developer-dashboard-parts";
 
 describe("moneyMicrocents3 (hero payout-threshold copy)", () => {
-  it("renders display micro-cents with exactly 3 decimals", () => {
-    // $5.000 minimum minus a $0.075 balance (7_500 micro-cents) => $4.925 left.
-    expect(moneyMicrocents3(500_000)).toBe("$5.000");
+  it("uses 2 decimals by default and 3 only when sub-cent precision matters", () => {
+    expect(moneyMicrocents3(500_000)).toBe("$5.00");
+    expect(moneyMicrocents3(0)).toBe("$0.00");
+    // $5.00 minimum minus a $0.075 balance (7_500 micro-cents) => $4.925 left.
     expect(moneyMicrocents3(500_000 - 7_500)).toBe("$4.925");
-    expect(moneyMicrocents3(0)).toBe("$0.000");
+    expect(moneyMicrocents3(479_500)).toBe("$4.795");
   });
 });
 
 describe("developer dashboard activity table", () => {
-  it("renders attempt-level status and duration", () => {
+  it("renders traceable activity ids with attempt status and duration", () => {
     Object.assign(globalThis, { React });
 
-    const html = renderToStaticMarkup(
+    const row = {
+      activityId: "activity_trace_1",
+      campaignId: "cmp_1",
+      status: "tooShort",
+      statusLabel: "Too short",
+      counted: false,
+      viewDurationMs: 900,
+      durationLabel: "0.9s",
+      developerCreditCents: 0,
+      developerCreditUsd: "0.00",
+      creditLabel: "$0.00",
+      createdAtMs: 1000,
+    } as const;
+
+    const listHtml = renderToStaticMarkup(
+      React.createElement(ActivityList, { rows: [row] }),
+    );
+    const tableHtml = renderToStaticMarkup(
       React.createElement(ActivityTable, {
-        rows: [
-          {
-            activityId: "activity_1",
-            campaignId: "cmp_1",
-            status: "tooShort",
-            statusLabel: "Too short",
-            counted: false,
-            viewDurationMs: 900,
-            durationLabel: "0.9s",
-            developerCreditCents: 0,
-            developerCreditUsd: "0.00",
-            creditLabel: "$0.00",
-            createdAtMs: 1000,
-          },
-        ],
+        rows: [row],
       }),
     );
 
-    expect(html).toContain("cmp_1");
-    expect(html).toContain("Too short");
-    expect(html).toContain("0.9s");
-    expect(html).toContain("$0.00");
+    expect(listHtml).toContain("activity_trace_1");
+    expect(listHtml).toContain("cmp_1");
+    expect(listHtml).toContain("Too short - 0.9s");
+    expect(tableHtml).toContain("Activity ID");
+    expect(tableHtml).toContain("activity_trace_1");
+    expect(tableHtml).toContain("cmp_1");
+    expect(tableHtml).toContain("Too short - 0.9s");
+    expect(tableHtml).toContain("$0.00");
   });
 
-  it("keeps raw ledger details out of developer-facing rows", () => {
+  it("keeps verbose ledger details out while retaining the traceable id", () => {
     Object.assign(globalThis, { React });
 
     const row = {
@@ -73,9 +81,9 @@ describe("developer dashboard activity table", () => {
     );
 
     expect(listHtml).not.toContain("Details");
-    expect(listHtml).not.toContain("Activity ID");
-    expect(listHtml).not.toContain("activity_1");
+    expect(listHtml).toContain("activity_1");
     expect(tableHtml).not.toContain("Details");
+    expect(tableHtml).toContain("activity_1");
     expect(tableHtml).not.toContain("Created");
     expect(tableHtml).not.toContain("2023-11-14T22:13:20.000Z");
   });

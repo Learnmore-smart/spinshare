@@ -53,7 +53,11 @@ describe("extractClientSignals", () => {
 
   it("yields nulls when signals are absent", () => {
     const req = new Request("http://t.local/api/track");
-    expect(extractClientSignals(req, {})).toEqual({ ipHash: null, uaHash: null });
+    expect(extractClientSignals(req, {})).toEqual({
+      ipHash: null,
+      uaHash: null,
+      datacenterHit: false,
+    });
   });
 
   it("different IPs hash differently (clustering key)", () => {

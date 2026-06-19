@@ -65,6 +65,7 @@ Sort/served fixtures now use coherent whole-block budgets and assert the snapped
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Public rows expose rank + CPM only; summary adds `totalServedImpressions`; removed per-row spend/delivery fields and budget-drift market regression. | Cursor |
 | 2026-06-18 | Added budget-drift regression; updated fixtures to whole-block budgets + totalPaid assertions. | Cursor |
 | 2026-06-16 | Added regression for omitting pending/rejected review campaigns from market. | Codex |
 | 2026-06-13 | Created doc for market route tests | Codex |

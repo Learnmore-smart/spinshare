@@ -33,10 +33,25 @@ micro-cent values render with exactly 3 decimals:
 - `$4.985`
 - `$5.000`
 
+## Planned Coverage 2026-06-19 Traceable Recent Credit Rows
+
+Add RED coverage proving both mobile cards and desktop rows expose the unique
+`activityId` while still showing `campaignId`, status, duration, and credit.
+Keep the prior guard that verbose detail disclosures and raw timestamps do not
+return to the normal developer dashboard.
+
+## Implemented Coverage 2026-06-19 Traceable Recent Credit Rows
+
+Updated render coverage to require the unique `activityId` in both mobile and
+desktop developer activity rows, plus the localized `Activity ID` header on the
+desktop table. The disclosure/timestamp guard remains in place.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Implemented coverage for traceable Recent credit row identifiers. | Codex |
+| 2026-06-19 | Planned coverage for traceable Recent credit row identifiers. | Codex |
 | 2026-06-18 | Planned fixed-precision payout display formatter coverage. | Codex |
 | 2026-06-18 | Implemented coverage for optional cap meter display labels. | Codex |
 | 2026-06-18 | Implemented coverage for removing raw activity details from developer rows. | Codex |

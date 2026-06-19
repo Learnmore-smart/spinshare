@@ -54,6 +54,7 @@ export interface Dictionary {
     creditedRevenue: (pct: number) => string;
     advertisersBidCta: string;
     monthlyEstimateSuffix: string;
+    signupBonusBanner: string;
   };
   market: {
     title: string;
@@ -66,8 +67,6 @@ export interface Dictionary {
     impsPerMinFleet: (rate: string) => string;
     campaign: string;
     bidPerThousand: string;
-    totalPaid: string;
-    delivery: string;
     loadingLiveBids: string;
     bidMarketUnavailable: string;
     noFundedBids: string;
@@ -78,6 +77,8 @@ export interface Dictionary {
     loadingLiveBidsShort: string;
     chartBidLabel: string;
     chartCollectingHistory: string;
+    tickerNoBidsBrand: string;
+    tickerNoBidsText: string;
   };
   howItPaysSection: {
     title: string;
@@ -206,6 +207,8 @@ export interface Dictionary {
     dailyUtc: string;
     getPaid: string;
     getPaidBody: (minimum: string) => string;
+    payoutTimingNotice: string;
+    signupBonusCredited: string;
     connectPayouts: string;
     payoutAboveMinimum: string;
     payoutBelowMinimum: (remaining: string) => string;
@@ -242,6 +245,7 @@ export interface Dictionary {
     account: string;
     email: string;
     userId: string;
+    support: string;
     tableHash: string;
     tableCampaign: string;
     tableEvent: string;
@@ -270,35 +274,19 @@ export interface Dictionary {
     title: string;
     subtitle: string;
     closeAria: string;
-    setupMethodAria: string;
-    pathExtension: string;
-    pathCli: string;
     gotIt: string;
     howToSetUp: string;
     copied: string;
     copy: string;
-    labelBuild: string;
-    labelAuthenticate: string;
-    labelExample: string;
-    labelQuickTest: string;
-    labelLocalDev: string;
+    labelInstall: string;
     extStep1Title: string;
     extStep1Body: string;
-    extStep1Hint: string;
     extStep2Title: string;
     extStep2Body: string;
     extStep3Title: string;
     extStep3Body: string;
     extStep4Title: string;
     extStep4Body: string;
-    cliStep1Title: string;
-    cliStep1Body: string;
-    cliStep2Title: string;
-    cliStep2Body: string;
-    cliStep3Title: string;
-    cliStep3Body: string;
-    cliStep4Title: string;
-    cliStep4Body: string;
   };
   activate: {
     deviceAuth: string;

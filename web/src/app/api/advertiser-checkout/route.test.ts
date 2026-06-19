@@ -123,8 +123,9 @@ describe("POST /api/advertiser-checkout", () => {
         expect.objectContaining({
           id: body.campaign.id,
           adText: validPayload.adText,
-          remainingBudgetCents: 1500,
-          targetImpressions: 3000,
+          cpmCents: 500,
+          cpmUsd: "$5.00",
+          bidLabel: "$5.00 / 1k imps",
         }),
       ]),
     );

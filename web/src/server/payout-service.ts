@@ -16,13 +16,37 @@
  * the funds, and records a provider reconciliation attempt.
  */
 
-import { MINIMUM_PAYOUT_CENTS } from "@spinshare/core";
+import type { User } from "@spinshare/core";
+import {
+  MINIMUM_PAYOUT_CENTS,
+  SYBIL_PAYOUT_FINGERPRINT_THRESHOLD,
+} from "@spinshare/core";
 
 import type {
   PayoutAttemptRepository,
   PayoutGateway,
   UserRepository,
 } from "./ports";
+
+/**
+ * Withdrawable balance: the total minus the not-yet-matured held bucket
+ * (anti-fraud Tier 3a). Legacy users without a held split treat the whole
+ * balance as available.
+ */
+function availableCents(user: Pick<User, "balanceCents" | "heldCents">): number {
+  return user.balanceCents - (user.heldCents ?? 0);
+}
+
+/**
+ * Verdict from a payout risk assessment (anti-fraud Tier 3c, prove-before-pay).
+ * `block: true` stops the payout at the boundary even if the balance is matured
+ * and eligible.
+ */
+export interface PayoutRiskVerdict {
+  block: boolean;
+  /** Machine-readable reason (recorded on the blocked attempt) when blocking. */
+  reason?: string;
+}
 
 /** Dependencies for the payout service (supplied by the composition root). */
 export interface PayoutServiceDeps {
@@ -32,6 +56,14 @@ export interface PayoutServiceDeps {
   payouts: PayoutGateway;
   /** Durable provider/accounting reconciliation attempts. */
   payoutAttempts: PayoutAttemptRepository;
+  /**
+   * Optional payout-boundary risk gate (anti-fraud Tier 3c). When supplied and
+   * it returns `block: true`, the payout is refused with {@link PAYOUT_RISK_ERROR}
+   * before any money moves. Omitted ⇒ no gate (legacy/tests). Should fail-open
+   * (return `block: false`) on its own internal errors so infrastructure faults
+   * never strand a legitimate developer's earnings.
+   */
+  assessRisk?: (developerId: string) => Promise<PayoutRiskVerdict>;
   /** Clock override for deterministic tests. */
   nowMs?: () => number;
   /** Attempt id override for deterministic tests. */
@@ -47,6 +79,10 @@ export const NOT_CONNECTED_ERROR = "not_connected" as const;
 export const BELOW_MINIMUM_ERROR = "below_minimum" as const;
 /** `409` error code: another withdrawal changed the balance first. */
 export const BALANCE_CHANGED_ERROR = "balance_changed" as const;
+/** `409` error code: the payout risk gate blocked this withdrawal (Tier 3c/3b). */
+export const PAYOUT_RISK_ERROR = "risk_hold" as const;
+/** `reason` recorded when blocked for a payout fingerprint shared across accounts. */
+export const SHARED_FINGERPRINT_REASON = "shared_payout_fingerprint" as const;
 
 /**
  * Outcome of {@link withdrawBalance}: a successful payout or a typed failure the
@@ -116,9 +152,7 @@ export async function withdrawBalance(
       developerId,
       status: "blocked",
       providerCode: NOT_CONNECTED_ERROR,
-      ...(user?.balanceCents !== undefined
-        ? { amountCents: user.balanceCents }
-        : {}),
+      ...(user !== null ? { amountCents: availableCents(user) } : {}),
       createdAtMs: at,
       updatedAtMs: at,
     });
@@ -133,7 +167,7 @@ export async function withdrawBalance(
       attemptId,
       developerId,
       status: "blocked",
-      amountCents: user.balanceCents,
+      amountCents: availableCents(user),
       stripeConnectAccountId: user.stripeConnectAccountId,
       providerCode: NOT_CONNECTED_ERROR,
       createdAtMs: at,
@@ -142,7 +176,64 @@ export async function withdrawBalance(
     return { ok: false, status: 409, error: NOT_CONNECTED_ERROR };
   }
 
-  const amountCents = user.balanceCents;
+  // Payout-fingerprint dedupe (anti-fraud Tier 3b): capture the destination's
+  // opaque Stripe fingerprint, then refuse the withdrawal if too many distinct
+  // platform accounts pay into the same real bank (a Sybil farm collapsing to a
+  // single payout identity). Persist the fingerprint so sibling accounts see it.
+  if (status.payoutFingerprint) {
+    if (user.payoutFingerprint !== status.payoutFingerprint) {
+      await users.setConnectAccount(developerId, {
+        stripeConnectAccountId: user.stripeConnectAccountId,
+        payoutsEnabled: status.payoutsEnabled,
+        payoutFingerprint: status.payoutFingerprint,
+      });
+    }
+    const shared = await users.countAccountsByPayoutFingerprint(
+      status.payoutFingerprint,
+    );
+    if (shared >= SYBIL_PAYOUT_FINGERPRINT_THRESHOLD) {
+      const at = nowMs(deps);
+      await payoutAttempts.record({
+        attemptId,
+        developerId,
+        status: "blocked",
+        amountCents: availableCents(user),
+        stripeConnectAccountId: user.stripeConnectAccountId,
+        providerCode: SHARED_FINGERPRINT_REASON,
+        createdAtMs: at,
+        updatedAtMs: at,
+      });
+      return { ok: false, status: 409, error: PAYOUT_RISK_ERROR };
+    }
+  }
+
+  // Payout-boundary risk gate (anti-fraud Tier 3c, prove-before-pay): even a
+  // matured, eligible balance is refused if the developer is flagged (e.g. a
+  // collusion cluster). Runs before any money moves; the gate itself fails open.
+  if (deps.assessRisk) {
+    const verdict = await deps.assessRisk(developerId);
+    if (verdict.block) {
+      const at = nowMs(deps);
+      await payoutAttempts.record({
+        attemptId,
+        developerId,
+        status: "blocked",
+        amountCents: availableCents(user),
+        stripeConnectAccountId: user.stripeConnectAccountId,
+        providerCode: verdict.reason ?? PAYOUT_RISK_ERROR,
+        createdAtMs: at,
+        updatedAtMs: at,
+      });
+      return { ok: false, status: 409, error: PAYOUT_RISK_ERROR };
+    }
+  }
+
+  // Mature any held earnings whose hold window has elapsed, then pay out only
+  // the matured (available) balance — never the still-held, clawback-able
+  // portion (anti-fraud Tier 3a).
+  await users.matureHeldEarnings(developerId, nowMs(deps));
+  const matured = (await users.getById(developerId)) ?? user;
+  const amountCents = availableCents(matured);
   if (amountCents < MINIMUM_PAYOUT_CENTS) {
     const at = nowMs(deps);
     await payoutAttempts.record({

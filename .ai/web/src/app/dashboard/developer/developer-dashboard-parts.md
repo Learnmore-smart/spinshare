@@ -56,8 +56,45 @@ must render exactly 3 decimals. The immediate caller is the overview hero's
 payout-threshold copy, which should display `$4.985` remaining toward the
 `$5.000` goal when the visible balance is `$0.015`.
 
+## Bug Fix Plan 2026-06-19 Adaptive Payout Threshold Decimals
+
+Hero payout copy showed `$5.000` / `$0.000` because `moneyMicrocents3` always
+used `toFixed(3)`. User expectation: default to standard currency (`$5.00`,
+`$0.00`) and only show a third decimal when sub-cent precision is meaningful
+(e.g. `还差 $4.795`). Fix: match the existing `formatMicrocentsAsUsd` trim in
+`activity-feed.ts` — `toFixed(3)` then drop one trailing zero when present.
+
+## Implemented Bug Fix 2026-06-19 Adaptive Payout Threshold Decimals
+
+`moneyMicrocents3` now renders `$5.00` for whole-dollar thresholds and `$4.925`
+/ `$4.795` when the third decimal is significant.
+
+## Bug Fix Plan 2026-06-19 Traceable Recent Credit Rows
+
+User feedback showed the Recent credit table displaying the same campaign id on
+every impression row, making screenshots unusable for support lookup. Root
+cause: `ActivityTable` and `ActivityList` hide the unique `activityId` and put
+`campaignId` in the primary visible identifier column. Fix strategy: render the
+unique `activityId` directly in the developer-facing row, keep `campaignId`
+visible as campaign context, and combine status + duration in the event column
+so no useful row detail is lost. Regression risk is limited to the developer
+activity presentation; CSV already exports `activityId`.
+
+## Implemented Bug Fix 2026-06-19 Traceable Recent Credit Rows
+
+`ActivityList` now uses `activityId` as the primary visible identifier and keeps
+campaign/status/duration on the secondary line. `ActivityTable` now labels the
+first column as the activity id, renders `row.activityId` there, keeps
+`campaignId` in the campaign column, and combines status + duration in the
+event column.
+
 ## Verification
 
+- 2026-06-19: RED focused test failed because mobile/table rows did not contain `activityId`; GREEN focused test passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/dashboard/developer/developer-dashboard-parts.test.tsx`.
+- 2026-06-19: Related activity/dashboard tests passed with 21 tests:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/dashboard/activity-feed.test.ts src/app/dashboard/developer/developer-activity-view.test.tsx src/app/dashboard/developer/developer-activity-view-render.test.tsx src/app/dashboard/developer/developer-activity-context.test.ts src/app/dashboard/developer/developer-dashboard-parts.test.tsx`.
+- 2026-06-19: `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed after rerun.
 - 2026-06-18: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/dashboard/activity-feed.test.ts src/app/dashboard/developer/summarize-ledger.test.ts src/app/dashboard/developer/developer-dashboard-parts.test.tsx src/app/dashboard/developer/dashboard.property.test.ts` passed with 21 tests.
 - RED/GREEN 2026-06-18: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/dashboard/activity-feed.test.ts src/app/dashboard/developer/developer-dashboard-parts.test.tsx` failed before implementation on developer row details exposure, then passed with 10 tests after implementation.
 - 2026-06-18: `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
@@ -67,6 +104,8 @@ payout-threshold copy, which should display `$4.985` remaining toward the
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Implemented traceable Recent credit row identifiers. | Codex |
+| 2026-06-19 | Planned traceable Recent credit row identifiers. | Codex |
 | 2026-06-18 | Planned fixed-precision payout display formatter for overview hero copy. | Codex |
 | 2026-06-18 | Added optional display labels for earning cap meters. | Codex |
 | 2026-06-18 | Removed raw details from developer activity row rendering. | Codex |

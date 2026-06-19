@@ -409,6 +409,12 @@ export const trackRequestSchema = z.object({
     .min(VIEW_SEGMENT_MIN_MS, {
       message: "View duration must be positive",
     }),
+  /**
+   * Single-use ad-serve nonce issued by `GET /api/ad`, echoed back so the server
+   * can bind this settlement to a real, unreplayed serve. Optional for backward
+   * compatibility with clients/hooks that predate the nonce.
+   */
+  adNonce: z.string().optional(),
 });
 
 /** Validated track request payload. Matches the `TrackRequest` contract type. */

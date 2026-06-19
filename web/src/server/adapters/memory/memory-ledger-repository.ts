@@ -22,6 +22,19 @@ export class MemoryLedgerRepository implements LedgerRepository {
     }
   }
 
+  async getByEntryId(entryId: string): Promise<LedgerEntry | null> {
+    const entry = this.entries.get(entryId);
+    return entry ? { ...entry } : null;
+  }
+
+  async appendEntryIfAbsent(entry: LedgerEntry): Promise<boolean> {
+    if (this.entries.has(entry.entryId)) {
+      return false;
+    }
+    this.entries.set(entry.entryId, { ...entry });
+    return true;
+  }
+
   /**
    * Lists every entry credited to a developer, in insertion (recording) order.
    * Powers the developer dashboard (Requirements 8.1–8.3).
@@ -36,6 +49,9 @@ export class MemoryLedgerRepository implements LedgerRepository {
     const counts = Object.fromEntries(campaignIds.map((id) => [id, 0]));
 
     for (const entry of this.entries.values()) {
+      if (entry.type === "signup_bonus" || entry.campaignId.length === 0) {
+        continue;
+      }
       const current = counts[entry.campaignId];
       if (current !== undefined) {
         counts[entry.campaignId] = current + 1;

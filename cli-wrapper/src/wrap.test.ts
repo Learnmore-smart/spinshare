@@ -323,7 +323,7 @@ describe("runWrap", () => {
     expect(joined).not.toContain("|");
   });
 
-  it("uses an injected PTY so interactive status output can be replaced with ads", async () => {
+  it("uses an injected PTY so interactive status output can show ads below the loading line", async () => {
     vi.useFakeTimers();
     const pty = new FakePty();
     const ptyCalls: Array<{ file: string; args: string[] }> = [];
@@ -357,7 +357,9 @@ describe("runWrap", () => {
 
     await flush();
     stdin.emit("data", Buffer.from("hi"));
-    pty.emitData("\r\u2022 Pollinating\u2026");
+    pty.emitData("\r\u28cb Working...");
+    pty.emitData("\r\u28c7 Generating...");
+    pty.emitData("\r\u2726 Thinking...");
     await vi.advanceTimersByTimeAsync(3000);
     pty.emitData("done\n");
     pty.emitExit(7);
@@ -368,7 +370,8 @@ describe("runWrap", () => {
     expect(reported).toEqual([{ campaignId: "cmp_1", viewDurationMs: 3000 }]);
     const joined = Buffer.concat(out).toString("utf8");
     expect(joined).toContain("Buy SpinShare Pro");
-    expect(joined).not.toContain("Pollinating");
+    expect(joined).toContain("Working");
+    expect(joined).toContain("\u001b[s\u001b[1B\r");
     expect(joined).toContain("done\n");
   });
 

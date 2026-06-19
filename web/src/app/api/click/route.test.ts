@@ -83,6 +83,30 @@ describe("GET /api/click", () => {
     expect(telemetry["cmp_click"]!.clicks).toBe(1);
   });
 
+  it("counts a replayed click token only once (single-use)", async () => {
+    const container = getContainer();
+    seedCampaign(container, {
+      id: "cmp_click",
+      destinationUrl: "https://linear.app/",
+    });
+    const clickToken = mintClickToken({
+      campaignId: "cmp_click",
+      developerId: "dev_1",
+      nowMs: Date.now(),
+    });
+    const clickUrl = `https://spinshare.test/api/click?campaignId=cmp_click&clickToken=${encodeURIComponent(clickToken)}`;
+
+    const first = await GET(new Request(clickUrl));
+    const second = await GET(new Request(clickUrl));
+
+    // Both redirect (UX preserved) but the replay does not inflate the counter.
+    expect(first.status).toBe(302);
+    expect(second.status).toBe(302);
+    expect(second.headers.get("location")).toBe("https://linear.app/");
+    const telemetry = await container.counters.getCampaignTelemetry(["cmp_click"]);
+    expect(telemetry["cmp_click"]!.clicks).toBe(1);
+  });
+
   it("redirects but does not count clicks when the signed token is missing", async () => {
     const container = getContainer();
     seedCampaign(container, {

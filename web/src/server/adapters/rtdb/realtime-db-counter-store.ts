@@ -213,6 +213,51 @@ export class RealtimeDbCounterStore implements CounterStore {
       .set(this.clock.nowMs() + ttlSeconds * 1000);
   }
 
+  // --- Network-level signals ----------------------------------------------
+
+  async incrementIpVelocity(
+    ipHash: string,
+    windowStartEpochSec: number,
+  ): Promise<number> {
+    const ref = this.root.child(`ipVelocity/${ipHash}/${windowStartEpochSec}`);
+    const result = await ref.transaction((current) =>
+      ((current as number | null) ?? 0) + 1,
+    );
+    return (result.snapshot.val() as number | null) ?? 1;
+  }
+
+  async recordIpFanout(
+    ipHash: string,
+    developerId: string,
+    windowStartEpochSec: number,
+  ): Promise<number> {
+    // developerId can contain `:` (e.g. "github:123"), invalid in an RTDB path.
+    const safeDevId = Buffer.from(developerId, "utf8").toString("base64url");
+    const windowRef = this.root.child(`ipFanout/${ipHash}/${windowStartEpochSec}`);
+    await windowRef.child(safeDevId).set(true);
+    const snap = await windowRef.get();
+    return snap.numChildren();
+  }
+
+  // --- Single-use keys ----------------------------------------------------
+
+  async consumeOnce(key: string, ttlSeconds: number): Promise<boolean> {
+    const nowMs = this.clock.nowMs();
+    // Base64url-encode so arbitrary token/nonce ids are always RTDB-path-safe
+    // (no `.`, `#`, `$`, `[`, `]`, `/`).
+    const safeKey = Buffer.from(key, "utf8").toString("base64url");
+    const result = await this.root
+      .child(`consumed/${safeKey}`)
+      .transaction((current) => {
+        const node = current as { expiresAtMs: number } | null;
+        if (node && node.expiresAtMs > nowMs) {
+          return undefined; // already consumed and unexpired → abort (replay)
+        }
+        return { expiresAtMs: nowMs + ttlSeconds * 1000 };
+      });
+    return result.committed;
+  }
+
   async incrementCampaignTelemetry(
     campaignId: string,
     metric: CampaignTelemetryMetric,

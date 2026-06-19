@@ -23,7 +23,9 @@
 import {
   VIEWABILITY_MIN_MS,
   computeSplit,
+  ipFanoutWindowStartEpochSec,
   trackRequestSchema,
+  windowStartEpochSec,
   type Campaign,
 } from "@spinshare/core";
 
@@ -32,6 +34,11 @@ import {
   extractClientSignals,
   type ClientSignals,
 } from "@/server/http/client-ip";
+import { verifyAdNonce } from "@/server/ad-nonce";
+import { scoreImpression } from "@/server/suspicion";
+
+/** How long a consumed ad-nonce id is remembered (>= the nonce's own TTL). */
+const AD_NONCE_CONSUME_TTL_SECONDS = 600;
 import {
   INVALID_CAMPAIGN_ERROR,
   UNAUTHORIZED_ERROR,
@@ -389,11 +396,82 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  // Bind this settlement to a real, unreplayed ad serve. The nonce is verified
+  // (signature + campaign/developer binding) and atomically consumed exactly
+  // once here, at the settlement boundary — short pre-settlement segments never
+  // reach this code, so they never burn it. An absent nonce takes the legacy
+  // backward-compatible path (clients/hooks predating the nonce still settle).
+  if (parsed.data.adNonce !== undefined) {
+    const noncePayload = verifyAdNonce(parsed.data.adNonce, {
+      campaignId: parsed.data.campaignId,
+      developerId: activityContext.claims.userId,
+    });
+    const fresh =
+      noncePayload !== null &&
+      (await counters.consumeOnce(
+        `adnonce:${noncePayload.jti}`,
+        AD_NONCE_CONSUME_TTL_SECONDS,
+      ));
+    if (!fresh) {
+      // Invalid signature/binding or a replayed nonce: no genuine, unique ad
+      // serve backs this settlement. Suppress (no credit) and clear progress.
+      await progress.clearDeveloper(activityContext.claims.userId);
+      await recordTrackActivity(container, {
+        campaignId: parsed.data.campaignId,
+        viewDurationMs: progressRecord.accumulatedViewDurationMs,
+        status: "duplicate",
+        claims: activityContext.claims,
+        campaign: activityContext.campaign,
+        developerCreditCents: 0,
+        revenueMicrocents: 0,
+        signals: clientSignals,
+      });
+      await recordCampaignTelemetry(counters, parsed.data.campaignId, "duplicate");
+      return Response.json(
+        progressResponse(progressRecord.accumulatedViewDurationMs),
+        { status: 200 },
+      );
+    }
+  }
+
+  // Record network-level signals (per-IP velocity + account fan-out) and fuse
+  // them into a composite suspicion score (Tier 2a/2b). A `suppress` band folds
+  // into the ledger's shadow-ban path — no money moves, response stays
+  // indistinguishable. Best-effort: signal capture must never block settlement,
+  // and a benign default (no suppression) is used when no IP could be parsed.
+  let suspicionSuppress = false;
+  if (clientSignals.ipHash) {
+    const nowEpochSec = Math.floor(nowMs / 1000);
+    try {
+      const ipVelocity = await counters.incrementIpVelocity(
+        clientSignals.ipHash,
+        windowStartEpochSec(nowEpochSec),
+      );
+      const ipFanout = await counters.recordIpFanout(
+        clientSignals.ipHash,
+        activityContext.claims.userId,
+        ipFanoutWindowStartEpochSec(nowEpochSec),
+      );
+      suspicionSuppress =
+        scoreImpression({
+          ipFanout,
+          ipVelocity,
+          datacenterHit: clientSignals.datacenterHit,
+        }).band === "suppress";
+    } catch {
+      // Network-signal capture / scoring is best-effort; never block settlement.
+    }
+  }
+
   // 3. Delegate to the ledger service with the composition-root providers once
   //    cumulative viewability reaches the settlement threshold.
   const result = await recordImpression(
     { auth, campaigns, counters },
-    { token, campaignId: parsed.data.campaignId },
+    {
+      token,
+      campaignId: parsed.data.campaignId,
+      forceSuppress: suspicionSuppress,
+    },
   );
   await progress.clearDeveloper(activityContext.claims.userId);
 

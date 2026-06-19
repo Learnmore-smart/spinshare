@@ -47,6 +47,13 @@ export interface ConnectAccountStatus {
   payoutsEnabled: boolean;
   /** Whether the developer has submitted all required onboarding details. */
   detailsSubmitted: boolean;
+  /**
+   * Opaque Stripe `external_account.fingerprint` of the payout destination, when
+   * a destination is attached (anti-fraud Tier 3b — payout-fingerprint dedupe).
+   * Best-effort: absent when no destination exists yet or the gateway cannot
+   * read it. Never raw bank data.
+   */
+  payoutFingerprint?: string;
 }
 
 /** Inputs to pay out an available balance to a connected account. */

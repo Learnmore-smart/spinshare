@@ -87,20 +87,20 @@ describe("GET /api/market", () => {
       "cmp_low",
     ]);
     expect(body.rows[0]).toMatchObject({
+      rank: 1,
       adText: "Top bidder",
       bidLabel: "$22.00 / 1k imps",
-      servedImpressions: 0,
-      targetImpressions: 2000,
-      totalPaidCents: 4400,
-      totalPaidUsd: "$44.00",
-      status: "live",
+      cpmCents: 2200,
     });
+    expect(body.rows[0]).not.toHaveProperty("totalPaidCents");
+    expect(body.rows[0]).not.toHaveProperty("servedImpressions");
+    expect(body.summary.totalServedImpressions).toBe(0);
     expect(body.rows.some((row: { id: string }) => row.id === "cmp_unfunded")).toBe(
       false,
     );
   });
 
-  it("includes served impressions from the durable ledger", async () => {
+  it("includes fleet-wide served impressions in the summary", async () => {
     const container = getContainer();
     // 2 blocks ($60.00) funded at a $30.00 CPM; 2 views served cost ~6c, so the
     // budget settled to 5994c. The market still reports the 2,000 bought views.
@@ -130,46 +130,10 @@ describe("GET /api/market", () => {
     expect(response.status).toBe(200);
     expect(body.rows[0]).toMatchObject({
       id: "cmp_top",
-      servedImpressions: 2,
-      targetImpressions: 2000,
-      totalPaidCents: 6000,
-      totalPaidUsd: "$60.00",
+      bidLabel: "$30.00 / 1k imps",
     });
-  });
-
-  it("snaps a $5 / 1k-view buy back to 1,000 views and $5.00 despite flush drift", async () => {
-    const container = getContainer();
-    // The reported bug: 1 block ($5.00) funded → 1,000 views. After 21 served,
-    // the Redis→Firestore flush rounded each sub-cent ($0.005) spend up, drifting
-    // the budget down to 485c. Reconstruction must still report the true 1,000
-    // views purchased and $5.00 paid — never "991 / $4.95".
-    seedCampaign(container, {
-      id: "cmp_learnx",
-      cpmCents: 500,
-      budgetCents: 485,
-      adText: "LearnX test",
-    });
-    const served = Array.from({ length: 21 }, (_unused, index) => ({
-      entryId: `learnx-${index}`,
-      campaignId: "cmp_learnx",
-      developerId: "dev-1",
-      revenueMicrocents: 500,
-      developerCreditCents: 0,
-      spinshareRetentionMicrocents: 500,
-    }));
-    (container.ledger as MemoryLedgerRepository).seed(served);
-
-    const response = await GET();
-    const body = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(body.rows[0]).toMatchObject({
-      id: "cmp_learnx",
-      servedImpressions: 21,
-      targetImpressions: 1000,
-      totalPaidCents: 500,
-      totalPaidUsd: "$5.00",
-    });
+    expect(body.rows[0]).not.toHaveProperty("servedImpressions");
+    expect(body.summary.totalServedImpressions).toBe(2);
   });
 
   it("omits private leaderboard campaigns from the public market", async () => {

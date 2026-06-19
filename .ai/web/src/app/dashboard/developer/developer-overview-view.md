@@ -46,6 +46,11 @@ Regression risk:
 - Display-only precision change for the hero copy; actual payout unlock logic
   and the progress meter are untouched.
 
+## Planned change (2026-06-19)
+- Add a dashboard notice that our Stripe payout feature will be available within 1–2 weeks.
+- Render it below the balance hero on the developer overview.
+- Localize via `developerDashboard.payoutTimingNotice` in `extra-dictionaries.ts`.
+
 ## Change History
 
 | Date | Change | Author |

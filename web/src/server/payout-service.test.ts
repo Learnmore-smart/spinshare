@@ -27,6 +27,8 @@ import type {
 import {
   BELOW_MINIMUM_ERROR,
   NOT_CONNECTED_ERROR,
+  PAYOUT_RISK_ERROR,
+  SHARED_FINGERPRINT_REASON,
   withdrawBalance,
 } from "./payout-service";
 
@@ -255,6 +257,103 @@ describe("withdrawBalance", () => {
         }),
       ]),
     );
+  });
+
+  it("blocks the payout when the risk gate flags the developer (409, no money moves)", async () => {
+    const users = makeUsers(developer({ balanceCents: 5_000 }));
+    const payouts = new SpyPayoutGateway(new SequentialIdGenerator());
+    const payoutAttempts = new MemoryPayoutAttemptRepository();
+
+    const result = await withdrawBalance(
+      {
+        users,
+        payouts,
+        payoutAttempts,
+        assessRisk: async () => ({ block: true, reason: "collusion_cluster" }),
+        nowMs: () => 1_700_000_000_300,
+        newAttemptId: () => "poa_risk",
+      },
+      DEV,
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      status: 409,
+      error: PAYOUT_RISK_ERROR,
+    });
+    expect(payouts.payouts).toHaveLength(0);
+    expect((await users.getById(DEV))?.balanceCents).toBe(5_000);
+    expect(await payoutAttempts.listByDeveloper(DEV)).toEqual([
+      expect.objectContaining({
+        attemptId: "poa_risk",
+        status: "blocked",
+        amountCents: 5_000,
+        providerCode: "collusion_cluster",
+      }),
+    ]);
+  });
+
+  it("blocks the payout when the payout fingerprint is shared across accounts (Tier 3b)", async () => {
+    // DEV's mock account resolves to fingerprint `fp_mock_${ACCT}`. A sibling
+    // account already carries the same fingerprint → Sybil farm → block.
+    const users = makeUsers(developer({ balanceCents: 5_000 }));
+    users.seed({
+      id: "dev-sibling",
+      email: "sibling@spinshare.test",
+      provider: "google",
+      role: "developer",
+      balanceCents: 0,
+      payoutFingerprint: `fp_mock_${ACCT}`,
+    });
+    const payouts = new SpyPayoutGateway(new SequentialIdGenerator());
+    const payoutAttempts = new MemoryPayoutAttemptRepository();
+
+    const result = await withdrawBalance(
+      {
+        users,
+        payouts,
+        payoutAttempts,
+        nowMs: () => 1_700_000_000_400,
+        newAttemptId: () => "poa_fp",
+      },
+      DEV,
+    );
+
+    expect(result).toEqual({
+      ok: false,
+      status: 409,
+      error: PAYOUT_RISK_ERROR,
+    });
+    expect(payouts.payouts).toHaveLength(0);
+    expect((await users.getById(DEV))?.balanceCents).toBe(5_000);
+    expect(await payoutAttempts.listByDeveloper(DEV)).toEqual([
+      expect.objectContaining({
+        attemptId: "poa_fp",
+        status: "blocked",
+        providerCode: SHARED_FINGERPRINT_REASON,
+      }),
+    ]);
+  });
+
+  it("pays out normally when the risk gate clears the developer", async () => {
+    const users = makeUsers(developer({ balanceCents: 1_000 }));
+    const payouts = new SpyPayoutGateway(new SequentialIdGenerator());
+    const payoutAttempts = new MemoryPayoutAttemptRepository();
+
+    const result = await withdrawBalance(
+      {
+        users,
+        payouts,
+        payoutAttempts,
+        assessRisk: async () => ({ block: false }),
+        newAttemptId: () => "poa_cleared",
+      },
+      DEV,
+    );
+
+    expect(result.ok).toBe(true);
+    expect(payouts.payouts).toHaveLength(1);
+    expect((await users.getById(DEV))?.balanceCents).toBe(0);
   });
 
   it("records a failed payout attempt when the provider transfer throws", async () => {

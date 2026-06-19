@@ -3,6 +3,7 @@ import type {
   ActivityRecord,
   AdvertiserActivity,
   DeveloperActivityRecord,
+  ImpressionActivity,
 } from "../../ports/activity-repository";
 
 export class MemoryActivityRepository implements ActivityRepository {
@@ -41,6 +42,19 @@ export class MemoryActivityRepository implements ActivityRepository {
         (activity): activity is AdvertiserActivity =>
           activity.type === "advertiser_event" &&
           activity.checkoutSessionId === sessionId,
+      )
+      .map((activity) => ({ ...activity }));
+  }
+
+  async listRecentImpressions(
+    sinceMs: number,
+  ): Promise<ImpressionActivity[]> {
+    return [...this.activities.values()]
+      .filter(
+        (activity): activity is ImpressionActivity =>
+          (activity.type === undefined ||
+            activity.type === "impression_attempt") &&
+          activity.createdAtMs >= sinceMs,
       )
       .map((activity) => ({ ...activity }));
   }

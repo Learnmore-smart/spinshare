@@ -209,6 +209,18 @@ Fix strategy:
 - Replace green-tinted glass gradients on the auth card, stat tiles, and back button with neutral white `backdrop-filter` only.
 - Soften the page background to a neutral gradient without emerald radial washes.
 
+## Planned Change 2026-06-19 Sign-In Feature Card Spacing
+
+User feedback: the left feature card has excessive vertical gaps between the stat
+row and bullet list.
+
+Root cause: `ThreeDCard` inner wrapper uses `h-full flex flex-col justify-between`,
+which distributes children to opposite ends when the card stretches.
+
+Fix:
+- Use `justify-start` in the `ThreeDCard` inner wrapper.
+- Add explicit vertical spacing between the feature-card sections (`mt-6 sm:mt-7`) instead of a uniform tight `gap-4`.
+
 ## Change History
 
 | Date | Change | Author |

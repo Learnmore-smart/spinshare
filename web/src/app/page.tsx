@@ -22,6 +22,7 @@ import { SiteNavAuth } from "@/components/SiteNavAuth";
 import { SpinShareWordmark } from "@/components/SpinShareWordmark";
 import { useT } from "@/lib/i18n/locale-provider";
 import { HeroDashboardCard } from "@/components/HeroDashboardCard";
+import { SPINSHARE_INSTALL_COMMAND } from "@/lib/spinshare-install-command";
 
 const DEVELOPER_SIGNIN_HREF =
   "/signin?role=developer&callbackUrl=%2Fdashboard%2Fdeveloper";
@@ -55,16 +56,10 @@ interface MarketRow {
   id: string;
   rank: number;
   adText: string;
+  brandName?: string;
   cpmCents: number;
   cpmUsd: string;
   bidLabel: string;
-  remainingBudgetCents: number;
-  remainingBudgetUsd: string;
-  servedImpressions: number;
-  targetImpressions: number;
-  totalPaidCents: number;
-  totalPaidUsd: string;
-  status: "live";
 }
 
 interface MarketResponse {
@@ -73,6 +68,7 @@ interface MarketResponse {
     liveCampaigns: number;
     topCpmCents: number;
     topCpmUsd: string;
+    totalServedImpressions: number;
   };
   updatedAtMs: number;
 }
@@ -84,8 +80,12 @@ const moneyFormatter = new Intl.NumberFormat("en-US", {
   currency: "USD",
 });
 
-function formatMoney(cents: number): string {
-  return moneyFormatter.format(cents / 100);
+function tickerBrandLabel(brandName: string | undefined, adText: string): string {
+  const trimmedBrand = brandName?.trim();
+  if (trimmedBrand) return trimmedBrand;
+
+  const firstWord = adText.trim().split(/\s+/)[0];
+  return firstWord || "Ad";
 }
 
 function formatUpdatedAt(updatedAtMs: number | undefined, loadingLabel: string): string {
@@ -95,15 +95,6 @@ function formatUpdatedAt(updatedAtMs: number | undefined, loadingLabel: string):
     hour: "numeric",
     minute: "2-digit",
   }).format(updatedAtMs);
-}
-
-function formatImpressionsCount(val: number): string {
-  if (val === 0) return "0";
-  if (val >= 1000) {
-    const k = val / 1000;
-    return `${k.toFixed(1).replace(".0", "")}k`;
-  }
-  return val.toString();
 }
 
 function loadBidHistory(): BidSnapshot[] {
@@ -254,9 +245,6 @@ export function buildBidChartData(
     })),
   };
 }
-
-const INSTALL_COMMAND =
-  "curl -L https://spinshare.dev/vsix -o spinshare.vsix && code --install-extension spinshare.vsix";
 
 function HeroInstallCommand({
   command,
@@ -711,48 +699,57 @@ export default function HomePage() {
 
   const bids = market?.rows ?? [];
 
-  // Repeat the bids list to ensure it has enough width to scroll seamlessly
-  const tickerItems: { text: string; badge: string }[] = [];
+  // Repeat the ticker list to ensure it has enough width to scroll seamlessly
+  const tickerItems: { brand: string; adText: string }[] = [];
   if (bids.length > 0) {
     const minItems = 15;
     const repetitions = Math.ceil(minItems / bids.length);
     for (let i = 0; i < repetitions; i++) {
-      tickerItems.push(...bids.map(b => ({ text: b.adText, badge: b.bidLabel })));
+      tickerItems.push(
+        ...bids.map((b) => ({
+          brand: tickerBrandLabel(b.brandName, b.adText),
+          adText: b.adText,
+        })),
+      );
+    }
+  } else {
+    const emptyTicker = {
+      brand: t.market.tickerNoBidsBrand,
+      adText: t.market.tickerNoBidsText,
+    };
+    for (let i = 0; i < 15; i++) {
+      tickerItems.push(emptyTicker);
     }
   }
+
+  const renderTickerSegment = (item: (typeof tickerItems)[number], key: string) => (
+    <div key={key} className="flex items-center">
+      <span className="flex items-center gap-3 px-6">
+        <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-black text-emerald-400">
+          {item.brand}
+        </span>
+        <span className="text-zinc-300">{item.adText}</span>
+      </span>
+      <span className="text-zinc-700">|</span>
+    </div>
+  );
 
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-transparent">
         {/* Infinite scrolling ticker banner displaying latest bids */}
-        {bids.length > 0 && (
-          <div className="relative w-full overflow-hidden bg-[#0a0a0b] py-2 border-b border-zinc-900 text-[11px] font-bold font-mono tracking-wider text-zinc-400 select-none">
-            <div className="flex animate-marquee whitespace-nowrap">
-              <div className="flex shrink-0 items-center gap-12 pr-12">
-                {tickerItems.map((item, idx) => (
-                  <div key={`ticker-1-${idx}`} className="flex items-center gap-3">
-                    <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-black text-emerald-400">
-                      {item.badge}
-                    </span>
-                    <span className="text-zinc-300">{item.text}</span>
-                    <span className="text-zinc-700">|</span>
-                  </div>
-                ))}
+        <div className="relative flex min-h-9 w-full items-center overflow-hidden bg-[#0a0a0b] border-b border-zinc-900 py-2 text-[11px] font-bold font-mono tracking-wider text-zinc-400 select-none">
+          <div className="flex w-full justify-center">
+            <div className="flex animate-marquee items-center whitespace-nowrap">
+              <div className="flex shrink-0 items-center">
+                {tickerItems.map((item, idx) => renderTickerSegment(item, `ticker-1-${idx}`))}
               </div>
-              <div className="flex shrink-0 items-center gap-12 pr-12" aria-hidden="true">
-                {tickerItems.map((item, idx) => (
-                  <div key={`ticker-2-${idx}`} className="flex items-center gap-3">
-                    <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-black text-emerald-400">
-                      {item.badge}
-                    </span>
-                    <span className="text-zinc-300">{item.text}</span>
-                    <span className="text-zinc-700">|</span>
-                  </div>
-                ))}
+              <div className="flex shrink-0 items-center" aria-hidden="true">
+                {tickerItems.map((item, idx) => renderTickerSegment(item, `ticker-2-${idx}`))}
               </div>
             </div>
           </div>
-        )}
+        </div>
 
         <div className="liquid-glass spinshare-static spinshare-home-nav-bar relative mx-auto mt-3 flex h-16 max-w-7xl items-center justify-between rounded-[20px] px-4 backdrop-blur-2xl [backdrop-filter:blur(24px)_saturate(180%)] [-webkit-backdrop-filter:blur(24px)_saturate(180%)] sm:px-6">
           <Link href="/" className="flex items-center gap-3" aria-label="SpinShare home">
@@ -808,9 +805,15 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="spinshare-hero-primary-cta mt-11 flex justify-center lg:justify-start">
+            <div className="spinshare-hero-primary-cta mt-11 flex flex-col items-center justify-center gap-3 lg:items-start lg:justify-start">
+              <p
+                className="spinshare-signup-bonus-banner text-center text-sm font-black leading-snug lg:text-left"
+                data-testid="signup-bonus-banner"
+              >
+                {t.home.signupBonusBanner}
+              </p>
               <HeroInstallCommand
-                command={INSTALL_COMMAND}
+                command={SPINSHARE_INSTALL_COMMAND}
                 title={t.home.ctaInstall}
                 hint={t.home.ctaCommandHint}
                 copyLabel={t.setupGuide.copy}
@@ -834,7 +837,7 @@ export default function HomePage() {
             <HeroDashboardCard
               monthlyEstimate={liveEarnings}
               liveCampaigns={market?.summary.liveCampaigns}
-              totalImpressions={market?.rows.reduce((sum, row) => sum + row.servedImpressions, 0)}
+              totalImpressions={market?.summary.totalServedImpressions}
             />
           </div>
         </div>
@@ -1033,49 +1036,23 @@ export default function HomePage() {
 
                 {/* Table Section */}
                 <div className="overflow-x-auto border-t border-[var(--border-subtle)]">
-                  <div className="min-w-[720px] p-6">
-                    <div className="spinshare-home-table-head grid grid-cols-[32px_minmax(0,1fr)_140px_100px_minmax(160px,1fr)] gap-x-4 gap-y-1 pb-3 pr-2">
+                  <div className="min-w-[480px] p-6">
+                    <div className="spinshare-home-table-head grid grid-cols-[32px_minmax(0,1fr)_140px] gap-x-4 gap-y-1 pb-3 pr-2">
                       <div>#</div>
                       <div>{t.market.campaign}</div>
                       <div>{t.market.bidPerThousand}</div>
-                      <div>{t.market.totalPaid}</div>
-                      <div>{t.market.delivery}</div>
                     </div>
 
                     {/* Table Body */}
                     {visibleRows.length > 0 ? (
                       <div className="divide-y divide-[var(--border-subtle)]">
-                        {visibleRows.map((row) => {
-                          const totalPaidCents = row.totalPaidCents;
-                          const servedLabel = formatImpressionsCount(row.servedImpressions);
-                          const targetLabel = formatImpressionsCount(row.targetImpressions);
-                          const pct =
-                            row.targetImpressions > 0
-                              ? row.servedImpressions / row.targetImpressions
-                              : 0;
-
-                          return (
-                            <div key={row.id} className="grid grid-cols-[32px_minmax(0,1fr)_140px_100px_minmax(160px,1fr)] gap-x-4 gap-y-1 py-3.5 pr-2 items-center text-sm">
-                              <div className="font-bold text-[var(--text-muted)]">{row.rank}</div>
-                              <div className="truncate font-semibold text-[var(--text-primary)]" title={row.adText}>{row.adText}</div>
-                              <div className="spinshare-home-strong font-black">{row.bidLabel}</div>
-                              <div className="spinshare-home-strong font-black tabular-nums">
-                                {formatMoney(totalPaidCents)}
-                              </div>
-                              <div className="flex min-w-0 items-center gap-2">
-                                <span className="shrink-0 whitespace-nowrap text-xs font-bold tabular-nums text-[var(--text-muted)]">
-                                  {servedLabel}/{targetLabel}
-                                </span>
-                                <div className="spinshare-home-progress-track min-w-0 flex-1">
-                                  <div
-                                    className="h-full rounded-full bg-emerald-500"
-                                    style={{ width: `${Math.min(pct * 100, 100)}%` }}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
+                        {visibleRows.map((row) => (
+                          <div key={row.id} className="grid grid-cols-[32px_minmax(0,1fr)_140px] gap-x-4 gap-y-1 py-3.5 pr-2 items-center text-sm">
+                            <div className="font-bold text-[var(--text-muted)]">{row.rank}</div>
+                            <div className="truncate font-semibold text-[var(--text-primary)]" title={row.adText}>{row.adText}</div>
+                            <div className="spinshare-home-strong font-black">{row.bidLabel}</div>
+                          </div>
+                        ))}
                       </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center text-center py-16">

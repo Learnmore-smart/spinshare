@@ -206,7 +206,7 @@ async function trackIfViewable(state) {
       "content-type": "application/json",
       authorization: "Bearer " + token,
     },
-    body: JSON.stringify({ campaignId: state.campaignId, viewDurationMs }),
+    body: JSON.stringify({ campaignId: state.campaignId, viewDurationMs, adNonce: state.adNonce }),
   }).catch(() => {});
 }
 
@@ -229,6 +229,7 @@ async function trackIfViewable(state) {
         adText: ad.adText,
         destinationUrl: ad.destinationUrl,
         brandName: ad.brandName,
+        adNonce: ad.adNonce,
         sessionId,
         startedAtMs,
         expiresAtMs: startedAtMs + ACTIVE_STATE_TTL_MS,

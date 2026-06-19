@@ -13,6 +13,8 @@
 
 import { createHmac } from "node:crypto";
 
+import { isDatacenterIp } from "./ip-intelligence";
+
 const DEV_FALLBACK_SECRET = "spinshare-dev-insecure-secret-do-not-use-in-prod";
 /** Default number of trusted proxy hops appended on the right of XFF. */
 const DEFAULT_TRUSTED_PROXY_HOPS = 1;
@@ -22,6 +24,8 @@ export interface ClientSignals {
   ipHash: string | null;
   /** Salted HMAC of the User-Agent, or null when absent. */
   uaHash: string | null;
+  /** True when the parsed IP resolves to a known datacenter/hosting range. */
+  datacenterHit: boolean;
 }
 
 function resolveSecret(env: Record<string, string | undefined>): string {
@@ -87,5 +91,7 @@ export function extractClientSignals(
   return {
     ipHash: ip ? hash(ip, secret) : null,
     uaHash: ua && ua.length > 0 ? hash(ua, secret) : null,
+    // Classify before discarding the raw IP; only the hash is persisted.
+    datacenterHit: isDatacenterIp(ip),
   };
 }

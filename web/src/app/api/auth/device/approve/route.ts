@@ -20,6 +20,7 @@
  */
 
 import { getContainer } from "@/server/container";
+import { grantSignupBonus } from "@/server/signup-bonus-service";
 import { auth } from "@/server/adapters/auth/nextauth-config";
 
 /** Always evaluate at request time; approval mutates in-flight device state. */
@@ -62,7 +63,8 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // 3. Delegate to the composition-root auth provider.
-  const { auth: authProvider } = getContainer();
+  const container = getContainer();
+  const { auth: authProvider } = container;
   const email =
     typeof session?.user?.email === "string" ? session.user.email : undefined;
 
@@ -71,6 +73,10 @@ export async function POST(request: Request): Promise<Response> {
       await authProvider.denyDeviceByUserCode(userCode.trim());
       return Response.json({ approved: false }, { status: 200 });
     }
+    await grantSignupBonus(
+      { ledger: container.ledger, users: container.users },
+      userId,
+    );
     await authProvider.approveDeviceByUserCode(userCode.trim(), {
       userId,
       email,

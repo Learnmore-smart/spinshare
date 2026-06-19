@@ -64,10 +64,6 @@ export interface EarningsSeriesPoint {
   cumulativeUsd: number;
 }
 
-/**
- * The complete view-model for the developer dashboard, derived purely from a
- * developer's ledger entries.
- */
 export interface DeveloperDashboardSummary {
   /** Total earnings KPI = sum of every credited amount, in integer cents. */
   totalEarningsCents: number;
@@ -93,8 +89,10 @@ export interface DeveloperDashboardSummary {
   monthEarningsDisplayMicrocents: number;
   /** `monthEarningsCents` formatted as a USD string. */
   monthEarningsUsd: string;
-  /** Number of recorded impressions (== number of activity rows). */
+  /** Number of recorded impressions (excludes signup-bonus rows). */
   impressionCount: number;
+  /** Whether a one-time signup bonus row is present in the ledger. */
+  hasSignupBonus: boolean;
   /** Cumulative earnings series for the chart, one point per impression. */
   series: EarningsSeriesPoint[];
   /** One activity-table row per impression, in recording order. */
@@ -154,6 +152,9 @@ function formatMicrocentsAsUsdValue(microcents: number): string {
 }
 
 function displayCreditMicrocents(entry: LedgerEntry): number {
+  if (entry.type === "signup_bonus") {
+    return (entry.creditCents ?? entry.developerCreditCents) * MICROCENTS_PER_CENT;
+  }
   if (entry.developerCreditCents > 0) {
     return entry.developerCreditCents * MICROCENTS_PER_CENT;
   }
@@ -237,11 +238,15 @@ export function summarizeLedger(
   let todayEarningsDisplayMicrocents = 0;
   let hourlyEarningsDisplayMicrocents = 0;
   let monthEarningsDisplayMicrocents = 0;
+  let hasSignupBonus = false;
   const dayStart = startOfUtcDayMs();
   const monthStart = startOfUtcMonthMs();
   const hourStart = Date.now() - 60 * 60 * 1000;
 
   entries.forEach((entry, index) => {
+    if (entry.type === "signup_bonus" || entry.entryId.startsWith("signup_bonus:")) {
+      hasSignupBonus = true;
+    }
     const sequence = index + 1;
     const credit = entry.developerCreditCents;
     const displayCredit = displayCreditMicrocents(entry);
@@ -299,7 +304,11 @@ export function summarizeLedger(
     monthEarningsCents,
     monthEarningsDisplayMicrocents,
     monthEarningsUsd: formatMicrocentsAsUsdValue(monthEarningsDisplayMicrocents),
-    impressionCount: entries.length,
+    impressionCount: entries.filter(
+      (entry) =>
+        entry.type !== "signup_bonus" && !entry.entryId.startsWith("signup_bonus:"),
+    ).length,
+    hasSignupBonus,
     series,
     rows,
   };

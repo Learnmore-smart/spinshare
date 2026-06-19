@@ -50,3 +50,40 @@ Shared settings page content for developer and advertiser dashboards. Theme and 
 |------|--------|--------|
 | 2026-06-14 | Fix narrow settings container; full-width responsive grid layout. | Codex |
 | 2026-06-14 | Extracted from developer-only settings for cross-role sync. | Codex |
+
+## Planned Change 2026-06-19 Language Dropdown + Support Email
+
+**Bug:** In the dashboard settings card, the language dropdown can be hidden or visually trapped under later settings rows/tilt-card chrome.
+
+**Root Cause Hypothesis:** The settings card is rendered inside `TiltCard`, which creates a transformed 3D stacking context. The language menu is absolutely positioned from an early grid cell, so it needs an explicit foreground layer in the settings grid and the developer panel must allow overflow, matching the advertiser panel.
+
+**Fix Strategy:**
+- Give the settings language section an explicit relative z-index so its dropdown paints above later account/version rows.
+- Keep the dropdown implementation unchanged because nav/footer usage already depends on it.
+- Add `support@learnx.pro` as a visible `mailto:` support contact in the account details block.
+
+**Regression Coverage:** Add a static render test for `DashboardSettingsView` proving the support mail link is present and the language section carries the foreground layering class.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-19 | Planned settings language dropdown layering fix and support email contact. | Codex |
+
+## Implemented Change 2026-06-19 Language Dropdown + Support Email
+
+Implemented the settings-layer fix by giving the language section `relative z-20`
+plus a `data-settings-language` marker for regression coverage. Added
+`support@learnx.pro` as a `mailto:` link in the account details grid, using a
+localized `developerDashboard.support` label.
+
+## Verification 2026-06-19
+
+- `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/dashboard/dashboard-settings-view.test.tsx` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+
+## Change History Addendum 2
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-19 | Implemented settings language dropdown layering fix and support email contact. | Codex |

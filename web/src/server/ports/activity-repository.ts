@@ -75,4 +75,10 @@ export interface ActivityRepository {
   listByDeveloper(developerId: string): Promise<DeveloperActivityRecord[]>;
   listByCampaignIds(campaignIds: string[]): Promise<ActivityRecord[]>;
   listByCheckoutSessionId(sessionId: string): Promise<AdvertiserActivity[]>;
+  /**
+   * Lists impression-attempt activities created at/after `sinceMs`, for the
+   * cross-entity fraud scan (Tier 2c). Returns only impression rows (not
+   * advertiser/developer events).
+   */
+  listRecentImpressions(sinceMs: number): Promise<ImpressionActivity[]>;
 }

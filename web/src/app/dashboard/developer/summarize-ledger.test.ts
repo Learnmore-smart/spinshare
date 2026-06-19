@@ -32,6 +32,7 @@ describe("summarizeLedger", () => {
     expect(summary.hourlyEarningsCents).toBe(0);
     expect(summary.monthEarningsCents).toBe(0);
     expect(summary.impressionCount).toBe(0);
+    expect(summary.hasSignupBonus).toBe(false);
     expect(summary.rows).toHaveLength(0);
     expect(summary.series).toHaveLength(0);
   });

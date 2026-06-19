@@ -78,6 +78,13 @@ export interface RecordImpressionInput {
   token: string | null | undefined;
   /** Campaign the impression is attributed to. */
   campaignId: string;
+  /**
+   * When true, the composite suspicion score (Tier 2a) flagged this impression
+   * for silent suppression. Folded into the shadow-ban path so no money moves
+   * and the response stays indistinguishable from a credited one. The caller
+   * (track route) computes this from the fused network/behavioral signals.
+   */
+  forceSuppress?: boolean;
 }
 
 /** Failure status codes the route maps directly to HTTP responses. */
@@ -155,7 +162,9 @@ export async function recordImpression(
   if (thresholdExceeded) {
     await counters.setShadowBan(developerId, SHADOW_BAN_TTL_SECONDS);
   }
-  const banned = alreadyBanned || thresholdExceeded;
+  // `forceSuppress` (composite suspicion score, Tier 2a) joins the shadow-ban
+  // path: no money moves, but the success response stays indistinguishable.
+  const banned = alreadyBanned || thresholdExceeded || input.forceSuppress === true;
 
   // 5. Compute the split with the pure money math (Requirements 2.1, 2.2, 2.3,
   // 2.6). The same value is reported whether or not money moves, keeping the

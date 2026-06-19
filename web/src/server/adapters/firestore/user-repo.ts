@@ -8,7 +8,8 @@
  * transaction (flush reconciliation only). See design "Data Models".
  */
 
-import type { User } from "@spinshare/core";
+import type { HeldLot, User } from "@spinshare/core";
+import { heldLotBucketMs } from "@spinshare/core";
 import {
   FieldValue,
   type Firestore,
@@ -30,6 +31,28 @@ export interface FirestoreUserRepoOptions {
 /** Deterministic user document id derived from an external identity. */
 export function userIdForIdentity(identity: ExternalIdentity): string {
   return `${identity.provider}:${identity.providerAccountId}`;
+}
+
+/** Parses the stored `heldLots` field into a fresh, well-typed mutable array. */
+function readLots(raw: unknown): HeldLot[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  const lots: HeldLot[] = [];
+  for (const lot of raw) {
+    if (
+      typeof lot === "object" &&
+      lot !== null &&
+      typeof (lot as { cents?: unknown }).cents === "number" &&
+      typeof (lot as { maturesAtMs?: unknown }).maturesAtMs === "number"
+    ) {
+      lots.push({
+        cents: (lot as HeldLot).cents,
+        maturesAtMs: (lot as HeldLot).maturesAtMs,
+      });
+    }
+  }
+  return lots;
 }
 
 export class FirestoreUserRepo implements UserRepository {
@@ -111,7 +134,114 @@ export class FirestoreUserRepo implements UserRepository {
     });
   }
 
-  /** Atomically reserves funds for a payout without allowing negative balance. */
+  /**
+   * Credits earned revenue into the held bucket (anti-fraud Tier 3a). Read-
+   * modify-writes the lots array inside a transaction (coalescing by maturation
+   * bucket), and increments both `balanceCents` and `heldCents`. Upserts a
+   * missing doc, mirroring {@link applyBalanceDeltaCents}.
+   */
+  async creditHeldEarnings(
+    id: string,
+    cents: number,
+    maturesAtMs: number,
+  ): Promise<void> {
+    const bucket = heldLotBucketMs(maturesAtMs);
+    const ref = this.collection.doc(id);
+    await this.db.runTransaction(async (tx) => {
+      const doc = await tx.get(ref);
+      const data = doc.exists ? (doc.data() ?? {}) : {};
+      const lots = readLots(data.heldLots);
+      const existing = lots.find((lot) => lot.maturesAtMs === bucket);
+      if (existing) {
+        existing.cents += cents;
+      } else {
+        lots.push({ cents, maturesAtMs: bucket });
+      }
+      if (!doc.exists) {
+        tx.set(ref, {
+          balanceCents: cents,
+          heldCents: cents,
+          heldLots: lots,
+          role: "developer",
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+        return;
+      }
+      tx.update(ref, {
+        balanceCents: FieldValue.increment(cents),
+        heldCents: FieldValue.increment(cents),
+        heldLots: lots,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
+  /** Matures due held lots into available balance; returns matured cents. */
+  async matureHeldEarnings(id: string, nowMs: number): Promise<number> {
+    const ref = this.collection.doc(id);
+    return this.db.runTransaction(async (tx) => {
+      const doc = await tx.get(ref);
+      if (!doc.exists) {
+        return 0;
+      }
+      const lots = readLots(doc.data()?.heldLots);
+      let matured = 0;
+      const remaining: HeldLot[] = [];
+      for (const lot of lots) {
+        if (lot.maturesAtMs <= nowMs) {
+          matured += lot.cents;
+        } else {
+          remaining.push(lot);
+        }
+      }
+      if (matured === 0) {
+        return 0;
+      }
+      tx.update(ref, {
+        heldCents: FieldValue.increment(-matured),
+        heldLots: remaining,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      return matured;
+    });
+  }
+
+  /** Clawback: voids still-held (un-matured) lots; returns voided cents. */
+  async voidHeldEarnings(id: string, nowMs: number): Promise<number> {
+    const ref = this.collection.doc(id);
+    return this.db.runTransaction(async (tx) => {
+      const doc = await tx.get(ref);
+      if (!doc.exists) {
+        return 0;
+      }
+      const lots = readLots(doc.data()?.heldLots);
+      let voided = 0;
+      const remaining: HeldLot[] = [];
+      for (const lot of lots) {
+        if (lot.maturesAtMs > nowMs) {
+          voided += lot.cents;
+        } else {
+          remaining.push(lot);
+        }
+      }
+      if (voided === 0) {
+        return 0;
+      }
+      tx.update(ref, {
+        balanceCents: FieldValue.increment(-voided),
+        heldCents: FieldValue.increment(-voided),
+        heldLots: remaining,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      return voided;
+    });
+  }
+
+  /**
+   * Atomically reserves funds for a payout against the **available** balance
+   * (`balanceCents - heldCents`); never spends held earnings.
+   */
   async tryDebitBalanceCents(
     id: string,
     amountCents: number,
@@ -123,7 +253,8 @@ export class FirestoreUserRepo implements UserRepository {
         return false;
       }
       const balanceCents = Number(doc.data()?.balanceCents ?? 0);
-      if (balanceCents < amountCents) {
+      const heldCents = Number(doc.data()?.heldCents ?? 0);
+      if (balanceCents - heldCents < amountCents) {
         return false;
       }
       tx.update(ref, {
@@ -137,9 +268,17 @@ export class FirestoreUserRepo implements UserRepository {
   /** Persists the Stripe Connect account id + payout eligibility (upsert). */
   async setConnectAccount(
     id: string,
-    input: { stripeConnectAccountId: string; payoutsEnabled: boolean },
+    input: {
+      stripeConnectAccountId: string;
+      payoutsEnabled: boolean;
+      payoutFingerprint?: string;
+    },
   ): Promise<User> {
     const ref = this.collection.doc(id);
+    const fingerprintField =
+      input.payoutFingerprint !== undefined
+        ? { payoutFingerprint: input.payoutFingerprint }
+        : {};
     return this.db.runTransaction(async (tx) => {
       const doc = await tx.get(ref);
       const existing = doc.exists ? (doc.data() ?? {}) : {};
@@ -152,6 +291,7 @@ export class FirestoreUserRepo implements UserRepository {
           ...(doc.exists ? {} : { balanceCents: 0, createdAt: FieldValue.serverTimestamp() }),
           stripeConnectAccountId: input.stripeConnectAccountId,
           payoutsEnabled: input.payoutsEnabled,
+          ...fingerprintField,
           updatedAt: FieldValue.serverTimestamp(),
         },
         { merge: true },
@@ -160,7 +300,16 @@ export class FirestoreUserRepo implements UserRepository {
         ...existing,
         stripeConnectAccountId: input.stripeConnectAccountId,
         payoutsEnabled: input.payoutsEnabled,
+        ...fingerprintField,
       });
     });
+  }
+
+  /** Counts distinct user docs carrying `fingerprint` (Tier 3b dedupe). */
+  async countAccountsByPayoutFingerprint(fingerprint: string): Promise<number> {
+    const snap = await this.collection
+      .where("payoutFingerprint", "==", fingerprint)
+      .get();
+    return snap.size;
   }
 }

@@ -407,6 +407,7 @@ export async function runWrap(options: RunWrapOptions): Promise<number> {
       adCache.current.adAvailable ? adCache.current.adText : null,
     getAdUrl: () =>
       adCache.current.adAvailable ? adCache.current.destinationUrl : null,
+    statusPlacement: "below",
   });
   const tracker = new WaitStateTracker();
   let reportTimer: TimerHandle | null = null;

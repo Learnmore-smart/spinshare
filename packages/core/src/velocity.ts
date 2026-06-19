@@ -49,6 +49,114 @@ export const VELOCITY_THRESHOLD = 30;
  */
 export const SHADOW_BAN_TTL_SECONDS = 3600;
 
+// ---------------------------------------------------------------------------
+// Network-level signals (anti-fraud Tier 2: cross the per-userId silo)
+// ---------------------------------------------------------------------------
+
+/** Fixed window for per-IP impression velocity, in seconds. */
+export const IP_VELOCITY_WINDOW_SECONDS = 60;
+
+/**
+ * Window over which distinct earning accounts on one IP are counted, in seconds
+ * (one UTC day). Many accounts behind a single IP within this window is a
+ * classic account-farm signal.
+ */
+export const IP_FANOUT_WINDOW_SECONDS = 86_400;
+
+/**
+ * Distinct developer ids on one IP (within {@link IP_FANOUT_WINDOW_SECONDS})
+ * at/above which the IP looks like a farm. A *score feeder*, never a standalone
+ * ban — shared NAT/CGNAT/VPN egress legitimately carries several users.
+ */
+export const IP_FANOUT_THRESHOLD = 3;
+
+/**
+ * Start of the day-aligned fan-out window that `nowEpochSec` falls into, in
+ * epoch seconds (a multiple of {@link IP_FANOUT_WINDOW_SECONDS}).
+ */
+export function ipFanoutWindowStartEpochSec(nowEpochSec: number): number {
+  return Math.floor(nowEpochSec / IP_FANOUT_WINDOW_SECONDS) * IP_FANOUT_WINDOW_SECONDS;
+}
+
+// ---------------------------------------------------------------------------
+// Earnings hold / maturation (anti-fraud Tier 3a)
+// ---------------------------------------------------------------------------
+
+/**
+ * How long freshly-credited developer earnings are *held* before they mature
+ * into a withdrawable balance, in seconds (3 days).
+ *
+ * The load-bearing invariant: this window MUST be strictly longer than the
+ * cross-entity fraud-scan interval (`/api/internal/fraud-scan`, which inspects
+ * the last {@link IP_FANOUT_WINDOW_SECONDS} of activity). Held earnings can be
+ * voided (clawed back) up until they mature; if the scan ran *less* often than
+ * the hold, a farm could mature and withdraw before any scan flagged it. With a
+ * 3-day hold and an (at least) daily scan, every earning is inspected at least
+ * twice while still clawback-able. Lowering this below the scan interval
+ * reopens the free-Sybil hole the hold exists to close.
+ */
+export const EARNINGS_HOLD_WINDOW_SECONDS = 3 * IP_FANOUT_WINDOW_SECONDS;
+
+/**
+ * Hold window for earnings credited to a *young* account (anti-fraud Tier 3d —
+ * progressive trust), in seconds (7 days). Fresh accounts are the cheap Sybil
+ * unit, so their earnings season longer before becoming withdrawable — giving
+ * the fraud scan more passes to catch a farm. Legitimate new developers are
+ * still paid in full, just later. Must also stay > the scan interval.
+ */
+export const NEW_ACCOUNT_HOLD_WINDOW_SECONDS = 7 * IP_FANOUT_WINDOW_SECONDS;
+
+/**
+ * Account age (seconds) below which an account is treated as "new" for the
+ * progressive-trust hold (7 days). At/above it, the standard
+ * {@link EARNINGS_HOLD_WINDOW_SECONDS} applies.
+ */
+export const NEW_ACCOUNT_AGE_THRESHOLD_SECONDS = 7 * 86_400;
+
+/**
+ * Hold window (seconds) for a credit, scaled by account age (Tier 3d). Younger
+ * than {@link NEW_ACCOUNT_AGE_THRESHOLD_SECONDS} ⇒ the longer
+ * {@link NEW_ACCOUNT_HOLD_WINDOW_SECONDS}; otherwise the standard hold. Unknown
+ * age (`undefined` — legacy records predating age tracking) is treated as
+ * established (standard hold), so legacy developers are never penalised.
+ */
+export function earningsHoldWindowSecondsForAccountAge(
+  accountAgeMs?: number,
+): number {
+  if (
+    accountAgeMs !== undefined &&
+    accountAgeMs < NEW_ACCOUNT_AGE_THRESHOLD_SECONDS * 1000
+  ) {
+    return NEW_ACCOUNT_HOLD_WINDOW_SECONDS;
+  }
+  return EARNINGS_HOLD_WINDOW_SECONDS;
+}
+
+/** Coalescing bucket for held lots, in millis (1 hour). */
+export const HELD_LOT_BUCKET_MS = 3_600_000;
+
+/**
+ * Rounds a maturation time up to the next {@link HELD_LOT_BUCKET_MS} boundary so
+ * many small credits within an hour collapse into one held lot. Bounds the
+ * per-user lot array to roughly `EARNINGS_HOLD_WINDOW_SECONDS / 3600` entries
+ * (~72 for a 3-day hold) regardless of credit frequency. Rounding *up* only ever
+ * delays maturation slightly — it never makes earnings withdrawable early.
+ */
+export function heldLotBucketMs(maturesAtMs: number): number {
+  return Math.ceil(maturesAtMs / HELD_LOT_BUCKET_MS) * HELD_LOT_BUCKET_MS;
+}
+
+/**
+ * Distinct platform accounts sharing one payout fingerprint (Stripe
+ * `external_account.fingerprint`) at/above which a withdrawal is blocked for
+ * review (anti-fraud Tier 3b). Two accounts paying into the same real bank is
+ * the dispositive Sybil signal — a farm collapsing to a single payout identity
+ * — so the threshold is tight (2). This is a *payout-boundary* control (blocks
+ * money leaving, never destroys earnings), so a rare legitimate collision
+ * (e.g. shared household account) is recoverable via review.
+ */
+export const SYBIL_PAYOUT_FINGERPRINT_THRESHOLD = 2;
+
 /**
  * Index of the fixed 60-second velocity window that `nowEpochSec` falls into.
  *

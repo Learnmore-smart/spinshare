@@ -90,15 +90,58 @@ export class FirestoreLedgerRepo implements LedgerRepository {
         const ref = refs[i]!;
         tx.set(ref, {
           entryId: entry.entryId,
+          ...(entry.type !== undefined ? { type: entry.type } : {}),
           campaignId: entry.campaignId,
           developerId: entry.developerId,
           revenueMicrocents: entry.revenueMicrocents,
           developerCreditCents: entry.developerCreditCents,
           spinshareRetentionMicrocents: entry.spinshareRetentionMicrocents,
+          ...(entry.creditCents !== undefined
+            ? { creditCents: entry.creditCents }
+            : {}),
+          ...(entry.description !== undefined
+            ? { description: entry.description }
+            : {}),
           createdAt: FieldValue.serverTimestamp(),
           flushedAt: FieldValue.serverTimestamp(),
         });
       });
+    });
+  }
+
+  async getByEntryId(entryId: string): Promise<LedgerEntry | null> {
+    const doc = await this.collection.doc(entryId).get();
+    if (!doc.exists) {
+      return null;
+    }
+    return toLedgerEntry(doc.id, doc.data() ?? {});
+  }
+
+  async appendEntryIfAbsent(entry: LedgerEntry): Promise<boolean> {
+    const ref = this.collection.doc(entry.entryId);
+    return this.db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      if (snap.exists) {
+        return false;
+      }
+      tx.set(ref, {
+        entryId: entry.entryId,
+        ...(entry.type !== undefined ? { type: entry.type } : {}),
+        campaignId: entry.campaignId,
+        developerId: entry.developerId,
+        revenueMicrocents: entry.revenueMicrocents,
+        developerCreditCents: entry.developerCreditCents,
+        spinshareRetentionMicrocents: entry.spinshareRetentionMicrocents,
+        ...(entry.creditCents !== undefined
+          ? { creditCents: entry.creditCents }
+          : {}),
+        ...(entry.description !== undefined
+          ? { description: entry.description }
+          : {}),
+        createdAt: FieldValue.serverTimestamp(),
+        flushedAt: FieldValue.serverTimestamp(),
+      });
+      return true;
     });
   }
 
@@ -139,7 +182,13 @@ export class FirestoreLedgerRepo implements LedgerRepository {
       .get();
 
     for (const doc of snap.docs) {
+      if (doc.get("type") === "signup_bonus") {
+        continue;
+      }
       const campaignId = String(doc.get("campaignId") ?? "");
+      if (campaignId.length === 0) {
+        continue;
+      }
       if (counts[campaignId] !== undefined) {
         counts[campaignId] += 1;
       }

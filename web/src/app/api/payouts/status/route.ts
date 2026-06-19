@@ -44,12 +44,22 @@ export async function GET(): Promise<Response> {
     );
   }
 
-  // Refresh eligibility from Stripe and persist any change.
+  // Refresh eligibility from Stripe and persist any change. Also capture the
+  // payout fingerprint once known (anti-fraud Tier 3b) so sibling accounts
+  // sharing a real bank are visible to the payout-fingerprint dedupe.
   const status = await payouts.getAccountStatus(user.stripeConnectAccountId);
-  if (status.payoutsEnabled !== (user.payoutsEnabled ?? false)) {
+  const eligibilityChanged =
+    status.payoutsEnabled !== (user.payoutsEnabled ?? false);
+  const fingerprintChanged =
+    status.payoutFingerprint !== undefined &&
+    status.payoutFingerprint !== user.payoutFingerprint;
+  if (eligibilityChanged || fingerprintChanged) {
     await users.setConnectAccount(developerId, {
       stripeConnectAccountId: user.stripeConnectAccountId,
       payoutsEnabled: status.payoutsEnabled,
+      ...(status.payoutFingerprint !== undefined
+        ? { payoutFingerprint: status.payoutFingerprint }
+        : {}),
     });
   }
 

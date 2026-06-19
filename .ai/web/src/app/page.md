@@ -425,6 +425,12 @@ desktop row, while the CTA spans both columns underneath.
 - Follow-up row-layout verification passed:
   `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/page.test.tsx src/app/dashboard/advertiser/campaign-list.test.tsx src/app/dashboard/advertiser/advertiser-dashboard.test.tsx`.
 
+## Implemented Change 2026-06-19: Public bid table privacy (rank + CPM only)
+
+The homepage bid table columns are now `#`, campaign name, and CPM. `总付款`, `已展示 /
+已购买`, progress bars, and any LIVE status badge are removed. Hero fleet impressions use
+`summary.totalServedImpressions` from `/api/market` instead of summing per-row served counts.
+
 ## Bug Fix 2026-06-18: Total Paid / Purchased Drift
 
 **Discovered**: 2026-06-18
@@ -443,6 +449,7 @@ spend to whole cents.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Public bid table shows rank + CPM only; removed total paid, delivery, and LIVE status. | Cursor |
 | 2026-06-18 | Bid table uses server `totalPaidCents` + block-snapped `targetImpressions`; removed drifting local total-paid reconstruction. | Cursor |
 | 2026-06-17 | Implemented market section row layout around live market, checkout form, and CTA. | Codex |
 | 2026-06-17 | Planned market section row layout using the existing proof grid hook. | Codex |
@@ -474,3 +481,27 @@ spend to whole cents.
 | 2026-06-13 | Documented moving header blur from full-width wrapper to navbar container | Codex |
 | 2026-06-13 | Documented homepage 3-second minimum views copy before editing. | Codex |
 | 2026-06-14 | Fix homepage navbar link spacing: increase nav `gap` from `gap-2` to `gap-6` and `text-sm` to match other site pages. | Codex |
+
+## Implemented Change (2026-06-19)
+
+- Top marquee always renders; empty market shows `No bids yet` + `SpinShare - Get paid when your AI thinks`.
+- Production LearnX campaigns removed via `delete-prod-learnx-campaign.mjs --production`.
+
+## Planned Change (2026-06-19 — Ticker brand + centering)
+
+User request:
+
+1. Vertically center ticker content in the top bar.
+2. Replace CPM price pill with **brand name**, then show **ad copy** (`adText`).
+
+Implementation:
+
+- Extend homepage `MarketRow` with optional `brandName` from `GET /api/market`.
+- Ticker segment layout: `[brand pill] [adText] |` (same pill styling, brand label instead of `bidLabel`).
+- Empty market: brand `SpinShare`, tagline-only `tickerNoBidsText`.
+- Fallback brand when missing: first word of `adText`.
+
+## Implemented Change (2026-06-19 — Ticker centering + speed)
+
+- Wrap marquee track in `flex justify-center` so overflow clips evenly and content reads centered.
+- Slow marquee animation from 30s to 50s per loop.

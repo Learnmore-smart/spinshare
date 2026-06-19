@@ -102,6 +102,10 @@ describe("flushPendingForRead", () => {
       ...container,
       ledger: {
         appendEntries: vi.fn().mockRejectedValue(new Error("db down")),
+        getByEntryId: container.ledger.getByEntryId.bind(container.ledger),
+        appendEntryIfAbsent: container.ledger.appendEntryIfAbsent.bind(
+          container.ledger,
+        ),
         listByDeveloper: container.ledger.listByDeveloper.bind(
           container.ledger,
         ),

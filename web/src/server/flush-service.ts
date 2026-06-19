@@ -46,7 +46,10 @@
  */
 
 import type { LedgerEntry } from "@spinshare/core";
-import { MICROCENTS_PER_CENT } from "@spinshare/core";
+import {
+  MICROCENTS_PER_CENT,
+  earningsHoldWindowSecondsForAccountAge,
+} from "@spinshare/core";
 
 import type {
   CampaignRepository,
@@ -72,6 +75,8 @@ export interface FlushServiceDeps {
   users: UserRepository;
   /** Durable campaign repository for applying aggregate budget deltas. */
   campaigns: CampaignRepository;
+  /** Clock override for deterministic tests (earnings-hold maturation stamp). */
+  nowMs?: () => number;
 }
 
 /**
@@ -160,6 +165,7 @@ export async function runFlushCycle(
   batchSize: number = DEFAULT_FLUSH_BATCH_SIZE,
 ): Promise<FlushCycleResult> {
   const { counters, ledger, users, campaigns } = deps;
+  const nowMs = deps.nowMs?.() ?? Date.now();
 
   // 1. Drain a batch into an in-flight key identified by batchToken.
   const batch = await counters.drainPending(batchSize);
@@ -192,7 +198,26 @@ export async function runFlushCycle(
     for (const [userId, deltaCents] of Object.entries(
       balanceDeltaCentsByUser,
     )) {
-      if (deltaCents !== 0) {
+      if (deltaCents > 0) {
+        // Earned impression revenue → held bucket (anti-fraud Tier 3a): matures
+        // into a withdrawable balance only after a hold window, during which a
+        // fraud scan can claw it back. The window is scaled by account age
+        // (Tier 3d — progressive trust): younger accounts hold longer. Refunds/
+        // bonuses bypass the hold (they use applyBalanceDeltaCents directly).
+        const existing = await users.getById(userId);
+        const accountAgeMs =
+          existing?.createdAtMs !== undefined
+            ? Math.max(0, nowMs - existing.createdAtMs)
+            : undefined;
+        const holdSeconds = earningsHoldWindowSecondsForAccountAge(accountAgeMs);
+        await users.creditHeldEarnings(
+          userId,
+          deltaCents,
+          nowMs + holdSeconds * 1000,
+        );
+      } else if (deltaCents < 0) {
+        // Defensive: aggregate impression credit is never negative, but a
+        // negative adjustment (if ever introduced) debits available directly.
         await users.applyBalanceDeltaCents(userId, deltaCents);
       }
     }

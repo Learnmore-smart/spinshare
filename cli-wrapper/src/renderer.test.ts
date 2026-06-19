@@ -26,6 +26,7 @@ describe("isSpinnerFrame", () => {
     expect(isSpinnerFrame("\rThinking...")).toBe(true);
     expect(isSpinnerFrame("\r\u28c7 Generating...")).toBe(true);
     expect(isSpinnerFrame("\r\u2726 Generating...")).toBe(true);
+    expect(isSpinnerFrame("\r\u28cb Working...")).toBe(true);
   });
 
   it("rejects real text output", () => {
@@ -82,6 +83,36 @@ describe("SpinnerRenderer", () => {
     const out = res.output.toString("utf8");
     expect(out).toContain("Buy SpinShare Pro");
     expect(out).not.toContain("Generating");
+  });
+
+  it("can paint ads below status lines without moving the child cursor", () => {
+    const r = new SpinnerRenderer({
+      getAdText: () => "Buy SpinShare Pro",
+      statusPlacement: "below",
+    });
+    const res = r.render("\r\u28cb Working...");
+
+    expect(res.spinner).toBe(true);
+    const out = res.output.toString("utf8");
+    expect(out).toContain("Working");
+    expect(out).toContain("Buy SpinShare Pro");
+    expect(out).toContain("\u001b[s\u001b[1B\r");
+    expect(out.endsWith("\u001b[u")).toBe(true);
+  });
+
+  it("clears a below-status ad before forwarding real output", () => {
+    const r = new SpinnerRenderer({
+      getAdText: () => "Buy SpinShare Pro",
+      statusPlacement: "below",
+    });
+
+    r.render("\r\u28cb Working...");
+    const res = r.render("done\n");
+
+    expect(res.spinner).toBe(false);
+    const out = res.output.toString("utf8");
+    expect(out.startsWith("\u001b[s\u001b[1B\r\u001b[K\u001b[u")).toBe(true);
+    expect(out.endsWith("done\n")).toBe(true);
   });
 
   it("suppresses spinner frames entirely when no ad is available", () => {

@@ -9,7 +9,8 @@
  * `applyBalanceDeltaCents`.
  */
 
-import type { User } from "@spinshare/core";
+import type { HeldLot, User } from "@spinshare/core";
+import { heldLotBucketMs } from "@spinshare/core";
 import type {
   ExternalIdentity,
   UserRepository,
@@ -45,6 +46,7 @@ export class MemoryUserRepository implements UserRepository {
       provider: identity.provider,
       role: identity.role ?? "developer",
       balanceCents: 0,
+      createdAtMs: Date.now(),
     };
     this.users.set(user.id, user);
     this.identityIndex.set(key, user.id);
@@ -70,12 +72,92 @@ export class MemoryUserRepository implements UserRepository {
     user.balanceCents += deltaCents;
   }
 
+  async creditHeldEarnings(
+    id: string,
+    cents: number,
+    maturesAtMs: number,
+  ): Promise<void> {
+    const bucket = heldLotBucketMs(maturesAtMs);
+    let user = this.users.get(id);
+    if (!user) {
+      // Upsert to mirror applyBalanceDeltaCents (no durable record yet).
+      user = {
+        id,
+        email: "",
+        provider: "github",
+        role: "developer",
+        balanceCents: 0,
+      };
+      this.users.set(id, user);
+    }
+    user.balanceCents += cents;
+    user.heldCents = (user.heldCents ?? 0) + cents;
+    const lots = user.heldLots ?? [];
+    const existing = lots.find((lot) => lot.maturesAtMs === bucket);
+    if (existing) {
+      existing.cents += cents;
+    } else {
+      lots.push({ cents, maturesAtMs: bucket });
+    }
+    user.heldLots = lots;
+  }
+
+  async matureHeldEarnings(id: string, nowMs: number): Promise<number> {
+    const user = this.users.get(id);
+    if (!user || !user.heldLots || user.heldLots.length === 0) {
+      return 0;
+    }
+    let matured = 0;
+    const remaining: HeldLot[] = [];
+    for (const lot of user.heldLots) {
+      if (lot.maturesAtMs <= nowMs) {
+        matured += lot.cents;
+      } else {
+        remaining.push(lot);
+      }
+    }
+    if (matured === 0) {
+      return 0;
+    }
+    // balanceCents unchanged: matured cents simply move held → available.
+    user.heldCents = Math.max(0, (user.heldCents ?? 0) - matured);
+    user.heldLots = remaining;
+    return matured;
+  }
+
+  async voidHeldEarnings(id: string, nowMs: number): Promise<number> {
+    const user = this.users.get(id);
+    if (!user || !user.heldLots || user.heldLots.length === 0) {
+      return 0;
+    }
+    let voided = 0;
+    const remaining: HeldLot[] = [];
+    for (const lot of user.heldLots) {
+      if (lot.maturesAtMs > nowMs) {
+        voided += lot.cents; // still held → claw back
+      } else {
+        remaining.push(lot); // already matured → survived the window, keep
+      }
+    }
+    if (voided === 0) {
+      return 0;
+    }
+    user.balanceCents -= voided;
+    user.heldCents = Math.max(0, (user.heldCents ?? 0) - voided);
+    user.heldLots = remaining;
+    return voided;
+  }
+
   async tryDebitBalanceCents(
     id: string,
     amountCents: number,
   ): Promise<boolean> {
     const user = this.users.get(id);
-    if (!user || user.balanceCents < amountCents) {
+    if (!user) {
+      return false;
+    }
+    const availableCents = user.balanceCents - (user.heldCents ?? 0);
+    if (availableCents < amountCents) {
       return false;
     }
     user.balanceCents -= amountCents;
@@ -84,7 +166,11 @@ export class MemoryUserRepository implements UserRepository {
 
   async setConnectAccount(
     id: string,
-    input: { stripeConnectAccountId: string; payoutsEnabled: boolean },
+    input: {
+      stripeConnectAccountId: string;
+      payoutsEnabled: boolean;
+      payoutFingerprint?: string;
+    },
   ): Promise<User> {
     // Upsert: a developer may connect payouts before any durable record exists
     // (e.g. before their first credited impression). Create a minimal record in
@@ -96,7 +182,20 @@ export class MemoryUserRepository implements UserRepository {
     }
     user.stripeConnectAccountId = input.stripeConnectAccountId;
     user.payoutsEnabled = input.payoutsEnabled;
+    if (input.payoutFingerprint !== undefined) {
+      user.payoutFingerprint = input.payoutFingerprint;
+    }
     return { ...user };
+  }
+
+  async countAccountsByPayoutFingerprint(fingerprint: string): Promise<number> {
+    let count = 0;
+    for (const user of this.users.values()) {
+      if (user.payoutFingerprint === fingerprint) {
+        count += 1;
+      }
+    }
+    return count;
   }
 
   /** Test/seed helper: inserts a fully-formed user. */

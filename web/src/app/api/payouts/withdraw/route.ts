@@ -22,6 +22,7 @@ import { auth } from "@/server/adapters/auth/nextauth-config";
 import { getContainer } from "@/server/container";
 import { assertSameOrigin } from "@/server/http/csrf";
 import { withdrawBalance } from "@/server/payout-service";
+import { buildPayoutRiskAssessor } from "@/server/payout-risk-service";
 import type { ActivityRepository, DeveloperActivity } from "@/server/ports";
 
 export const dynamic = "force-dynamic";
@@ -98,9 +99,13 @@ export async function POST(request: Request): Promise<Response> {
 
   // 3. Delegate the money movement to the service and map the typed result.
   const { users, payouts, payoutAttempts, activities } = getContainer();
+  const assessRisk = buildPayoutRiskAssessor({ activities });
   let result: Awaited<ReturnType<typeof withdrawBalance>>;
   try {
-    result = await withdrawBalance({ users, payouts, payoutAttempts }, developerId);
+    result = await withdrawBalance(
+      { users, payouts, payoutAttempts, assessRisk },
+      developerId,
+    );
   } catch (error) {
     const body = providerFailureBody(error);
     const requestId =

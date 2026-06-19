@@ -23,7 +23,7 @@
 }
 
 .animate-marquee {
-  animation: marquee 30s linear infinite;
+  animation: marquee 50s linear infinite;
 }
 
 /* =====================================================================
@@ -120,8 +120,32 @@
     margin-right: 0;
     justify-content: flex-start;
   }
+}
 
+.spinshare-signup-bonus-banner {
+  display: inline-flex;
+  max-width: 28rem;
+  padding: 0.55rem 0.95rem;
+  border-radius: 9999px;
+  color: #065f46;
+  background: linear-gradient(
+    135deg,
+    rgba(167, 243, 208, 0.95),
+    rgba(110, 231, 183, 0.82)
+  );
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  box-shadow: 0 10px 28px rgba(16, 185, 129, 0.18);
+}
 
+.dark .spinshare-signup-bonus-banner {
+  color: #d1fae5;
+  background: linear-gradient(
+    135deg,
+    rgba(6, 78, 59, 0.92),
+    rgba(4, 120, 87, 0.78)
+  );
+  border-color: rgba(52, 211, 153, 0.28);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
 }
 
 @media (max-width: 1023px) {

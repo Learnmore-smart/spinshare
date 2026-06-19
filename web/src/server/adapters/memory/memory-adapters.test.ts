@@ -88,6 +88,59 @@ describe("MemoryCounterStore velocity + shadow-ban", () => {
   });
 });
 
+describe("MemoryCounterStore network signals", () => {
+  it("counts per-IP velocity within a window and resets after expiry", async () => {
+    const clock = new ManualClock(0);
+    const store = new MemoryCounterStore(clock, new SequentialIdGenerator());
+
+    expect(await store.incrementIpVelocity("ip_a", 100)).toBe(1);
+    expect(await store.incrementIpVelocity("ip_a", 100)).toBe(2);
+    // Distinct IPs are independent.
+    expect(await store.incrementIpVelocity("ip_b", 100)).toBe(1);
+
+    clock.setMs(160_000); // window (start 100s) expired at (100+60)*1000
+    expect(await store.incrementIpVelocity("ip_a", 100)).toBe(1);
+  });
+
+  it("counts distinct accounts per IP (fan-out) within the window", async () => {
+    const store = new MemoryCounterStore(new ManualClock(0), new SequentialIdGenerator());
+
+    expect(await store.recordIpFanout("ip_a", "dev_1", 0)).toBe(1);
+    expect(await store.recordIpFanout("ip_a", "dev_1", 0)).toBe(1); // same dev, no growth
+    expect(await store.recordIpFanout("ip_a", "dev_2", 0)).toBe(2);
+    expect(await store.recordIpFanout("ip_a", "dev_3", 0)).toBe(3);
+    // A different IP tracks its own fan-out.
+    expect(await store.recordIpFanout("ip_b", "dev_1", 0)).toBe(1);
+  });
+});
+
+describe("MemoryCounterStore.consumeOnce", () => {
+  it("allows the first consumption and rejects replays within TTL", async () => {
+    const store = new MemoryCounterStore(new ManualClock(0), new SequentialIdGenerator());
+
+    expect(await store.consumeOnce("nonce_a", 300)).toBe(true);
+    expect(await store.consumeOnce("nonce_a", 300)).toBe(false);
+    expect(await store.consumeOnce("nonce_a", 300)).toBe(false);
+  });
+
+  it("treats keys past their TTL as never consumed", async () => {
+    const clock = new ManualClock(0);
+    const store = new MemoryCounterStore(clock, new SequentialIdGenerator());
+
+    expect(await store.consumeOnce("nonce_a", 300)).toBe(true);
+    clock.advanceSeconds(300); // exactly at expiry → consumable again
+    expect(await store.consumeOnce("nonce_a", 300)).toBe(true);
+  });
+
+  it("tracks distinct keys independently", async () => {
+    const store = new MemoryCounterStore(new ManualClock(0), new SequentialIdGenerator());
+
+    expect(await store.consumeOnce("nonce_a", 300)).toBe(true);
+    expect(await store.consumeOnce("nonce_b", 300)).toBe(true);
+    expect(await store.consumeOnce("nonce_a", 300)).toBe(false);
+  });
+});
+
 describe("MemoryCounterStore campaign telemetry", () => {
   it("returns zero-filled telemetry for campaigns with no activity", async () => {
     const store = new MemoryCounterStore(

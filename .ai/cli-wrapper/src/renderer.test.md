@@ -12,6 +12,9 @@ Unit tests for the pure renderer/classifier used by the CLI wrapper.
 - Verifies Claude-style loading/status lines are classified as wait states.
 - Verifies Antigravity-style prefixed `Generating...` lines are classified as
   wait states.
+- Verifies Antigravity-style prefixed `Working...` lines are classified as wait
+  states and can render ads below the status line without moving the child
+  cursor.
 - Verifies real command output remains pass-through.
 - Verifies ad rendering suppresses the original wait frame.
 
@@ -63,6 +66,25 @@ Verification:
 - GREEN: `corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/renderer.test.ts`
   passed 14 tests.
 
+## Planned Test 2026-06-19 Antigravity stable below-status rendering
+
+Add red coverage that:
+- `Working...` with a Braille status prefix is classified as a wait frame;
+- `statusPlacement: "below"` keeps the original loading line visible and paints
+  the ad below it with save/restore cursor sequences;
+- the next real output clears the below-status ad line before forwarding real
+  content.
+
+## Implemented Test 2026-06-19 Antigravity stable below-status rendering
+
+Added renderer coverage for prefixed `Working...`, below-status ad painting,
+and below-status cleanup on the next real output.
+
+Verification:
+- RED: focused renderer tests failed on all new below-status assertions.
+- GREEN: `corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/renderer.test.ts`
+  passed 16 tests.
+
 ## Verification (2026-06-15)
 
 - Red focused CLI run failed on the new renderer assertions.
@@ -73,6 +95,8 @@ Verification:
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Added Antigravity stable below-status renderer coverage. | Codex |
+| 2026-06-19 | Planned Antigravity stable below-status renderer coverage. | Codex |
 | 2026-06-19 | Added Antigravity prefixed wait-line renderer coverage. | Codex |
 | 2026-06-19 | Planned Antigravity prefixed wait-line renderer coverage. | Codex |
 | 2026-06-15 | Added loading/status-line renderer regression tests. | Codex |

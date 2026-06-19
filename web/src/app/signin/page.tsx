@@ -133,7 +133,7 @@ function ThreeDCard({ children, className = "" }: { children: React.ReactNode; c
           background: `radial-gradient(circle 250px at ${coords.x}% ${coords.y}%, rgba(16, 185, 129, 0.16), transparent 75%)`,
         }}
       />
-      <div className="relative z-20 w-full h-full flex flex-col justify-between">
+      <div className="relative z-20 w-full h-full flex flex-col justify-start">
         {children}
       </div>
     </div>
@@ -244,7 +244,7 @@ function SignInForm() {
             </p>
           </div>
 
-          <ThreeDCard className="liquid-glass p-6 sm:p-8 flex flex-col gap-6">
+          <ThreeDCard className="liquid-glass p-6 sm:p-8 flex flex-col">
             <div>
               <h2 className="text-xs font-black uppercase tracking-[0.18em] text-[var(--text-accent-strong)]">
                 {t.signin.panelLabel}
@@ -254,16 +254,16 @@ function SignInForm() {
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="mt-6 grid grid-cols-3 gap-2.5 sm:mt-7">
               <StatCell value="60%" label={t.signin.cardRevenue} />
               <StatCell value={t.signin.cardPrivate} label={t.signin.cardDashboard} />
               <StatCell value={t.signin.cardLive} label={t.signin.cardPayout} />
             </div>
 
-            <ul className="grid gap-4 pt-2 text-sm font-semibold leading-6 text-[var(--text-secondary)] sm:grid-cols-2">
+            <ul className="mt-6 grid gap-x-4 gap-y-2.5 text-sm font-semibold leading-5 text-[var(--text-secondary)] sm:mt-7 sm:grid-cols-2">
               {bullets.map((bullet) => (
-                <li key={bullet} className="flex gap-2.5 items-center">
-                  <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/15 dark:text-emerald-400">
+                <li key={bullet} className="flex gap-2.5 items-start">
+                  <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/15 dark:text-emerald-400">
                     <Check className="h-3 w-3 stroke-[3]" />
                   </div>
                   <span>{bullet}</span>

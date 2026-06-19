@@ -38,6 +38,8 @@ const THEME_OPTIONS: {
 
 ];
 
+const SUPPORT_EMAIL = "support@learnx.pro";
+
 
 
 function themeLabel(value: ThemePreference, t: ReturnType<typeof useT>): string {
@@ -162,7 +164,7 @@ export function DashboardSettingsView({ variant }: DashboardSettingsViewProps) {
 
       <div className="mt-6 grid gap-6 md:grid-cols-2 md:gap-8 lg:mt-8">
 
-        <section>
+        <section className="relative z-20" data-settings-language="true">
 
           <h2 className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">
 
@@ -240,7 +242,7 @@ export function DashboardSettingsView({ variant }: DashboardSettingsViewProps) {
 
           <dl
 
-            className={`${styles.credentials} mt-2 grid gap-4 rounded-xl border p-4 text-sm sm:grid-cols-2`}
+            className={`${styles.credentials} mt-2 grid gap-4 rounded-xl border p-4 text-sm sm:grid-cols-3`}
 
           >
 
@@ -271,6 +273,26 @@ export function DashboardSettingsView({ variant }: DashboardSettingsViewProps) {
               <dd className="mt-0.5 truncate font-mono text-xs text-slate-600 dark:text-slate-300">
 
                 {userId}
+
+              </dd>
+
+            </div>
+
+            <div className="min-w-0">
+
+              <dt className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+
+                {t.developerDashboard.support}
+
+              </dt>
+
+              <dd className="mt-0.5 truncate font-bold text-slate-800 dark:text-emerald-50">
+
+                <a href={`mailto:${SUPPORT_EMAIL}`} className="hover:underline">
+
+                  {SUPPORT_EMAIL}
+
+                </a>
 
               </dd>
 

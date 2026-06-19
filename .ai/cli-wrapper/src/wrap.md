@@ -1,6 +1,6 @@
 # wrap.ts
 
-> Last updated: 2026-06-15 | Protection: STANDARD
+> Last updated: 2026-06-19 | Protection: STANDARD
 
 ## Purpose
 
@@ -12,6 +12,8 @@ with impression reporting.
 - Spawns a target command and pipes stdout through `SpinnerRenderer`.
 - For interactive agents, runs the target inside a pseudo-terminal so the child still sees TTY semantics while SpinShare observes output.
 - Tracks contiguous spinner wait states.
+- Uses below-status rendering for recognized agent loading lines so ads do not
+  replace PTY-controlled prompt/status text.
 - Reports impressions through the injected API client.
 - Preserves child exit-code behavior.
 
@@ -41,6 +43,7 @@ with impression reporting.
 
 | Date | Bug | Cause | Fix |
 |------|-----|-------|-----|
+| 2026-06-19 | Antigravity ads flash between multiple status spinners and can appear inside the input/status area. | The PTY wrapper used the renderer's replace-current-line behavior for text status frames. Antigravity cycles through several status labels, including `Working...`, so unrecognized labels ended the wait state and replacement collided with the CLI's reserved line. | Planned: instantiate the renderer with below-status placement and cover Antigravity-style consecutive status frames in PTY tests. |
 | 2026-06-17 | Local CLI smoke rendered and tracked ads but the wrapper process timed out instead of exiting. | The PTY path attached stdin and PTY event subscriptions for interactive CLIs but did not explicitly release all handles after PTY exit; on Windows/non-interactive smoke this can keep the Node process alive after the child command has finished. | Planned: add regression coverage for PTY cleanup, then detach stdin, pause resumed stdin, and dispose PTY subscriptions when the PTY exits. |
 | 2026-06-15 | Claude Code interactive loading (`Pollinating...`) showed no SpinShare ads after the zero-argument passthrough fix. | The passthrough avoided breaking Claude but also skipped the wrapper entirely; the original pipe-based wrapper could observe output but broke TTY-sensitive CLIs. | Add a PTY-backed wrapper path that preserves interactive TTY semantics while still running output through `SpinnerRenderer`. |
 
@@ -54,6 +57,18 @@ Add PTY cleanup to the wrapper exit path. The fix must stay scoped to
 - remove the forwarded stdin listener and pause stdin if the wrapper resumed it;
 - keep the existing PTY rendering, impression reporting, exit-code passthrough,
   and pipe fallback behavior unchanged.
+
+## Bug Fix Implemented 2026-06-19 Antigravity PTY below-status rendering
+
+`runWrap` now instantiates `SpinnerRenderer` with `statusPlacement: "below"`.
+Consecutive Antigravity-style `Working...`, `Generating...`, and `Thinking...`
+status frames remain one contiguous wait state, repaint the ad below the loading
+line, and report only one eligible impression for the wait.
+
+Verification:
+- RED: `corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/wrap.test.ts`
+  failed because PTY status output still used current-line replacement.
+- GREEN: the same focused wrapper test passed 21 tests.
 
 ## Implemented Change (2026-06-17)
 
@@ -157,6 +172,8 @@ is updated so the next wait continues the same campaign. If it returns
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Implemented PTY below-status rendering for Antigravity spinner variants. | Codex |
+| 2026-06-19 | Planned PTY below-status rendering for Antigravity spinner variants. | Codex |
 | 2026-06-15 | Implemented cumulative viewability segment reporting. | Codex |
 | 2026-06-15 | Planned cumulative viewability segment reporting. | Codex |
 | 2026-06-15 | Implemented PTY-backed wrapper path for interactive CLIs. | Codex |

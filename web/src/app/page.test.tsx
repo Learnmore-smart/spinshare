@@ -21,9 +21,9 @@ describe("HomePage", () => {
     expect(html).toContain("You get paid");
     expect(html).toContain("aria-label=\"money\"");
     expect(html).toContain("🤑");
-    expect(html).toContain("/mo");
     expect(html).toContain("SpinShare turns idle AI waits into paid moments.");
-    expect(html).toContain("60% of ad revenue goes to you.");
+    expect(html).toContain("We give you 60% of ad revenue + a $1 head start");
+    expect(html).toContain("Limited Time: Get $1 instantly when you sign up!");
     expect(html).toContain("Market depth");
     expect(html).toContain("Bid live for the most-watched spinner");
     expect(html).toContain("EMAIL");

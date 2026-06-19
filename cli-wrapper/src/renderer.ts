@@ -39,7 +39,7 @@ const SPINNER_FILLER = /[\r ]/g;
 
 /** Single-word wait messages emitted by interactive AI CLIs. */
 const STATUS_WORD_PATTERN =
-  /^(?:pollinating|thinking|generating|loading|processing|waiting|reasoning|responding|analyzing|searching)(?:[.!…]*)$/i;
+  /^(?:pollinating|thinking|generating|loading|processing|waiting|working|reasoning|responding|analyzing|searching)(?:[.!…]*)$/i;
 
 /** Leading symbols commonly used before transient status lines. */
 const STATUS_PREFIX_PATTERN =
@@ -108,6 +108,16 @@ function isStatusWaitFrame(chunk: string | Buffer): boolean {
   return STATUS_WORD_PATTERN.test(status);
 }
 
+function waitFrameKind(chunk: string | Buffer): "glyph" | "status" | null {
+  if (isSpinnerGlyphFrame(chunk)) {
+    return "glyph";
+  }
+  if (isStatusWaitFrame(chunk)) {
+    return "status";
+  }
+  return null;
+}
+
 /**
  * Pure classifier: is this chunk a spinner-only (wait-state) frame?
  *
@@ -163,6 +173,13 @@ export interface RendererOptions {
    * a shorter ad fully overwrites a longer previous one on the shared line.
    */
   eraseLine?: boolean;
+  /**
+   * How text status wait frames should display ads. `replace` preserves the
+   * original historical behavior. `below` keeps the agent's loading line and
+   * paints the ad one line below using save/restore cursor sequences so the
+   * child CLI keeps control of its prompt/status line.
+   */
+  statusPlacement?: "replace" | "below";
 }
 
 /**
@@ -177,11 +194,14 @@ export class SpinnerRenderer {
   private readonly getAdText: () => string | null | undefined;
   private readonly getAdUrl: () => string | null | undefined;
   private readonly eraseLine: boolean;
+  private readonly statusPlacement: "replace" | "below";
+  private belowStatusAdVisible = false;
 
   constructor(options: RendererOptions) {
     this.getAdText = options.getAdText;
     this.getAdUrl = options.getAdUrl ?? (() => undefined);
     this.eraseLine = options.eraseLine ?? true;
+    this.statusPlacement = options.statusPlacement ?? "replace";
   }
 
   /**
@@ -194,18 +214,42 @@ export class SpinnerRenderer {
    * - Anything else → forward the original bytes unmodified.
    */
   render(chunk: string | Buffer): RenderResult {
-    if (isSpinnerFrame(chunk)) {
+    const kind = waitFrameKind(chunk);
+    if (kind !== null) {
       const ad = this.getAdText();
       if (ad && ad.length > 0) {
         const url = this.getAdUrl();
         const display = url && url.length > 0 ? osc8Hyperlink(url, ad) : ad;
         const line = "\r" + display + (this.eraseLine ? ERASE_TO_EOL : "");
+        if (kind === "status" && this.statusPlacement === "below") {
+          this.belowStatusAdVisible = true;
+          const original = toStr(chunk) + (this.eraseLine ? ERASE_TO_EOL : "");
+          return {
+            output: Buffer.from(
+              original + `\u001b[s\u001b[1B${line}\u001b[u`,
+              "utf8",
+            ),
+            spinner: true,
+          };
+        }
         return { output: Buffer.from(line, "utf8"), spinner: true };
+      }
+      if (kind === "status" && this.statusPlacement === "below") {
+        return { output: toBuffer(chunk), spinner: true };
       }
       // No ad to show: suppress the spinner entirely.
       return { output: Buffer.alloc(0), spinner: true };
     }
-    return { output: toBuffer(chunk), spinner: false };
+    const passthrough = toBuffer(chunk);
+    if (this.belowStatusAdVisible) {
+      this.belowStatusAdVisible = false;
+      const clearBelow = `\u001b[s\u001b[1B\r${ERASE_TO_EOL}\u001b[u`;
+      return {
+        output: Buffer.concat([Buffer.from(clearBelow, "utf8"), passthrough]),
+        spinner: false,
+      };
+    }
+    return { output: passthrough, spinner: false };
   }
 
   /**

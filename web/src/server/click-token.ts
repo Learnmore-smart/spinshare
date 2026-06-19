@@ -1,12 +1,24 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
 const TOKEN_VERSION = "v1";
-const DEFAULT_TTL_MS = 24 * 60 * 60 * 1000;
+/**
+ * Click tokens are minted at ad-serve time and used moments later when the
+ * developer clicks during the same wait. One hour comfortably covers real click
+ * latency while bounding how long a leaked/replayed token can fabricate clicks
+ * (was 24h — see anti-fraud roadmap 1f).
+ */
+const DEFAULT_TTL_MS = 60 * 60 * 1000;
 const DEV_FALLBACK_SECRET = "spinshare-dev-insecure-secret-do-not-use-in-prod";
 
 export interface ClickTokenPayload {
   campaignId: string;
   developerId: string;
+  /**
+   * Random single-use id. `/api/click` consumes it once via
+   * `CounterStore.consumeOnce`, so a replayed token redirects but cannot inflate
+   * the click counter. Optional so tokens minted before 1f still verify.
+   */
+  jti?: string;
   iat: number;
   exp: number;
 }
@@ -17,6 +29,8 @@ export interface MintClickTokenInput {
   nowMs?: number;
   ttlMs?: number;
   secret?: string;
+  /** Injectable for deterministic tests; defaults to a random 16-byte hex id. */
+  jti?: string;
 }
 
 function resolveSecret(explicit?: string): string {
@@ -46,6 +60,7 @@ export function mintClickToken(input: MintClickTokenInput): string {
   const payload: ClickTokenPayload = {
     campaignId: input.campaignId,
     developerId: input.developerId,
+    jti: input.jti ?? randomBytes(16).toString("hex"),
     iat: nowMs,
     exp: nowMs + ttlMs,
   };

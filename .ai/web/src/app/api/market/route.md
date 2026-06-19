@@ -35,6 +35,10 @@ Provides live bid-market summary data for the homepage.
 
 Filter private campaigns out of the public market rows while leaving them eligible for ad delivery through the bidding endpoint.
 
+## Planned Change (2026-06-19 — brandName for ticker)
+
+- Include optional `brandName` on each `MarketRow` from `campaign.brandName` for homepage ticker display.
+
 ## Implemented Change (2026-06-14)
 
 Each market row now includes:
@@ -42,9 +46,18 @@ Each market row now includes:
 - `servedImpressions` — durable ledger impression count for the campaign.
 - `targetImpressions` — served plus remaining purchasable impressions derived from `budgetCents` and `cpmCents`.
 
+## Implemented Change (2026-06-19) Public leaderboard privacy
+
+Public market rows now expose only rank, campaign text, and CPM (`bidLabel`). Per-campaign
+`totalPaid*`, `servedImpressions`, `targetImpressions`, `remainingBudget*`, and `status` are
+removed from the public API so advertisers are not shown exact spend or delivery ratios on
+the homepage. Fleet-wide `summary.totalServedImpressions` remains for the hero dashboard
+aggregate counter only.
+
 ## Implemented Change (2026-06-18) Budget-drift correction
 
-`targetImpressions` now comes from `reconstructCampaignDelivery` (core), which snaps the budget-derived total onto the 1,000-view block grid instead of returning the raw `served + floor(budget*1000/cpm)`. Rows also expose `totalPaidCents` / `totalPaidUsd` (exact `blocks * cpmCents`) so the homepage no longer reconstructs "total paid" from the drifting budget.
+`reconstructCampaignDelivery` (core) is still used in advertiser-facing surfaces; it is no
+longer part of the public `/api/market` row payload.
 
 ## Implemented Change
 
@@ -66,4 +79,5 @@ Each market row now includes:
 | 2026-06-13 | Documented final route response contract for live homepage polling. | Codex |
 | 2026-06-13 | Documented leaderboard privacy filtering plan. | Codex |
 | 2026-06-13 | Synced docs with public leaderboard filtering implementation. | Codex |
+| 2026-06-19 | Public market rows limited to rank + CPM; `summary.totalServedImpressions` for hero aggregate only. | Cursor |
 | 2026-06-18 | Documented budget-drift correction for purchased views / total paid. | Cursor |

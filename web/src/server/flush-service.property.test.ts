@@ -362,6 +362,14 @@ class FaultOnceLedgerRepository implements LedgerRepository {
   async countByCampaignIds(campaignIds: string[]): Promise<Record<string, number>> {
     return this.inner.countByCampaignIds(campaignIds);
   }
+
+  async getByEntryId(entryId: string): Promise<LedgerEntry | null> {
+    return this.inner.getByEntryId(entryId);
+  }
+
+  async appendEntryIfAbsent(entry: LedgerEntry): Promise<boolean> {
+    return this.inner.appendEntryIfAbsent(entry);
+  }
 }
 
 describe("flush-service idempotency properties", () => {

@@ -159,6 +159,35 @@ export interface CounterStore {
   /** Sets a shadow-ban for the user that expires after `ttlSeconds`. */
   setShadowBan(userId: string, ttlSeconds: number): Promise<void>;
 
+  // Network-level signals (Tier 2 — cross the per-userId silo; score feeders)
+  /**
+   * Increments and returns the impression count for an IP hash in a fixed
+   * window. A network-level rate that a per-userId velocity cap cannot see
+   * (one box, many accounts). The window expires like the per-user velocity one.
+   */
+  incrementIpVelocity(ipHash: string, windowStartEpochSec: number): Promise<number>;
+  /**
+   * Records that `developerId` was active on `ipHash` within the (day-aligned)
+   * fan-out window and returns the number of DISTINCT developer ids seen on that
+   * IP in the window. A high count is an account-farm signal.
+   */
+  recordIpFanout(
+    ipHash: string,
+    developerId: string,
+    windowStartEpochSec: number,
+  ): Promise<number>;
+
+  // Single-use keys (nonce / token replay protection)
+  /**
+   * Atomically marks `key` as consumed. Returns `true` on the FIRST consumption
+   * within its TTL (the caller may proceed) and `false` if the key was already
+   * consumed (a replay — the caller must reject). Entries older than their TTL
+   * are treated as never-consumed, so the key space self-cleans without a sweep.
+   * Backs single-use ad nonces (`/api/ad` → `/api/track`) and single-use
+   * clickTokens.
+   */
+  consumeOnce(key: string, ttlSeconds: number): Promise<boolean>;
+
   // Campaign telemetry
   incrementCampaignTelemetry(
     campaignId: string,

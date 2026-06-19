@@ -9,6 +9,9 @@ const mocks = vi.hoisted(() => ({
   getProgressByDeveloper: vi.fn(),
   addProgressDuration: vi.fn(),
   clearProgress: vi.fn(),
+  consumeOnce: vi.fn(),
+  incrementIpVelocity: vi.fn(),
+  recordIpFanout: vi.fn(),
 }));
 
 vi.mock("@/server/container", () => ({
@@ -24,6 +27,9 @@ vi.mock("@/server/container", () => ({
     },
     counters: {
       incrementCampaignTelemetry: mocks.incrementCampaignTelemetry,
+      consumeOnce: mocks.consumeOnce,
+      incrementIpVelocity: mocks.incrementIpVelocity,
+      recordIpFanout: mocks.recordIpFanout,
     },
     progress: {
       getByDeveloper: mocks.getProgressByDeveloper,
@@ -40,6 +46,7 @@ vi.mock("@/server/ledger-service", () => ({
 }));
 
 import { POST } from "./route";
+import { mintAdNonce } from "@/server/ad-nonce";
 
 function trackRequest(body: unknown): Request {
   return new Request("http://test.local/api/track", {
@@ -61,6 +68,9 @@ function resetMocks(): void {
   mocks.getProgressByDeveloper.mockReset();
   mocks.addProgressDuration.mockReset();
   mocks.clearProgress.mockReset();
+  mocks.consumeOnce.mockReset();
+  mocks.incrementIpVelocity.mockReset();
+  mocks.recordIpFanout.mockReset();
 }
 
 describe("POST /api/track viewability validation", () => {
@@ -231,9 +241,12 @@ describe("POST /api/track viewability validation", () => {
         },
         counters: {
           incrementCampaignTelemetry: mocks.incrementCampaignTelemetry,
+          consumeOnce: mocks.consumeOnce,
+          incrementIpVelocity: mocks.incrementIpVelocity,
+          recordIpFanout: mocks.recordIpFanout,
         },
       },
-      { token: "tok_123", campaignId: "cmp_1" },
+      { token: "tok_123", campaignId: "cmp_1", forceSuppress: false },
     );
     expect(mocks.incrementCampaignTelemetry).toHaveBeenCalledWith(
       "cmp_1",
@@ -423,6 +436,137 @@ describe("POST /api/track viewability validation", () => {
     expect(mocks.incrementCampaignTelemetry).toHaveBeenCalledWith(
       "cmp_1",
       "credited",
+    );
+  });
+
+  function seedSettleableProgress(): void {
+    const servedAtMs = Date.now() - 10_000;
+    mocks.validateToken.mockResolvedValueOnce({ userId: "dev_1" });
+    mocks.getCampaignById.mockResolvedValueOnce({
+      id: "cmp_1",
+      advertiserId: "adv_1",
+      cpmCents: 3000,
+      budgetCents: 1000,
+    });
+    mocks.getProgressByDeveloper.mockResolvedValueOnce({
+      developerId: "dev_1",
+      campaignId: "cmp_1",
+      accumulatedViewDurationMs: 0,
+      updatedAtMs: servedAtMs,
+      servedAtMs,
+    });
+    mocks.addProgressDuration.mockResolvedValueOnce({
+      developerId: "dev_1",
+      campaignId: "cmp_1",
+      accumulatedViewDurationMs: 3000,
+      updatedAtMs: Date.now(),
+      servedAtMs,
+    });
+  }
+
+  it("settles when a valid, fresh ad nonce is presented", async () => {
+    resetMocks();
+    seedSettleableProgress();
+    mocks.consumeOnce.mockResolvedValueOnce(true);
+    mocks.recordImpression.mockResolvedValueOnce({
+      ok: true,
+      settlement: "credited",
+      response: {
+        recorded: true,
+        developerCreditCents: 18,
+        developerCreditUsd: "0.18",
+      },
+    });
+    const nonce = mintAdNonce({ campaignId: "cmp_1", developerId: "dev_1" });
+
+    const response = await POST(
+      trackRequest({ campaignId: "cmp_1", viewDurationMs: 3000, adNonce: nonce }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mocks.consumeOnce).toHaveBeenCalledOnce();
+    expect(mocks.recordImpression).toHaveBeenCalledOnce();
+    expect(mocks.incrementCampaignTelemetry).toHaveBeenCalledWith(
+      "cmp_1",
+      "credited",
+    );
+  });
+
+  it("suppresses settlement when the ad nonce was already consumed (replay)", async () => {
+    resetMocks();
+    seedSettleableProgress();
+    mocks.consumeOnce.mockResolvedValueOnce(false); // replay: already consumed
+    const nonce = mintAdNonce({ campaignId: "cmp_1", developerId: "dev_1" });
+
+    const response = await POST(
+      trackRequest({ campaignId: "cmp_1", viewDurationMs: 3000, adNonce: nonce }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.recorded).toBe(false);
+    expect(mocks.recordImpression).not.toHaveBeenCalled();
+    expect(mocks.clearProgress).toHaveBeenCalledWith("dev_1");
+    expect(mocks.incrementCampaignTelemetry).toHaveBeenCalledWith(
+      "cmp_1",
+      "duplicate",
+    );
+  });
+
+  it("suppresses settlement (force-suppress) when the IP looks like an account farm", async () => {
+    resetMocks();
+    seedSettleableProgress();
+    mocks.incrementIpVelocity.mockResolvedValueOnce(5);
+    mocks.recordIpFanout.mockResolvedValueOnce(12); // (12-3)*1 = 9 >= suppressAt
+    mocks.recordImpression.mockResolvedValueOnce({
+      ok: true,
+      settlement: "shadowBanned",
+      response: {
+        recorded: true,
+        developerCreditCents: 18,
+        developerCreditUsd: "0.18",
+      },
+    });
+
+    const response = await POST(
+      new Request("http://test.local/api/track", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: "Bearer tok_123",
+          "x-forwarded-for": "203.0.113.9, 10.0.0.1",
+        },
+        body: JSON.stringify({ campaignId: "cmp_1", viewDurationMs: 3000 }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordImpression).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ forceSuppress: true }),
+    );
+  });
+
+  it("suppresses settlement when the ad nonce signature is invalid", async () => {
+    resetMocks();
+    seedSettleableProgress();
+
+    const response = await POST(
+      trackRequest({
+        campaignId: "cmp_1",
+        viewDurationMs: 3000,
+        adNonce: "v1.tampered.signature",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.recorded).toBe(false);
+    expect(mocks.consumeOnce).not.toHaveBeenCalled(); // verify fails before consume
+    expect(mocks.recordImpression).not.toHaveBeenCalled();
+    expect(mocks.incrementCampaignTelemetry).toHaveBeenCalledWith(
+      "cmp_1",
+      "duplicate",
     );
   });
 });

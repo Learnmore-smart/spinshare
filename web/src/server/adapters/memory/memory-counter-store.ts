@@ -26,6 +26,8 @@ import type { LedgerEntry } from "@spinshare/core";
 import {
   MICROCENTS_PER_CENT,
   VELOCITY_WINDOW_SECONDS,
+  IP_VELOCITY_WINDOW_SECONDS,
+  IP_FANOUT_WINDOW_SECONDS,
   dayWindowStartMs,
   hourWindowStartMs,
 } from "@spinshare/core";
@@ -90,6 +92,15 @@ export class MemoryCounterStore implements CounterStore {
   private readonly earnDay = new Map<string, EarningWindow>();
   /** Active shadow-bans: user id → epoch millis at which the ban expires. */
   private readonly shadowBans = new Map<string, number>();
+  /** Consumed single-use keys: key → epoch millis at which the record expires. */
+  private readonly consumedKeys = new Map<string, number>();
+  /** Per-IP velocity windows keyed `${ipHash}:${windowStartEpochSec}`. */
+  private readonly ipVelocity = new Map<string, VelocityCounter>();
+  /** Per-IP account fan-out: `${ipHash}:${windowStartEpochSec}` → distinct dev ids + expiry. */
+  private readonly ipFanout = new Map<
+    string,
+    { devs: Set<string>; expiresAtMs: number }
+  >();
   private readonly campaignTelemetry = new Map<string, CampaignTelemetry>();
   /** In-flight drained batches keyed by `batchToken`. */
   private readonly inflight = new Map<string, InflightBatch>();
@@ -194,6 +205,70 @@ export class MemoryCounterStore implements CounterStore {
 
   async setShadowBan(userId: string, ttlSeconds: number): Promise<void> {
     this.shadowBans.set(userId, this.clock.nowMs() + ttlSeconds * 1000);
+  }
+
+  // --- Single-use keys ----------------------------------------------------
+
+  async consumeOnce(key: string, ttlSeconds: number): Promise<boolean> {
+    const nowMs = this.clock.nowMs();
+    this.pruneExpiredConsumed(nowMs);
+    const existing = this.consumedKeys.get(key);
+    if (existing !== undefined && existing > nowMs) {
+      return false;
+    }
+    this.consumedKeys.set(key, nowMs + ttlSeconds * 1000);
+    return true;
+  }
+
+  private pruneExpiredConsumed(nowMs: number): void {
+    for (const [key, expiresAtMs] of this.consumedKeys) {
+      if (expiresAtMs <= nowMs) this.consumedKeys.delete(key);
+    }
+  }
+
+  // --- Network-level signals ----------------------------------------------
+
+  async incrementIpVelocity(
+    ipHash: string,
+    windowStartEpochSec: number,
+  ): Promise<number> {
+    const key = `${ipHash}:${windowStartEpochSec}`;
+    const nowMs = this.clock.nowMs();
+    for (const [k, c] of this.ipVelocity) {
+      if (c.expiresAtMs <= nowMs) this.ipVelocity.delete(k);
+    }
+    const existing = this.ipVelocity.get(key);
+    if (existing && existing.expiresAtMs > nowMs) {
+      existing.count += 1;
+      return existing.count;
+    }
+    this.ipVelocity.set(key, {
+      count: 1,
+      expiresAtMs: (windowStartEpochSec + IP_VELOCITY_WINDOW_SECONDS) * 1000,
+    });
+    return 1;
+  }
+
+  async recordIpFanout(
+    ipHash: string,
+    developerId: string,
+    windowStartEpochSec: number,
+  ): Promise<number> {
+    const key = `${ipHash}:${windowStartEpochSec}`;
+    const nowMs = this.clock.nowMs();
+    for (const [k, v] of this.ipFanout) {
+      if (v.expiresAtMs <= nowMs) this.ipFanout.delete(k);
+    }
+    let entry = this.ipFanout.get(key);
+    if (!entry || entry.expiresAtMs <= nowMs) {
+      entry = {
+        devs: new Set(),
+        expiresAtMs: (windowStartEpochSec + IP_FANOUT_WINDOW_SECONDS) * 1000,
+      };
+      this.ipFanout.set(key, entry);
+    }
+    entry.devs.add(developerId);
+    return entry.devs.size;
   }
 
   async incrementCampaignTelemetry(

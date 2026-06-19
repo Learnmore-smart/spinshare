@@ -17,6 +17,7 @@
 
 import { getContainer } from "@/server/container";
 import { mintClickToken } from "@/server/click-token";
+import { mintAdNonce } from "@/server/ad-nonce";
 import { selectAd } from "@/server/bidding-service";
 import type { AdResponse } from "@spinshare/core";
 
@@ -49,6 +50,21 @@ function withTrackedClickUrl(
     mintClickToken({ campaignId: result.campaignId, developerId }),
   );
   return { ...result, destinationUrl: destinationUrl.toString() };
+}
+
+/**
+ * Attaches a single-use ad-serve nonce binding this serve to its later
+ * settlement. The client must echo it in `/api/track`; the server consumes it
+ * once, so a credit can never occur without a real, unreplayed ad serve.
+ */
+function withAdNonce(result: AdResponse, developerId: string): AdResponse {
+  if (!result.adAvailable) {
+    return result;
+  }
+  return {
+    ...result,
+    adNonce: mintAdNonce({ campaignId: result.campaignId, developerId }),
+  };
 }
 
 export async function GET(request: Request): Promise<Response> {
@@ -84,9 +100,10 @@ export async function GET(request: Request): Promise<Response> {
         // Telemetry must never block ad serving.
       }
     }
-    return Response.json(withTrackedClickUrl(request, result, claims.userId), {
-      status: 200,
-    });
+    return Response.json(
+      withAdNonce(withTrackedClickUrl(request, result, claims.userId), claims.userId),
+      { status: 200 },
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : "unknown error";
     return Response.json({ error: message }, { status: 500 });

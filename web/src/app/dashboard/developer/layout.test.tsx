@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   mintToken: vi.fn(),
   listByDeveloper: vi.fn(),
   flushPendingForRead: vi.fn(),
+  grantSignupBonus: vi.fn(),
   events: [] as string[],
 }));
 
@@ -17,6 +18,12 @@ vi.mock("@/server/flush-before-read", () => ({
   flushPendingForRead: mocks.flushPendingForRead,
 }));
 
+// The layout grants the one-time signup bonus on load; that path has its own
+// tests. Stub it here so this test stays focused on the flush→ledger-read order.
+vi.mock("@/server/signup-bonus-service", () => ({
+  grantSignupBonus: mocks.grantSignupBonus,
+}));
+
 vi.mock("@/server/container", () => ({
   getContainer: () => ({
     auth: {
@@ -25,6 +32,7 @@ vi.mock("@/server/container", () => ({
     ledger: {
       listByDeveloper: mocks.listByDeveloper,
     },
+    users: {},
   }),
 }));
 
@@ -49,6 +57,11 @@ beforeEach(() => {
   mocks.mintToken.mockReset();
   mocks.listByDeveloper.mockReset();
   mocks.flushPendingForRead.mockReset();
+  mocks.grantSignupBonus.mockReset();
+  mocks.grantSignupBonus.mockResolvedValue({
+    granted: false,
+    reason: "already_granted",
+  });
   mocks.events.length = 0;
 });
 

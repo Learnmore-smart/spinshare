@@ -16,6 +16,15 @@ export interface LedgerRepository {
    */
   appendEntries(entries: LedgerEntry[]): Promise<void>;
 
+  /** Loads a single durable entry by id, or `null` when absent. */
+  getByEntryId(entryId: string): Promise<LedgerEntry | null>;
+
+  /**
+   * Persists one entry only when its `entryId` is not already present. Returns
+   * `true` when the row was newly written and `false` when it already existed.
+   */
+  appendEntryIfAbsent(entry: LedgerEntry): Promise<boolean>;
+
   /**
    * Lists every durable ledger entry credited to a developer, in the order they
    * were recorded. Powers the developer dashboard's earnings summary and

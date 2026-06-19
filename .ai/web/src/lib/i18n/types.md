@@ -195,3 +195,29 @@ Added the five advertiser dashboard diagnostic description keys to the
 | 2026-06-19 | Planned diagnostic tooltip copy keys. | Codex |
 | 2026-06-18 | Added delete campaign error copy keys. | Codex |
 | 2026-06-18 | Planned delete campaign error copy keys. | Codex |
+
+## Planned Change 2026-06-19 Support Contact Copy
+
+Add `developerDashboard.support` to label the shared dashboard settings support
+contact. The email value remains a code constant in the settings view so only
+the human-readable label is localized.
+
+## Change History Addendum 3
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-19 | Planned support contact label key. | Codex |
+
+## Implemented Change 2026-06-19 Support Contact Copy
+
+Added `developerDashboard.support` to the dictionary contract.
+
+## Verification 2026-06-19 Support Contact Copy
+
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+
+## Change History Addendum 4
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-19 | Added support contact label key. | Codex |

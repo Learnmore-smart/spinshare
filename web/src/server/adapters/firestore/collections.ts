@@ -56,11 +56,41 @@ export function toUser(id: string, data: FirebaseFirestore.DocumentData): User {
     provider: data.provider as AuthProviderId,
     role: data.role as UserRole,
     balanceCents: Number(data.balanceCents ?? 0),
+    ...(() => {
+      const createdAt = data.createdAt;
+      if (createdAt && typeof createdAt.toMillis === "function") {
+        return { createdAtMs: createdAt.toMillis() };
+      }
+      if (typeof data.createdAtMs === "number") {
+        return { createdAtMs: data.createdAtMs };
+      }
+      return {};
+    })(),
+    ...(typeof data.heldCents === "number"
+      ? { heldCents: data.heldCents }
+      : {}),
+    ...(Array.isArray(data.heldLots)
+      ? {
+          heldLots: data.heldLots
+            .filter(
+              (lot: unknown): lot is { cents: number; maturesAtMs: number } =>
+                typeof lot === "object" &&
+                lot !== null &&
+                typeof (lot as { cents?: unknown }).cents === "number" &&
+                typeof (lot as { maturesAtMs?: unknown }).maturesAtMs ===
+                  "number",
+            )
+            .map((lot) => ({ cents: lot.cents, maturesAtMs: lot.maturesAtMs })),
+        }
+      : {}),
     ...(data.stripeConnectAccountId !== undefined
       ? { stripeConnectAccountId: String(data.stripeConnectAccountId) }
       : {}),
     ...(data.payoutsEnabled !== undefined
       ? { payoutsEnabled: Boolean(data.payoutsEnabled) }
+      : {}),
+    ...(typeof data.payoutFingerprint === "string"
+      ? { payoutFingerprint: data.payoutFingerprint }
       : {}),
   };
 }
@@ -108,11 +138,18 @@ export function toLedgerEntry(
 
   return {
     entryId: String(data.entryId ?? id),
+    ...(data.type === "signup_bonus" ? { type: "signup_bonus" as const } : {}),
     campaignId: String(data.campaignId ?? ""),
     developerId: String(data.developerId ?? ""),
     revenueMicrocents: Number(data.revenueMicrocents ?? 0),
     developerCreditCents: Number(data.developerCreditCents ?? 0),
     spinshareRetentionMicrocents: Number(data.spinshareRetentionMicrocents ?? 0),
+    ...(data.creditCents !== undefined
+      ? { creditCents: Number(data.creditCents) }
+      : {}),
+    ...(data.description !== undefined
+      ? { description: String(data.description) }
+      : {}),
     ...(createdAtMs !== undefined ? { createdAtMs } : {}),
   };
 }

@@ -13,13 +13,16 @@ export function money(cents: number): string {
 }
 
 /**
- * Format display micro-cents (100,000 micro-cents = $1.00) as a fixed
- * 3-decimal USD string, e.g. `492500 -> "$4.925"`. Used for the hero
- * payout-threshold copy so the visible remaining/target line up with the
- * sub-cent balance KPI rather than rounding to whole cents.
+ * Format display micro-cents (100,000 micro-cents = $1.00) for the hero
+ * payout-threshold copy. Uses up to 3 decimals when sub-cent precision matters
+ * (e.g. `$4.925`), otherwise standard 2-decimal currency (e.g. `$5.00`).
  */
 export function moneyMicrocents3(microcents: number): string {
-  return `$${(microcents / 100_000).toFixed(3)}`;
+  const sign = microcents < 0 ? "-" : "";
+  const dollars = Math.abs(microcents) / 100_000;
+  const fixed = dollars.toFixed(3);
+  const trimmed = fixed.endsWith("0") ? fixed.slice(0, -1) : fixed;
+  return `${sign}$${trimmed}`;
 }
 
 export function pct(used: number, limit: number): number {
@@ -78,9 +81,9 @@ export function ActivityList({
           <TiltCard className="dev-dash-activity-card" intensity={10} scale={1.02} glareRadius={200} data-testid="activity-row">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="truncate font-mono text-[11px] text-slate-500">{row.campaignId}</p>
+                <p className="truncate font-mono text-[11px] text-slate-500" title={row.activityId}>{row.activityId}</p>
                 <p className="mt-0.5 truncate text-[10px] font-bold text-slate-400">
-                  {row.statusLabel} - {row.durationLabel}
+                  {row.campaignId} - {row.statusLabel} - {row.durationLabel}
                 </p>
               </div>
               <p
@@ -109,7 +112,7 @@ export function ActivityTable({
 
   return (
     <div className="hidden overflow-x-auto md:block">
-      <table className="w-full min-w-[520px] border-collapse text-left text-sm" data-testid="activity-table">
+      <table className="w-full min-w-[640px] border-collapse text-left text-sm" data-testid="activity-table">
         <thead>
           <tr className="border-b border-emerald-900/10 text-slate-500">
             <th className="py-2 pr-3 text-xs font-black uppercase tracking-wide">{t.developerDashboard.tableHash}</th>
@@ -121,12 +124,12 @@ export function ActivityTable({
         <tbody>
           {rows.map((row) => (
             <tr key={row.activityId} className="border-b border-emerald-900/5" data-testid="activity-row">
-              <td className="py-2.5 pr-3 font-mono text-xs text-slate-400">
-                {row.durationLabel}
+              <td className="max-w-[220px] truncate py-2.5 pr-3 font-mono text-xs text-slate-500" title={row.activityId}>
+                {row.activityId}
               </td>
               <td className="py-2.5 pr-3 font-mono text-xs">{row.campaignId}</td>
               <td className="max-w-[200px] truncate py-2.5 pr-3 text-xs font-bold text-slate-500">
-                {row.statusLabel}
+                {row.statusLabel} - {row.durationLabel}
               </td>
               <td
                 className={`py-2.5 text-right font-bold ${

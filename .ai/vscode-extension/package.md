@@ -144,6 +144,36 @@ Cleaned the VSIX output folder down to the two supported install artifacts:
 Removed old `0.2.0` packages and the extra unflavored `spinshare-0.2.1.vsix`
 alias so users do not accidentally install a stale or ambiguous build.
 
+## Bug Fix Plan 2026-06-19 Antigravity below-status package
+
+**Bug:** After Antigravity wrapping started working, ads flickered between
+consecutive Antigravity status variants and appeared on the prompt/status line.
+
+**Fix Strategy:** Package the CLI renderer/wrapper below-status rendering fix as
+extension version `0.2.2`, keeping only one prod and one local VSIX artifact.
+
+**Test Plan:** Run focused CLI renderer/wrapper tests, extension lint/build,
+package prod/local VSIXs, remove old `0.2.1` VSIXs, and inspect the two
+remaining packages for version `0.2.2` and the Antigravity agent defaults.
+
+## Bug Fix Implemented 2026-06-19 Antigravity below-status package
+
+Bumped the extension manifest to `0.2.2`, packaged the renderer/wrapper
+below-status fix, and cleaned the VSIX folder back down to:
+
+- `spinshare-prod-0.2.2.vsix`
+- `spinshare-local-0.2.2.vsix`
+
+Verification:
+- `corepack pnpm@9.12.0 --filter @spinshare/cli test -- src/renderer.test.ts src/wrap.test.ts`
+  passed 37 tests.
+- `corepack pnpm@9.12.0 --filter @spinshare/cli lint` passed.
+- `corepack pnpm@9.12.0 lint` from `vscode-extension` passed.
+- `corepack pnpm@9.12.0 package:all` produced prod/local `0.2.2` packages.
+- Package inspection confirmed both remaining VSIXs are version `0.2.2`, keep
+  agents `claude,agy,antigravity`, and their bundled CLI contains `working` plus
+  below-status cursor rendering support.
+
 ## Bug Fixes
 
 | Date | Bug | Cause | Fix |
@@ -195,6 +225,8 @@ The VSIX packaging script currently calls bare `vsce`, which fails on Windows wh
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Implemented `0.2.2` prod/local packages for Antigravity below-status rendering. | Codex |
+| 2026-06-19 | Planned `0.2.2` prod/local packages for Antigravity below-status rendering. | Codex |
 | 2026-06-19 | Cleaned VSIX artifacts down to one prod and one local `0.2.1` package. | Codex |
 | 2026-06-19 | Implemented `0.2.1` VSIX rebuild to avoid stale same-version Antigravity installs. | Codex |
 | 2026-06-19 | Planned `0.2.1` VSIX rebuild to avoid stale same-version Antigravity installs. | Codex |

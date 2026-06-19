@@ -303,10 +303,22 @@ export class StripePayoutGateway implements PayoutGateway {
   async getAccountStatus(accountId: string): Promise<ConnectAccountStatus> {
     const client = this.getClient();
     const account = await client.accounts.retrieve(accountId);
+    // Best-effort payout-fingerprint (anti-fraud Tier 3b): the first attached
+    // external account's opaque Stripe fingerprint. Absent until a destination
+    // is attached during onboarding; never raw bank data.
+    const externalAccounts = (
+      account as { external_accounts?: { data?: Array<{ fingerprint?: unknown }> } }
+    ).external_accounts;
+    const fingerprint = externalAccounts?.data?.find(
+      (acct) => typeof acct.fingerprint === "string" && acct.fingerprint.length > 0,
+    )?.fingerprint;
     return {
       accountId,
       payoutsEnabled: account.payouts_enabled === true,
       detailsSubmitted: account.details_submitted === true,
+      ...(typeof fingerprint === "string"
+        ? { payoutFingerprint: fingerprint }
+        : {}),
     };
   }
 

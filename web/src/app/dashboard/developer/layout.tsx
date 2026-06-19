@@ -14,6 +14,7 @@ import type { ReactNode } from "react";
 import { auth } from "@/server/adapters/auth/nextauth-config";
 import { getContainer } from "@/server/container";
 import { flushPendingForRead } from "@/server/flush-before-read";
+import { grantSignupBonus } from "@/server/signup-bonus-service";
 
 import { DashboardShell } from "./dashboard-shell";
 import { DeveloperActivityProviderClient } from "./developer-activity-context";
@@ -65,6 +66,10 @@ export default async function DeveloperDashboardLayout({
   try {
     const container = getContainer();
     await flushPendingForRead(container, "developer-dashboard");
+    await grantSignupBonus(
+      { ledger: container.ledger, users: container.users },
+      developerId,
+    );
     const entries = await container.ledger.listByDeveloper(developerId);
     const summary = summarizeLedger(entries);
 

@@ -211,15 +211,60 @@ visible campaign diagnostic badges. The `outOfBudget` label remains available
 for compatibility, but there is no tooltip copy for it because the badge is not
 rendered.
 
+## Planned Change 2026-06-19 Developer Activity ID Label
+
+Change the developer dashboard `tableHash` label from a generic `#` to a
+localized activity/record id label. The table now uses this column for the
+unique `activityId`, not a row number or duration, so the copy must make support
+lookup intent explicit across en/zh/fr.
+
+## Implemented Change 2026-06-19 Developer Activity ID Label
+
+Updated the developer dashboard table label for en/zh/fr from `#` to activity
+or record id copy: `Activity ID`, `记录 ID`, and `ID activité`.
+
 ## Verification 2026-06-18 Delete Campaign Error Copy
 
 - `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+
+## Verification 2026-06-19 Developer Activity ID Label
+
+- `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/dashboard/activity-feed.test.ts src/app/dashboard/developer/developer-activity-view.test.tsx src/app/dashboard/developer/developer-activity-view-render.test.tsx src/app/dashboard/developer/developer-activity-context.test.ts src/app/dashboard/developer/developer-dashboard-parts.test.tsx` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed after rerun.
 
 ## Change History Addendum 2
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Implemented developer activity id table label update. | Codex |
+| 2026-06-19 | Planned developer activity id table label update. | Codex |
 | 2026-06-19 | Added diagnostic tooltip copy strings. | Codex |
 | 2026-06-19 | Planned diagnostic tooltip copy strings. | Codex |
 | 2026-06-18 | Added delete campaign error copy strings. | Codex |
 | 2026-06-18 | Planned delete campaign error copy strings. | Codex |
+
+## Planned Change 2026-06-19 Support Contact Copy
+
+Add en/zh/fr `developerDashboard.support` strings so the shared settings page can
+label the new `support@learnx.pro` contact without hardcoded English.
+
+## Change History Addendum 3
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-19 | Planned localized support contact label. | Codex |
+
+## Implemented Change 2026-06-19 Support Contact Copy
+
+Added en/zh/fr support labels for the shared dashboard settings contact:
+`Support`, `支持`, and `Assistance`.
+
+## Verification 2026-06-19 Support Contact Copy
+
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+
+## Change History Addendum 4
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-19 | Added localized support contact label. | Codex |
