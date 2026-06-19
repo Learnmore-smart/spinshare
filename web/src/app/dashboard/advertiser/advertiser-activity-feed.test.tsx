@@ -2,6 +2,7 @@ import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
+import { LocaleProvider } from "@/lib/i18n/locale-provider";
 import {
   AdvertiserActivityFeed,
   advertiserActivityRowsToCsv,
@@ -22,7 +23,7 @@ describe("AdvertiserActivityFeed", () => {
     expect(html).toContain("Loading activity");
   });
 
-  it("renders credited and non-credited activity rows", () => {
+  it("renders user-facing budget-charge and non-billed activity rows", () => {
     Object.assign(globalThis, { React });
 
     const html = renderToStaticMarkup(
@@ -31,16 +32,15 @@ describe("AdvertiserActivityFeed", () => {
           status: "ready",
           activities: [
             {
-              activityId: "activity_1",
+              activityId: "debit_1",
               campaignId: "cmp_1",
-              status: "credited",
-              statusLabel: "Credited",
+              type: "advertiser_event",
+              status: "budgetDebited",
+              statusLabel: "Budget charged",
               counted: true,
-              viewDurationMs: 3100,
-              durationLabel: "3.1s",
-              developerCreditCents: 2,
-              developerCreditUsd: "0.02",
-              creditLabel: "$0.02",
+              amountMicrocents: 500,
+              durationLabel: "Billable impression",
+              creditLabel: "$0.005",
               createdAtMs: 2000,
             },
             {
@@ -62,8 +62,8 @@ describe("AdvertiserActivityFeed", () => {
     );
 
     expect(html).toContain("cmp_1");
-    expect(html).toContain("Credited");
-    expect(html).toContain("$0.02");
+    expect(html).toContain("Budget charged");
+    expect(html).toContain("$0.005");
     expect(html).toContain("cmp_2");
     expect(html).toContain("Too short");
     expect(html).toContain("0.9s");
@@ -143,13 +143,14 @@ describe("AdvertiserActivityFeed", () => {
         createdAtMs: 3000,
       },
       {
-        activityId: "credited_1",
+        activityId: "debit_1",
         campaignId: "cmp_billable",
-        status: "credited",
-        statusLabel: "Credited",
+        type: "advertiser_event",
+        status: "budgetDebited",
+        statusLabel: "Budget charged",
         counted: true,
-        durationLabel: "3.2s",
-        creditLabel: "$0.02",
+        durationLabel: "Billable impression",
+        creditLabel: "$0.005",
         createdAtMs: 2000,
       },
       {
@@ -225,5 +226,38 @@ describe("AdvertiserActivityFeed", () => {
     expect(html).toContain("funded_1");
     expect(html).toContain("Checkout session");
     expect(html).toContain("cs_test_123");
+  });
+
+  it("renders activity detail labels from the active locale", () => {
+    Object.assign(globalThis, { React });
+
+    const html = renderToStaticMarkup(
+      React.createElement(LocaleProvider, {
+        initialLocale: "zh",
+        children: React.createElement(AdvertiserActivityFeed, {
+          state: {
+            status: "ready",
+            activities: [
+              {
+                activityId: "funded_zh",
+                campaignId: "cmp_paid",
+                type: "advertiser_event",
+                status: "budgetFunded",
+                statusLabel: "预算已入账",
+                counted: true,
+                durationLabel: "付款已确认",
+                creditLabel: "$5.00",
+                checkoutSessionId: "cs_test_zh",
+                createdAtMs: 1_700_000_000_000,
+              },
+            ],
+          },
+        }),
+      }),
+    );
+
+    expect(html).toContain("详情");
+    expect(html).toContain("活动 ID");
+    expect(html).toContain("结账会话");
   });
 });

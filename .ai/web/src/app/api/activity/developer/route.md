@@ -65,3 +65,23 @@ failure metadata for dashboard display.
 
 `GET /api/activity/developer` now serializes `developer_event` payout rows with
 amount, provider event id, provider status, and provider code metadata.
+
+## Planned Change 2026-06-18 Developer/Advisor Boundary
+
+Keep developer/advisor activity focused on developer earnings and payout
+events. Do not serialize `advertiserId` to developer clients for impression
+attempt rows; the dashboard and CSV only need campaign id, status, duration,
+credit, and timestamps.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-18 | Planned developer/advisor activity boundary tightening. | Codex |
+
+## Implemented Change 2026-06-18 Developer/Advisor Boundary
+
+Developer activity serialization no longer includes `advertiserId` on
+impression-attempt rows. Developer/advisor rows still include the authenticated
+developer id, campaign id, status, duration, revenue/credit fields, and payout
+event metadata.

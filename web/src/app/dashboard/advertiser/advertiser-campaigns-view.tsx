@@ -73,7 +73,12 @@ function CampaignCardSkeleton() {
 
 export function AdvertiserCampaignsView() {
   const t = useT();
-  const { token, campaignsState, loadCampaigns } = useAdvertiserDashboard();
+  const {
+    token,
+    campaignsState,
+    loadCampaigns,
+    deleteCampaign,
+  } = useAdvertiserDashboard();
 
   // When the advertiser arrives here from a "Resume payment" action in the
   // activity feed (`?fund=<campaignId>`), bring that campaign's funding control
@@ -142,7 +147,11 @@ export function AdvertiserCampaignsView() {
       )}
 
       {campaignsState.status === "ready" && (
-        <CampaignList token={token} campaigns={campaignsState.campaigns} />
+        <CampaignList
+          token={token}
+          campaigns={campaignsState.campaigns}
+          deleteCampaign={deleteCampaign}
+        />
       )}
     </section>
   );

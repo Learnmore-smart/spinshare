@@ -50,3 +50,43 @@ Advertiser activity API pagination is wired into the dashboard:
 |------|--------|--------|
 | 2026-06-16 | Implemented advertiser activity load-more wiring and merge helper. | Codex |
 | 2026-06-16 | Created doc and planned advertiser activity load-more wiring. | Codex |
+
+## Planned Change 2026-06-18 Role-Safe Localized Activity Rows
+
+Normalize advertiser activity rows with the active locale copy instead of
+hardcoded English defaults. When appending later pages, preserve de-duplication
+and newest-first ordering while using the same locale copy for incoming rows.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-18 | Planned localized advertiser activity row normalization. | Codex |
+
+## Implemented Change 2026-06-18 Role-Safe Localized Activity Rows
+
+Advertiser activity initial loads and load-more merges now pass
+`t.activityFeed` into `toActivityFeedRows()`/`mergeActivityRows()`. The pure
+merge helper still defaults to English for tests and non-React callers.
+
+## Planned Change 2026-06-18 Delete Unpaid Campaign
+
+Expose a `deleteCampaign(campaignId)` dashboard action that calls
+`DELETE /api/campaigns` with the advertiser bearer token. On success, remove
+the deleted campaign from the current ready campaign list. Return localized
+session/network/error strings on failure so the campaign card can display them
+inline.
+
+## Implemented Change 2026-06-18 Delete Unpaid Campaign
+
+The dashboard context now exposes `deleteCampaign()`, sends authenticated
+`DELETE /api/campaigns` requests, removes successful deletions from ready
+campaign state, and returns structured success/error results for campaign-card
+UI.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-18 | Implemented dashboard context delete action for unpaid campaigns. | Codex |
+| 2026-06-18 | Planned dashboard context delete action for unpaid campaigns. | Codex |

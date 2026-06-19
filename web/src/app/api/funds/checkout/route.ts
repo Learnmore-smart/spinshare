@@ -27,6 +27,7 @@ import {
 } from "@spinshare/core";
 
 import { publicAdvertiserIdForEmail } from "@/server/advertiser-identity";
+import { creditCampaignBudgetWithReview } from "@/server/campaign-review";
 import { getContainer, type Container } from "@/server/container";
 import type { AuthClaims } from "@/server/ports/auth-provider";
 
@@ -189,7 +190,13 @@ export async function POST(request: Request): Promise<Response> {
   });
 
   if (checkout.settled === true) {
-    await campaigns.applyBudgetDeltaCents(campaign.id, amountCents);
+    // Pay-then-review: first funding gates the campaign through review before it
+    // can bid (see creditCampaignBudgetWithReview).
+    responseCampaign.reviewStatus = await creditCampaignBudgetWithReview(
+      campaigns,
+      campaign,
+      amountCents,
+    );
     responseCampaign.budgetCents += amountCents;
     await recordFundingActivity(container, {
       campaign,

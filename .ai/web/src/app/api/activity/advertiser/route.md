@@ -73,3 +73,27 @@ exist. Ownership filtering stays unchanged.
 The route now explicitly ignores `developer_event` rows if they ever appear in
 an activity record union. Advertiser timelines remain campaign-scoped and never
 show developer payout activity.
+
+## Planned Change 2026-06-18 Advertiser/User Boundary
+
+Keep advertiser/user activity focused on user-facing outcomes:
+
+- return advertiser money events, including `budgetDebited`, for billable
+  charges;
+- return non-billable impression attempts for explanation/debugging;
+- do not return credited impression attempts, because those are
+  developer/advisor earnings rows and duplicate the user-facing
+  `budgetDebited` event;
+- do not serialize `developerId` to advertiser clients.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-18 | Planned advertiser/user activity boundary tightening. | Codex |
+
+## Implemented Change 2026-06-18 Advertiser/User Boundary
+
+Advertiser activity serialization now skips credited impression attempts and
+does not serialize `developerId`. User-facing timelines keep advertiser events
+such as `budgetDebited` plus non-billable impression attempts.

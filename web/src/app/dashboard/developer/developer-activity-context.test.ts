@@ -1,7 +1,19 @@
 import { describe, expect, it } from "vitest";
 
 import { mergeDeveloperActivityRows } from "./developer-activity-context";
-import type { ActivityFeedRow } from "../activity-feed";
+import {
+  defaultActivityFeedCopy,
+  type ActivityFeedCopy,
+  type ActivityFeedRow,
+} from "../activity-feed";
+
+const localizedCopy: ActivityFeedCopy = {
+  ...defaultActivityFeedCopy,
+  statuses: {
+    ...defaultActivityFeedCopy.statuses,
+    credited: "Credite",
+  },
+};
 
 function row(activityId: string, createdAtMs: number): ActivityFeedRow {
   return {
@@ -52,5 +64,26 @@ describe("mergeDeveloperActivityRows", () => {
       "duplicate",
       "older",
     ]);
+  });
+
+  it("formats incoming activity pages with caller-supplied locale copy", () => {
+    const merged = mergeDeveloperActivityRows(
+      [],
+      [
+        {
+          activityId: "credited",
+          campaignId: "cmp_credited",
+          type: "impression_attempt",
+          status: "credited",
+          viewDurationMs: 3000,
+          developerCreditCents: 2,
+          developerCreditUsd: "0.02",
+          createdAtMs: 1000,
+        },
+      ],
+      localizedCopy,
+    );
+
+    expect(merged[0]?.statusLabel).toBe("Credite");
   });
 });

@@ -53,40 +53,91 @@ export interface ActivityDetailItem {
   value: string;
 }
 
-export function activityStatusLabel(status: ActivityFeedStatus): string {
-  switch (status) {
-    case "credited":
-      return "Credited";
-    case "tooShort":
-      return "Too short";
-    case "invalidToken":
-      return "Invalid token";
-    case "invalidCampaign":
-      return "Invalid campaign";
-    case "shadowBanned":
-      return "Suppressed";
-    case "earningCapped":
-      return "Earning cap";
-    case "duplicate":
-      return "Duplicate";
-    case "checkoutStarted":
-      return "Checkout started";
-    case "budgetFunded":
-      return "Budget funded";
-    case "budgetDebited":
-      return "Budget charged";
-    case "payoutPaid":
-      return "Payout paid";
-    case "payoutFailed":
-      return "Payout failed";
-    case "payoutBlocked":
-      return "Payout blocked";
-  }
+export interface ActivityFeedCopy {
+  statuses: Record<ActivityFeedStatus, string>;
+  eventLabels: {
+    checkoutCreated: string;
+    fundingConfirmed: string;
+    billableImpression: string;
+    advertiserEvent: string;
+    transferSent: string;
+    transferFailed: string;
+    notPaid: string;
+    developerEvent: string;
+  };
+  durationSeconds: (seconds: string) => string;
+  detailsSummary: string;
+  detailLabels: {
+    activityId: string;
+    campaignId: string;
+    status: string;
+    event: string;
+    duration: string;
+    amount: string;
+    created: string;
+    checkoutSession: string;
+    providerEvent: string;
+    providerStatus: string;
+    providerCode: string;
+  };
 }
 
-export function formatActivityDuration(viewDurationMs: number): string {
+export const defaultActivityFeedCopy: ActivityFeedCopy = {
+  statuses: {
+    credited: "Credited",
+    tooShort: "Too short",
+    invalidToken: "Invalid token",
+    invalidCampaign: "Invalid campaign",
+    shadowBanned: "Suppressed",
+    earningCapped: "Earning cap",
+    duplicate: "Duplicate",
+    checkoutStarted: "Checkout started",
+    budgetFunded: "Budget funded",
+    budgetDebited: "Budget charged",
+    payoutPaid: "Payout paid",
+    payoutFailed: "Payout failed",
+    payoutBlocked: "Payout blocked",
+  },
+  eventLabels: {
+    checkoutCreated: "Checkout created",
+    fundingConfirmed: "Funding confirmed",
+    billableImpression: "Billable impression",
+    advertiserEvent: "Advertiser event",
+    transferSent: "Transfer sent",
+    transferFailed: "Transfer failed",
+    notPaid: "Not paid",
+    developerEvent: "Developer event",
+  },
+  durationSeconds: (seconds) => `${seconds}s`,
+  detailsSummary: "Details",
+  detailLabels: {
+    activityId: "Activity ID",
+    campaignId: "Campaign ID",
+    status: "Status",
+    event: "Event",
+    duration: "Duration",
+    amount: "Amount",
+    created: "Created",
+    checkoutSession: "Checkout session",
+    providerEvent: "Provider event",
+    providerStatus: "Provider status",
+    providerCode: "Provider code",
+  },
+};
+
+export function activityStatusLabel(
+  status: ActivityFeedStatus,
+  copy: ActivityFeedCopy = defaultActivityFeedCopy,
+): string {
+  return copy.statuses[status];
+}
+
+export function formatActivityDuration(
+  viewDurationMs: number,
+  copy: ActivityFeedCopy = defaultActivityFeedCopy,
+): string {
   const safeMs = Math.max(0, viewDurationMs);
-  return `${(safeMs / 1000).toFixed(1)}s`;
+  return copy.durationSeconds((safeMs / 1000).toFixed(1));
 }
 
 function activityCreditLabel(activity: ActivityFeedSource): string {
@@ -135,42 +186,46 @@ function formatMicrocentsAsUsd(microcents: number): string {
   return `${sign}$${trimmed}`;
 }
 
-function activityDurationLabel(activity: ActivityFeedSource): string {
+function activityDurationLabel(
+  activity: ActivityFeedSource,
+  copy: ActivityFeedCopy,
+): string {
   if (activity.type === "advertiser_event") {
     switch (activity.status) {
       case "checkoutStarted":
-        return "Checkout created";
+        return copy.eventLabels.checkoutCreated;
       case "budgetFunded":
-        return "Funding confirmed";
+        return copy.eventLabels.fundingConfirmed;
       case "budgetDebited":
-        return "Billable impression";
+        return copy.eventLabels.billableImpression;
       default:
-        return "Advertiser event";
+        return copy.eventLabels.advertiserEvent;
     }
   }
   if (activity.type === "developer_event") {
     switch (activity.status) {
       case "payoutPaid":
-        return "Transfer sent";
+        return copy.eventLabels.transferSent;
       case "payoutFailed":
-        return "Transfer failed";
+        return copy.eventLabels.transferFailed;
       case "payoutBlocked":
-        return "Not paid";
+        return copy.eventLabels.notPaid;
       default:
-        return "Developer event";
+        return copy.eventLabels.developerEvent;
     }
   }
-  return formatActivityDuration(activity.viewDurationMs ?? 0);
+  return formatActivityDuration(activity.viewDurationMs ?? 0, copy);
 }
 
 export function toActivityFeedRows(
   activities: readonly ActivityFeedSource[],
+  copy: ActivityFeedCopy = defaultActivityFeedCopy,
 ): ActivityFeedRow[] {
   return activities
     .map((activity) => ({
       ...activity,
-      statusLabel: activityStatusLabel(activity.status),
-      durationLabel: activityDurationLabel(activity),
+      statusLabel: activityStatusLabel(activity.status, copy),
+      durationLabel: activityDurationLabel(activity, copy),
       creditLabel: activityCreditLabel(activity),
       counted:
         activity.status === "credited" ||
@@ -183,45 +238,53 @@ export function toActivityFeedRows(
 
 export function activityDetailItems(
   activity: ActivityFeedRow,
-  options: { amountLabel?: string } = {},
+  options: { amountLabel?: string; copy?: ActivityFeedCopy } = {},
 ): ActivityDetailItem[] {
+  const copy = options.copy ?? defaultActivityFeedCopy;
+  const labels = copy.detailLabels;
   const items: ActivityDetailItem[] = [
-    { label: "Activity ID", value: activity.activityId },
-    { label: "Campaign ID", value: activity.campaignId },
-    { label: "Status", value: activity.statusLabel },
+    { label: labels.activityId, value: activity.activityId },
+    { label: labels.campaignId, value: activity.campaignId },
+    { label: labels.status, value: activity.statusLabel },
     {
       label:
         activity.type === "advertiser_event" ||
         activity.type === "developer_event"
-          ? "Event"
-          : "Duration",
+          ? labels.event
+          : labels.duration,
       value: activity.durationLabel,
     },
-    { label: options.amountLabel ?? "Amount", value: activity.creditLabel },
-    { label: "Created", value: new Date(activity.createdAtMs).toISOString() },
+    {
+      label: options.amountLabel ?? labels.amount,
+      value: activity.creditLabel,
+    },
+    {
+      label: labels.created,
+      value: new Date(activity.createdAtMs).toISOString(),
+    },
   ];
 
   if (activity.checkoutSessionId !== undefined) {
     items.push({
-      label: "Checkout session",
+      label: labels.checkoutSession,
       value: activity.checkoutSessionId,
     });
   }
   if (activity.providerEventId !== undefined) {
     items.push({
-      label: "Provider event",
+      label: labels.providerEvent,
       value: activity.providerEventId,
     });
   }
   if (activity.providerStatus !== undefined) {
     items.push({
-      label: "Provider status",
+      label: labels.providerStatus,
       value: String(activity.providerStatus),
     });
   }
   if (activity.providerCode !== undefined) {
     items.push({
-      label: "Provider code",
+      label: labels.providerCode,
       value: activity.providerCode,
     });
   }

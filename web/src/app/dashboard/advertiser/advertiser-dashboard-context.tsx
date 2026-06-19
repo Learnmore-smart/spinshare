@@ -4,7 +4,9 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 import { usePathname } from "next/navigation";
 import { useT } from "@/lib/i18n/locale-provider";
 import {
+  defaultActivityFeedCopy,
   toActivityFeedRows,
+  type ActivityFeedCopy,
   type ActivityFeedRow,
   type ActivityFeedSource,
 } from "../activity-feed";
@@ -30,6 +32,10 @@ export type UpdateCampaignResult =
   | { ok: true; campaign: CampaignView }
   | { ok: false; error: string };
 
+export type DeleteCampaignResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
 interface AdvertiserDashboardData {
   token: string;
   campaignsState: LoadState;
@@ -42,6 +48,7 @@ interface AdvertiserDashboardData {
     campaignId: string,
     patch: CampaignEditPatch,
   ) => Promise<UpdateCampaignResult>;
+  deleteCampaign: (campaignId: string) => Promise<DeleteCampaignResult>;
 }
 
 interface ActivityApiResponse {
@@ -54,6 +61,7 @@ const AdvertiserDashboardContext = createContext<AdvertiserDashboardData | null>
 export function mergeActivityRows(
   existing: readonly ActivityFeedRow[],
   incoming: readonly ActivityFeedSource[],
+  copy: ActivityFeedCopy = defaultActivityFeedCopy,
 ): ActivityFeedRow[] {
   const byId = new Map<string, ActivityFeedSource>();
   for (const activity of existing) {
@@ -64,7 +72,7 @@ export function mergeActivityRows(
       byId.set(activity.activityId, activity);
     }
   }
-  return toActivityFeedRows([...byId.values()]);
+  return toActivityFeedRows([...byId.values()], copy);
 }
 
 export function AdvertiserDashboardProviderClient({
@@ -121,7 +129,7 @@ export function AdvertiserDashboardProviderClient({
       const body = (await response.json()) as ActivityApiResponse;
       setActivityState({
         status: "ready",
-        activities: toActivityFeedRows(body.activities),
+        activities: toActivityFeedRows(body.activities, t.activityFeed),
         ...(body.nextCursor !== undefined ? { nextCursor: body.nextCursor } : {}),
       });
     } catch {
@@ -169,7 +177,11 @@ export function AdvertiserDashboardProviderClient({
       const body = (await response.json()) as ActivityApiResponse;
       setActivityState({
         status: "ready",
-        activities: mergeActivityRows(current.activities, body.activities),
+        activities: mergeActivityRows(
+          current.activities,
+          body.activities,
+          t.activityFeed,
+        ),
         ...(body.nextCursor !== undefined ? { nextCursor: body.nextCursor } : {}),
       });
     } catch {
@@ -256,6 +268,45 @@ export function AdvertiserDashboardProviderClient({
     [token, t],
   );
 
+  const deleteCampaign = useCallback(
+    async (campaignId: string): Promise<DeleteCampaignResult> => {
+      try {
+        const response = await fetch("/api/campaigns", {
+          method: "DELETE",
+          headers: {
+            "content-type": "application/json",
+            authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ campaignId }),
+        });
+        if (response.ok) {
+          setCampaignsState((prev) =>
+            prev.status === "ready"
+              ? {
+                  status: "ready",
+                  campaigns: prev.campaigns.filter((c) => c.id !== campaignId),
+                }
+              : prev,
+          );
+          return { ok: true };
+        }
+        if (response.status === 401) {
+          return { ok: false, error: t.advertiserDashboard.sessionExpired };
+        }
+        const body = (await response.json().catch(() => null)) as
+          | { error?: string }
+          | null;
+        return {
+          ok: false,
+          error: body?.error ?? t.advertiserDashboard.campaignRejected,
+        };
+      } catch {
+        return { ok: false, error: t.advertiserDashboard.networkError };
+      }
+    },
+    [token, t],
+  );
+
   return (
     <AdvertiserDashboardContext.Provider
       value={{
@@ -267,6 +318,7 @@ export function AdvertiserDashboardProviderClient({
         loadMoreActivity,
         handleCreated,
         updateCampaign,
+        deleteCampaign,
       }}
     >
       {children}

@@ -101,3 +101,33 @@ places.
 | Date | Bug | Cause | Fix |
 |------|-----|-------|-----|
 | 2026-06-18 | `$5 CPM` credited impressions displayed as `$0.00` in recent credit. | Per-impression developer credit is stored in whole cents, so sub-cent rows round to zero before UI formatting. | Display credited non-zero sub-cent rows using derived micro-cent precision from the row revenue. |
+
+## Planned Change 2026-06-18 Localized Activity Labels
+
+Move shared activity status, event/duration, and details labels behind a typed
+copy object supplied by the active dictionary. Keep English defaults for pure
+helper tests and callers that do not have i18n context. Dashboard providers
+should pass the current locale copy when normalizing API rows so en/zh/fr users
+do not see hardcoded English row text.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-18 | Planned localized shared activity labels for dashboard rows and details. | Codex |
+
+## Implemented Change 2026-06-18 Localized Activity Labels
+
+`ActivityFeedCopy` and `defaultActivityFeedCopy` now provide shared row status,
+event/duration, detail summary, and detail field labels. `toActivityFeedRows()`,
+`activityStatusLabel()`, `formatActivityDuration()`, and
+`activityDetailItems()` accept caller-supplied copy while preserving English
+defaults for pure callers.
+
+## Verification 2026-06-18 Localized Activity Labels
+
+- RED focused run failed on missing copy support and role-boundary assertions.
+- GREEN focused run passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/dashboard/activity-feed.test.ts src/app/api/activity/advertiser/route.test.ts src/app/api/activity/developer/route.test.ts src/app/dashboard/advertiser/advertiser-dashboard-context.test.ts src/app/dashboard/developer/developer-activity-context.test.ts src/app/dashboard/advertiser/advertiser-activity-feed.test.tsx`.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web test` passed with 347 tests and 1 skipped.

@@ -34,3 +34,21 @@ Static render tests for advertiser activity feed component.
 | 2026-06-16 | Planned activity filtering and CSV export coverage. | Codex |
 | 2026-06-16 | Added load-more and loading-more/error coverage. | Codex |
 | 2026-06-15 | Created doc before adding advertiser activity feed tests. | Codex |
+
+## Planned Coverage 2026-06-18 Role-Safe Activity Feed
+
+- Update render expectations so advertiser rows use budget-charge events and
+  non-billed attempts, not developer-facing `credited` rows.
+- Add localized render coverage for the details summary and detail labels.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-18 | Planned role-safe and localized advertiser activity feed coverage. | Codex |
+
+## Implemented Coverage 2026-06-18 Role-Safe Activity Feed
+
+Updated advertiser feed render/filter tests to use budget-charge rows for
+billable user-facing activity. Added localized details coverage through the
+Chinese locale provider.

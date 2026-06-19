@@ -103,8 +103,21 @@ scannable, not a marketing layout.
 Added responsive campaign detail-card, edit-form, destination, review banner,
 unfunded, buy-time CPM, stats-page, and `needsLink` status badge/dot styles.
 
+## Planned Change 2026-06-18 Campaign Card Cancel Polish
+
+Remove the campaign card's left accent border. Add a compact action row for the
+buy/cancel buttons, where the unpaid cancel button uses a transparent background
+and subtle danger-colored text/border so it does not compete with the pay CTA.
+
+## Implemented Change 2026-06-18 Campaign Card Cancel Polish
+
+Campaign cards no longer set a thicker left border or status-specific left
+border colors. Buy controls use a compact action row, and unpaid cancel buttons
+use transparent red outline styling with dark-mode variants.
+
 ## Verification (2026-06-18)
 
+- `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts src/app/dashboard/advertiser/campaign-list.test.tsx src/app/dashboard/advertiser/advertiser-dashboard-context.test.ts src/server/bidding-service.test.ts` passed.
 - `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
 - `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/dashboard/advertiser/advertiser-dashboard.test.tsx src/app/dashboard/advertiser/campaign-list.test.tsx` passed.
 - Authenticated local Chrome render of `http://localhost:3000/dashboard/advertiser`
@@ -127,6 +140,8 @@ unfunded, buy-time CPM, stats-page, and `needsLink` status badge/dot styles.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented campaign-card left-border removal and transparent unpaid cancel styling. | Codex |
+| 2026-06-18 | Planned campaign-card left-border removal and transparent unpaid cancel styling. | Codex |
 | 2026-06-18 | Implemented campaign detail-card, stats, and needs-link styles. | Codex |
 | 2026-06-18 | Planned campaign detail-card, stats, and needs-link styles. | Codex |
 | 2026-06-18 | Implemented advertiser orange visibility polish and verified rendered styles. | Codex |

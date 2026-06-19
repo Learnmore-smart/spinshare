@@ -30,7 +30,10 @@ import {
 } from "@spinshare/core";
 
 import { publicAdvertiserIdForEmail } from "@/server/advertiser-identity";
-import { reviewCampaignContent } from "@/server/campaign-review";
+import {
+  creditCampaignBudgetWithReview,
+  reviewCampaignContent,
+} from "@/server/campaign-review";
 import { reconcilePaidCheckoutSessionsForCampaigns } from "@/server/checkout-reconciliation";
 import { getContainer, type Container } from "@/server/container";
 import type { CampaignUpdate } from "@/server/ports/campaign-repository";
@@ -265,7 +268,13 @@ export async function POST(request: Request): Promise<Response> {
   });
 
   if (checkout.settled === true) {
-    await campaigns.applyBudgetDeltaCents(campaign.id, directCheckoutAmountCents);
+    // Pay-then-review: crediting a campaign's first budget parks it in review
+    // before it can bid (see creditCampaignBudgetWithReview).
+    responseCampaign.reviewStatus = await creditCampaignBudgetWithReview(
+      campaigns,
+      campaign,
+      directCheckoutAmountCents,
+    );
     responseCampaign.budgetCents += directCheckoutAmountCents;
     await recordCheckoutActivity(container, {
       campaign,
@@ -429,4 +438,60 @@ export async function PATCH(request: Request): Promise<Response> {
 
   const updated = await campaigns.update(campaignId, patch);
   return Response.json(toCampaignView(updated), { status: 200 });
+}
+
+/**
+ * `DELETE /api/campaigns` permanently removes an owned unpaid campaign.
+ *
+ * The UI only exposes this for never-funded cards; the route also protects the
+ * storage boundary by rejecting campaigns with remaining budget or activity.
+ */
+export async function DELETE(request: Request): Promise<Response> {
+  const claims = await resolveAdvertiserClaims(request);
+  if (claims === null) {
+    return unauthorized();
+  }
+
+  let rawBody: unknown;
+  try {
+    rawBody = await request.json();
+  } catch {
+    return Response.json({ error: "invalid_request_body" }, { status: 400 });
+  }
+  if (typeof rawBody !== "object" || rawBody === null) {
+    return Response.json({ error: "invalid_request_body" }, { status: 400 });
+  }
+  const { campaignId } = rawBody as Record<string, unknown>;
+  if (typeof campaignId !== "string" || campaignId.trim().length === 0) {
+    return Response.json({ error: "Campaign id is required" }, { status: 400 });
+  }
+
+  const container = getContainer();
+  const { campaigns, counters, ledger } = container;
+  const existing = await campaigns.getById(campaignId);
+  if (existing === null) {
+    return Response.json({ error: "campaign_not_found" }, { status: 404 });
+  }
+  if (!allowedAdvertiserIds(claims).has(existing.advertiserId)) {
+    return Response.json({ error: "forbidden" }, { status: 403 });
+  }
+  if (existing.budgetCents > 0) {
+    return Response.json({ error: "campaign_has_budget" }, { status: 409 });
+  }
+
+  const [telemetry, durableImpressions] = await Promise.all([
+    readCampaignTelemetry(counters, [campaignId]),
+    readDurableImpressions(ledger, [campaignId]),
+  ]);
+  const campaignTelemetry = telemetry[campaignId] ?? zeroCampaignTelemetry();
+  if (
+    campaignTelemetry.shows > 0 ||
+    campaignTelemetry.credited > 0 ||
+    (durableImpressions[campaignId] ?? 0) > 0
+  ) {
+    return Response.json({ error: "campaign_has_activity" }, { status: 409 });
+  }
+
+  await campaigns.delete(campaignId);
+  return Response.json({ deleted: true, campaignId });
 }

@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   activityDetailItems,
   activityStatusLabel,
+  defaultActivityFeedCopy,
   formatActivityDuration,
   toActivityFeedRows,
+  type ActivityFeedCopy,
   type ActivityFeedSource,
 } from "./activity-feed";
 
@@ -16,6 +18,27 @@ const credited: ActivityFeedSource = {
   developerCreditCents: 2,
   developerCreditUsd: "0.02",
   createdAtMs: 1000,
+};
+
+const localizedCopy: ActivityFeedCopy = {
+  ...defaultActivityFeedCopy,
+  statuses: {
+    ...defaultActivityFeedCopy.statuses,
+    budgetDebited: "Budget debite",
+  },
+  eventLabels: {
+    ...defaultActivityFeedCopy.eventLabels,
+    billableImpression: "Impression facturable",
+  },
+  detailLabels: {
+    ...defaultActivityFeedCopy.detailLabels,
+    activityId: "ID activite",
+    campaignId: "ID campagne",
+    status: "Statut",
+    event: "Evenement",
+    amount: "Montant",
+    created: "Cree",
+  },
 };
 
 describe("activity feed helpers", () => {
@@ -100,6 +123,42 @@ describe("activity feed helpers", () => {
       creditLabel: "$75.00",
       counted: true,
     });
+  });
+
+  it("formats activity rows and detail labels with caller-supplied locale copy", () => {
+    const [row] = toActivityFeedRows(
+      [
+        {
+          activityId: "debit_1",
+          campaignId: "cmp_localized",
+          type: "advertiser_event",
+          status: "budgetDebited",
+          amountMicrocents: 500,
+          createdAtMs: 1_700_000_000_000,
+        },
+      ],
+      localizedCopy,
+    );
+    expect(row).toBeDefined();
+
+    expect(row).toMatchObject({
+      statusLabel: "Budget debite",
+      durationLabel: "Impression facturable",
+      creditLabel: "$0.005",
+    });
+    expect(
+      activityDetailItems(row!, {
+        amountLabel: localizedCopy.detailLabels.amount,
+        copy: localizedCopy,
+      }),
+    ).toEqual([
+      { label: "ID activite", value: "debit_1" },
+      { label: "ID campagne", value: "cmp_localized" },
+      { label: "Statut", value: "Budget debite" },
+      { label: "Evenement", value: "Impression facturable" },
+      { label: "Montant", value: "$0.005" },
+      { label: "Cree", value: "2023-11-14T22:13:20.000Z" },
+    ]);
   });
 
   it("formats developer payout events with provider trace details", () => {

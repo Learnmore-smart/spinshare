@@ -41,7 +41,10 @@ import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n/locale-provider";
 import { translateValidationError } from "@/lib/i18n/translate-validation-error";
 
-import { useAdvertiserDashboard } from "./advertiser-dashboard-context";
+import {
+  useAdvertiserDashboard,
+  type DeleteCampaignResult,
+} from "./advertiser-dashboard-context";
 import {
   adTextState,
   campaignTelemetry,
@@ -67,9 +70,15 @@ export interface CampaignListProps {
   token: string;
   /** Campaigns owned by the advertiser, already enriched with USD strings. */
   campaigns: CampaignView[];
+  /** Permanently deletes an unpaid campaign after server-side ownership checks. */
+  deleteCampaign?: (campaignId: string) => Promise<DeleteCampaignResult>;
 }
 
-export function CampaignList({ token, campaigns }: CampaignListProps) {
+export function CampaignList({
+  token,
+  campaigns,
+  deleteCampaign = async () => ({ ok: true }),
+}: CampaignListProps) {
   const t = useT();
   if (campaigns.length === 0) {
     return (
@@ -87,7 +96,11 @@ export function CampaignList({ token, campaigns }: CampaignListProps) {
     <ul className="adv-camp-grid" data-testid="campaigns-list">
       {campaigns.map((campaign) => (
         <li key={campaign.id} className="adv-camp-grid-item">
-          <CampaignCard token={token} campaign={campaign} />
+          <CampaignCard
+            token={token}
+            campaign={campaign}
+            deleteCampaign={deleteCampaign}
+          />
         </li>
       ))}
     </ul>
@@ -127,7 +140,15 @@ function readFileAsDataUrl(file: File): Promise<string> {
 }
 
 /** A single campaign card: details (view), inline edit, and buy control. */
-function CampaignCard({ token, campaign }: { token: string; campaign: CampaignView }) {
+function CampaignCard({
+  token,
+  campaign,
+  deleteCampaign,
+}: {
+  token: string;
+  campaign: CampaignView;
+  deleteCampaign: (campaignId: string) => Promise<DeleteCampaignResult>;
+}) {
   const t = useT();
   const [editing, setEditing] = useState(false);
 
@@ -178,6 +199,7 @@ function CampaignCard({ token, campaign }: { token: string; campaign: CampaignVi
           campaign={campaign}
           status={status}
           neverFunded={neverFunded}
+          deleteCampaign={deleteCampaign}
         />
       )}
     </article>
@@ -189,11 +211,13 @@ function CampaignCardBody({
   campaign,
   status,
   neverFunded,
+  deleteCampaign,
 }: {
   token: string;
   campaign: CampaignView;
   status: CampaignDisplayStatus;
   neverFunded: boolean;
+  deleteCampaign: (campaignId: string) => Promise<DeleteCampaignResult>;
 }) {
   const t = useT();
   const telemetry = campaignTelemetry(campaign);
@@ -338,7 +362,12 @@ function CampaignCardBody({
         </>
       )}
 
-      <BuyControl token={token} campaign={campaign} />
+      <BuyControl
+        token={token}
+        campaign={campaign}
+        canDelete={neverFunded}
+        deleteCampaign={deleteCampaign}
+      />
     </>
   );
 }
@@ -543,12 +572,23 @@ function CampaignEditForm({
 }
 
 /** Buy-more-impressions control: block count + optional new CPM. */
-function BuyControl({ token, campaign }: { token: string; campaign: CampaignView }) {
+function BuyControl({
+  token,
+  campaign,
+  canDelete,
+  deleteCampaign,
+}: {
+  token: string;
+  campaign: CampaignView;
+  canDelete: boolean;
+  deleteCampaign: (campaignId: string) => Promise<DeleteCampaignResult>;
+}) {
   const t = useT();
   const [blocks, setBlocks] = useState("");
   const [newCpm, setNewCpm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   async function buyMoreImpressions(): Promise<void> {
     setError(null);
@@ -606,6 +646,16 @@ function BuyControl({ token, campaign }: { token: string; campaign: CampaignView
     }
   }
 
+  async function deleteUnpaidCampaign(): Promise<void> {
+    setError(null);
+    setDeleteBusy(true);
+    const result = await deleteCampaign(campaign.id);
+    setDeleteBusy(false);
+    if (!result.ok) {
+      setError(result.error);
+    }
+  }
+
   return (
     <div className="adv-camp-buy">
       <label htmlFor={`funds-${campaign.id}`} className="adv-dash-campaign-buy-label">
@@ -642,16 +692,30 @@ function BuyControl({ token, campaign }: { token: string; campaign: CampaignView
           />
         </div>
       </div>
-      <Button
-        type="button"
-        variant="default"
-        disabled={busy}
-        className="adv-dash-campaign-buy-button font-bold text-white"
-        onClick={() => void buyMoreImpressions()}
-      >
-        <CreditCard className="h-4 w-4" aria-hidden />
-        {busy ? t.advertiserDashboard.redirecting : t.advertiserDashboard.addFunds}
-      </Button>
+      <div className="adv-camp-buy-actions">
+        <Button
+          type="button"
+          variant="default"
+          disabled={busy || deleteBusy}
+          className="adv-dash-campaign-buy-button font-bold text-white"
+          onClick={() => void buyMoreImpressions()}
+        >
+          <CreditCard className="h-4 w-4" aria-hidden />
+          {busy ? t.advertiserDashboard.redirecting : t.advertiserDashboard.addFunds}
+        </Button>
+        {canDelete ? (
+          <button
+            type="button"
+            className="adv-camp-delete-btn"
+            disabled={busy || deleteBusy}
+            onClick={() => void deleteUnpaidCampaign()}
+            aria-label={t.advertiserDashboard.cancel}
+          >
+            <X className="h-3.5 w-3.5" aria-hidden />
+            {t.advertiserDashboard.cancel}
+          </button>
+        ) : null}
+      </div>
       <p className="adv-dash-campaign-buy-hint">{t.advertiserDashboard.addFundsHint}</p>
       {error !== null && (
         <p className="mt-1 text-sm font-semibold text-destructive" role="alert">{error}</p>

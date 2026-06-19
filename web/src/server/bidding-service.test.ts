@@ -286,6 +286,9 @@ describe("selectAd — timeout fallback (R1.7)", () => {
       update: async () => {
         throw new Error("not implemented");
       },
+      delete: async () => {
+        throw new Error("not implemented");
+      },
       updateReviewStatus: async () => {},
     };
 
@@ -311,6 +314,9 @@ describe("selectAd — timeout fallback (R1.7)", () => {
       listByAdvertiser: async () => [],
       applyBudgetDeltaCents: async () => {},
       update: async () => {
+        throw new Error("not implemented");
+      },
+      delete: async () => {
         throw new Error("not implemented");
       },
       updateReviewStatus: async () => {},

@@ -56,7 +56,7 @@ describe("GET /api/activity/advertiser", () => {
     expect(body.error).toBe("unauthorized");
   });
 
-  it("returns activity for campaigns owned by user id or claimed public email", async () => {
+  it("returns user-facing activity for campaigns owned by user id or claimed public email", async () => {
     const container = getContainer();
     const directCampaign = await container.campaigns.create({
       advertiserId: "adv-1",
@@ -110,6 +110,17 @@ describe("GET /api/activity/advertiser", () => {
       createdAtMs: 2500,
     });
     await activities.record({
+      activityId: "activity-debited",
+      campaignId: directCampaign.id,
+      advertiserId: "adv-1",
+      type: "advertiser_event",
+      status: "budgetDebited",
+      amountMicrocents: 3000,
+      amountUsd: "0.030",
+      providerEventId: "evt_debit",
+      createdAtMs: 2600,
+    });
+    await activities.record({
       activityId: "activity-other",
       campaignId: otherCampaign.id,
       advertiserId: "adv-other",
@@ -130,6 +141,17 @@ describe("GET /api/activity/advertiser", () => {
     expect(response.status).toBe(200);
     expect(body.activities).toEqual([
       {
+        activityId: "activity-debited",
+        campaignId: directCampaign.id,
+        advertiserId: "adv-1",
+        type: "advertiser_event",
+        status: "budgetDebited",
+        amountMicrocents: 3000,
+        amountUsd: "0.030",
+        providerEventId: "evt_debit",
+        createdAtMs: 2600,
+      },
+      {
         activityId: "activity-funded",
         campaignId: publicCampaign.id,
         advertiserId: publicCampaign.advertiserId,
@@ -144,7 +166,6 @@ describe("GET /api/activity/advertiser", () => {
         activityId: "activity-public",
         campaignId: publicCampaign.id,
         advertiserId: publicCampaign.advertiserId,
-        developerId: "dev-2",
         type: "impression_attempt",
         status: "tooShort",
         viewDurationMs: 900,
@@ -153,20 +174,13 @@ describe("GET /api/activity/advertiser", () => {
         developerCreditUsd: "0.00",
         createdAtMs: 2000,
       },
-      {
-        activityId: "activity-direct",
-        campaignId: directCampaign.id,
-        advertiserId: "adv-1",
-        developerId: "dev-1",
-        type: "impression_attempt",
-        status: "credited",
-        viewDurationMs: 3000,
-        revenueMicrocents: 3000,
-        developerCreditCents: 2,
-        developerCreditUsd: "0.02",
-        createdAtMs: 1000,
-      },
     ]);
+    expect(JSON.stringify(body.activities)).not.toContain("developerId");
+    expect(
+      body.activities.map(
+        (activity: { activityId: string }) => activity.activityId,
+      ),
+    ).not.toContain("activity-direct");
   });
 
   it("returns owned activity as newest-first bounded pages with a cursor", async () => {
@@ -183,7 +197,7 @@ describe("GET /api/activity/advertiser", () => {
         campaignId: campaign.id,
         advertiserId: "adv-1",
         developerId: `dev-${index}`,
-        status: index === 1 ? "tooShort" : "credited",
+        status: index === 1 ? "tooShort" : "duplicate",
         viewDurationMs: index * 1000,
         revenueMicrocents: 0,
         developerCreditCents: 0,

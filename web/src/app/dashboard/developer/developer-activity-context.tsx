@@ -10,7 +10,9 @@ import {
 } from "react";
 import { useT } from "@/lib/i18n/locale-provider";
 import {
+  defaultActivityFeedCopy,
   toActivityFeedRows,
+  type ActivityFeedCopy,
   type ActivityFeedRow,
   type ActivityFeedSource,
 } from "../activity-feed";
@@ -44,6 +46,7 @@ const DeveloperActivityContext = createContext<DeveloperActivityData | null>(
 export function mergeDeveloperActivityRows(
   existing: readonly ActivityFeedRow[],
   incoming: readonly ActivityFeedSource[],
+  copy: ActivityFeedCopy = defaultActivityFeedCopy,
 ): ActivityFeedRow[] {
   const byId = new Map<string, ActivityFeedSource>();
   for (const activity of existing) {
@@ -54,7 +57,7 @@ export function mergeDeveloperActivityRows(
       byId.set(activity.activityId, activity);
     }
   }
-  return toActivityFeedRows([...byId.values()]);
+  return toActivityFeedRows([...byId.values()], copy);
 }
 
 export function DeveloperActivityProviderClient({
@@ -86,7 +89,7 @@ export function DeveloperActivityProviderClient({
       const body = (await response.json()) as ActivityApiResponse;
       setActivityState({
         status: "ready",
-        activities: toActivityFeedRows(body.activities),
+        activities: toActivityFeedRows(body.activities, t.activityFeed),
         ...(body.nextCursor !== undefined
           ? { nextCursor: body.nextCursor }
           : {}),
@@ -139,6 +142,7 @@ export function DeveloperActivityProviderClient({
         activities: mergeDeveloperActivityRows(
           current.activities,
           body.activities,
+          t.activityFeed,
         ),
         ...(body.nextCursor !== undefined
           ? { nextCursor: body.nextCursor }

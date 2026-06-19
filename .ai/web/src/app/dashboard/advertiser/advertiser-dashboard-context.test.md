@@ -23,3 +23,20 @@ Focused verification passed:
 |------|--------|--------|
 | 2026-06-16 | Added and verified mergeActivityRows coverage. | Codex |
 | 2026-06-16 | Created test plan for advertiser activity page merging. | Codex |
+
+## Planned Coverage 2026-06-18 Localized Merge
+
+Add RED coverage that `mergeActivityRows()` accepts locale copy and applies it
+to incoming rows, so later loaded advertiser activity pages do not fall back to
+English labels.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-18 | Planned localized mergeActivityRows coverage. | Codex |
+
+## Implemented Coverage 2026-06-18 Localized Merge
+
+Added `mergeActivityRows()` coverage proving incoming activity pages are
+formatted with caller-supplied locale copy.

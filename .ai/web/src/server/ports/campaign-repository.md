@@ -54,10 +54,24 @@ campaigns that cannot produce a safe click-through destination.
 The port documentation now defines biddable as paid, active, approved, and
 having a valid public HTTPS destination URL.
 
+## Planned Change 2026-06-18 Delete Unpaid Campaign
+
+Add a `delete(id)` repository method so the authenticated campaigns route can
+permanently remove an unpaid campaign after it has checked ownership and zero
+budget. The port remains storage-only; authorization and unpaid checks stay in
+the route.
+
+## Implemented Change 2026-06-18 Delete Unpaid Campaign
+
+`CampaignRepository` now includes `delete(id): Promise<void>` for permanent
+campaign removal after route-level authorization and unpaid checks.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented repository delete method for unpaid campaign removal. | Codex |
+| 2026-06-18 | Planned repository delete method for unpaid campaign removal. | Codex |
 | 2026-06-18 | Implemented destination-required biddability contract docs. | Codex |
 | 2026-06-18 | Documented destination-required biddability contract. | Codex |
 | 2026-06-16 | Added campaign review status creation/update contract. | Codex |

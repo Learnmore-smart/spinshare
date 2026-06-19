@@ -127,3 +127,22 @@ Added `advertiserDashboard.statusNeedsLink` to the dictionary contract.
 | 2026-06-16 | Planned advertiser activity control copy keys. | Codex |
 | 2026-06-16 | Added advertiser activity load-more copy keys. | Codex |
 | 2026-06-16 | Created doc and planned advertiser activity load-more copy keys. | Codex |
+
+## Planned Change 2026-06-18 Activity Feed Copy
+
+Add a typed top-level `activityFeed` dictionary section for shared activity row
+labels, event labels, duration formatting, details summary text, and detail
+field labels. This keeps activity-feed helpers and dashboard components
+localized for en/zh/fr without tying them to a specific dashboard role.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-18 | Planned shared activity feed copy contract. | Codex |
+
+## Implemented Change 2026-06-18 Activity Feed Copy
+
+Added the top-level `activityFeed` dictionary contract with status labels,
+event labels, duration formatting, details summary text, and detail field
+labels.

@@ -79,6 +79,7 @@ type ExtraDictionary = Pick<
   Dictionary,
   | "navAuth"
   | "dashboardCommon"
+  | "activityFeed"
   | "developerDashboard"
   | "setupGuide"
   | "activate"
@@ -100,6 +101,48 @@ export const extraEn: ExtraDictionary = {
     roleSwitcherAria: "Switch dashboard role",
     roleDeveloper: "Developer",
     roleAdvertiser: "Advertiser",
+  },
+  activityFeed: {
+    statuses: {
+      credited: "Credited",
+      tooShort: "Too short",
+      invalidToken: "Invalid token",
+      invalidCampaign: "Invalid campaign",
+      shadowBanned: "Suppressed",
+      earningCapped: "Earning cap",
+      duplicate: "Duplicate",
+      checkoutStarted: "Checkout started",
+      budgetFunded: "Budget funded",
+      budgetDebited: "Budget charged",
+      payoutPaid: "Payout paid",
+      payoutFailed: "Payout failed",
+      payoutBlocked: "Payout blocked",
+    },
+    eventLabels: {
+      checkoutCreated: "Checkout created",
+      fundingConfirmed: "Funding confirmed",
+      billableImpression: "Billable impression",
+      advertiserEvent: "Advertiser event",
+      transferSent: "Transfer sent",
+      transferFailed: "Transfer failed",
+      notPaid: "Not paid",
+      developerEvent: "Developer event",
+    },
+    durationSeconds: (seconds) => `${seconds}s`,
+    detailsSummary: "Details",
+    detailLabels: {
+      activityId: "Activity ID",
+      campaignId: "Campaign ID",
+      status: "Status",
+      event: "Event",
+      duration: "Duration",
+      amount: "Amount",
+      created: "Created",
+      checkoutSession: "Checkout session",
+      providerEvent: "Provider event",
+      providerStatus: "Provider status",
+      providerCode: "Provider code",
+    },
   },
   developerDashboard: {
     yourBalance: "Your balance",
@@ -418,6 +461,48 @@ export const extraZh: ExtraDictionary = {
     roleDeveloper: "开发者",
     roleAdvertiser: "广告主",
   },
+  activityFeed: {
+    statuses: {
+      credited: "已入账",
+      tooShort: "时长过短",
+      invalidToken: "凭证无效",
+      invalidCampaign: "广告无效",
+      shadowBanned: "已抑制",
+      earningCapped: "收益上限",
+      duplicate: "重复",
+      checkoutStarted: "已开始付款",
+      budgetFunded: "预算已入账",
+      budgetDebited: "预算已扣费",
+      payoutPaid: "已提现",
+      payoutFailed: "提现失败",
+      payoutBlocked: "提现受阻",
+    },
+    eventLabels: {
+      checkoutCreated: "结账已创建",
+      fundingConfirmed: "付款已确认",
+      billableImpression: "可计费展示",
+      advertiserEvent: "广告主事件",
+      transferSent: "转账已发送",
+      transferFailed: "转账失败",
+      notPaid: "未支付",
+      developerEvent: "开发者事件",
+    },
+    durationSeconds: (seconds) => `${seconds} 秒`,
+    detailsSummary: "详情",
+    detailLabels: {
+      activityId: "活动 ID",
+      campaignId: "广告 ID",
+      status: "状态",
+      event: "事件",
+      duration: "时长",
+      amount: "金额",
+      created: "创建时间",
+      checkoutSession: "结账会话",
+      providerEvent: "服务商事件",
+      providerStatus: "服务商状态",
+      providerCode: "服务商代码",
+    },
+  },
   developerDashboard: {
     yourBalance: "你的余额",
     lifetimeCredit: (count) => `累计 ${count} 次展示入账`,
@@ -726,6 +811,48 @@ export const extraFr: ExtraDictionary = {
     roleSwitcherAria: "Changer de rôle du tableau de bord",
     roleDeveloper: "Développeur",
     roleAdvertiser: "Annonceur",
+  },
+  activityFeed: {
+    statuses: {
+      credited: "Crédité",
+      tooShort: "Trop court",
+      invalidToken: "Jeton invalide",
+      invalidCampaign: "Campagne invalide",
+      shadowBanned: "Supprimé",
+      earningCapped: "Plafond atteint",
+      duplicate: "Doublon",
+      checkoutStarted: "Paiement commencé",
+      budgetFunded: "Budget alimenté",
+      budgetDebited: "Budget débité",
+      payoutPaid: "Paiement versé",
+      payoutFailed: "Paiement échoué",
+      payoutBlocked: "Paiement bloqué",
+    },
+    eventLabels: {
+      checkoutCreated: "Paiement créé",
+      fundingConfirmed: "Financement confirmé",
+      billableImpression: "Impression facturable",
+      advertiserEvent: "Événement annonceur",
+      transferSent: "Virement envoyé",
+      transferFailed: "Virement échoué",
+      notPaid: "Non payé",
+      developerEvent: "Événement développeur",
+    },
+    durationSeconds: (seconds) => `${seconds} s`,
+    detailsSummary: "Détails",
+    detailLabels: {
+      activityId: "ID activité",
+      campaignId: "ID campagne",
+      status: "Statut",
+      event: "Événement",
+      duration: "Durée",
+      amount: "Montant",
+      created: "Créé",
+      checkoutSession: "Session de paiement",
+      providerEvent: "Événement fournisseur",
+      providerStatus: "Statut fournisseur",
+      providerCode: "Code fournisseur",
+    },
   },
   developerDashboard: {
     yourBalance: "Votre solde",
@@ -1044,6 +1171,7 @@ export type DictionaryBase = Omit<
   Dictionary,
   | "navAuth"
   | "dashboardCommon"
+  | "activityFeed"
   | "developerDashboard"
   | "setupGuide"
   | "activate"

@@ -334,6 +334,48 @@ export interface Dictionary {
     roleDeveloper: string;
     roleAdvertiser: string;
   };
+  activityFeed: {
+    statuses: {
+      tooShort: string;
+      invalidToken: string;
+      invalidCampaign: string;
+      credited: string;
+      shadowBanned: string;
+      earningCapped: string;
+      duplicate: string;
+      checkoutStarted: string;
+      budgetFunded: string;
+      budgetDebited: string;
+      payoutPaid: string;
+      payoutFailed: string;
+      payoutBlocked: string;
+    };
+    eventLabels: {
+      checkoutCreated: string;
+      fundingConfirmed: string;
+      billableImpression: string;
+      advertiserEvent: string;
+      transferSent: string;
+      transferFailed: string;
+      notPaid: string;
+      developerEvent: string;
+    };
+    durationSeconds: (seconds: string) => string;
+    detailsSummary: string;
+    detailLabels: {
+      activityId: string;
+      campaignId: string;
+      status: string;
+      event: string;
+      duration: string;
+      amount: string;
+      created: string;
+      checkoutSession: string;
+      providerEvent: string;
+      providerStatus: string;
+      providerCode: string;
+    };
+  };
   advertiserDashboard: {
     title: string;
     subtitle: string;

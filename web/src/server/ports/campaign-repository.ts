@@ -66,6 +66,8 @@ export interface CampaignRepository {
    * review state). Returns the updated campaign. Throws if the id is unknown.
    */
   update(id: string, patch: CampaignUpdate): Promise<Campaign>;
+  /** Permanently removes a campaign. Throws if the id is unknown. */
+  delete(id: string): Promise<void>;
   /** Updates safety review state after automated/manual review. */
   updateReviewStatus(id: string, reviewStatus: CampaignReviewStatus): Promise<void>;
 }

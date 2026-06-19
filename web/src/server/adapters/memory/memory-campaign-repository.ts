@@ -103,6 +103,12 @@ export class MemoryCampaignRepository implements CampaignRepository {
     return { ...campaign };
   }
 
+  async delete(id: string): Promise<void> {
+    if (!this.campaigns.delete(id)) {
+      throw new Error(`campaign not found: ${id}`);
+    }
+  }
+
   async updateReviewStatus(
     id: string,
     reviewStatus: CampaignReviewStatus,

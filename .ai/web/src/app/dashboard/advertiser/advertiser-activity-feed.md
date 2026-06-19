@@ -108,3 +108,21 @@ available.
 | 2026-06-15 | Planned advertiser feed rendering for money events. | Codex |
 | 2026-06-15 | Created doc before adding advertiser activity feed component. | Codex |
 | 2026-06-15 | Synced implemented advertiser activity feed after green tests. | Codex |
+
+## Planned Change 2026-06-18 Localized Details Copy
+
+Replace hardcoded advertiser activity detail labels and the `Details` summary
+with active dictionary copy. The component should keep the same compact layout
+and helper behavior while displaying en/zh/fr labels from `activityFeed`.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-18 | Planned localized advertiser activity detail labels. | Codex |
+
+## Implemented Change 2026-06-18 Localized Details Copy
+
+Advertiser activity row details now use `t.activityFeed.detailsSummary` and
+`activityDetailItems(..., { copy: t.activityFeed })`, including a localized
+amount label.

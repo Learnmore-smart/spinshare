@@ -55,7 +55,7 @@ describe("GET /api/activity/developer", () => {
     expect(body.error).toBe("unauthorized");
   });
 
-  it("returns only the authenticated developer's attempt activity entries", async () => {
+  it("returns only the authenticated developer's advisor-facing attempt activity entries", async () => {
     const container = getContainer();
     const activities = container.activities as MemoryActivityRepository;
     await activities.record({
@@ -102,7 +102,6 @@ describe("GET /api/activity/developer", () => {
         activityId: "activity-dev-2",
         campaignId: "cmp-2",
         developerId: "dev-1",
-        advertiserId: "adv-2",
         type: "impression_attempt",
         status: "tooShort",
         viewDurationMs: 1200,
@@ -115,7 +114,6 @@ describe("GET /api/activity/developer", () => {
         activityId: "activity-dev-1",
         campaignId: "cmp-1",
         developerId: "dev-1",
-        advertiserId: "adv-1",
         type: "impression_attempt",
         status: "credited",
         viewDurationMs: 3000,
@@ -173,6 +171,7 @@ describe("GET /api/activity/developer", () => {
         createdAtMs: 4000,
       },
     ]);
+    expect(JSON.stringify(body.activities)).not.toContain("advertiserId");
   });
 
   it("returns newest-first bounded pages with a cursor", async () => {

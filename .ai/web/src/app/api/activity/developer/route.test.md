@@ -44,3 +44,21 @@ developer activity API response with amount and provider metadata.
 ## Implemented Coverage 2026-06-16 Developer Payout Events
 
 Added route coverage for payout developer events in `/api/activity/developer`.
+
+## Planned Coverage 2026-06-18 Developer/Advisor Boundary
+
+Add RED coverage proving developer activity responses do not serialize
+`advertiserId` for impression attempts, while retaining the authenticated
+developer's own credited/non-credited activity and payout events.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-18 | Planned developer/advisor boundary coverage. | Codex |
+
+## Implemented Coverage 2026-06-18 Developer/Advisor Boundary
+
+Updated developer route tests to assert advisor-facing attempt rows omit
+`advertiserId` while still returning the authenticated developer's own
+credited/non-credited activity and payout events.

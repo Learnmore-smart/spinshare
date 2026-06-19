@@ -150,6 +150,17 @@ export class FirestoreCampaignRepo implements CampaignRepository {
     });
   }
 
+  async delete(id: string): Promise<void> {
+    const ref = this.collection.doc(id);
+    await this.db.runTransaction(async (tx) => {
+      const doc = await tx.get(ref);
+      if (!doc.exists) {
+        throw new Error(`Campaign ${id} not found`);
+      }
+      tx.delete(ref);
+    });
+  }
+
   async updateReviewStatus(
     id: string,
     reviewStatus: CampaignReviewStatus,

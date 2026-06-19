@@ -14,7 +14,13 @@
  * the signature stable so swapping in a real model is a one-file change.
  */
 
-import { reviewAdTextSafety, type CampaignReviewStatus } from "@spinshare/core";
+import {
+  reviewAdTextSafety,
+  type Campaign,
+  type CampaignReviewStatus,
+} from "@spinshare/core";
+
+import type { CampaignRepository } from "./ports/campaign-repository";
 
 /** Inputs the reviewer inspects. */
 export interface CampaignReviewInput {
@@ -42,4 +48,37 @@ export async function reviewCampaignContent(
     return { status: "rejected", reason: adTextReview.reason };
   }
   return { status: "approved" };
+}
+
+/**
+ * Credits a campaign's budget and applies the **pay-then-review** gate.
+ *
+ * The advertiser pays first; only then is the ad reviewed before it can bid.
+ * On a campaign's FIRST funding (budget transitioning from 0 → >0) we park it in
+ * `pending` — which `listBiddable` excludes, so an unreviewed ad can never serve
+ * — run content review, then persist the outcome (`approved` / `rejected`).
+ * Top-ups of an already-funded campaign skip re-review so a live, approved
+ * campaign is never knocked offline by adding more budget; a rejected campaign
+ * is re-reviewed only after the advertiser edits it (see `PATCH /api/campaigns`).
+ *
+ * `campaign` must be the pre-credit snapshot (its `budgetCents` is read to detect
+ * the first-funding transition). Returns the campaign's review status afterwards.
+ */
+export async function creditCampaignBudgetWithReview(
+  campaigns: CampaignRepository,
+  campaign: Campaign,
+  amountCents: number,
+): Promise<CampaignReviewStatus> {
+  const wasUnfunded = campaign.budgetCents <= 0;
+  await campaigns.applyBudgetDeltaCents(campaign.id, amountCents);
+  if (!wasUnfunded) {
+    return campaign.reviewStatus ?? "approved";
+  }
+  await campaigns.update(campaign.id, { reviewStatus: "pending" });
+  const review = await reviewCampaignContent({
+    adText: campaign.adText,
+    destinationUrl: campaign.destinationUrl,
+  });
+  await campaigns.update(campaign.id, { reviewStatus: review.status });
+  return review.status;
 }

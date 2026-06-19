@@ -54,9 +54,6 @@ function toActivityView(activity: DeveloperActivityRecord) {
     type: "impression_attempt",
     status: activity.status,
     viewDurationMs: activity.viewDurationMs,
-    ...(activity.advertiserId !== undefined
-      ? { advertiserId: activity.advertiserId }
-      : {}),
     ...(activity.developerId !== undefined
       ? { developerId: activity.developerId }
       : {}),

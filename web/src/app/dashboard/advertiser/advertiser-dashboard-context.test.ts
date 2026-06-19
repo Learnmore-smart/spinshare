@@ -1,7 +1,23 @@
 import { describe, expect, it } from "vitest";
 
 import { mergeActivityRows } from "./advertiser-dashboard-context";
-import type { ActivityFeedRow } from "../activity-feed";
+import {
+  defaultActivityFeedCopy,
+  type ActivityFeedCopy,
+  type ActivityFeedRow,
+} from "../activity-feed";
+
+const localizedCopy: ActivityFeedCopy = {
+  ...defaultActivityFeedCopy,
+  statuses: {
+    ...defaultActivityFeedCopy.statuses,
+    budgetFunded: "Budget confirme",
+  },
+  eventLabels: {
+    ...defaultActivityFeedCopy.eventLabels,
+    fundingConfirmed: "Financement confirme",
+  },
+};
 
 function row(activityId: string, createdAtMs: number): ActivityFeedRow {
   return {
@@ -52,5 +68,28 @@ describe("mergeActivityRows", () => {
       "duplicate",
       "older",
     ]);
+  });
+
+  it("formats incoming activity pages with caller-supplied locale copy", () => {
+    const merged = mergeActivityRows(
+      [],
+      [
+        {
+          activityId: "funded",
+          campaignId: "cmp_funded",
+          type: "advertiser_event",
+          status: "budgetFunded",
+          amountCents: 500,
+          amountUsd: "5.00",
+          createdAtMs: 1000,
+        },
+      ],
+      localizedCopy,
+    );
+
+    expect(merged[0]).toMatchObject({
+      statusLabel: "Budget confirme",
+      durationLabel: "Financement confirme",
+    });
   });
 });

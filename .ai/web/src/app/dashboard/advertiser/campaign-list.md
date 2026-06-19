@@ -80,8 +80,25 @@ form, and buy controls that accept blocks plus an optional new CPM.
 The card status map includes `needsLink`, and the status dot uses the actual
 derived status class so link-required campaigns show a warning treatment.
 
+## Planned Change 2026-06-18 Unpaid Delete Action
+
+Add a small transparent cancel action beside the buy button for unpaid
+campaigns. The action should permanently delete the unpaid campaign through the
+dashboard context and remove it from the list on success. The regular pay
+button remains the primary action; funded campaigns must not show the delete
+control.
+
+## Implemented Change 2026-06-18 Unpaid Delete Action
+
+`CampaignList` now accepts a `deleteCampaign` action, passes it into each card,
+and renders a compact cancel button only for `isNeverFunded()` campaigns. The
+button calls the delete action and surfaces inline errors without showing on
+funded campaign cards.
+
 ## Verification
 
+- `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts src/app/dashboard/advertiser/campaign-list.test.tsx src/app/dashboard/advertiser/advertiser-dashboard-context.test.ts src/server/bidding-service.test.ts` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
 - `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/dashboard/advertiser/campaign-list.test.tsx` passed.
 - `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/page.test.tsx src/app/dashboard/advertiser/campaign-list.test.tsx src/app/dashboard/advertiser/advertiser-dashboard.test.tsx` passed.
 - `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
@@ -90,6 +107,8 @@ derived status class so link-required campaigns show a warning treatment.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented unpaid campaign delete action in campaign cards. | Codex |
+| 2026-06-18 | Planned unpaid campaign delete action and transparent cancel control. | Codex |
 | 2026-06-18 | Implemented editable campaign detail cards and needs-link status. | Codex |
 | 2026-06-18 | Planned editable campaign detail cards and needs-link status. | Codex |
 | 2026-06-17 | Implemented compact campaign delivery progress and buy-more-impressions UI. | Codex |

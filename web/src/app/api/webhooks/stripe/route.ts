@@ -28,6 +28,7 @@
 
 import { formatCentsAsUsd, type Campaign } from "@spinshare/core";
 
+import { creditCampaignBudgetWithReview } from "@/server/campaign-review";
 import { getContainer, type Container } from "@/server/container";
 import type { StripeEvent } from "@/server/ports";
 
@@ -123,7 +124,9 @@ export async function POST(request: Request): Promise<Response> {
       amountCents: event.amountCents,
     });
     if (newlyApplied) {
-      await campaigns.applyBudgetDeltaCents(event.campaignId, event.amountCents);
+      // Pay-then-review: gate the now-funded campaign through review before it
+      // can bid (see creditCampaignBudgetWithReview).
+      await creditCampaignBudgetWithReview(campaigns, campaign, event.amountCents);
       await recordBudgetFundedActivity(container, event, campaign);
     }
   }

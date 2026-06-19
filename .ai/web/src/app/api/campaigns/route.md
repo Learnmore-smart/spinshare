@@ -59,6 +59,20 @@ with `updateCampaignSchema`, enforces direct/same-email ownership, re-runs the
 review seam for text or destination edits, persists the patch through
 `CampaignRepository.update()`, and returns the updated campaign view.
 
+## Planned Change 2026-06-18 Delete Unpaid Campaign
+
+Add `DELETE /api/campaigns` for advertiser-owned, zero-budget campaigns. The
+route should authenticate the caller, require `campaignId`, enforce the same
+direct/same-email ownership boundary as edit, reject campaigns with remaining
+budget, and remove the row through the campaign repository.
+
+## Implemented Change 2026-06-18 Delete Unpaid Campaign
+
+`DELETE /api/campaigns` now authenticates the advertiser, validates
+`campaignId`, enforces the same ownership boundary as edits, rejects campaigns
+with budget or activity, deletes eligible campaigns through the repository, and
+returns `{ deleted: true, campaignId }`.
+
 ## Planned Change 2026-06-16 Ad Safety Gate
 
 Authenticated campaign creation should use the shared core deterministic
@@ -198,6 +212,8 @@ merging durable ledger impression counts into the `credited` total.
 
 ## Verification
 
+- `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts src/app/dashboard/advertiser/campaign-list.test.tsx src/app/dashboard/advertiser/advertiser-dashboard-context.test.ts src/server/bidding-service.test.ts` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
 - `corepack pnpm@9.12.0 --filter @spinshare/web test` passed.
 - `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
 
@@ -205,6 +221,8 @@ merging durable ledger impression counts into the `credited` total.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented authenticated deletion for owned unpaid campaigns. | Codex |
+| 2026-06-18 | Planned authenticated deletion for owned unpaid campaigns. | Codex |
 | 2026-06-18 | Implemented campaign PATCH edit endpoint. | Codex |
 | 2026-06-18 | Planned campaign PATCH edit endpoint and review rerun. | Codex |
 | 2026-06-17 | Implemented optional direct checkout on authenticated campaign creation. | Codex |

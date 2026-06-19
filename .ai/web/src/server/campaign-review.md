@@ -21,8 +21,19 @@
 | Name | Type | Description |
 |------|------|-------------|
 | reviewCampaignContent | async fn | Review ad content → review status to persist |
+| creditCampaignBudgetWithReview | async fn | Apply a budget credit + pay-then-review gate (first funding → pending → review → approved/rejected; top-ups skip re-review) |
 | CampaignReviewInput | interface | `{ adText, destinationUrl? }` |
 | CampaignReviewResult | interface | `{ status, reason? }` |
+
+## Pay-then-review flow
+
+`creditCampaignBudgetWithReview(campaigns, campaign, amountCents)` is the single
+funding entry point used by all four credit sites — `POST /api/campaigns`
+(direct checkout), `POST /api/funds/checkout`, the Stripe webhook, and
+checkout-reconciliation. On a campaign's FIRST funding (budget 0 → >0) it parks
+the campaign in `pending` (excluded by `listBiddable`), runs review, then
+persists `approved`/`rejected`. Top-ups of an already-funded campaign skip
+re-review. `campaign` must be the pre-credit snapshot.
 
 ## Dependencies
 

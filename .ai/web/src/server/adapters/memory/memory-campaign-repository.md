@@ -59,10 +59,23 @@ fall back to the local app root.
 `listBiddable()` now requires active status, positive budget/CPM, approved
 review state, and a valid public HTTPS destination URL.
 
+## Planned Change 2026-06-18 Delete Unpaid Campaign
+
+Implement the new campaign repository `delete(id)` method by removing the
+campaign from the in-memory map and throwing if the id is unknown, matching the
+existing update-style error behavior.
+
+## Implemented Change 2026-06-18 Delete Unpaid Campaign
+
+The memory repository now implements `delete(id)` by removing the campaign from
+the local map and throwing when the id is unknown.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented memory repository delete method for unpaid campaign removal. | Codex |
+| 2026-06-18 | Planned memory repository delete method for unpaid campaign removal. | Codex |
 | 2026-06-18 | Implemented destination-required biddability filtering. | Codex |
 | 2026-06-18 | Planned destination-required biddability filtering. | Codex |
 | 2026-06-16 | Implemented review-status filtering and update. | Codex |

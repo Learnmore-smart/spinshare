@@ -51,6 +51,9 @@ function seedCampaign(
     cpmCents: 3000,
     budgetCents: 5000,
     status: "active",
+    // A valid HTTPS destination is now required to bid (listBiddable), so the
+    // public-market fixtures must carry one to count as live.
+    destinationUrl: "https://example.com",
     createdAtMs: 0,
     ...overrides,
   };

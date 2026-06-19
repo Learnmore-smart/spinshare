@@ -61,10 +61,23 @@ Firestore-backed `listBiddable()` now filters the positive-budget query result
 to active, positive-CPM, approved-review campaigns with a valid public HTTPS
 destination URL.
 
+## Planned Change 2026-06-18 Delete Unpaid Campaign
+
+Implement the new campaign repository `delete(id)` method in a Firestore
+transaction. It should throw for unknown ids and delete the campaign document
+only after the route has performed ownership and zero-budget checks.
+
+## Implemented Change 2026-06-18 Delete Unpaid Campaign
+
+The Firestore repository now implements `delete(id)` in a transaction, throwing
+for unknown ids and deleting the campaign document when present.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented Firestore repository delete method for unpaid campaign removal. | Codex |
+| 2026-06-18 | Planned Firestore repository delete method for unpaid campaign removal. | Codex |
 | 2026-06-18 | Implemented destination-required biddability filtering. | Codex |
 | 2026-06-18 | Planned destination-required biddability filtering. | Codex |
 | 2026-06-16 | Implemented review-status persistence, filtering, and update. | Codex |

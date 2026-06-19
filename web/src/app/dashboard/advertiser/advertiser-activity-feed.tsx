@@ -290,7 +290,8 @@ export function AdvertiserActivityFeed({
             <ul className="adv-dash-activity-list">
               {visibleActivities.map((activity) => {
                 const details = activityDetailItems(activity, {
-                  amountLabel: "Amount",
+                  amountLabel: t.activityFeed.detailLabels.amount,
+                  copy: t.activityFeed,
                 });
                 return (
                 <li
@@ -338,7 +339,7 @@ export function AdvertiserActivityFeed({
                     )}
                     <details className="mt-2 text-xs font-semibold text-slate-400">
                       <summary className="cursor-pointer text-slate-300">
-                        Details
+                        {t.activityFeed.detailsSummary}
                       </summary>
                       <dl className="mt-2 grid gap-1 sm:grid-cols-2">
                         {details.map((item) => (

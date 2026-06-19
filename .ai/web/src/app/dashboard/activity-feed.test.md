@@ -46,3 +46,21 @@ credit should be `$0.003`, not `$0.00`.
 | 2026-06-16 | Added developer payout event formatting coverage. | Codex |
 | 2026-06-15 | Added advertiser money event formatting coverage. | Codex |
 | 2026-06-15 | Created doc before adding activity feed helper tests. | Codex |
+
+## Planned Coverage 2026-06-18 Localized Activity Labels
+
+Add RED coverage proving `toActivityFeedRows()` and `activityDetailItems()` can
+render shared row labels from caller-supplied locale copy while keeping default
+English behavior stable.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-18 | Planned localized activity feed helper coverage. | Codex |
+
+## Implemented Coverage 2026-06-18 Localized Activity Labels
+
+Added coverage for caller-supplied locale copy in `toActivityFeedRows()` and
+`activityDetailItems()`, including localized status/event/detail labels and the
+existing English default behavior.

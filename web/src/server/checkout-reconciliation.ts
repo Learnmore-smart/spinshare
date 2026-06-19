@@ -1,5 +1,6 @@
 import { formatCentsAsUsd, type Campaign } from "@spinshare/core";
 
+import { creditCampaignBudgetWithReview } from "./campaign-review";
 import type { Container } from "./container";
 import type {
   ActivityRecord,
@@ -53,8 +54,10 @@ export async function reconcilePaidCheckoutSession(
     },
   );
   if (newlyApplied) {
-    await container.campaigns.applyBudgetDeltaCents(
-      funding.campaignId,
+    // Pay-then-review: gate the now-funded campaign through review before bidding.
+    await creditCampaignBudgetWithReview(
+      container.campaigns,
+      campaign,
       funding.amountCents,
     );
     await container.activities

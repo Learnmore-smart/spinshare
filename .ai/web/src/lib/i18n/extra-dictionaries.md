@@ -158,3 +158,22 @@ Added en/zh/fr `statusNeedsLink` strings: "Needs link", "需添加链接", and
 | 2026-06-16 | Planned advertiser activity load-more copy. | Codex |
 | 2026-06-15 | Updated English advertiser funding copy to block purchases. | Codex |
 | 2026-06-15 | Created doc and documented setup copy clarification. | Codex |
+
+## Planned Change 2026-06-18 Activity Feed Copy
+
+Add en/zh/fr `activityFeed` copy for shared activity statuses, event labels,
+duration formatting, details summary text, and detail labels. These strings
+will replace hardcoded English activity row labels in advertiser and developer
+dashboards.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-18 | Planned shared activity feed locale copy. | Codex |
+
+## Implemented Change 2026-06-18 Activity Feed Copy
+
+Added `activityFeed` copy for English, Chinese, and French. This covers shared
+activity statuses, event labels, duration formatting, details summary text, and
+detail labels.

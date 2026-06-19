@@ -30,10 +30,28 @@ Added both destination-required regressions. RED run failed because
 destinationless campaigns were selected; GREEN run passed after the selector
 and repositories enforced destination-required biddability.
 
+## Planned Change 2026-06-18 Campaign Repository Delete Contract
+
+Update local `CampaignRepository` test doubles to include the new `delete(id)`
+method required by the storage port. These tests do not exercise deletion, so
+the method should throw if called.
+
+## Implemented Change 2026-06-18 Campaign Repository Delete Contract
+
+The stalled and failing `CampaignRepository` test doubles now include throwing
+`delete()` stubs to satisfy the expanded repository contract.
+
+## Verification 2026-06-18
+
+- `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts src/app/dashboard/advertiser/campaign-list.test.tsx src/app/dashboard/advertiser/advertiser-dashboard-context.test.ts src/server/bidding-service.test.ts` passed.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-18 | Implemented test-double update for repository delete contract. | Codex |
+| 2026-06-18 | Planned test-double update for repository delete contract. | Codex |
 | 2026-06-18 | Implemented destination-required bidding regression coverage. | Codex |
 | 2026-06-18 | Planned destination-required bidding regression coverage. | Codex |
 | 2026-06-16 | Created mirror and documented safety review regression coverage. | Codex |

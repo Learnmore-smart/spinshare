@@ -35,6 +35,9 @@ async function resolveClaims(request: Request): Promise<AuthClaims | null> {
 }
 
 function toImpressionActivityView(activity: ImpressionActivity) {
+  if (activity.status === "credited") {
+    return null;
+  }
   return {
     activityId: activity.activityId,
     campaignId: activity.campaignId,
@@ -43,9 +46,6 @@ function toImpressionActivityView(activity: ImpressionActivity) {
     viewDurationMs: activity.viewDurationMs,
     ...(activity.advertiserId !== undefined
       ? { advertiserId: activity.advertiserId }
-      : {}),
-    ...(activity.developerId !== undefined
-      ? { developerId: activity.developerId }
       : {}),
     ...(activity.revenueMicrocents !== undefined
       ? { revenueMicrocents: activity.revenueMicrocents }

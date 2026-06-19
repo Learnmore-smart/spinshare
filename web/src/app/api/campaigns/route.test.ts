@@ -22,7 +22,7 @@ import type {
   StripeEvent,
 } from "@/server/ports/payment-gateway";
 
-import { GET, PATCH, POST } from "./route";
+import { DELETE, GET, PATCH, POST } from "./route";
 import { POST as advertiserCheckout } from "../advertiser-checkout/route";
 
 const ENV_KEYS = [
@@ -92,6 +92,17 @@ function authenticatedPostRequest(token: string, body: unknown): Request {
 function authenticatedPatchRequest(token: string, body: unknown): Request {
   return new Request("https://spinshare.test/api/campaigns", {
     method: "PATCH",
+    headers: {
+      authorization: `Bearer ${token}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+function authenticatedDeleteRequest(token: string, body: unknown): Request {
+  return new Request("https://spinshare.test/api/campaigns", {
+    method: "DELETE",
     headers: {
       authorization: `Bearer ${token}`,
       "content-type": "application/json",
@@ -532,6 +543,48 @@ describe("PATCH /api/campaigns", () => {
     expect(body.error).toBe("Ad text appears unsafe or deceptive");
     await expect(container.campaigns.getById("cmp_safe")).resolves.toMatchObject({
       adText: "Safe original copy",
+    });
+  });
+});
+
+describe("DELETE /api/campaigns", () => {
+  it("permanently deletes an owned unpaid campaign", async () => {
+    const container = getContainer();
+    seedCampaign(container, {
+      id: "cmp_unpaid",
+      budgetCents: 0,
+      destinationUrl: "https://example.com/",
+    });
+    const token = (container.auth as MockAuthProvider).mintToken("adv1");
+
+    const response = await DELETE(
+      authenticatedDeleteRequest(token, { campaignId: "cmp_unpaid" }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({ deleted: true, campaignId: "cmp_unpaid" });
+    await expect(container.campaigns.getById("cmp_unpaid")).resolves.toBeNull();
+  });
+
+  it("rejects deletion for funded campaigns", async () => {
+    const container = getContainer();
+    seedCampaign(container, {
+      id: "cmp_funded",
+      budgetCents: 100,
+      destinationUrl: "https://example.com/",
+    });
+    const token = (container.auth as MockAuthProvider).mintToken("adv1");
+
+    const response = await DELETE(
+      authenticatedDeleteRequest(token, { campaignId: "cmp_funded" }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(body.error).toBe("campaign_has_budget");
+    await expect(container.campaigns.getById("cmp_funded")).resolves.toMatchObject({
+      budgetCents: 100,
     });
   });
 });

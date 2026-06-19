@@ -45,7 +45,40 @@ describe("CampaignList", () => {
     expect(html).toContain("1,200/5,000");
     expect(html).toContain("Buy more impressions");
     expect(html).toContain("1 block = 1,000 impressions");
+    expect(html).not.toContain("Cancel");
     expect(html).not.toContain("Buy blocks");
     expect(html).not.toContain("Add funds (USD)");
+  });
+
+  it("shows a cancel action for unpaid campaigns", () => {
+    Object.assign(globalThis, { React });
+
+    const html = renderToStaticMarkup(
+      React.createElement(CampaignList, {
+        token: "tok_123",
+        campaigns: [
+          {
+            ...campaign,
+            id: "cmp_unpaid",
+            budgetCents: 0,
+            remainingBudgetUsd: "0.00",
+            telemetry: {
+              shows: 0,
+              clicks: 0,
+              credited: 0,
+              tooShort: 0,
+              invalidToken: 0,
+              invalidCampaign: 0,
+              shadowBanned: 0,
+              earningCapped: 0,
+              duplicate: 0,
+            },
+          },
+        ],
+      }),
+    );
+
+    expect(html).toContain("Cancel");
+    expect(html).toContain("adv-camp-delete-btn");
   });
 });
