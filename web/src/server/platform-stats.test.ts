@@ -106,12 +106,87 @@ describe("loadPlatformStats", () => {
     expect(stats.developersLast7d).toBe(1);
     expect(stats.developersLast30d).toBe(2);
     expect(stats.connectedPayouts).toBe(1);
-    expect(stats.totalDeveloperEarningsCents).toBe(200);
+    // Lifetime developer earnings = ledger impression credits (3 + 3), NOT the
+    // sum of mutable user balances (which also carried the $1.00 sign-up bonus).
+    expect(stats.totalDeveloperEarningsCents).toBe(6);
     expect(stats.totalCreditedImpressions).toBe(2);
     expect(stats.adHoursServed).toBeCloseTo((2 * 3000) / 3_600_000);
     expect(stats.impressionsToday).toBe(2);
     expect(stats.liveCampaigns).toBe(1);
     expect(stats.topCpmCents).toBe(5000);
     expect(stats.advertiserSpendCents).toBe(10);
+  });
+
+  it("derives developers, earnings, and advertisers from durable activity when user docs are absent", async () => {
+    // Regression: the headline metrics must not zero out when the `users`
+    // collection has no developer/advertiser docs — e.g. after a canonical-id
+    // migration prunes legacy developer docs, when impression credits land
+    // under a device/JWT id with no durable record, or when advertisers fund
+    // seed/checkout campaigns by email without ever creating a user doc. The
+    // ledger and campaigns (append-only) remain the source of truth.
+    const nowMs = Date.UTC(2026, 5, 20, 12, 0, 0);
+    const users = new MemoryUserRepository(new SequentialIdGenerator()); // empty
+    const campaigns = new MemoryCampaignRepository(new SystemClock());
+    const ledger = new MemoryLedgerRepository();
+
+    // Two seed-style campaigns from two distinct advertisers, no user docs.
+    for (const [id, advertiserId, cpmCents] of [
+      ["cmp-seed-cursor", "seed-cursor-advertiser", 1120],
+      ["cmp-seed-learnx", "seed-learnx-advertiser", 560],
+    ] as const) {
+      campaigns.seed({
+        id,
+        advertiserId,
+        adText: "Ad",
+        cpmCents,
+        budgetCents: 5600,
+        status: "active",
+        createdAtMs: nowMs - 86_400_000,
+      });
+    }
+
+    // One developer earned today; their user doc does NOT exist.
+    await ledger.appendEntries([
+      {
+        entryId: "imp_1",
+        campaignId: "cmp-seed-cursor",
+        developerId: "dev_orphan",
+        revenueMicrocents: 11_200,
+        developerCreditCents: 6,
+        spinshareRetentionMicrocents: 4_480,
+        createdAtMs: nowMs - 3_600_000,
+      },
+      // A sign-up bonus row marks a second developer who joined but never earned.
+      {
+        entryId: "signup_bonus:dev_joined",
+        type: "signup_bonus",
+        campaignId: "",
+        developerId: "dev_joined",
+        revenueMicrocents: 0,
+        developerCreditCents: 100,
+        spinshareRetentionMicrocents: 0,
+        creditCents: 100,
+        createdAtMs: nowMs,
+      },
+    ]);
+
+    const stats = await loadPlatformStats({ users, campaigns, ledger, nowMs });
+
+    // Developers and advertisers are counted from durable activity, not docs.
+    expect(stats.totalDevelopers).toBe(2); // dev_orphan + dev_joined
+    expect(stats.totalAdvertisers).toBe(2); // two distinct campaign advertisers
+    expect(stats.totalDeveloperEarningsCents).toBe(6); // impression credit only
+    expect(stats.earningsTodayCents).toBe(6);
+
+    // The defining invariant the broken snapshot violated: lifetime earnings can
+    // never be less than today's earnings (today ⊆ all-time).
+    expect(stats.totalDeveloperEarningsCents).toBeGreaterThanOrEqual(
+      stats.earningsTodayCents,
+    );
+
+    // Onboarding metrics legitimately stay 0 without durable developer docs —
+    // honest, not contradictory.
+    expect(stats.developersLast7d).toBe(0);
+    expect(stats.connectedPayouts).toBe(0);
   });
 });

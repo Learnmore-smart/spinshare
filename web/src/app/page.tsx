@@ -79,6 +79,9 @@ interface MarketResponse {
     topCpmCents: number;
     topCpmUsd: string;
     totalServedImpressions: number;
+    blendedCpmCents: number;
+    blendedCpmUsd: string;
+    openImpressions: number;
   };
   updatedAtMs: number;
 }
@@ -89,6 +92,16 @@ const moneyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
 });
+
+const compactCountFormatter = new Intl.NumberFormat("en-US", {
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+function formatCompactCount(value: number | undefined): string {
+  if (value === undefined) return "—";
+  return compactCountFormatter.format(value);
+}
 
 function tickerBrandLabel(brandName: string | undefined, adText: string): string {
   const trimmedBrand = brandName?.trim();
@@ -359,6 +372,39 @@ function MoneyIcon({ className = "" }: { className?: string }) {
     >
       🤑
     </span>
+  );
+}
+
+function BidStatCard({
+  label,
+  value,
+  sub,
+  loading,
+  live = false,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  loading: boolean;
+  live?: boolean;
+}) {
+  return (
+    <div className="liquid-glass flex flex-col gap-1 rounded-2xl px-5 py-4">
+      <p className="spinshare-home-label text-[10px] font-black uppercase tracking-[0.16em]">
+        {label}
+      </p>
+      {loading ? (
+        <div className="my-1 h-7 w-20 adv-skeleton-block adv-skeleton-pulse" />
+      ) : (
+        <p className="spinshare-home-strong flex items-center gap-2 text-3xl font-black tabular-nums leading-none tilt-pop-sm">
+          {live && (
+            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500 animate-pulse" />
+          )}
+          {value}
+        </p>
+      )}
+      <p className="spinshare-home-body text-xs font-semibold">{sub}</p>
+    </div>
   );
 }
 
@@ -977,6 +1023,34 @@ export default function HomePage() {
             {t.market.subtitle}
           </p>
           <CheckoutStatusBanner />
+        </div>
+
+        <div className="mx-auto mt-8 grid max-w-7xl grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          <BidStatCard
+            label={t.market.stats.marketPrice}
+            value={market?.summary.blendedCpmUsd ?? "—"}
+            sub={t.market.stats.marketPriceSub}
+            loading={marketStatus === "loading"}
+          />
+          <BidStatCard
+            label={t.market.stats.impressions}
+            value={formatCompactCount(market?.summary.openImpressions)}
+            sub={t.market.stats.impressionsSub}
+            loading={marketStatus === "loading"}
+          />
+          <BidStatCard
+            label={t.market.stats.liveNow}
+            value={(market?.summary.liveCampaigns ?? 0).toLocaleString("en-US")}
+            sub={t.market.stats.liveNowSub}
+            loading={marketStatus === "loading"}
+            live
+          />
+          <BidStatCard
+            label={t.market.stats.campaigns}
+            value={(market?.summary.liveCampaigns ?? 0).toLocaleString("en-US")}
+            sub={t.market.stats.campaignsSub}
+            loading={marketStatus === "loading"}
+          />
         </div>
 
         <div className="spinshare-market-proof-grid mt-10">

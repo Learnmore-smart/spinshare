@@ -16,8 +16,17 @@ export function summarizeFleetFromEntries(
   let totalDeveloperCreditCents = 0;
   let impressionsToday = 0;
   let developerCreditsTodayCents = 0;
+  // Every developer leaves a durable footprint here — an impression row or the
+  // sign-up bonus row written at join time — so the distinct count survives a
+  // user-doc deletion or a device/JWT credit that never minted a durable
+  // `users/{id}` record. Counted before the impression-only skip below so a
+  // developer holding only a sign-up bonus still counts.
+  const developerIds = new Set<string>();
 
   for (const entry of entries) {
+    if (entry.developerId.length > 0) {
+      developerIds.add(entry.developerId);
+    }
     if (entry.type === "signup_bonus" || entry.campaignId.length === 0) {
       continue;
     }
@@ -35,5 +44,6 @@ export function summarizeFleetFromEntries(
     totalDeveloperCreditCents,
     impressionsToday,
     developerCreditsTodayCents,
+    distinctDevelopers: developerIds.size,
   };
 }

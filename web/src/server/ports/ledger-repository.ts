@@ -18,6 +18,13 @@ export interface FleetLedgerSummary {
   impressionsToday: number;
   /** Developer credits recorded since UTC midnight. */
   developerCreditsTodayCents: number;
+  /**
+   * Distinct developers with any durable ledger footprint (an impression credit
+   * or the sign-up bonus row). The ledger is append-only, so this is a
+   * deletion-proof developer headcount — unlike counting `users/{id}` docs,
+   * which a migration can prune or which device/JWT credits may never create.
+   */
+  distinctDevelopers: number;
 }
 
 /** Durable ledger repository. */

@@ -2,6 +2,7 @@ import {
   type Campaign,
   formatCentsAsUsd,
   isBetterBid,
+  reconstructCampaignDelivery,
 } from "@spinshare/core";
 
 import { getContainer } from "@/server/container";
@@ -27,6 +28,20 @@ export interface MarketSummary {
   topCpmUsd: string;
   /** Fleet-wide served impressions across public leaderboard campaigns. */
   totalServedImpressions: number;
+  /**
+   * Impression-weighted average CPM across live public campaigns:
+   * `Σ(cpmCents × purchasedImpressions) / Σ(purchasedImpressions)`. This is the
+   * blended price the market is actually paying per 1,000 views, distinct from
+   * the single leading `topCpmCents`.
+   */
+  blendedCpmCents: number;
+  blendedCpmUsd: string;
+  /**
+   * Purchased-but-undelivered inventory still being bid for, summed across live
+   * public campaigns (`Σ max(0, purchasedImpressions − servedImpressions)`).
+   * This is the open volume on the market, not a delivery rate.
+   */
+  openImpressions: number;
 }
 
 export interface MarketResponse {
@@ -56,11 +71,19 @@ function toMarketRow(
     (campaign.purchasedImpressions ?? 0) > 0
       ? campaign.purchasedImpressions
       : undefined;
-  const reconstructedPurchased =
-    campaign.cpmCents > 0
-      ? servedImpressions +
-        Math.floor((campaign.budgetCents * 1_000) / campaign.cpmCents)
-      : servedImpressions;
+  // Legacy/seed campaigns predating purchased-inventory tracking carry no stored
+  // count, so reconstruct the lifetime purchase from the *remaining* whole-cent
+  // budget. `budgetCents` drifts a few cents below exact as the flush rounds each
+  // batch's sub-cent per-impression spend to whole cents, so a naive
+  // `served + budget*1000/cpm` reads low — a 5,000-view buy at a $11.20 CPM shows
+  // as 4,999. reconstructCampaignDelivery snaps the raw total back onto the
+  // 1,000-view block grid every fund must have used (same source of truth as the
+  // advertiser dashboard's deliveryProgress).
+  const reconstructedPurchased = reconstructCampaignDelivery(
+    campaign.cpmCents,
+    campaign.budgetCents,
+    servedImpressions,
+  ).purchasedImpressions;
   const purchasedImpressions = Math.max(
     servedImpressions,
     storedPurchased ?? reconstructedPurchased,
@@ -103,6 +126,28 @@ export async function GET(): Promise<Response> {
       0,
     );
 
+    // Blended price is weighted by purchased inventory so a large buy moves the
+    // market average more than a tiny one; reconstructed/stored purchased counts
+    // already snap to whole 1,000-view blocks (see toMarketRow).
+    const purchasedTotal = rows.reduce(
+      (sum, row) => sum + row.purchasedImpressions,
+      0,
+    );
+    const blendedCpmCents =
+      purchasedTotal > 0
+        ? Math.round(
+            rows.reduce(
+              (sum, row) => sum + row.cpmCents * row.purchasedImpressions,
+              0,
+            ) / purchasedTotal,
+          )
+        : 0;
+    const openImpressions = rows.reduce(
+      (sum, row) =>
+        sum + Math.max(0, row.purchasedImpressions - row.servedImpressions),
+      0,
+    );
+
     return Response.json(
       {
         rows,
@@ -111,6 +156,9 @@ export async function GET(): Promise<Response> {
           topCpmCents,
           topCpmUsd: usd(topCpmCents),
           totalServedImpressions,
+          blendedCpmCents,
+          blendedCpmUsd: usd(blendedCpmCents),
+          openImpressions,
         },
         updatedAtMs: Date.now(),
       } satisfies MarketResponse,

@@ -181,6 +181,81 @@ describe("GET /api/market", () => {
     });
   });
 
+  it("snaps a drifted sub-cent CPM legacy campaign to the whole-block total", async () => {
+    // The seeded Cursor campaign: 5 blocks (5,000 views) at a $11.20 CPM, seeded
+    // before purchased-inventory tracking existed so it carries no stored count.
+    // Each view costs 1.12c; after 6 served the flush rounded 6.72c → 7c, leaving
+    // budgetCents = 5593. A naive `served + budget*1000/cpm` reads 4,999 — the bug
+    // the user reported. The block-grid snap must restore the bought 5,000.
+    const container = getContainer();
+    seedCampaign(container, {
+      id: "cmp_cursor",
+      cpmCents: 1120,
+      budgetCents: 5593,
+    });
+    (container.ledger as MemoryLedgerRepository).seed(
+      Array.from({ length: 6 }, (_unused, i) => ({
+        entryId: `cursor-${i}`,
+        campaignId: "cmp_cursor",
+        developerId: "dev-1",
+        revenueMicrocents: 1120,
+        developerCreditCents: 1,
+        spinshareRetentionMicrocents: 400,
+      })),
+    );
+
+    const body = await (await GET()).json();
+
+    expect(body.rows[0]).toMatchObject({
+      id: "cmp_cursor",
+      servedImpressions: 6,
+      purchasedImpressions: 5_000,
+    });
+  });
+
+  it("summarizes blended CPM and open (remaining) inventory across the market", async () => {
+    const container = getContainer();
+    seedCampaign(container, {
+      id: "cmp_a",
+      cpmCents: 1000,
+      budgetCents: 2000,
+      purchasedImpressions: 2_000,
+    });
+    seedCampaign(container, {
+      id: "cmp_b",
+      cpmCents: 3000,
+      budgetCents: 6000,
+      purchasedImpressions: 2_000,
+    });
+    // One served impression on cmp_a so open inventory drops below purchased.
+    (container.ledger as MemoryLedgerRepository).seed([
+      {
+        entryId: "a-1",
+        campaignId: "cmp_a",
+        developerId: "dev-1",
+        revenueMicrocents: 1000,
+        developerCreditCents: 1,
+        spinshareRetentionMicrocents: 400,
+      },
+    ]);
+
+    const body = await (await GET()).json();
+
+    // Weighted by purchased inventory: (1000·2000 + 3000·2000) / 4000 = 2000c.
+    expect(body.summary.blendedCpmCents).toBe(2000);
+    expect(body.summary.blendedCpmUsd).toBe("$20.00");
+    // Open = (2000 − 1 served on cmp_a) + (2000 − 0 on cmp_b) = 3999.
+    expect(body.summary.openImpressions).toBe(3999);
+  });
+
+  it("reports zero blended CPM and open inventory for an empty market", async () => {
+    const body = await (await GET()).json();
+
+    expect(body.summary.blendedCpmCents).toBe(0);
+    expect(body.summary.blendedCpmUsd).toBe("$0.00");
+    expect(body.summary.openImpressions).toBe(0);
+  });
+
   it("omits private leaderboard campaigns from the public market", async () => {
     const container = getContainer();
     seedCampaign(container, { id: "cmp_public", cpmCents: 1200 });

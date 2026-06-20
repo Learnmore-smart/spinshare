@@ -81,6 +81,16 @@ export interface Dictionary {
     chartCollectingHistory: string;
     tickerNoBidsBrand: string;
     tickerNoBidsText: string;
+    stats: {
+      marketPrice: string;
+      marketPriceSub: string;
+      impressions: string;
+      impressionsSub: string;
+      liveNow: string;
+      liveNowSub: string;
+      campaigns: string;
+      campaignsSub: string;
+    };
   };
   howItPaysSection: {
     title: string;
