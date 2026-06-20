@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import AdmZip from "adm-zip";
+import { verifyVsixFile } from "./verify-vsix.mjs";
 
 const extensionRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const packageJsonPath = join(extensionRoot, "package.json");
@@ -85,26 +85,6 @@ function run(command, args, cwd, platform = process.platform) {
   }
 }
 
-function fixVsixReadmeCasing(vsixPath) {
-  const zip = new AdmZip(vsixPath);
-  const renames = [
-    { from: /^extension\/readme\.md$/i, to: "extension/README.md" },
-    { from: /^extension\/readme\.zh-cn\.md$/i, to: "extension/README.zh-cn.md" },
-    { from: /^extension\/readme\.fr-fr\.md$/i, to: "extension/README.fr-fr.md" },
-  ];
-
-  for (const entry of [...zip.getEntries()]) {
-    for (const { from, to } of renames) {
-      if (from.test(entry.entryName) && entry.entryName !== to) {
-        zip.addFile(to, entry.getData());
-        zip.deleteFile(entry);
-      }
-    }
-  }
-
-  zip.writeZip(vsixPath);
-}
-
 export async function packageVariant(flavor, options = {}) {
   const root = options.extensionRoot ?? extensionRoot;
   const manifestPath = options.packageJsonPath ?? packageJsonPath;
@@ -113,10 +93,12 @@ export async function packageVariant(flavor, options = {}) {
   const variantManifest = applyFlavorToManifest(originalManifest, flavor);
   const outputName = vsixOutputName(originalManifest, flavor);
   const outputPath = join(root, outputName);
+  const runCommand = options.runCommand ?? run;
+  const verifyArtifact = options.verifyArtifact ?? verifyVsixFile;
 
   await writeFile(manifestPath, `${JSON.stringify(variantManifest, null, 2)}\n`);
   try {
-    run(
+    runCommand(
       corepackCommand(options.platform),
       [
         "pnpm@9.12.0",
@@ -130,7 +112,7 @@ export async function packageVariant(flavor, options = {}) {
       root,
       options.platform,
     );
-    fixVsixReadmeCasing(outputPath);
+    await verifyArtifact(outputPath);
   } finally {
     await writeFile(manifestPath, originalText);
   }

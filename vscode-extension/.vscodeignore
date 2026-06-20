@@ -7,5 +7,15 @@ src/**
 vitest.config.ts
 scripts/**
 node_modules/**
-!cli-wrapper/node_modules/**
+
+# Bundle only the PTY files used at runtime. A broad node_modules negation
+# force-includes debug symbols and native build sources in vsce.
+!cli-wrapper/node_modules/@homebridge/node-pty-prebuilt-multiarch/package.json
+!cli-wrapper/node_modules/@homebridge/node-pty-prebuilt-multiarch/LICENSE
+!cli-wrapper/node_modules/@homebridge/node-pty-prebuilt-multiarch/lib/**/*.js
+!cli-wrapper/node_modules/@homebridge/node-pty-prebuilt-multiarch/prebuilds/**/*.node
+!cli-wrapper/node_modules/@homebridge/node-pty-prebuilt-multiarch/build/Release/**/*.node
+!cli-wrapper/node_modules/@homebridge/node-pty-prebuilt-multiarch/build/Release/**/*.dll
+!cli-wrapper/node_modules/@homebridge/node-pty-prebuilt-multiarch/build/Release/**/*.exe
+!cli-wrapper/node_modules/@homebridge/node-pty-prebuilt-multiarch/build/Release/spawn-helper
 .turbo/**
