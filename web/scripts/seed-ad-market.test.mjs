@@ -25,7 +25,7 @@ describe("seed-ad-market", () => {
     }
     // The exact totals the advertiser stated.
     expect(SEED_CAMPAIGNS.map((c) => c.budgetCents)).toEqual([
-      5600, 5250, 3800, 4250, 4680, 6000,
+      5600, 5600, 4000, 4250, 5280, 6000,
     ]);
   });
 

@@ -6,62 +6,65 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SpinShareWordmark } from "@/components/SpinShareWordmark";
 import { useT } from "@/lib/i18n/locale-provider";
 
-const TILT_INTENSITY = 22;
-
-function useCursorTilt() {
-  const heroRef = useRef<HTMLDivElement>(null);
+function NotFoundTitle({ children }: { children: string }) {
+  const titleRef = useRef<HTMLHeadingElement>(null);
   const [tilt, setTilt] = useState({ rx: 0, ry: 0, active: false });
 
-  useEffect(() => {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const coarse = window.matchMedia("(pointer: coarse)").matches;
-    if (reduced || coarse) {
-      return;
-    }
+  const handleMouseMove = (event: React.MouseEvent<HTMLHeadingElement>) => {
+    const el = titleRef.current;
+    if (!el) return;
+    if (window.matchMedia("(pointer: coarse)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const reset = () => setTilt({ rx: 0, ry: 0, active: false });
+    const rect = el.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width - 0.5;
+    const y = (event.clientY - rect.top) / rect.height - 0.5;
 
-    const onMove = (event: MouseEvent) => {
-      const hero = heroRef.current;
-      if (!hero) {
-        return;
-      }
+    setTilt({
+      ry: x * 20,
+      rx: (0.5 - y) * 20,
+      active: true,
+    });
+  };
 
-      const rect = hero.getBoundingClientRect();
-      const x = (event.clientX - rect.left) / rect.width - 0.5;
-      const y = (event.clientY - rect.top) / rect.height - 0.5;
+  const handleMouseLeave = () => {
+    setTilt({ rx: 0, ry: 0, active: false });
+  };
 
-      setTilt({
-        ry: x * TILT_INTENSITY,
-        rx: -y * TILT_INTENSITY,
-        active: true,
-      });
-    };
-
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseleave", reset);
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseleave", reset);
-    };
-  }, []);
-
-  return { heroRef, tilt };
+  return (
+    <h1
+      ref={titleRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      data-hovered={tilt.active ? "true" : "false"}
+      className="spinshare-404-3d text-[8rem] font-black leading-none tracking-tighter select-none sm:text-[12rem] lg:text-[16rem]"
+      style={{
+        transform: `perspective(1000px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) scale3d(${tilt.active ? 1.02 : 1}, ${tilt.active ? 1.02 : 1}, 1)`,
+        textShadow: tilt.active
+          ? `${-tilt.ry * 0.7}px ${8 + tilt.rx * 0.5}px 0 #6ee7b7, ${-tilt.ry * 1.1}px ${12 + tilt.rx * 0.7}px 0 #34d399, ${-tilt.ry * 1.4}px ${18 + tilt.rx * 0.9}px 0 #10b981, ${-tilt.ry * 1.8}px ${26 + tilt.rx * 1.1}px 32px rgba(16, 185, 129, 0.42), ${-tilt.ry * 2.2}px ${36 + tilt.rx * 1.3}px 56px rgba(16, 185, 129, 0.28)`
+          : undefined,
+        transition: tilt.active
+          ? "transform 0.1s cubic-bezier(0.25, 1, 0.5, 1), text-shadow 0.15s ease"
+          : "transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), text-shadow 0.45s ease",
+        transformStyle: "preserve-3d",
+      }}
+    >
+      {children}
+    </h1>
+  );
 }
 
 export default function NotFound() {
   const t = useT();
-  const { heroRef, tilt } = useCursorTilt();
 
   return (
     <>
-      {/* Top navbar — fixed, same as privacy/terms pages */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-transparent">
         <div className="liquid-glass spinshare-static mx-auto mt-3 flex h-16 max-w-7xl items-center justify-between rounded-[20px] bg-white/55 px-4 backdrop-blur-2xl [backdrop-filter:blur(24px)_saturate(180%)] [-webkit-backdrop-filter:blur(24px)_saturate(180%)] sm:px-6">
           <Link href="/" className="flex items-center gap-3" aria-label="SpinShare home">
@@ -103,48 +106,28 @@ export default function NotFound() {
         </div>
       </header>
 
-      <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(115deg,#e9f8ef_0%,#f3faf5_48%,#e1f5e9_100%)]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_14%,rgba(16,185,129,0.18),transparent_31%),radial-gradient(circle_at_88%_14%,rgba(52,211,153,0.16),transparent_36%)]" />
+      <div className="min-h-screen bg-[#f3faf5]">
+        <div className="flex min-h-[calc(100vh-7rem)] flex-col items-center justify-center px-4 pt-12 pb-16 text-center">
+          <NotFoundTitle>{t.notFound.title}</NotFoundTitle>
 
-        <div className="pointer-events-none absolute left-[10%] top-[20%] h-[400px] w-[400px] rounded-full bg-emerald-200/30 blur-3xl" />
-        <div className="pointer-events-none absolute bottom-[15%] right-[10%] h-[350px] w-[350px] rounded-full bg-emerald-300/20 blur-3xl" />
+          <p className="mx-auto mt-6 max-w-md text-lg font-bold text-slate-700">
+            {t.notFound.body}
+          </p>
+          <p className="mx-auto mt-2 max-w-sm text-sm font-medium text-slate-500">
+            {t.notFound.sub}
+          </p>
 
-        <div
-          ref={heroRef}
-          className="relative z-10 flex min-h-[calc(100vh-7rem)] flex-col items-center justify-center px-4 pt-12 pb-16 text-center [perspective:1200px]"
-        >
-          <div
-            className="spinshare-404-tilt"
-            style={{
-              transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) scale3d(${tilt.active ? 1.02 : 1}, ${tilt.active ? 1.02 : 1}, 1)`,
-              transition: tilt.active
-                ? "transform 0.12s cubic-bezier(0.25, 1, 0.5, 1)"
-                : "transform 0.55s cubic-bezier(0.25, 1, 0.5, 1)",
-            }}
+          <Link
+            href="/"
+            className="spinshare-btn-primary mt-8 inline-flex h-12 items-center gap-2 px-6 text-sm"
           >
-            <h1 className="spinshare-404-3d text-[8rem] font-black leading-none tracking-tighter sm:text-[12rem] lg:text-[16rem]">
-              {t.notFound.title}
-            </h1>
-          </div>
+            <ArrowLeft className="h-4 w-4" />
+            {t.common.backToHome}
+          </Link>
+        </div>
 
-        <p className="mx-auto mt-6 max-w-md text-lg font-bold text-slate-700">
-          {t.notFound.body}
-        </p>
-        <p className="mx-auto mt-2 max-w-sm text-sm font-medium text-slate-500">
-          {t.notFound.sub}
-        </p>
-
-        <Link
-          href="/"
-          className="spinshare-btn-primary mt-8 inline-flex h-12 items-center gap-2 px-6 text-sm"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {t.common.backToHome}
-        </Link>
+        <SiteFooter />
       </div>
-
-      <SiteFooter />
-    </div>
     </>
   );
 }

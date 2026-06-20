@@ -17,6 +17,10 @@ Tests the prod/local VSIX package variant helpers.
   SemVer-compatible version, and publish command package path.
 - Prod/local variants preserve the same extension id until command ids and
   adapter ownership are deliberately namespaced.
+- The package flow invokes `vsce` once and does not mutate or rewrite the VSIX
+  after `vsce` returns.
+- A fresh VSIX has an exact archive entry for the README asset path declared in
+  `extension.vsixmanifest`.
 
 ## Implemented Coverage
 
@@ -27,6 +31,7 @@ names, and Windows-vs-non-Windows spawn shell options.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Planned regression coverage for immutable VSIX output and README asset consistency. | Codex |
 | 2026-06-19 | Planned tests for Marketplace auto-update readiness and prod publish arguments. | Codex |
 | 2026-06-16 | Added package variant helper tests. | Codex |
 | 2026-06-16 | Planned Windows spawn option coverage for package variant script. | Codex |

@@ -31,7 +31,7 @@ const en: DictionaryBase = {
       `${pct}% credited revenue to you + $1 sign-up bonus toward your first payout.`,
     advertisersBidCta: "Advertisers bid into the next wait",
     monthlyEstimateSuffix: "/mo",
-    signupBonusBanner: "New users get a $1 gift — our treat.",
+    signupBonusBanner: "New users get a $1 gift — our treat. (Limited time)",
   },
   market: {
     title: "Advertiser money lines up for the next wait.",
@@ -202,7 +202,7 @@ const zh: DictionaryBase = {
       `${pct}% 广告收入计入你的账户，注册即送 $1 助力首次提现。`,
     advertisersBidCta: "广告主为下一次等待出价",
     monthlyEstimateSuffix: "/月",
-    signupBonusBanner: "立即注册，新用户专享 $1 礼金 🎁",
+    signupBonusBanner: "立即注册，新用户专享 $1 礼金 🎁（限时）",
   },
   market: {
     title: "广告主资金排队等候下一次加载。",
@@ -370,7 +370,7 @@ const fr: DictionaryBase = {
       `${pct} % des revenus crédités + 1 $ de bonus d'inscription vers votre premier paiement.`,
     advertisersBidCta: "Les annonceurs enchérissent pour la prochaine attente",
     monthlyEstimateSuffix: "/mois",
-    signupBonusBanner: "Nouveaux utilisateurs : 1 $ offert par SpinShare 🎁",
+    signupBonusBanner: "Nouveaux utilisateurs : 1 $ offert par SpinShare 🎁 (offre limitée)",
   },
   market: {
     title: "L'argent des annonceurs s'aligne pour la prochaine attente.",

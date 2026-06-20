@@ -88,10 +88,16 @@ Remove hover lift/shadow on `.liquid-glass-black` — used only by the homepage 
 
 Homepage bid-market timeframe: replace custom `.spinshare-home-timeframe` buttons with shared `SegmentSlider` (`mini` size) for consistent thumb UI at a smaller footprint.
 
+## Planned Change 2026-06-20: Slower Top Marquee
+
+Slow the homepage top ticker banner by increasing `.animate-marquee` duration
+from `50s` to `80s` per loop.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Slow marquee animation from 50s to 80s per loop | Cursor |
 | 2026-06-17 | Implemented market proof row layout for live market plus checkout form. | Codex |
 | 2026-06-17 | Planned market proof row layout for the live market and checkout form. | Codex |
 | 2026-06-15 | Removed `.spinshare-home-hero` local overflow rule and verified the inner hero scrollbar is gone | Codex |

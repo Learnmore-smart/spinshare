@@ -116,7 +116,7 @@ Update the static homepage test before implementation so it requires:
 
 **Discovered**: CI fails on `page.test.tsx` because the static-render test still expects
 `Limited Time: Get $1 instantly when you sign up!` while `dictionaries.ts` now defines
-`home.signupBonusBanner` as `New users get a $1 gift — our treat.`
+`home.signupBonusBanner` as `New users get a $1 gift — our treat. (Limited time)`
 
 **Root Cause**: Homepage copy was updated in i18n; the regression test was not synced.
 

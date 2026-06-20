@@ -59,10 +59,35 @@ production artifact is ready for Marketplace deployment later:
 - Do not make local and prod simultaneously installed until command ids and
   Claude adapter ownership are namespaced.
 
+## Bug Fix Plan 2026-06-20 Marketplace malformed/corrupted rejection
+
+**Bug:** Marketplace rejects the generated VSIX as malformed/corrupted.
+
+**Root Cause:** `vsce` emits an internally consistent OPC archive whose
+manifest references `extension/readme.md`. `fixVsixReadmeCasing()` then opens
+that archive with `adm-zip`, renames the entry to `extension/README.md` without
+updating the manifest asset path, and rewrites the entire archive. The final
+artifact therefore differs from the valid `vsce` output and contains a
+case-sensitive manifest/entry mismatch.
+
+**Fix Strategy:** Treat `vsce` output as immutable. Remove the `adm-zip`
+post-processing call and its helper. Keep the lowercase primary README entry
+because that is the path recorded by `vsce` in `extension.vsixmanifest`. Run a
+read-only validator after packaging; it may inspect but must never rewrite the
+artifact.
+
+**Regression Risks:** A future change could reintroduce post-processing or
+produce a manifest path that does not exist in the archive.
+
+**Test Plan:** Add a focused package-flow regression test that proves the
+packager performs no post-package mutation, then inspect a freshly generated
+VSIX to verify the manifest README asset resolves to an exact archive entry.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Documented the Marketplace corruption root cause and immutable-vsce-output fix plan. | Codex |
 | 2026-06-19 | Flavor now also sets `spinshare.autoUpdate` default (prod `true`, local `false`) so dev builds never self-reinstall from localhost. | Claude |
 | 2026-06-19 | Planned Marketplace auto-update readiness guard and production publish path. | Codex |
 | 2026-06-16 | Implemented prod/local package variant script and Windows spawn fix. | Codex |

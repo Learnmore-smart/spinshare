@@ -20,12 +20,12 @@ writing, so a typo in the table fails fast instead of seeding bad money.
 
 | Doc id | brandName | adText | destinationUrl | cpmCents | Blocks | budgetCents |
 |---|---|---|---|---|---|---|
-| `cmp-seed-cursor` | Cursor | Cursor - The AI-First Code Editor | https://cursor.com | 1120 | 5 | 5600 |
-| `cmp-seed-learnx` | LearnX | LearnX - Know exactly what to study | https://learnx.pro | 1050 | 5 | 5250 |
-| `cmp-seed-trae` | Trae | Trae - Adaptive AI IDE | https://trae.ai | 950 | 4 | 3800 |
-| `cmp-seed-antigravity` | Antigravity | Antigravity - The agentic development platform | https://antigravity.google | 850 | 5 | 4250 |
-| `cmp-seed-glm` | Z.ai | GLM - Unify frontier reasoning and coding | https://z.ai | 780 | 6 | 4680 |
-| `cmp-seed-spinshare` | SpinShare | SpinShare - Get paid when your AI thinks | https://spinshare.dev | 600 | 10 | 6000 |
+| `cmp-seed-cursor` | Cursor | Cursor — The best way to code with AI | https://cursor.com/ | 1120 | 5 | 5600 |
+| `cmp-seed-learnx` | LearnX | LearnX — Know exactly what to study | https://learnx.pro/ | 560 | 10 | 5600 |
+| `cmp-seed-trae` | Trae | Trae — The Real AI Engineer | https://www.trae.ai/ | 1000 | 4 | 4000 |
+| `cmp-seed-antigravity` | Antigravity | Antigravity — Experience Liftoff | https://antigravity.google/ | 850 | 5 | 4250 |
+| `cmp-seed-glm` | GLM | GLM — Built for Long-Horizon Tasks | https://z.ai/ | 880 | 6 | 5280 |
+| `cmp-seed-spinshare` | SpinShare | SpinShare — Get paid when your AI thinks | https://spinshare.dev/ | 600 | 10 | 6000 |
 
 Every campaign is written with `status: "active"`, `reviewStatus: "approved"`,
 and `publicOnLeaderboard: true` so it is immediately biddable and shown on the
@@ -66,4 +66,6 @@ Requires `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, and
 
 | Date | Change |
 |---|---|
+| 2026-06-20 | Updated Trae ("The Real AI Engineer") and Antigravity ("Experience Liftoff") slogans |
+| 2026-06-20 | Revised slogans/CPMs/blocks (LearnX→10 blocks @ $5.60; Trae $10; GLM $8.80; Antigravity prefix-trimmed); added `--delete` mode |
 | 2026-06-20 | Created script + doc + test for initial 6-campaign production ad-market seed |

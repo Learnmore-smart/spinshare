@@ -23,7 +23,7 @@
 }
 
 .animate-marquee {
-  animation: marquee 50s linear infinite;
+  animation: marquee 80s linear infinite;
 }
 
 /* =====================================================================
@@ -787,28 +787,26 @@ input[type="password"]:focus {
 }
 
 /* =====================================================================
-   404 — high-contrast 3D emerald text (cursor-tilt target in not-found.tsx)
+   404 — static 3D letters only (tilt applied directly on the h1)
    ===================================================================== */
 .spinshare-404-3d {
-  color: #059669;
-  -webkit-text-stroke: 1px rgba(6, 95, 70, 0.22);
-  paint-order: stroke fill;
+  color: #34d399;
+  background: transparent;
   text-shadow:
-    0 1px 0 #047857,
-    0 2px 0 #065f46,
-    0 3px 0 #064e3b,
-    0 4px 0 #064e3b,
-    0 5px 0 #022c22,
-    0 8px 0 rgba(2, 44, 34, 0.55),
-    0 14px 28px rgba(4, 120, 87, 0.42),
-    0 28px 56px rgba(16, 185, 129, 0.28);
+    0 1px 0 #a7f3d0,
+    0 2px 0 #86efac,
+    0 3px 0 #6ee7b7,
+    0 4px 0 #6ee7b7,
+    0 5px 0 #34d399,
+    0 8px 16px rgba(16, 185, 129, 0.22),
+    0 16px 36px rgba(16, 185, 129, 0.16);
   letter-spacing: -0.04em;
   user-select: none;
+  transition: text-shadow 0.45s ease;
 }
 
-.spinshare-404-tilt {
-  transform-style: preserve-3d;
-  will-change: transform;
+.spinshare-404-3d[data-hovered="true"] {
+  color: #2dd4a8;
 }
 
 /* =====================================================================

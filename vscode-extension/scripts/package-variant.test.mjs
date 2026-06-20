@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 import {
   applyFlavorToManifest,
@@ -70,5 +73,42 @@ describe("package variant helpers", () => {
     expect(spawnOptionsForPlatform("linux")).toMatchObject({
       shell: false,
     });
+  });
+
+  it("packages once, verifies the untouched artifact, and restores the manifest", async () => {
+    const root = await mkdtemp(join(tmpdir(), "spinshare-package-variant-"));
+    const manifestPath = join(root, "package.json");
+    const originalText = `${JSON.stringify(baseManifest, null, 2)}\n`;
+    const events = [];
+
+    await writeFile(manifestPath, originalText);
+    try {
+      const outputPath = await import("./package-variant.mjs").then(
+        ({ packageVariant }) =>
+          packageVariant("prod", {
+            extensionRoot: root,
+            packageJsonPath: manifestPath,
+            platform: "linux",
+            runCommand(command, args, cwd) {
+              events.push({ type: "package", command, args, cwd });
+            },
+            verifyArtifact(path) {
+              events.push({ type: "verify", path });
+            },
+          }),
+      );
+
+      expect(events).toEqual([
+        expect.objectContaining({
+          type: "package",
+          command: "corepack",
+          cwd: root,
+        }),
+        { type: "verify", path: outputPath },
+      ]);
+      expect(await readFile(manifestPath, "utf8")).toBe(originalText);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 });

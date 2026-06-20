@@ -12,8 +12,9 @@
  * creating duplicates.
  *
  * Run from repo root:
- *   node web/scripts/seed-ad-market.mjs --dry-run      # preview, no writes
- *   node web/scripts/seed-ad-market.mjs --production   # write to prod campaigns/
+ *   node web/scripts/seed-ad-market.mjs --dry-run               # preview, no writes
+ *   node web/scripts/seed-ad-market.mjs --production            # write to prod campaigns/
+ *   node web/scripts/seed-ad-market.mjs --production --delete   # remove the seeded campaigns
  *
  * Requires FIREBASE_* service-account creds in repo-root `.env`.
  *
@@ -46,8 +47,8 @@ export const SEED_CAMPAIGNS = [
     id: "cmp-seed-cursor",
     advertiserId: "seed-cursor-advertiser",
     brandName: "Cursor",
-    adText: "Cursor - The AI-First Code Editor",
-    destinationUrl: "https://cursor.com",
+    adText: "Cursor — The best way to code with AI",
+    destinationUrl: "https://cursor.com/",
     cpmCents: 1120,
     blocks: 5,
     budgetCents: 5600,
@@ -56,28 +57,28 @@ export const SEED_CAMPAIGNS = [
     id: "cmp-seed-learnx",
     advertiserId: "seed-learnx-advertiser",
     brandName: "LearnX",
-    adText: "LearnX - Know exactly what to study",
-    destinationUrl: "https://learnx.pro",
-    cpmCents: 1050,
-    blocks: 5,
-    budgetCents: 5250,
+    adText: "LearnX — Know exactly what to study",
+    destinationUrl: "https://learnx.pro/",
+    cpmCents: 560,
+    blocks: 10,
+    budgetCents: 5600,
   },
   {
     id: "cmp-seed-trae",
     advertiserId: "seed-trae-advertiser",
     brandName: "Trae",
-    adText: "Trae - Adaptive AI IDE",
-    destinationUrl: "https://trae.ai",
-    cpmCents: 950,
+    adText: "Trae — The Real AI Engineer",
+    destinationUrl: "https://www.trae.ai/",
+    cpmCents: 1000,
     blocks: 4,
-    budgetCents: 3800,
+    budgetCents: 4000,
   },
   {
     id: "cmp-seed-antigravity",
     advertiserId: "seed-antigravity-advertiser",
     brandName: "Antigravity",
-    adText: "Antigravity - The agentic development platform",
-    destinationUrl: "https://antigravity.google",
+    adText: "Antigravity — Experience Liftoff",
+    destinationUrl: "https://antigravity.google/",
     cpmCents: 850,
     blocks: 5,
     budgetCents: 4250,
@@ -85,19 +86,19 @@ export const SEED_CAMPAIGNS = [
   {
     id: "cmp-seed-glm",
     advertiserId: "seed-glm-advertiser",
-    brandName: "Z.ai",
-    adText: "GLM - Unify frontier reasoning and coding",
-    destinationUrl: "https://z.ai",
-    cpmCents: 780,
+    brandName: "GLM",
+    adText: "GLM — Built for Long-Horizon Tasks",
+    destinationUrl: "https://z.ai/",
+    cpmCents: 880,
     blocks: 6,
-    budgetCents: 4680,
+    budgetCents: 5280,
   },
   {
     id: "cmp-seed-spinshare",
     advertiserId: "seed-spinshare-advertiser",
     brandName: "SpinShare",
-    adText: "SpinShare - Get paid when your AI thinks",
-    destinationUrl: "https://spinshare.dev",
+    adText: "SpinShare — Get paid when your AI thinks",
+    destinationUrl: "https://spinshare.dev/",
     cpmCents: 600,
     blocks: 10,
     budgetCents: 6000,
@@ -228,6 +229,7 @@ function getDb(projectId, credential) {
 async function main() {
   const forceProduction = process.argv.includes("--production");
   const dryRun = process.argv.includes("--dry-run");
+  const del = process.argv.includes("--delete");
 
   validateCampaigns();
 
@@ -238,20 +240,40 @@ async function main() {
     forceProduction: forceProduction || dryRun,
   });
   const nowMs = Date.now();
+  const verb = del ? "delete" : "upsert";
 
   if (dryRun) {
-    console.log(`DRY RUN — would upsert ${SEED_CAMPAIGNS.length} campaign(s) into "${collection}":`);
+    console.log(`DRY RUN — would ${verb} ${SEED_CAMPAIGNS.length} campaign(s) in "${collection}":`);
     for (const c of SEED_CAMPAIGNS) {
       console.log(
         `  - ${c.id.padEnd(22)} ${c.brandName.padEnd(12)} cpm $${(c.cpmCents / 100).toFixed(2)} x ${c.blocks} blocks = $${(c.budgetCents / 100).toFixed(2)}`,
       );
     }
-    console.log("\nNo writes performed. Re-run with --production to apply.");
+    console.log(`\nNo writes performed. Re-run with --production${del ? " --delete" : ""} to apply.`);
     return;
   }
 
   const { projectId, credential } = resolveCredential(env);
   const db = getDb(projectId, credential);
+
+  if (del) {
+    let removed = 0;
+    for (const c of SEED_CAMPAIGNS) {
+      const ref = db.collection(collection).doc(c.id);
+      const existing = await ref.get();
+      if (existing.exists) {
+        await ref.delete();
+        removed += 1;
+        console.log(`  deleted ${c.id} (${c.brandName})`);
+      } else {
+        console.log(`  skipped ${c.id} — not found`);
+      }
+    }
+    console.log(
+      `\nRemoved ${removed} seed campaign(s) from "${collection}" on project ${projectId}.`,
+    );
+    return;
+  }
 
   let written = 0;
   for (const c of SEED_CAMPAIGNS) {

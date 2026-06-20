@@ -30,6 +30,14 @@ VS Code extension manifest and build scripts for local `.vsix` packaging and Mar
 
 - `@spinshare/core` is a devDependency only for type imports erased at compile time.
 
+## Bug Fix Plan 2026-06-20 Safe ZIP dependency usage
+
+The Marketplace corruption fix removes every `adm-zip` write operation. Keep
+the existing devDependency only for read-only validation of the completed VSIX:
+required OPC entries, exact manifest/README path matching, and prohibited debug
+payload checks. This avoids a package/lockfile churn while turning the library
+from a mutator into a packaging guard.
+
 ## Important Notes / NEVER Change
 
 - Run `pnpm build` in `vscode-extension` before `vsce package`.
@@ -225,6 +233,7 @@ The VSIX packaging script currently calls bare `vsce`, which fails on Windows wh
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Restricted `adm-zip` to read-only VSIX verification; no archive writes are permitted. | Codex |
 | 2026-06-19 | Implemented `0.2.2` prod/local packages for Antigravity below-status rendering. | Codex |
 | 2026-06-19 | Planned `0.2.2` prod/local packages for Antigravity below-status rendering. | Codex |
 | 2026-06-19 | Cleaned VSIX artifacts down to one prod and one local `0.2.1` package. | Codex |
