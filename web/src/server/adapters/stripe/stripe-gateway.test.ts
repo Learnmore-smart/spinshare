@@ -15,7 +15,10 @@ describe("StripeGateway", () => {
         object: {
           id: "cs_test_123",
           object: "checkout.session",
-          metadata: { campaignId: "cmp_test_123" },
+          metadata: {
+            campaignId: "cmp_test_123",
+            purchasedImpressions: "3000",
+          },
           client_reference_id: "cmp_fallback",
           amount_total: 500,
         },
@@ -41,6 +44,7 @@ describe("StripeGateway", () => {
       checkoutSessionId: "cs_test_123",
       campaignId: "cmp_test_123",
       amountCents: 500,
+      purchasedImpressions: 3_000,
     });
   });
 
@@ -49,7 +53,10 @@ describe("StripeGateway", () => {
       stripeCheckoutSessionToFunding({
         id: "cs_test_paid",
         payment_status: "paid",
-        metadata: { campaignId: "cmp_meta" },
+        metadata: {
+          campaignId: "cmp_meta",
+          purchasedImpressions: "3000",
+        },
         client_reference_id: "cmp_fallback",
         amount_total: 500,
       }),
@@ -58,6 +65,7 @@ describe("StripeGateway", () => {
       status: "paid",
       campaignId: "cmp_meta",
       amountCents: 500,
+      purchasedImpressions: 3_000,
     });
   });
 
@@ -66,7 +74,7 @@ describe("StripeGateway", () => {
       stripeCheckoutSessionToFunding({
         id: "cs_test_open",
         payment_status: "unpaid",
-        metadata: {},
+        metadata: { purchasedImpressions: "not-a-number" },
         client_reference_id: "cmp_reference",
         amount_total: 700,
       }),

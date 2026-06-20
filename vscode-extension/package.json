@@ -4,7 +4,7 @@
   "version": "0.2.2",
   "private": true,
   "description": "SpinShare extension: wraps terminal AI agents and shows ads during AI generation wait states. Compatible with VSCode, Trae, and Cursor.",
-  "publisher": "spinshare",
+  "publisher": "Learnmoresmart",
   "icon": "media/icon.png",
   "repository": {
     "type": "git",

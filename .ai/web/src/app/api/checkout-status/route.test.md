@@ -38,6 +38,11 @@ Add route-level coverage before implementation:
 fallback funding, funded activity recording, repeat-read idempotency, and
 campaign-id mismatch rejection.
 
+## Planned Coverage 2026-06-20 Delivery Inventory
+
+Extend paid-session reconciliation coverage to assert exact purchased inventory
+is credited once with budget and remains unchanged on repeated status reads.
+
 ## Dependencies
 
 - `web/src/app/api/checkout-status/route.ts`
@@ -48,6 +53,7 @@ campaign-id mismatch rejection.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Planned checkout-status reconciliation inventory coverage. | Codex |
 | 2026-06-16 | Implemented Stripe return reconciliation coverage. | Codex |
 | 2026-06-16 | Planned Stripe return reconciliation coverage. | Codex |
 | 2026-06-16 | Implemented checkout status route coverage. | Codex |

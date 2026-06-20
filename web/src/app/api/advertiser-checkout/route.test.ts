@@ -74,6 +74,7 @@ describe("POST /api/advertiser-checkout", () => {
       adText: validPayload.adText,
       cpmCents: validPayload.cpmCents,
       budgetCents: 1500,
+      purchasedImpressions: 3_000,
       contactEmail: "ads@example.com",
       destinationUrl: "https://linear.app/",
       brandName: "Linear",
@@ -85,7 +86,11 @@ describe("POST /api/advertiser-checkout", () => {
       contactEmail: "ads@example.com",
       publicOnLeaderboard: false,
       budgetCents: 1500,
+      purchasedImpressions: 3_000,
     });
+    await expect(
+      getContainer().payments.retrieveCheckoutSessionFunding(body.sessionId),
+    ).resolves.toMatchObject({ purchasedImpressions: 3_000 });
     expect((getContainer().activities as MemoryActivityRepository).all()).toEqual([
       expect.objectContaining({
         campaignId: body.campaign.id,

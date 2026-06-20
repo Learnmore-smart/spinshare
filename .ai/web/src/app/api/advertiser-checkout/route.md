@@ -105,10 +105,17 @@ Added `POST /api/advertiser-checkout`. It validates the public form payload, cre
 - Final `corepack pnpm@9.12.0 --filter @spinshare/web test` passed: 21 files passed, 1 skipped, 93 tests passed.
 - `corepack pnpm@9.12.0 --filter @spinshare/web build` passed after allowing the configured Google Font fetch.
 
+## Planned Change 2026-06-20 Delivery Inventory
+
+Pass `blockCount * 1,000` to Checkout and, for settled mock sessions, credit it
+with budget through `applyFunding`. Include the updated counter in the response
+campaign without changing real Stripe webhook settlement.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Planned exact inventory transport and settled mock credit. | Codex |
 | 2026-06-16 | Implemented public checkout ad safety gate through core schema. | Codex |
 | 2026-06-16 | Planned public checkout ad safety gate through core schema. | Codex |
 | 2026-06-16 | Implemented public checkout success URL session context. | Codex |

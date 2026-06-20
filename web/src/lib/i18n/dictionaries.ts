@@ -44,6 +44,9 @@ const en: DictionaryBase = {
     impsPerMinFleet: (rate) => `${rate} imps/min across the fleet`,
     campaign: "Campaign",
     bidPerThousand: "Bid / 1,000 Imps",
+    delivery: "Delivery",
+    deliveryProgressLabel: (served, purchased) =>
+      `${served.toLocaleString("en-US")} of ${purchased.toLocaleString("en-US")} impressions delivered`,
     loadingLiveBids: "Loading live bids...",
     bidMarketUnavailable: "Bid market is temporarily unavailable",
     noFundedBids: "No funded bids live yet",
@@ -215,6 +218,9 @@ const zh: DictionaryBase = {
     impsPerMinFleet: (rate) => `全站 ${rate} 次展示/分钟`,
     campaign: "活动",
     bidPerThousand: "出价 / 千次展示",
+    delivery: "展示进度",
+    deliveryProgressLabel: (served, purchased) =>
+      `已展示 ${served.toLocaleString("en-US")} / 共 ${purchased.toLocaleString("en-US")} 次`,
     loadingLiveBids: "正在加载实时出价…",
     bidMarketUnavailable: "竞价市场暂时不可用",
     noFundedBids: "暂无已出资的出价",
@@ -384,6 +390,9 @@ const fr: DictionaryBase = {
     impsPerMinFleet: (rate) => `${rate} imp/min sur le réseau`,
     campaign: "Campagne",
     bidPerThousand: "Enchère / 1 000 imp.",
+    delivery: "Diffusion",
+    deliveryProgressLabel: (served, purchased) =>
+      `${served.toLocaleString("fr-FR")} impressions diffusées sur ${purchased.toLocaleString("fr-FR")}`,
     loadingLiveBids: "Chargement des enchères en direct…",
     bidMarketUnavailable: "Le marché des enchères est temporairement indisponible",
     noFundedBids: "Aucune enchère financée pour le moment",

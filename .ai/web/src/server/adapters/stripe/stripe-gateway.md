@@ -72,10 +72,18 @@ retrieval. The method catches retrieval errors and returns `null` so
 checkout-status diagnostics degrade back to `pending_webhook` instead of
 crashing.
 
+## Planned Change 2026-06-20 Purchased Inventory Metadata
+
+Write exact purchased impressions to Stripe Checkout metadata and safely parse
+that positive integer from completed webhook sessions and retrieved Checkout
+Sessions. Missing or malformed legacy metadata stays absent for strict
+settlement fallback; no network behavior or credential loading changes.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Planned Stripe purchased-inventory metadata transport. | Codex |
 | 2026-06-16 | Implemented Checkout Session funding lookup. | Codex |
 | 2026-06-16 | Planned Checkout Session funding lookup. | Codex |
 | 2026-06-16 | Implemented parsed Checkout Session id preservation. | Codex |

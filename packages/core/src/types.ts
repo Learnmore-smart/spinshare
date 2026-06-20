@@ -158,6 +158,11 @@ export interface Campaign {
   cpmCents: number;
   /** Remaining budget in integer cents. */
   budgetCents: number;
+  /**
+   * Cumulative impressions bought through settled funding. Missing only on
+   * legacy campaign documents created before inventory tracking.
+   */
+  purchasedImpressions?: number;
   /** Lifecycle status. */
   status: CampaignStatus;
   /** Epoch millis of creation; deterministic tie-break for bidding. */

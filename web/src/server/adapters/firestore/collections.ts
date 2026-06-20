@@ -135,6 +135,10 @@ export function toCampaign(
     reviewStatus: toCampaignReviewStatus(data.reviewStatus),
     cpmCents: Number(data.cpmCents ?? 0),
     budgetCents: Number(data.budgetCents ?? 0),
+    ...(Number.isSafeInteger(data.purchasedImpressions) &&
+    data.purchasedImpressions >= 0
+      ? { purchasedImpressions: Number(data.purchasedImpressions) }
+      : {}),
     status: data.status as CampaignStatus,
     createdAtMs: Number(data.createdAtMs ?? 0),
   };

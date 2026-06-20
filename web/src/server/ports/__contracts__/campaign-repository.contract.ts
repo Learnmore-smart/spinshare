@@ -44,6 +44,7 @@ export function runCampaignRepositoryContract(
       const repo = await harness.makeRepo();
       const created = await repo.create(newCampaign());
       expect(created.budgetCents).toBe(0);
+      expect(created.purchasedImpressions).toBe(0);
       expect(created.status).toBe("active");
       expect(created.reviewStatus ?? "approved").toBe("approved");
 
@@ -68,6 +69,30 @@ export function runCampaignRepositoryContract(
 
       await expect(
         repo.applyBudgetDeltaCents(harness.uid("nope"), 100),
+      ).rejects.toThrow();
+    });
+
+    it("applyFunding increments budget and purchased inventory together", async () => {
+      const repo = await harness.makeRepo();
+      const created = await repo.create(newCampaign());
+
+      await repo.applyFunding(created.id, {
+        amountCents: 5_000,
+        purchasedImpressions: 2_000,
+      });
+
+      const funded = await repo.getById(created.id);
+      expect(funded?.budgetCents).toBe(5_000);
+      expect(funded?.purchasedImpressions).toBe(2_000);
+
+      await repo.applyBudgetDeltaCents(created.id, -1_000);
+      expect((await repo.getById(created.id))?.purchasedImpressions).toBe(2_000);
+
+      await expect(
+        repo.applyFunding(harness.uid("nope"), {
+          amountCents: 100,
+          purchasedImpressions: 1_000,
+        }),
       ).rejects.toThrow();
     });
 

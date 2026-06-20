@@ -63,6 +63,20 @@ longer part of the public `/api/market` row payload.
 
 `GET /api/market` now filters out campaigns where `publicOnLeaderboard === false` after loading/sorting biddable campaigns. Actual ad selection still uses the repository's full biddable set.
 
+## Planned Change 2026-06-20 Public Delivery Progress
+
+Reintroduce only non-monetary row-level delivery counts at the user's explicit
+request: settled `servedImpressions`, cumulative `purchasedImpressions`, and a
+clamped `deliveryPercent`. Do not expose payment amounts, remaining budget, or
+advertiser identity. Prefer the durable campaign counter and reconstruct only
+legacy documents from served count plus remaining budget capacity.
+
+## Agent Decision 2026-06-20
+
+The prior privacy change removed spend and delivery together. This change keeps
+all spend fields private while exposing the exact inventory ratio needed for a
+credible public leaderboard.
+
 ## Bug Fixes
 
 | Date | Bug | Cause | Fix |
@@ -75,6 +89,7 @@ longer part of the public `/api/market` row payload.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Planned non-monetary public delivery progress fields. | Codex |
 | 2026-06-13 | Created documentation for market route implementation. | Codex |
 | 2026-06-13 | Documented final route response contract for live homepage polling. | Codex |
 | 2026-06-13 | Documented leaderboard privacy filtering plan. | Codex |

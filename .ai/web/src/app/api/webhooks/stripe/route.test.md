@@ -39,10 +39,16 @@ before implementation because the route threw from `applyBudgetDeltaCents()`
 after claiming the payment event. The checkout-session activity case failed
 because the activity row did not include `checkoutSessionId`.
 
+## Planned Coverage 2026-06-20 Delivery Inventory
+
+Assert verified funding credits exact purchased impressions once, redelivery
+does not double-credit, and legacy events infer only exact whole blocks.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Planned webhook purchased-inventory and idempotency coverage. | Codex |
 | 2026-06-16 | Implemented missing-campaign and checkout-session webhook coverage. | Codex |
 | 2026-06-16 | Planned missing-campaign and checkout-session webhook coverage. | Codex |
 | 2026-06-15 | Implemented funding activity test coverage. | Codex |

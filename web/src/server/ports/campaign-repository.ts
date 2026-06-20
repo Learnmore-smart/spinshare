@@ -61,6 +61,11 @@ export interface CampaignRepository {
   listByAdvertiser(advertiserId: string): Promise<Campaign[]>;
   /** Applies a signed budget delta (flush reconciliation + funding). */
   applyBudgetDeltaCents(id: string, deltaCents: number): Promise<void>;
+  /** Atomically credits budget and cumulative purchased impression inventory. */
+  applyFunding(
+    id: string,
+    input: { amountCents: number; purchasedImpressions: number },
+  ): Promise<void>;
   /**
    * Applies an advertiser edit (ad text, destination, brand, leaderboard, CPM,
    * review state). Returns the updated campaign. Throws if the id is unknown.

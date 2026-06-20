@@ -46,10 +46,17 @@ The stalled and failing `CampaignRepository` test doubles now include throwing
 - `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts src/app/dashboard/advertiser/campaign-list.test.tsx src/app/dashboard/advertiser/advertiser-dashboard-context.test.ts src/server/bidding-service.test.ts` passed.
 - `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
 
+## Planned Change 2026-06-20 Campaign Funding Contract
+
+Add throwing `applyFunding()` methods to the two local repository test doubles
+so they satisfy the expanded storage port. Bidding tests do not exercise money
+movement, so invocation remains an explicit test failure.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Planned test-double update for campaign funding contract. | Codex |
 | 2026-06-18 | Implemented test-double update for repository delete contract. | Codex |
 | 2026-06-18 | Planned test-double update for repository delete contract. | Codex |
 | 2026-06-18 | Implemented destination-required bidding regression coverage. | Codex |

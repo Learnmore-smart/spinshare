@@ -213,6 +213,7 @@ describe("GET /api/checkout-status", () => {
         status: "paid",
         campaignId: campaign.id,
         amountCents: 500,
+        purchasedImpressions: 1_000,
       },
     });
 
@@ -234,6 +235,7 @@ describe("GET /api/checkout-status", () => {
     });
     await expect(container.campaigns.getById(campaign.id)).resolves.toMatchObject({
       budgetCents: 500,
+      purchasedImpressions: 1_000,
     });
     expect((container.activities as MemoryActivityRepository).all()).toEqual(
       expect.arrayContaining([
@@ -250,6 +252,7 @@ describe("GET /api/checkout-status", () => {
     expect(repeat.status).toBe(200);
     await expect(container.campaigns.getById(campaign.id)).resolves.toMatchObject({
       budgetCents: 500,
+      purchasedImpressions: 1_000,
     });
   });
 

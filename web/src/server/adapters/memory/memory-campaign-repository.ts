@@ -67,6 +67,7 @@ export class MemoryCampaignRepository implements CampaignRepository {
       reviewStatus: input.reviewStatus ?? "approved",
       cpmCents: input.cpmCents,
       budgetCents: 0,
+      purchasedImpressions: 0,
       status: "active",
       createdAtMs: this.clock.nowMs(),
     };
@@ -78,6 +79,18 @@ export class MemoryCampaignRepository implements CampaignRepository {
     return [...this.campaigns.values()].filter(
       (c) => c.advertiserId === advertiserId,
     );
+  }
+
+  async applyFunding(
+    id: string,
+    input: { amountCents: number; purchasedImpressions: number },
+  ): Promise<void> {
+    const campaign = this.campaigns.get(id);
+    if (!campaign) throw new Error(`campaign not found: ${id}`);
+    campaign.budgetCents += input.amountCents;
+    if (campaign.purchasedImpressions !== undefined) {
+      campaign.purchasedImpressions += input.purchasedImpressions;
+    }
   }
 
   async applyBudgetDeltaCents(id: string, deltaCents: number): Promise<void> {

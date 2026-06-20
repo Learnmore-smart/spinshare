@@ -94,6 +94,7 @@ export class FirestoreCampaignRepo implements CampaignRepository {
       reviewStatus: input.reviewStatus ?? "approved",
       cpmCents: input.cpmCents,
       budgetCents: 0,
+      purchasedImpressions: 0,
       status: "active",
       createdAtMs,
     };
@@ -110,6 +111,30 @@ export class FirestoreCampaignRepo implements CampaignRepository {
       .where("advertiserId", "==", advertiserId)
       .get();
     return snap.docs.map((doc) => toCampaign(doc.id, doc.data()));
+  }
+
+  /** Credits budget and tracked inventory together in one transaction. */
+  async applyFunding(
+    id: string,
+    input: { amountCents: number; purchasedImpressions: number },
+  ): Promise<void> {
+    const ref = this.collection.doc(id);
+    await this.db.runTransaction(async (tx) => {
+      const doc = await tx.get(ref);
+      if (!doc.exists) {
+        throw new Error(`Campaign ${id} not found`);
+      }
+      const fields: Record<string, unknown> = {
+        budgetCents: FieldValue.increment(input.amountCents),
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+      if (typeof doc.data()?.purchasedImpressions === "number") {
+        fields.purchasedImpressions = FieldValue.increment(
+          input.purchasedImpressions,
+        );
+      }
+      tx.update(ref, fields);
+    });
   }
 
   /** Applies a signed budget delta atomically (flush reconciliation + funding). */

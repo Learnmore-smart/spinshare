@@ -57,6 +57,7 @@ describe("seed-ad-market", () => {
       status: "active",
       reviewStatus: "approved",
       publicOnLeaderboard: true,
+      purchasedImpressions: SEED_CAMPAIGNS[0].blocks * 1_000,
       createdAtMs: 1234,
     });
   });

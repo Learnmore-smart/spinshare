@@ -148,6 +148,7 @@ export function toCampaignDoc(c, nowMs) {
     reviewStatus: "approved",
     cpmCents: c.cpmCents,
     budgetCents: c.budgetCents,
+    purchasedImpressions: c.blocks * 1_000,
     status: "active",
     createdAtMs: nowMs,
   };

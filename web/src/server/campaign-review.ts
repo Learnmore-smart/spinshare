@@ -34,6 +34,37 @@ export interface CampaignReviewResult {
   reason?: string;
 }
 
+/** Exact inventory and money carried by one settled campaign funding. */
+export interface CampaignFundingInput {
+  amountCents: number;
+  purchasedImpressions: number;
+}
+
+/**
+ * Resolves exact purchased inventory, preserving a strict fallback for Stripe
+ * Checkout Sessions created before inventory metadata was introduced.
+ */
+export function resolvePurchasedImpressions(
+  explicit: number | undefined,
+  amountCents: number,
+  cpmCents: number,
+): number | null {
+  if (Number.isSafeInteger(explicit) && explicit !== undefined && explicit > 0) {
+    return explicit;
+  }
+  if (
+    !Number.isSafeInteger(amountCents) ||
+    amountCents <= 0 ||
+    !Number.isSafeInteger(cpmCents) ||
+    cpmCents <= 0 ||
+    amountCents % cpmCents !== 0
+  ) {
+    return null;
+  }
+  const inferred = (amountCents / cpmCents) * 1_000;
+  return Number.isSafeInteger(inferred) && inferred > 0 ? inferred : null;
+}
+
 /**
  * Reviews campaign content and returns the review status to persist.
  *
@@ -67,10 +98,10 @@ export async function reviewCampaignContent(
 export async function creditCampaignBudgetWithReview(
   campaigns: CampaignRepository,
   campaign: Campaign,
-  amountCents: number,
+  funding: CampaignFundingInput,
 ): Promise<CampaignReviewStatus> {
   const wasUnfunded = campaign.budgetCents <= 0;
-  await campaigns.applyBudgetDeltaCents(campaign.id, amountCents);
+  await campaigns.applyFunding(campaign.id, funding);
   if (!wasUnfunded) {
     return campaign.reviewStatus ?? "approved";
   }

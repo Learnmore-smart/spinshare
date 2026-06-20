@@ -66,6 +66,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const input = parsed.data;
   const amountCents = getAdvertiserCheckoutAmountCents(input);
+  const purchasedImpressions = input.blockCount * 1_000;
   const container = getContainer();
   const { campaigns, payments } = container;
   const campaign = await campaigns.create({
@@ -83,6 +84,7 @@ export async function POST(request: Request): Promise<Response> {
   const checkout = await payments.createCheckoutSession({
     campaignId: campaign.id,
     amountCents,
+    purchasedImpressions,
     customerEmail: input.email,
     successUrl: `${origin}/?checkout=success&checkout_session_id={CHECKOUT_SESSION_ID}#bid-market`,
     cancelUrl: `${origin}/?checkout=cancelled#advertiser-checkout`,
@@ -96,8 +98,13 @@ export async function POST(request: Request): Promise<Response> {
   });
 
   if (checkout.settled === true) {
-    await campaigns.applyBudgetDeltaCents(campaign.id, amountCents);
+    await campaigns.applyFunding(campaign.id, {
+      amountCents,
+      purchasedImpressions,
+    });
     responseCampaign.budgetCents += amountCents;
+    responseCampaign.purchasedImpressions =
+      (responseCampaign.purchasedImpressions ?? 0) + purchasedImpressions;
     await recordCheckoutActivity(container, {
       campaign,
       status: "budgetFunded",

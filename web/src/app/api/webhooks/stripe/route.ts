@@ -28,7 +28,10 @@
 
 import { formatCentsAsUsd, type Campaign } from "@spinshare/core";
 
-import { creditCampaignBudgetWithReview } from "@/server/campaign-review";
+import {
+  creditCampaignBudgetWithReview,
+  resolvePurchasedImpressions,
+} from "@/server/campaign-review";
 import { getContainer, type Container } from "@/server/container";
 import type { StripeEvent } from "@/server/ports";
 
@@ -116,6 +119,18 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
+    const purchasedImpressions = resolvePurchasedImpressions(
+      event.purchasedImpressions,
+      event.amountCents,
+      campaign.cpmCents,
+    );
+    if (purchasedImpressions === null) {
+      return Response.json(
+        { received: true, ignored: true, reason: "invalid_purchased_inventory" },
+        { status: 200 },
+      );
+    }
+
     // Atomically claim the event before crediting. Only the first delivery for
     // this event id wins the claim and applies the increment; redeliveries get
     // `false` and skip the mutation (R9.8, R9.9).
@@ -126,7 +141,10 @@ export async function POST(request: Request): Promise<Response> {
     if (newlyApplied) {
       // Pay-then-review: gate the now-funded campaign through review before it
       // can bid (see creditCampaignBudgetWithReview).
-      await creditCampaignBudgetWithReview(campaigns, campaign, event.amountCents);
+      await creditCampaignBudgetWithReview(campaigns, campaign, {
+        amountCents: event.amountCents,
+        purchasedImpressions,
+      });
       await recordBudgetFundedActivity(container, event, campaign);
     }
   }

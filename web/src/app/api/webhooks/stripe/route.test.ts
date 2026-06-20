@@ -70,6 +70,7 @@ function seedCampaign(container: Container, id: string): void {
     adText: "Ship faster with Acme CI",
     cpmCents: 3000,
     budgetCents: 0,
+    purchasedImpressions: 0,
     status: "active",
     createdAtMs: 0,
   };
@@ -93,6 +94,11 @@ async function budgetOf(container: Container, id: string): Promise<number> {
   return campaign?.budgetCents ?? Number.NaN;
 }
 
+async function purchasedOf(container: Container, id: string): Promise<number> {
+  const campaign = await container.campaigns.getById(id);
+  return campaign?.purchasedImpressions ?? Number.NaN;
+}
+
 describe("POST /api/webhooks/stripe", () => {
   it("credits the campaign budget once for a verified funding event", async () => {
     const container = getContainer();
@@ -102,12 +108,14 @@ describe("POST /api/webhooks/stripe", () => {
       type: "checkout.session.completed",
       campaignId: "cmp1",
       amountCents: 5000,
+      purchasedImpressions: 2_000,
     };
 
     const res = await POST(signedRequest(event));
 
     expect(res.status).toBe(200);
     expect(await budgetOf(container, "cmp1")).toBe(5000);
+    expect(await purchasedOf(container, "cmp1")).toBe(2_000);
   });
 
   it("is idempotent across redelivery of the same event id", async () => {
@@ -118,6 +126,7 @@ describe("POST /api/webhooks/stripe", () => {
       type: "checkout.session.completed",
       campaignId: "cmp1",
       amountCents: 2500,
+      purchasedImpressions: 1_000,
     };
 
     const first = await POST(signedRequest(event));
@@ -127,6 +136,7 @@ describe("POST /api/webhooks/stripe", () => {
     expect(second.status).toBe(200);
     // Applied exactly once despite two verified deliveries.
     expect(await budgetOf(container, "cmp1")).toBe(2500);
+    expect(await purchasedOf(container, "cmp1")).toBe(1_000);
   });
 
   it("records one advertiser activity row for newly applied funding", async () => {
@@ -137,6 +147,7 @@ describe("POST /api/webhooks/stripe", () => {
       type: "checkout.session.completed",
       campaignId: "cmp1",
       amountCents: 7500,
+      purchasedImpressions: 3_000,
     };
 
     await POST(signedRequest(event));
@@ -163,6 +174,7 @@ describe("POST /api/webhooks/stripe", () => {
       type: "checkout.session.completed",
       campaignId: "cmp_missing",
       amountCents: 7500,
+      purchasedImpressions: 3_000,
     };
 
     const res = await POST(signedRequest(event));
@@ -181,6 +193,7 @@ describe("POST /api/webhooks/stripe", () => {
       type: "checkout.session.completed",
       campaignId: "cmp1",
       amountCents: 7500,
+      purchasedImpressions: 3_000,
       checkoutSessionId: "cs_test_123",
     };
 

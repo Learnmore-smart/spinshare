@@ -298,6 +298,7 @@ describe("GET /api/campaigns telemetry", () => {
         status: "paid",
         campaignId: campaign.id,
         amountCents: 500,
+        purchasedImpressions: 1_000,
       },
     });
     const token = (container.auth as MockAuthProvider).mintToken("google:123", {
@@ -313,6 +314,7 @@ describe("GET /api/campaigns telemetry", () => {
         expect.objectContaining({
           id: campaign.id,
           budgetCents: 500,
+          purchasedImpressions: 1_000,
           remainingBudgetUsd: "5.00",
         }),
       ]),
@@ -331,6 +333,7 @@ describe("GET /api/campaigns telemetry", () => {
     expect(repeat.status).toBe(200);
     await expect(container.campaigns.getById(campaign.id)).resolves.toMatchObject({
       budgetCents: 500,
+      purchasedImpressions: 1_000,
     });
     expect(
       (container.activities as MemoryActivityRepository)
@@ -374,12 +377,14 @@ describe("POST /api/campaigns safety", () => {
       adText: "Try SpinShare for Claude Code",
       cpmCents: 500,
       budgetCents: 1500,
+      purchasedImpressions: 3_000,
       destinationUrl: "https://spinshare.dev/",
       brandName: "SpinShare",
       publicOnLeaderboard: true,
     });
     await expect(container.campaigns.getById(body.campaign.id)).resolves.toMatchObject({
       budgetCents: 1500,
+      purchasedImpressions: 3_000,
     });
     expect((container.activities as MemoryActivityRepository).all()).toEqual([
       expect.objectContaining({

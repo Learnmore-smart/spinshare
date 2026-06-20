@@ -249,10 +249,17 @@ merging durable ledger impression counts into the `credited` total.
 - `corepack pnpm@9.12.0 --filter @spinshare/web test` passed.
 - `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
 
+## Planned Change 2026-06-20 Delivery Inventory
+
+For direct authenticated checkout, pass `blockCount * 1,000` through payment
+metadata and the pay-then-review funding seam. Keep campaign-only creation at
+zero tracked inventory and preserve all ownership/review behavior.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Planned direct-checkout purchased-inventory settlement. | Codex |
 | 2026-06-18 | Implemented HMR-compatible delete fallback for stale campaign repositories. | Codex |
 | 2026-06-18 | Planned HMR-compatible delete fallback for stale campaign repositories. | Codex |
 | 2026-06-18 | Implemented authenticated deletion for owned unpaid campaigns. | Codex |

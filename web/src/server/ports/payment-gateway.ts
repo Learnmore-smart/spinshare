@@ -15,6 +15,8 @@ export interface CheckoutInput {
   campaignId: string;
   /** Funding amount in integer cents (100–10000000). */
   amountCents: number;
+  /** Exact impression inventory added when this checkout settles. */
+  purchasedImpressions: number;
   /** Optional redirect URL on successful payment. */
   successUrl?: string;
   /** Optional redirect URL when checkout is cancelled. */
@@ -43,6 +45,8 @@ export interface CheckoutSessionFunding {
   campaignId: string;
   /** Confirmed session amount in integer cents. */
   amountCents: number;
+  /** Exact purchased inventory from metadata; absent on legacy sessions. */
+  purchasedImpressions?: number;
 }
 
 /**
@@ -61,6 +65,8 @@ export interface StripeEvent {
   campaignId: string;
   /** Confirmed funding amount in integer cents. */
   amountCents: number;
+  /** Exact purchased inventory from metadata; absent on legacy events. */
+  purchasedImpressions?: number;
 }
 
 /** Payment gateway for checkout sessions and webhook verification. */

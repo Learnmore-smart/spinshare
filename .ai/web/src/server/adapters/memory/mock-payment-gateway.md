@@ -68,6 +68,12 @@ return `null`.
 a paid `CheckoutSessionFunding` view from `retrieveCheckoutSessionFunding()`.
 Unknown sessions return `null`.
 
+## Planned Change 2026-06-20 Purchased Inventory Metadata
+
+Store `CheckoutInput.purchasedImpressions` in the mock session funding view and
+preserve optional purchased inventory when coercing signed webhook payloads.
+This keeps credential-free settlement behavior identical to Stripe metadata.
+
 ## Verification
 
 - Red focused run failed because mock checkout returned the literal placeholder.
@@ -80,6 +86,7 @@ Unknown sessions return `null`.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Planned purchased-inventory transport through mock sessions/events. | Codex |
 | 2026-06-16 | Implemented mock Checkout Session funding lookup. | Codex |
 | 2026-06-16 | Planned mock Checkout Session funding lookup. | Codex |
 | 2026-06-16 | Preserved optional checkout session id in mock webhook parsing. | Codex |

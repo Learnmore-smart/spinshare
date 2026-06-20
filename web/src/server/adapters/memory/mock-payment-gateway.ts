@@ -50,6 +50,7 @@ export class MockPaymentGateway implements PaymentGateway {
       status: "paid",
       campaignId: input.campaignId,
       amountCents: input.amountCents,
+      purchasedImpressions: input.purchasedImpressions,
     });
     return {
       sessionId,
@@ -121,6 +122,11 @@ export class MockPaymentGateway implements PaymentGateway {
         : {}),
       campaignId: obj.campaignId,
       amountCents: obj.amountCents,
+      ...(typeof obj.purchasedImpressions === "number" &&
+      Number.isSafeInteger(obj.purchasedImpressions) &&
+      obj.purchasedImpressions > 0
+        ? { purchasedImpressions: obj.purchasedImpressions }
+        : {}),
     };
   }
 }

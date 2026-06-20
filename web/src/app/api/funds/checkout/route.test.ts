@@ -85,11 +85,13 @@ describe("POST /api/funds/checkout", () => {
       id: campaign.id,
       budgetCents: 2500,
       cpmCents: 500,
+      purchasedImpressions: 5_000,
     });
 
     await expect(container.campaigns.getById(campaign.id)).resolves.toMatchObject({
       budgetCents: 2500,
       cpmCents: 500,
+      purchasedImpressions: 5_000,
     });
     expect((container.activities as MemoryActivityRepository).all()).toEqual([
       expect.objectContaining({
@@ -132,10 +134,12 @@ describe("POST /api/funds/checkout", () => {
       id: campaign.id,
       cpmCents: 700,
       budgetCents: 3500,
+      purchasedImpressions: 5_000,
     });
     await expect(container.campaigns.getById(campaign.id)).resolves.toMatchObject({
       cpmCents: 700,
       budgetCents: 3500,
+      purchasedImpressions: 5_000,
     });
     expect((container.activities as MemoryActivityRepository).all()).toEqual([
       expect.objectContaining({

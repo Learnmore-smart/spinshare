@@ -69,6 +69,7 @@ describe("GET /api/market", () => {
       id: "cmp_top",
       cpmCents: 2200,
       budgetCents: 4400,
+      purchasedImpressions: 2_000,
       adText: "Top bidder",
     });
     seedCampaign(container, { id: "cmp_unfunded", cpmCents: 9000, budgetCents: 0 });
@@ -91,9 +92,11 @@ describe("GET /api/market", () => {
       adText: "Top bidder",
       bidLabel: "$22.00 / 1k imps",
       cpmCents: 2200,
+      servedImpressions: 0,
+      purchasedImpressions: 2_000,
+      deliveryPercent: 0,
     });
     expect(body.rows[0]).not.toHaveProperty("totalPaidCents");
-    expect(body.rows[0]).not.toHaveProperty("servedImpressions");
     expect(body.summary.totalServedImpressions).toBe(0);
     expect(body.rows.some((row: { id: string }) => row.id === "cmp_unfunded")).toBe(
       false,
@@ -104,7 +107,12 @@ describe("GET /api/market", () => {
     const container = getContainer();
     // 2 blocks ($60.00) funded at a $30.00 CPM; 2 views served cost ~6c, so the
     // budget settled to 5994c. The market still reports the 2,000 bought views.
-    seedCampaign(container, { id: "cmp_top", cpmCents: 3000, budgetCents: 5994 });
+    seedCampaign(container, {
+      id: "cmp_top",
+      cpmCents: 3000,
+      budgetCents: 5994,
+      purchasedImpressions: 2_000,
+    });
     (container.ledger as MemoryLedgerRepository).seed([
       {
         entryId: "entry-1",
@@ -131,9 +139,46 @@ describe("GET /api/market", () => {
     expect(body.rows[0]).toMatchObject({
       id: "cmp_top",
       bidLabel: "$30.00 / 1k imps",
+      servedImpressions: 2,
+      purchasedImpressions: 2_000,
+      deliveryPercent: 0.1,
     });
-    expect(body.rows[0]).not.toHaveProperty("servedImpressions");
     expect(body.summary.totalServedImpressions).toBe(2);
+  });
+
+  it("reconstructs purchased inventory for legacy campaigns", async () => {
+    const container = getContainer();
+    seedCampaign(container, {
+      id: "cmp_legacy",
+      cpmCents: 1000,
+      budgetCents: 998,
+    });
+    (container.ledger as MemoryLedgerRepository).seed([
+      {
+        entryId: "legacy-1",
+        campaignId: "cmp_legacy",
+        developerId: "dev-1",
+        revenueMicrocents: 1000,
+        developerCreditCents: 1,
+        spinshareRetentionMicrocents: 400,
+      },
+      {
+        entryId: "legacy-2",
+        campaignId: "cmp_legacy",
+        developerId: "dev-1",
+        revenueMicrocents: 1000,
+        developerCreditCents: 1,
+        spinshareRetentionMicrocents: 400,
+      },
+    ]);
+
+    const body = await (await GET()).json();
+
+    expect(body.rows[0]).toMatchObject({
+      servedImpressions: 2,
+      purchasedImpressions: 1_000,
+      deliveryPercent: 0.2,
+    });
   });
 
   it("omits private leaderboard campaigns from the public market", async () => {

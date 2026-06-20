@@ -165,6 +165,7 @@ export async function POST(request: Request): Promise<Response> {
     cpmCents: effectiveCpmCents,
     blockCount: parsed.data.blockCount,
   });
+  const purchasedImpressions = parsed.data.blockCount * 1_000;
   if (!Number.isSafeInteger(amountCents) || amountCents > FUNDING_CENTS_MAX) {
     return Response.json(
       { error: "Total checkout amount must be between $1.00 and $100,000.00" },
@@ -177,6 +178,7 @@ export async function POST(request: Request): Promise<Response> {
   const checkout = await payments.createCheckoutSession({
     campaignId: parsed.data.campaignId,
     amountCents,
+    purchasedImpressions,
     successUrl: `${origin}/dashboard/advertiser?funding=success&checkout_session_id={CHECKOUT_SESSION_ID}`,
     cancelUrl: `${origin}/dashboard/advertiser?funding=cancelled`,
   });
@@ -195,9 +197,11 @@ export async function POST(request: Request): Promise<Response> {
     responseCampaign.reviewStatus = await creditCampaignBudgetWithReview(
       campaigns,
       campaign,
-      amountCents,
+      { amountCents, purchasedImpressions },
     );
     responseCampaign.budgetCents += amountCents;
+    responseCampaign.purchasedImpressions =
+      (responseCampaign.purchasedImpressions ?? 0) + purchasedImpressions;
     await recordFundingActivity(container, {
       campaign,
       status: "budgetFunded",

@@ -152,6 +152,12 @@ updated core schema.
 - `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/campaigns/route.test.ts src/app/dashboard/advertiser/campaign-list.test.tsx` passed.
 - `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
 
+## Planned Coverage 2026-06-20 Delivery Inventory
+
+Assert direct checkout sends and persists `blockCount * 1,000`, and dashboard
+checkout reconciliation preserves the retrieved purchased inventory exactly
+once.
+
 ## Verification
 
 - `corepack pnpm@9.12.0 --filter @spinshare/web test` passed.
@@ -161,6 +167,7 @@ updated core schema.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Planned direct checkout and reconciliation inventory coverage. | Codex |
 | 2026-06-18 | Implemented brand icon upload edit regression coverage. | Codex |
 | 2026-06-18 | Planned brand icon upload edit regression coverage. | Codex |
 | 2026-06-18 | Implemented HMR-compatible delete fallback regression coverage. | Codex |

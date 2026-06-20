@@ -12,6 +12,7 @@ import AdvertiserCheckoutForm from "./advertiser-checkout-form";
 import CheckoutStatusBanner, {
   CHECKOUT_FUNDED_MARKET_REFRESH_EVENT,
 } from "./checkout-status-banner";
+import { MarketDeliveryProgress } from "./market-delivery-progress";
 import LoadingStatus, {
   ELLIPSIS_STEP_MS,
   ICON_FRAME_MS,
@@ -66,6 +67,9 @@ interface MarketRow {
   cpmCents: number;
   cpmUsd: string;
   bidLabel: string;
+  servedImpressions: number;
+  purchasedImpressions: number;
+  deliveryPercent: number;
 }
 
 interface MarketResponse {
@@ -1085,21 +1089,31 @@ export default function HomePage() {
 
                 {/* Table Section */}
                 <div className="overflow-x-auto border-t border-[var(--border-subtle)]">
-                  <div className="min-w-[480px] p-6">
-                    <div className="spinshare-home-table-head grid grid-cols-[32px_minmax(0,1fr)_140px] gap-x-4 gap-y-1 pb-3 pr-2">
+                  <div className="min-w-[760px] p-6">
+                    <div className="spinshare-home-table-head grid grid-cols-[32px_minmax(240px,1fr)_140px_200px] gap-x-4 gap-y-1 pb-3 pr-2">
                       <div>#</div>
                       <div>{t.market.campaign}</div>
                       <div>{t.market.bidPerThousand}</div>
+                      <div>{t.market.delivery}</div>
                     </div>
 
                     {/* Table Body */}
                     {visibleRows.length > 0 ? (
                       <div className="divide-y divide-[var(--border-subtle)]">
                         {visibleRows.map((row) => (
-                          <div key={row.id} className="grid grid-cols-[32px_minmax(0,1fr)_140px] gap-x-4 gap-y-1 py-3.5 pr-2 items-center text-sm">
+                          <div key={row.id} className="grid grid-cols-[32px_minmax(240px,1fr)_140px_200px] gap-x-4 gap-y-1 py-3.5 pr-2 items-center text-sm">
                             <div className="font-bold text-[var(--text-muted)]">{row.rank}</div>
                             <div className="truncate font-semibold text-[var(--text-primary)]" title={row.adText}>{row.adText}</div>
                             <div className="spinshare-home-strong font-black">{row.bidLabel}</div>
+                            <MarketDeliveryProgress
+                              servedImpressions={row.servedImpressions}
+                              purchasedImpressions={row.purchasedImpressions}
+                              deliveryPercent={row.deliveryPercent}
+                              ariaLabel={t.market.deliveryProgressLabel(
+                                row.servedImpressions,
+                                row.purchasedImpressions,
+                              )}
+                            />
                           </div>
                         ))}
                       </div>

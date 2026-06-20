@@ -1,6 +1,9 @@
 import { formatCentsAsUsd, type Campaign } from "@spinshare/core";
 
-import { creditCampaignBudgetWithReview } from "./campaign-review";
+import {
+  creditCampaignBudgetWithReview,
+  resolvePurchasedImpressions,
+} from "./campaign-review";
 import type { Container } from "./container";
 import type {
   ActivityRecord,
@@ -46,6 +49,15 @@ export async function reconcilePaidCheckoutSession(
     return null;
   }
 
+  const purchasedImpressions = resolvePurchasedImpressions(
+    funding.purchasedImpressions,
+    funding.amountCents,
+    campaign.cpmCents,
+  );
+  if (purchasedImpressions === null) {
+    return null;
+  }
+
   const newlyApplied = await container.paymentEvents.markApplied(
     checkoutSessionFundingKey(sessionId),
     {
@@ -58,7 +70,10 @@ export async function reconcilePaidCheckoutSession(
     await creditCampaignBudgetWithReview(
       container.campaigns,
       campaign,
-      funding.amountCents,
+      {
+        amountCents: funding.amountCents,
+        purchasedImpressions,
+      },
     );
     await container.activities
       .record({

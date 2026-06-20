@@ -66,10 +66,21 @@ the route.
 `CampaignRepository` now includes `delete(id): Promise<void>` for permanent
 campaign removal after route-level authorization and unpaid checks.
 
+## Planned Change 2026-06-20 Market Delivery Progress
+
+Add `applyFunding(id, { amountCents, purchasedImpressions })` as the dedicated
+positive-funding operation. It must update remaining budget and cumulative
+purchased inventory together. Keep `applyBudgetDeltaCents` for settlement/spend
+adjustments, which must not change purchased inventory.
+
+New campaigns initialize `purchasedImpressions` to zero. Legacy rows may omit
+the field and remain on the market endpoint's reconstruction path.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Planned atomic budget plus purchased-inventory funding contract. | Codex |
 | 2026-06-18 | Implemented repository delete method for unpaid campaign removal. | Codex |
 | 2026-06-18 | Planned repository delete method for unpaid campaign removal. | Codex |
 | 2026-06-18 | Implemented destination-required biddability contract docs. | Codex |

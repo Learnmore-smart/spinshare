@@ -232,8 +232,15 @@ every supported locale must name the signup credit used by Recent credit.
 
 `Dictionary.activityFeed.eventLabels` now requires `welcomeGift`.
 
+## Planned Change 2026-06-20 Market Delivery Copy
+
+Add typed `market.delivery` and
+`market.deliveryProgressLabel(served, purchased)` keys so English, Chinese, and
+French must cover the new public progress column and screen-reader description.
+
 ## Change History Addendum 4
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Planned typed market delivery progress copy. | Codex |
 | 2026-06-19 | Added support contact label key. | Codex |

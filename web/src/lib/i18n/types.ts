@@ -67,6 +67,8 @@ export interface Dictionary {
     impsPerMinFleet: (rate: string) => string;
     campaign: string;
     bidPerThousand: string;
+    delivery: string;
+    deliveryProgressLabel: (served: number, purchased: number) => string;
     loadingLiveBids: string;
     bidMarketUnavailable: string;
     noFundedBids: string;

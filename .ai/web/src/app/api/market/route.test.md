@@ -55,6 +55,12 @@ Sort/served fixtures now use coherent whole-block budgets and assert the snapped
 - Initial run failed because `./route` was missing.
 - After implementation, the focused Vitest command passed with this route test included.
 
+## Planned Coverage 2026-06-20 Public Delivery Progress
+
+Add RED assertions for exact per-row served/purchased/percentage values, legacy
+fallback reconstruction, stored counters never below served, and unchanged
+private/review filtering. Continue asserting that monetary fields remain absent.
+
 ## Bug Fixes
 
 | Date | Bug | Cause | Fix |
@@ -65,6 +71,7 @@ Sort/served fixtures now use coherent whole-block budgets and assert the snapped
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Planned public delivery progress and legacy fallback coverage. | Codex |
 | 2026-06-19 | Public rows expose rank + CPM only; summary adds `totalServedImpressions`; removed per-row spend/delivery fields and budget-drift market regression. | Cursor |
 | 2026-06-18 | Added budget-drift regression; updated fixtures to whole-block budgets + totalPaid assertions. | Cursor |
 | 2026-06-16 | Added regression for omitting pending/rejected review campaigns from market. | Codex |

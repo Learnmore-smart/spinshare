@@ -78,6 +78,7 @@ function seedCampaign(
     adText: "Ship faster with Acme CI",
     cpmCents: 3000,
     budgetCents: startBudgetCents,
+    purchasedImpressions: 0,
     status: "active",
     createdAtMs: 0,
   };
@@ -99,6 +100,11 @@ function signedRequest(event: StripeEvent): Request {
 async function budgetOf(container: Container, id: string): Promise<number> {
   const campaign = await container.campaigns.getById(id);
   return campaign?.budgetCents ?? Number.NaN;
+}
+
+async function purchasedOf(container: Container, id: string): Promise<number> {
+  const campaign = await container.campaigns.getById(id);
+  return campaign?.purchasedImpressions ?? Number.NaN;
 }
 
 describe("Property 12: verified payment increases budget by exactly the amount, once", () => {
@@ -126,6 +132,7 @@ describe("Property 12: verified payment increases budget by exactly the amount, 
             type: "checkout.session.completed",
             campaignId,
             amountCents,
+            purchasedImpressions: 1_000,
           };
 
           // First (verified) delivery applies the increment exactly once (R9.8).
@@ -133,6 +140,7 @@ describe("Property 12: verified payment increases budget by exactly the amount, 
           expect(first.status).toBe(200);
           const afterFirst = await budgetOf(container, campaignId);
           expect(afterFirst).toBe(startBudgetCents + amountCents);
+          expect(await purchasedOf(container, campaignId)).toBe(1_000);
 
           // Every subsequent redelivery of the SAME event id is a no-op on the
           // budget and still acknowledged with 200 (R9.9).
@@ -140,6 +148,7 @@ describe("Property 12: verified payment increases budget by exactly the amount, 
             const res = await POST(signedRequest(event));
             expect(res.status).toBe(200);
             expect(await budgetOf(container, campaignId)).toBe(afterFirst);
+            expect(await purchasedOf(container, campaignId)).toBe(1_000);
           }
         },
       ),

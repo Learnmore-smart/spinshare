@@ -105,10 +105,24 @@ most recently used provider for compatibility.
 Keep `provider` for compatibility and add `providers` rather than replacing the
 field across every consumer.
 
+## Planned Change 2026-06-20 Market Delivery Progress
+
+Add optional `Campaign.purchasedImpressions`. New and seeded campaigns will
+persist a non-negative cumulative count, while the optional shape preserves the
+ability to detect legacy Firestore rows that require reconstructed delivery
+totals. Spending and CPM edits must never reduce or rewrite this count.
+
+## Agent Decision 2026-06-20 Market Delivery Progress
+
+Keep the field optional in the shared type even though new repositories always
+initialize it. Treating a missing legacy counter as zero would erase the signal
+needed by the public market's compatibility fallback.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Planned cumulative purchased-impression campaign metadata. | Codex |
 | 2026-06-20 | Planned linked-provider metadata for canonical users. | Codex |
 | 2026-06-16 | Added optional campaign review status type. | Codex |
 | 2026-06-16 | Planned campaign review status type. | Codex |

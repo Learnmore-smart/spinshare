@@ -284,10 +284,13 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json(toCampaignView(campaign), { status: 201 });
   }
 
+  const purchasedImpressions = parsed.data.blockCount! * 1_000;
+
   const origin = new URL(request.url).origin;
   const checkout = await payments.createCheckoutSession({
     campaignId: campaign.id,
     amountCents: directCheckoutAmountCents,
+    purchasedImpressions,
     successUrl: `${origin}/dashboard/advertiser?funding=success&checkout_session_id={CHECKOUT_SESSION_ID}`,
     cancelUrl: `${origin}/dashboard/advertiser?funding=cancelled&fund=${encodeURIComponent(campaign.id)}`,
   });
@@ -305,9 +308,14 @@ export async function POST(request: Request): Promise<Response> {
     responseCampaign.reviewStatus = await creditCampaignBudgetWithReview(
       campaigns,
       campaign,
-      directCheckoutAmountCents,
+      {
+        amountCents: directCheckoutAmountCents,
+        purchasedImpressions,
+      },
     );
     responseCampaign.budgetCents += directCheckoutAmountCents;
+    responseCampaign.purchasedImpressions =
+      (responseCampaign.purchasedImpressions ?? 0) + purchasedImpressions;
     await recordCheckoutActivity(container, {
       campaign,
       status: "budgetFunded",

@@ -31,6 +31,12 @@ Every campaign is written with `status: "active"`, `reviewStatus: "approved"`,
 and `publicOnLeaderboard: true` so it is immediately biddable and shown on the
 public market leaderboard.
 
+## Planned Change 2026-06-20 Purchased Inventory
+
+Persist `purchasedImpressions: blocks * 1,000` on every deterministic seed
+campaign. This initializes the durable public delivery denominator without
+deriving it from a mutable CPM or remaining budget.
+
 ## Usage
 
 This writes to **production** top-level `campaigns/`. Because repo `.env` keeps
@@ -66,6 +72,7 @@ Requires `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, and
 
 | Date | Change |
 |---|---|
+| 2026-06-20 | Planned durable purchased-impression inventory for seed campaigns |
 | 2026-06-20 | Updated Trae ("The Real AI Engineer") and Antigravity ("Experience Liftoff") slogans |
 | 2026-06-20 | Revised slogans/CPMs/blocks (LearnX→10 blocks @ $5.60; Trae $10; GLM $8.80; Antigravity prefix-trimmed); added `--delete` mode |
 | 2026-06-20 | Created script + doc + test for initial 6-campaign production ad-market seed |

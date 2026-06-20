@@ -76,10 +76,19 @@ Added `CheckoutSessionFunding` and
 `null` when a session cannot be retrieved; callers decide whether/how to
 reconcile funding and must keep idempotency outside the gateway.
 
+## Planned Change 2026-06-20 Purchased Inventory Metadata
+
+Require exact `purchasedImpressions` on new `CheckoutInput` values. Preserve it
+as optional on parsed webhook events and retrieved funding views because Stripe
+sessions created before deployment have no such metadata. Settlement code will
+use verified metadata first and a strict amount/CPM fallback only for legacy
+sessions.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Planned purchased-impression checkout metadata contract. | Codex |
 | 2026-06-16 | Implemented Checkout Session funding lookup on payment gateway port. | Codex |
 | 2026-06-16 | Planned Checkout Session funding lookup on payment gateway port. | Codex |
 | 2026-06-16 | Implemented optional parsed checkout session id on Stripe events. | Codex |

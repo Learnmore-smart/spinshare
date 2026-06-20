@@ -117,6 +117,7 @@ describe("POST /api/webhooks/stripe — signature integration", () => {
       type: FUNDING_TYPE,
       campaignId: "cmp1",
       amountCents: 12345,
+      purchasedImpressions: 1_000,
     };
 
     const res = await POST(signedRequest(event));

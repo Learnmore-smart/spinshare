@@ -56,6 +56,11 @@ passed 19 tests.
 The owner funding test now verifies `checkoutStarted` and `budgetFunded`
 advertiser activity rows are recorded for settled mock checkouts.
 
+## Planned Coverage 2026-06-20 Delivery Inventory
+
+Assert top-up checkout sends `blockCount * 1,000` and settled mock funding
+increments both remaining budget and cumulative purchased impressions.
+
 ## Dependencies
 
 - `web/src/app/api/funds/checkout/route.ts`
@@ -66,6 +71,7 @@ advertiser activity rows are recorded for settled mock checkouts.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Planned top-up purchased-inventory coverage. | Codex |
 | 2026-06-18 | Implemented buy-time CPM checkout coverage. | Codex |
 | 2026-06-18 | Planned buy-time CPM checkout coverage. | Codex |
 | 2026-06-16 | Implemented same-email public campaign funding regression test. | Codex |

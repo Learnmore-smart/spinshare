@@ -292,6 +292,7 @@ describe("MockPaymentGateway", () => {
     const session = await gw.createCheckoutSession({
       campaignId: "cmp1",
       amountCents: 5000,
+      purchasedImpressions: 3_000,
       successUrl:
         "https://spinshare.test/?checkout=success&checkout_session_id={CHECKOUT_SESSION_ID}#bid-market",
     });
@@ -305,6 +306,7 @@ describe("MockPaymentGateway", () => {
       status: "paid",
       campaignId: "cmp1",
       amountCents: 5000,
+      purchasedImpressions: 3_000,
     });
     await expect(gw.retrieveCheckoutSessionFunding("cs_missing")).resolves.toBeNull();
   });

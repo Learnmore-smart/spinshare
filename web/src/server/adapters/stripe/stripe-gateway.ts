@@ -46,6 +46,13 @@ interface StripeCheckoutSessionFundingSource {
   amount_total?: number | null;
 }
 
+function metadataPurchasedImpressions(
+  value: string | undefined,
+): number | undefined {
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
+}
+
 export function stripeCheckoutSessionToFunding(
   session: StripeCheckoutSessionFundingSource,
 ): CheckoutSessionFunding {
@@ -59,6 +66,14 @@ export function stripeCheckoutSessionToFunding(
       typeof amountTotal === "number" && Number.isSafeInteger(amountTotal)
         ? amountTotal
         : 0,
+    ...(() => {
+      const purchasedImpressions = metadataPurchasedImpressions(
+        session.metadata?.purchasedImpressions,
+      );
+      return purchasedImpressions === undefined
+        ? {}
+        : { purchasedImpressions };
+    })(),
   };
 }
 
@@ -109,7 +124,10 @@ export class StripeGateway implements PaymentGateway {
       // Carry the funded campaign through so the webhook can attribute the
       // confirmed payment back to it.
       client_reference_id: input.campaignId,
-      metadata: { campaignId: input.campaignId },
+      metadata: {
+        campaignId: input.campaignId,
+        purchasedImpressions: String(input.purchasedImpressions),
+      },
       line_items: [
         {
           quantity: 1,
@@ -171,12 +189,16 @@ export class StripeGateway implements PaymentGateway {
       campaignId =
         session.metadata?.campaignId ?? session.client_reference_id ?? "";
       amountCents = session.amount_total ?? 0;
+      const purchasedImpressions = metadataPurchasedImpressions(
+        session.metadata?.purchasedImpressions,
+      );
       return {
         id: event.id,
         type: event.type,
         checkoutSessionId: session.id,
         campaignId,
         amountCents,
+        ...(purchasedImpressions === undefined ? {} : { purchasedImpressions }),
       };
     }
 
