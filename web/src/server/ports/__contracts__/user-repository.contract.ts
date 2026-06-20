@@ -22,7 +22,7 @@
 import { describe, expect, it } from "vitest";
 import { heldLotBucketMs } from "@spinshare/core";
 
-import type { UserRepository } from "../user-repository";
+import type { ExternalIdentity, UserRepository } from "../user-repository";
 
 /** Per-adapter wiring for the contract. */
 export interface UserRepositoryContractHarness {
@@ -51,6 +51,103 @@ export function runUserRepositoryContract(
   const suite = options.skip ? describe.skip : describe;
 
   suite(`UserRepository contract — ${name}`, () => {
+    it("resolves repeated sign-ins to one canonical user", async () => {
+      const repo = await harness.makeRepo();
+      const identity: ExternalIdentity = {
+        provider: "google",
+        providerAccountId: harness.uid("repeat-account"),
+        email: `${harness.uid("repeat-email")}@example.test`,
+        emailVerified: true,
+      };
+
+      const first = await repo.upsertFromIdentity(identity);
+      const second = await repo.upsertFromIdentity(identity);
+
+      expect(second.id).toBe(first.id);
+      expect(
+        (await repo.listAll()).filter((user) => user.id === first.id),
+      ).toHaveLength(1);
+    });
+
+    it("links Google and GitHub identities with the same verified email", async () => {
+      const repo = await harness.makeRepo();
+      const email = `${harness.uid("linked-email")}@Example.Test`;
+
+      const google = await repo.upsertFromIdentity({
+        provider: "google",
+        providerAccountId: harness.uid("google-account"),
+        email,
+        emailVerified: true,
+      });
+      const github = await repo.upsertFromIdentity({
+        provider: "github",
+        providerAccountId: harness.uid("github-account"),
+        email: email.toLowerCase(),
+        emailVerified: true,
+      });
+
+      expect(github.id).toBe(google.id);
+      expect(new Set(github.providers)).toEqual(new Set(["google", "github"]));
+    });
+
+    it("keeps the canonical id when a mapped provider email changes", async () => {
+      const repo = await harness.makeRepo();
+      const providerAccountId = harness.uid("changed-email-account");
+      const first = await repo.upsertFromIdentity({
+        provider: "github",
+        providerAccountId,
+        email: `${harness.uid("old-email")}@example.test`,
+        emailVerified: true,
+      });
+      const changed = await repo.upsertFromIdentity({
+        provider: "github",
+        providerAccountId,
+        email: `${harness.uid("new-email")}@example.test`,
+        emailVerified: true,
+      });
+
+      expect(changed.id).toBe(first.id);
+      expect(changed.email).not.toBe(first.email);
+    });
+
+    it("preserves financial state while refreshing identity metadata", async () => {
+      const repo = await harness.makeRepo();
+      const providerAccountId = harness.uid("money-account");
+      const user = await repo.upsertFromIdentity({
+        provider: "google",
+        providerAccountId,
+        email: `${harness.uid("money-email")}@example.test`,
+        emailVerified: true,
+      });
+      await repo.applyBalanceDeltaCents(user.id, 700);
+      await repo.creditHeldEarnings(user.id, 300, T_MATURE);
+
+      const refreshed = await repo.upsertFromIdentity({
+        provider: "google",
+        providerAccountId,
+        email: `${harness.uid("money-email-new")}@example.test`,
+        emailVerified: true,
+      });
+
+      expect(refreshed.balanceCents).toBe(1_000);
+      expect(refreshed.heldCents).toBe(300);
+      expect(refreshed.heldLots).toHaveLength(1);
+    });
+
+    it("rejects identities whose email is not provider-verified", async () => {
+      const repo = await harness.makeRepo();
+      const unverified = {
+        provider: "google",
+        providerAccountId: harness.uid("unverified-account"),
+        email: `${harness.uid("unverified-email")}@example.test`,
+        emailVerified: false,
+      } as unknown as ExternalIdentity;
+
+      await expect(repo.upsertFromIdentity(unverified)).rejects.toThrow(
+        "Verified identity email is required",
+      );
+    });
+
     it("getById returns null for an unknown user", async () => {
       const repo = await harness.makeRepo();
       expect(await repo.getById(harness.uid("missing"))).toBeNull();

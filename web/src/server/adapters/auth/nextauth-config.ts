@@ -24,7 +24,9 @@ import Google from "next-auth/providers/google";
 import GitHub from "next-auth/providers/github";
 import Credentials from "next-auth/providers/credentials";
 
+import { getContainer } from "../../container";
 import { findLocalTestUser, isLocalCredentialsEnabled } from "../../dev/test-users";
+import { createAuthCallbacks } from "./canonical-auth-callbacks";
 
 /**
  * Builds the provider list from the environment. A provider is included only
@@ -96,33 +98,12 @@ function buildProviders(
 export const authConfig: NextAuthConfig = {
   trustHost: true,
   providers: buildProviders(),
-  // Stateless JWT sessions: no database adapter needed for this MVP.
+  // Stateless browser sessions; canonical domain identity is persisted separately.
   session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
   pages: {
     signIn: "/signin",
   },
-  callbacks: {
-    /** Persist the provider account id onto the JWT as our stable user id. */
-    async jwt({ token, account, profile, user }) {
-      if (account) {
-        token.provider = account.provider;
-      }
-      if (user && typeof user.id === "string") {
-        token.sub = user.id;
-      } else if (profile && typeof profile.sub === "string") {
-        token.sub = profile.sub;
-      }
-      return token;
-    },
-    /** Expose the resolved user id + provider on the session object. */
-    async session({ session, token }) {
-      if (session.user && typeof token.sub === "string") {
-        // `id` is not on the default type; attach defensively.
-        (session.user as { id?: string }).id = token.sub;
-      }
-      return session;
-    },
-  },
+  callbacks: createAuthCallbacks({ users: () => getContainer().users }),
 };
 
 /**

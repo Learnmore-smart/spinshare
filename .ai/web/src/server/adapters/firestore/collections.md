@@ -81,10 +81,21 @@ legacy campaign documents while giving new code an explicit safety review field.
 
 `toCampaign()` maps optional public checkout fields and treats missing `publicOnLeaderboard` as public.
 
+## Planned Change 2026-06-20 Canonical Identity
+
+Add namespace-aware `userIdentities` and map optional linked providers from user
+documents without breaking legacy rows.
+
+## Implemented Change 2026-06-20 Canonical Identity
+
+Added `COLLECTIONS.userIdentities`; `toUser` now maps and de-duplicates linked
+providers with a legacy single-provider fallback.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Planned identity mapping collection and provider-list mapping. | Codex |
 | 2026-06-16 | Mapped campaign review status with legacy-approved default. | Codex |
 | 2026-06-16 | Added namespace-aware `payoutAttempts` collection path. | Codex |
 | 2026-06-15 | Implemented complete namespace coverage for all collection paths. | Codex |

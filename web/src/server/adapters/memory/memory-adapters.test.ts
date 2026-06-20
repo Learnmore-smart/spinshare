@@ -382,11 +382,13 @@ describe("MemoryUserRepository", () => {
       provider: "google",
       providerAccountId: "acct-1",
       email: "dev@example.com",
+      emailVerified: true,
     });
     const second = await repo.upsertFromIdentity({
       provider: "google",
       providerAccountId: "acct-1",
       email: "dev@example.com",
+      emailVerified: true,
     });
 
     expect(second.id).toBe(first.id);

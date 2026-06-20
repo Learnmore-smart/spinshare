@@ -16,7 +16,8 @@
 - Create `web/src/server/identity/canonical-user-id.test.ts`: deterministic key tests.
 - Create `web/src/server/adapters/auth/verified-oauth-email.ts`: Google/GitHub verified-email resolution.
 - Create `web/src/server/adapters/auth/verified-oauth-email.test.ts`: provider verification tests.
-- Create `web/src/server/adapters/auth/nextauth-config.test.ts`: JWT canonicalization tests.
+- Create `web/src/server/adapters/auth/canonical-auth-callbacks.ts`: testable canonical JWT/session callbacks.
+- Create `web/src/server/adapters/auth/nextauth-config.test.ts`: canonical callback regression tests.
 - Modify `packages/core/src/types.ts`: linked-provider metadata on `User`.
 - Modify `web/src/server/ports/user-repository.ts`: verified identity contract.
 - Modify `web/src/server/adapters/memory/memory-user-repository.ts`: contract-equivalent identity mapping.
@@ -148,9 +149,10 @@ preserve all financial fields.
 
 - [ ] **Step 4: Implement Firestore transaction**
 
-Add `COLLECTIONS.userIdentities`. In one transaction, read the identity mapping,
-resolve either its `userId` or `canonicalUserIdForEmail(email)`, read the user,
-merge metadata/defaults, and set the mapping. Store explicit `id` on the user.
+Add `COLLECTIONS.userIdentities`. In one transaction, read the identity mapping
+and normalized-email user matches, resolve their common `userId` or
+`canonicalUserIdForEmail(email)`, read the user, merge metadata/defaults, and set
+the mapping. Store explicit `id` on the user and fail closed on conflicts.
 Never replace balances, held lots, payout fields, or `createdAt`.
 
 - [ ] **Step 5: Verify repository GREEN**

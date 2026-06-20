@@ -20,6 +20,7 @@ describe("Firestore collection paths", () => {
 
     expect(COLLECTIONS).toMatchObject({
       users: "users",
+      userIdentities: "userIdentities",
       campaigns: "campaigns",
       ledgerEntries: "ledgerEntries",
       impressionActivities: "impressionActivities",
@@ -37,6 +38,7 @@ describe("Firestore collection paths", () => {
 
     expect(COLLECTIONS).toMatchObject({
       users: "namespaces/test/users",
+      userIdentities: "namespaces/test/userIdentities",
       campaigns: "namespaces/test/campaigns",
       ledgerEntries: "namespaces/test/ledgerEntries",
       impressionActivities: "namespaces/test/impressionActivities",

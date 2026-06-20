@@ -89,10 +89,27 @@ field must behave as approved.
 Added `CampaignReviewStatus` and optional `Campaign.reviewStatus`. The field is
 optional so existing fixtures and legacy Firestore documents remain compatible.
 
+## Planned Change 2026-06-20 Canonical Identity
+
+Add optional `User.providers` metadata so one canonical user document can record
+all linked Google/GitHub identities while remaining backward-compatible with
+legacy documents that only contain `provider`.
+
+## Implemented Change 2026-06-20 Canonical Identity
+
+`User.providers` now records linked OAuth providers while `provider` remains the
+most recently used provider for compatibility.
+
+## Agent Decision 2026-06-20
+
+Keep `provider` for compatibility and add `providers` rather than replacing the
+field across every consumer.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Planned linked-provider metadata for canonical users. | Codex |
 | 2026-06-16 | Added optional campaign review status type. | Codex |
 | 2026-06-16 | Planned campaign review status type. | Codex |
 | 2026-06-15 | Implemented cumulative viewability API response contract types. | Codex |

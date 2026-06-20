@@ -204,6 +204,7 @@ describe("e2e settlement — 60/40 split (Requirement 11)", () => {
       provider: "github",
       providerAccountId: "settlement-developer",
       email: "developer@spinshare.test",
+      emailVerified: true,
       role: "developer",
     });
     // Mint a valid token whose userId matches the developer (so the flush

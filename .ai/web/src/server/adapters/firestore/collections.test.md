@@ -22,6 +22,11 @@ Both default and namespace assertions now include every collection currently in
 Default and namespace assertions now include `payoutAttempts`, preventing local
 payout reconciliation records from escaping the Firestore namespace.
 
+## Planned Change 2026-06-20 Canonical Identity
+
+Assert that `userIdentities` follows the same top-level and namespaced collection
+path rules as every other Firestore collection.
+
 ## Change History
 
 | Date | Change | Author |

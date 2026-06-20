@@ -15,6 +15,11 @@ import type {
   ExternalIdentity,
   UserRepository,
 } from "../../ports/user-repository";
+import {
+  canonicalUserIdForEmail,
+  identityMappingId,
+  normalizeIdentityEmail,
+} from "../../identity/canonical-user-id";
 import { RandomIdGenerator, type IdGenerator } from "./clock";
 
 export class MemoryUserRepository implements UserRepository {
@@ -22,32 +27,59 @@ export class MemoryUserRepository implements UserRepository {
   /** `${provider}:${providerAccountId}` → user id. */
   private readonly identityIndex = new Map<string, string>();
 
-  constructor(private readonly ids: IdGenerator = new RandomIdGenerator()) {}
+  constructor(_ids: IdGenerator = new RandomIdGenerator()) {}
 
   async getById(id: string): Promise<User | null> {
     return this.users.get(id) ?? null;
   }
 
   async upsertFromIdentity(identity: ExternalIdentity): Promise<User> {
-    const key = `${identity.provider}:${identity.providerAccountId}`;
+    if (identity.emailVerified !== true) {
+      throw new Error("Verified identity email is required");
+    }
+    const email = normalizeIdentityEmail(identity.email);
+    const key = identityMappingId(
+      identity.provider,
+      identity.providerAccountId,
+    );
     const existingId = this.identityIndex.get(key);
     if (existingId) {
       const existing = this.users.get(existingId);
       if (existing) {
         // Keep the latest email; role/balance are preserved across sign-ins.
-        existing.email = identity.email;
+        existing.email = email;
+        existing.provider = identity.provider;
+        existing.providers = [
+          ...new Set([...(existing.providers ?? [existing.provider]), identity.provider]),
+        ];
         return { ...existing };
       }
     }
 
-    const user: User = {
-      id: this.ids.next("usr"),
-      email: identity.email,
-      provider: identity.provider,
-      role: identity.role ?? "developer",
-      balanceCents: 0,
-      createdAtMs: Date.now(),
-    };
+    const id = canonicalUserIdForEmail(email);
+    const existing = this.users.get(id);
+    const providers = [
+      ...new Set([
+        ...(existing?.providers ?? (existing ? [existing.provider] : [])),
+        identity.provider,
+      ]),
+    ];
+    const user: User = existing
+      ? {
+          ...existing,
+          email,
+          provider: identity.provider,
+          providers,
+        }
+      : {
+          id,
+          email,
+          provider: identity.provider,
+          providers,
+          role: identity.role ?? "developer",
+          balanceCents: 0,
+          createdAtMs: Date.now(),
+        };
     this.users.set(user.id, user);
     this.identityIndex.set(key, user.id);
     return { ...user };

@@ -40,6 +40,7 @@ function toCampaignReviewStatus(value: unknown): CampaignReviewStatus {
 /** Collection paths (see design "Data Models"). */
 export const COLLECTIONS = {
   users: collectionPath("users"),
+  userIdentities: collectionPath("userIdentities"),
   campaigns: collectionPath("campaigns"),
   ledgerEntries: collectionPath("ledgerEntries"),
   impressionActivities: collectionPath("impressionActivities"),
@@ -50,10 +51,26 @@ export const COLLECTIONS = {
 
 /** Maps a `users/{userId}` document to the domain `User`. */
 export function toUser(id: string, data: FirebaseFirestore.DocumentData): User {
+  const provider = data.provider as AuthProviderId;
+  const providers = Array.isArray(data.providers)
+    ? [
+        ...new Set(
+          data.providers.filter(
+            (value: unknown): value is AuthProviderId =>
+              value === "google" || value === "github",
+          ),
+        ),
+      ]
+    : [];
   return {
     id,
     email: String(data.email ?? ""),
-    provider: data.provider as AuthProviderId,
+    provider,
+    ...(providers.length > 0
+      ? { providers }
+      : provider === "google" || provider === "github"
+        ? { providers: [provider] }
+        : {}),
     role: data.role as UserRole,
     balanceCents: Number(data.balanceCents ?? 0),
     ...(() => {

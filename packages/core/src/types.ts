@@ -80,6 +80,8 @@ export interface User {
   email: string;
   /** Identity source. */
   provider: AuthProviderId;
+  /** All OAuth providers linked to this canonical user. */
+  providers?: AuthProviderId[];
   /** Primary role for this user. */
   role: UserRole;
   /** Accumulated developer earnings in integer cents (total = held + available). */

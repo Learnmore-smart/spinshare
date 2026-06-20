@@ -44,8 +44,14 @@ Defines the root HTML shell, global CSS imports, metadata, and app-wide body cla
 |------|-----|-------|-----|
 | 2026-06-14 | Production build failed while fetching Nunito from Google Fonts. | `next/font/google` requires a network fetch at build time. | Remove the Google font import and rely on the local CSS font variable. |
 
+## Planned Change 2026-06-20 Google Analytics
+
+- Import `GoogleAnalytics` into `<head>` immediately after `ThemeScript`.
+- Analytics loads only when `NEXT_PUBLIC_GA_MEASUREMENT_ID` is set.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Mount `GoogleAnalytics` in root `<head>` for site-wide GA4. | Cursor |
 | 2026-06-14 | Created documentation and recorded build-time font fetch fix. | Codex |

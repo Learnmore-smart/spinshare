@@ -78,6 +78,15 @@ contract.
 | 2026-06-17 | E2E settlement returned `422 invalid_or_insufficient_campaign` on the in-process `/api/track` success path. | The current tracking route requires a same-developer pending progress record created by `/api/ad`; the old test posted directly to `/api/track`, which now looks like an arbitrary campaign attribution attempt. | Drive the in-process flow through `/api/ad` first using the same mock token, then post `/api/track` for the served campaign. |
 | 2026-06-13 | File comments still described an old production bundle import issue as active after `next start` verification passed. | Prior handoff notes were not updated after the ESM-only core fix and production-start e2e validation. | Update comments to reflect the current limitation accurately: valid credited `/api/track` cannot be minted over HTTP in mock mode because there is no test approval endpoint, while production route bundling now starts successfully. |
 
+## Planned Change 2026-06-20 Canonical Identity
+
+Mark the seeded OAuth identity email as provider-verified under the strengthened
+`ExternalIdentity` contract.
+
+## Implemented Change 2026-06-20 Canonical Identity
+
+The seeded developer identity now declares its email provider-verified.
+
 ## Change History
 
 | Date | Change | Author |

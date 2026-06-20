@@ -54,11 +54,12 @@ a Firestore transaction:
 
 1. Read the provider-account mapping.
 2. If it exists, use its canonical user ID even if the email changed.
-3. If it does not exist, require a normalized verified email and derive the canonical
-   ID from that email. This makes first-time Google and GitHub sign-ins with the same
-   verified email converge on one user.
-4. Upsert the canonical user metadata without replacing financial fields.
-5. Create/update the identity mapping and add the provider to the linked-provider
+3. Query canonical users for the normalized verified email. If one exists, link to
+   it; if more than one exists, fail closed as a data conflict.
+4. If neither mapping nor email match exists, derive the canonical ID from that
+   email. This makes concurrent first-time Google and GitHub sign-ins converge.
+5. Upsert the canonical user metadata without replacing financial fields.
+6. Create/update the identity mapping and add the provider to the linked-provider
    list.
 
 If an existing mapping conflicts with another canonical identity, fail closed. The

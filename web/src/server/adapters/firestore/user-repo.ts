@@ -1,11 +1,11 @@
 /**
  * Firestore-backed `UserRepository`.
  *
- * Mirrors the `users/{userId}` collection. `upsertFromIdentity` is idempotent:
- * the document id is derived deterministically from the external identity
- * (`{provider}:{providerAccountId}`), so repeated sign-ins resolve to the same
- * user. `applyBalanceDeltaCents` uses an atomic `FieldValue.increment` inside a
- * transaction (flush reconciliation only). See design "Data Models".
+ * Mirrors `users/{userId}` plus `userIdentities/{identityKey}`.
+ * `upsertFromIdentity` transactionally resolves a persistent provider-account
+ * mapping, converges first-time providers by normalized verified email, and
+ * preserves all financial fields. `applyBalanceDeltaCents` uses an atomic
+ * `FieldValue.increment` transaction for flush reconciliation.
  */
 
 import type { HeldLot, User } from "@spinshare/core";
@@ -19,6 +19,11 @@ import type {
   ExternalIdentity,
   UserRepository,
 } from "../../ports/user-repository";
+import {
+  canonicalUserIdForEmail,
+  identityMappingId,
+  normalizeIdentityEmail,
+} from "../../identity/canonical-user-id";
 import { getFirestoreClient } from "./client";
 import { COLLECTIONS, toUser } from "./collections";
 
@@ -30,7 +35,7 @@ export interface FirestoreUserRepoOptions {
 
 /** Deterministic user document id derived from an external identity. */
 export function userIdForIdentity(identity: ExternalIdentity): string {
-  return `${identity.provider}:${identity.providerAccountId}`;
+  return canonicalUserIdForEmail(identity.email);
 }
 
 /** Parses the stored `heldLots` field into a fresh, well-typed mutable array. */
@@ -76,31 +81,82 @@ export class FirestoreUserRepo implements UserRepository {
 
   /** Creates or updates a user from an external identity, returning the user. */
   async upsertFromIdentity(identity: ExternalIdentity): Promise<User> {
-    const id = userIdForIdentity(identity);
-    const ref = this.collection.doc(id);
+    if (identity.emailVerified !== true) {
+      throw new Error("Verified identity email is required");
+    }
+    const email = normalizeIdentityEmail(identity.email);
+    const identityRef = this.db
+      .collection(COLLECTIONS.userIdentities)
+      .doc(identityMappingId(identity.provider, identity.providerAccountId));
     return this.db.runTransaction(async (tx) => {
-      const doc = await tx.get(ref);
-      if (doc.exists) {
-        // Refresh mutable identity fields but preserve durable balance.
-        tx.update(ref, {
-          email: identity.email,
-          updatedAt: FieldValue.serverTimestamp(),
-        });
-        return toUser(doc.id, { ...doc.data(), email: identity.email });
+      const [identityDoc, emailMatches] = await Promise.all([
+        tx.get(identityRef),
+        tx.get(this.collection.where("email", "==", email).limit(2)),
+      ]);
+      if (emailMatches.size > 1) {
+        throw new Error("Canonical identity conflict: duplicate verified email");
       }
-      const user: User = {
+
+      const mappedUserId = identityDoc.exists
+        ? String(identityDoc.data()?.userId ?? "")
+        : "";
+      if (identityDoc.exists && mappedUserId.length === 0) {
+        throw new Error("Canonical identity conflict: invalid provider mapping");
+      }
+      const emailUserId = emailMatches.docs[0]?.id ?? "";
+      if (
+        mappedUserId.length > 0 &&
+        emailUserId.length > 0 &&
+        mappedUserId !== emailUserId
+      ) {
+        throw new Error("Canonical identity conflict: provider and email disagree");
+      }
+
+      const id =
+        mappedUserId || emailUserId || canonicalUserIdForEmail(email);
+      const ref = this.collection.doc(id);
+      const doc = await tx.get(ref);
+      const existing = doc.exists ? (doc.data() ?? {}) : {};
+      const providers = [
+        ...new Set([
+          ...(Array.isArray(existing.providers)
+            ? existing.providers.filter(
+                (value: unknown) => value === "google" || value === "github",
+              )
+            : existing.provider === "google" || existing.provider === "github"
+              ? [existing.provider]
+              : []),
+          identity.provider,
+        ]),
+      ];
+      const userData = {
         id,
-        email: identity.email,
+        email,
         provider: identity.provider,
-        role: identity.role ?? "developer",
-        balanceCents: 0,
-      };
-      tx.set(ref, {
-        ...user,
-        createdAt: FieldValue.serverTimestamp(),
+        providers,
+        role: existing.role ?? identity.role ?? "developer",
+        balanceCents: Number(existing.balanceCents ?? 0),
+        ...(!doc.exists ? { createdAt: FieldValue.serverTimestamp() } : {}),
         updatedAt: FieldValue.serverTimestamp(),
-      });
-      return user;
+      };
+
+      tx.set(ref, userData, { merge: true });
+      tx.set(
+        identityRef,
+        {
+          userId: id,
+          provider: identity.provider,
+          providerAccountId: identity.providerAccountId,
+          email,
+          ...(!identityDoc.exists
+            ? { createdAt: FieldValue.serverTimestamp() }
+            : {}),
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+
+      return toUser(id, { ...existing, ...userData });
     });
   }
 

@@ -19,6 +19,8 @@ export interface ExternalIdentity {
   providerAccountId: string;
   /** Email from the identity provider. */
   email: string;
+  /** Proof that the provider verified ownership of `email`. */
+  emailVerified: true;
   /** Role to assign on first creation; defaults applied by the adapter. */
   role?: UserRole;
 }

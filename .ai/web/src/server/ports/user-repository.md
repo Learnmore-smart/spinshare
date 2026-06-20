@@ -26,9 +26,26 @@ missing.
 
 `UserRepository` now includes `tryDebitBalanceCents()`.
 
+## Planned Change 2026-06-20 Canonical Identity
+
+Require `ExternalIdentity.emailVerified: true`. `upsertFromIdentity` must resolve
+provider accounts to one canonical user, reject unverified identities, refresh
+identity metadata, and preserve financial state.
+
+## Implemented Change 2026-06-20 Canonical Identity
+
+`ExternalIdentity` now requires literal `emailVerified: true`; both adapters
+enforce it at runtime before resolving a user.
+
+## Agent Decision 2026-06-20
+
+Identity verification belongs at the repository boundary as defense in depth,
+even though Auth.js validates it first.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Planned verified canonical identity contract. | Codex |
 | 2026-06-16 | Added atomic payout debit reservation method to the port. | Codex |
 | 2026-06-16 | Created before adding atomic balance debit reservation. | Codex |

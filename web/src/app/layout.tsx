@@ -7,6 +7,7 @@ import "./home.css";
 import "@/components/segment-slider.css";
 import { LocaleProvider } from "@/lib/i18n/locale-provider";
 import { AuthSessionProvider } from "@/components/auth/session-provider";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { ThemeScript } from "@/components/theme/theme-script";
 import { ThemeProvider } from "@/lib/theme/theme-provider";
 import { detectLocaleFromAcceptLanguage } from "@/lib/i18n/detect-locale";
@@ -51,6 +52,7 @@ export default async function RootLayout({
     <html lang={initialLocale} suppressHydrationWarning>
       <head>
         <ThemeScript />
+        <GoogleAnalytics />
       </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <AuthSessionProvider>
