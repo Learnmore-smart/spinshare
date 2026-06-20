@@ -290,6 +290,7 @@ describe("selectAd — timeout fallback (R1.7)", () => {
         throw new Error("not implemented");
       },
       updateReviewStatus: async () => {},
+      listAll: async () => [],
     };
 
     const timeoutMs = 20;
@@ -320,6 +321,7 @@ describe("selectAd — timeout fallback (R1.7)", () => {
         throw new Error("not implemented");
       },
       updateReviewStatus: async () => {},
+      listAll: async () => [],
     };
 
     const result = await selectAd({ campaigns: failing, timeoutMs: 50 });

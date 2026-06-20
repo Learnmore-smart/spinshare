@@ -24,12 +24,15 @@ import {
   MICROCENTS_PER_CENT,
   formatCentsAsUsd,
   type LedgerEntry,
+  type LedgerEntryType,
 } from "@spinshare/core";
 
 /** One row of the activity ledger table (one impression). */
 export interface LedgerActivityRow {
   /** Stable key / idempotency id of the underlying entry. */
   entryId: string;
+  /** Normalized durable row kind, including legacy signup-bonus ids. */
+  ledgerType: LedgerEntryType;
   /** Sequence number of this impression (1-based) in recording order. */
   sequence: number;
   /** Campaign the impression was attributed to. */
@@ -166,6 +169,12 @@ function displayCreditMicrocents(entry: LedgerEntry): number {
   );
 }
 
+function ledgerEntryType(entry: LedgerEntry): LedgerEntryType {
+  return entry.type === "signup_bonus" || entry.entryId.startsWith("signup_bonus:")
+    ? "signup_bonus"
+    : "impression";
+}
+
 export type ChartRange = "24h" | "7d" | "30d" | "all";
 
 const CHART_RANGE_MS: Record<Exclude<ChartRange, "all">, number> = {
@@ -244,7 +253,8 @@ export function summarizeLedger(
   const hourStart = Date.now() - 60 * 60 * 1000;
 
   entries.forEach((entry, index) => {
-    if (entry.type === "signup_bonus" || entry.entryId.startsWith("signup_bonus:")) {
+    const rowType = ledgerEntryType(entry);
+    if (rowType === "signup_bonus") {
       hasSignupBonus = true;
     }
     const sequence = index + 1;
@@ -271,6 +281,7 @@ export function summarizeLedger(
 
     rows.push({
       entryId: entry.entryId,
+      ledgerType: rowType,
       sequence,
       campaignId: entry.campaignId,
       developerCreditCents: credit,

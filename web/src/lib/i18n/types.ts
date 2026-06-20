@@ -350,6 +350,7 @@ export interface Dictionary {
       transferFailed: string;
       notPaid: string;
       developerEvent: string;
+      welcomeGift: string;
     };
     durationSeconds: (seconds: string) => string;
     detailsSummary: string;

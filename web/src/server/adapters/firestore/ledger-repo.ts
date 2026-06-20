@@ -17,7 +17,8 @@ import {
   type Firestore,
 } from "firebase-admin/firestore";
 
-import type { LedgerRepository } from "../../ports/ledger-repository";
+import type { LedgerRepository, FleetLedgerSummary } from "../../ports/ledger-repository";
+import { summarizeFleetFromEntries } from "../../fleet-ledger-summary";
 import { getFirestoreClient } from "./client";
 import { COLLECTIONS, toLedgerEntry } from "./collections";
 
@@ -195,5 +196,11 @@ export class FirestoreLedgerRepo implements LedgerRepository {
     }
 
     return counts;
+  }
+
+  async summarizeFleet(nowMs = Date.now()): Promise<FleetLedgerSummary> {
+    const snap = await this.collection.get();
+    const entries = snap.docs.map((doc) => toLedgerEntry(doc.id, doc.data() ?? {}));
+    return summarizeFleetFromEntries(entries, nowMs);
   }
 }

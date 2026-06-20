@@ -27,3 +27,15 @@ falling back to English.
 
 Added coverage proving `mergeDeveloperActivityRows()` applies caller-supplied
 locale copy to incoming activity rows.
+
+## Planned Coverage 2026-06-20 Pinned Welcome Gift
+
+Add RED coverage for the initial pinned-plus-fetched merge. The same welcome
+gift id arriving twice must render once with the active localized event label
+and `+$1.00` credit.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-20 | Planned stable-id and locale coverage for the initial welcome-gift merge. | Codex |

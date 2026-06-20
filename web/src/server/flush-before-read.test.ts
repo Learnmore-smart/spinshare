@@ -112,6 +112,7 @@ describe("flushPendingForRead", () => {
         countByCampaignIds: container.ledger.countByCampaignIds.bind(
           container.ledger,
         ),
+        summarizeFleet: container.ledger.summarizeFleet.bind(container.ledger),
       },
     } as Container;
 

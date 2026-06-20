@@ -37,3 +37,21 @@ still allowing the dashboard to render stale durable data if the flush fails.
 | 2026-06-16 | Implemented best-effort flush before developer ledger read. | Codex |
 | 2026-06-16 | Planned best-effort flush before developer ledger read. | Codex |
 | 2026-06-15 | Planned attempt-level activity context loading. | Codex |
+
+## Planned Change 2026-06-20 Welcome Gift Activity Wiring
+
+After the idempotent signup-bonus grant and ledger summary, adapt the summary's
+bonus row into an optional pinned activity and pass it to
+`DeveloperActivityProviderClient`. Do not add repository writes or change the
+existing error boundary.
+
+## Agent Decisions / Thoughts Addendum
+
+- **2026-06-20 Codex:** Perform adaptation after the single ledger read already
+  required for the dashboard, avoiding another API or database dependency.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-20 | Planned server-layout wiring for the welcome-gift activity. | Codex |

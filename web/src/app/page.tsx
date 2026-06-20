@@ -23,7 +23,12 @@ import { SiteNavAuth } from "@/components/SiteNavAuth";
 import { SpinShareWordmark } from "@/components/SpinShareWordmark";
 import { useT } from "@/lib/i18n/locale-provider";
 import { HeroDashboardCard } from "@/components/HeroDashboardCard";
-import { SPINSHARE_INSTALL_COMMAND } from "@/lib/spinshare-install-command";
+import {
+  SPINSHARE_INSTALL_COMMANDS,
+  detectInstallOs,
+  installCommandFor,
+  type InstallOs,
+} from "@/lib/spinshare-install-command";
 
 const DEVELOPER_SIGNIN_HREF =
   "/signin?role=developer&callbackUrl=%2Fdashboard%2Fdeveloper";
@@ -248,19 +253,26 @@ export function buildBidChartData(
 }
 
 function HeroInstallCommand({
-  command,
   title,
   hint,
   copyLabel,
   copiedLabel,
 }: {
-  command: string;
   title: string;
   hint: string;
   copyLabel: string;
   copiedLabel: string;
 }) {
   const [copied, setCopied] = useState(false);
+  // Default to unix for SSR, then switch to the visitor's real OS after mount
+  // so Windows users see the PowerShell-safe line by default.
+  const [os, setOs] = useState<InstallOs>("unix");
+
+  useEffect(() => {
+    setOs(detectInstallOs(navigator.userAgent));
+  }, []);
+
+  const command = installCommandFor(os).command;
 
   const copy = async () => {
     try {
@@ -290,9 +302,34 @@ function HeroInstallCommand({
           <p className="mt-0.5 text-sm font-bold text-emerald-50">{hint}</p>
         </div>
       </div>
-      <div className="mt-3.5 flex flex-col items-stretch gap-2 rounded-2xl border border-black/25 bg-[#0a0a0b] p-2 sm:flex-row sm:items-start">
+      <div
+        className="mt-3 flex flex-wrap gap-1.5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {SPINSHARE_INSTALL_COMMANDS.map((variant) => {
+          const active = variant.os === os;
+          return (
+            <button
+              key={variant.os}
+              type="button"
+              onClick={() => setOs(variant.os)}
+              aria-pressed={active}
+              className={`rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wide transition ${
+                active
+                  ? "bg-white text-[var(--color-primary-700)]"
+                  : "bg-white/15 text-emerald-50 hover:bg-white/25"
+              }`}
+            >
+              {variant.label}
+            </button>
+          );
+        })}
+      </div>
+      <div className="mt-2 flex flex-col items-stretch gap-2 rounded-2xl border border-black/25 bg-[#0a0a0b] p-2 sm:flex-row sm:items-start">
         <code className="flex min-w-0 flex-1 items-start gap-2 px-2 py-1 font-mono text-xs leading-relaxed text-emerald-100 sm:text-sm">
-          <span className="shrink-0 select-none font-black text-emerald-500">$</span>
+          <span className="shrink-0 select-none font-black text-emerald-500">
+            {os === "windows" ? ">" : "$"}
+          </span>
           <span className="min-w-0 break-all">{command}</span>
         </code>
         <button
@@ -827,7 +864,6 @@ export default function HomePage() {
                 {t.home.signupBonusBanner}
               </TiltCard>
               <HeroInstallCommand
-                command={SPINSHARE_INSTALL_COMMAND}
                 title={t.home.ctaInstall}
                 hint={t.home.ctaCommandHint}
                 copyLabel={t.setupGuide.copy}
@@ -1246,19 +1282,23 @@ export default function HomePage() {
       </main>
 
       <footer className="spinshare-home-footer px-4 py-8 sm:px-6">
-        <div className="liquid-glass spinshare-static mx-auto flex max-w-7xl flex-col gap-4 rounded-[20px] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <Image
-              src="/logo/spinshare-logo.png"
-              alt="SpinShare Logo"
-              width={32}
-              height={32}
-              className="h-8 w-8 rounded-[8px] object-contain"
-            />
-            <SpinShareWordmark />
+        <div className="liquid-glass spinshare-static mx-auto flex max-w-7xl flex-col gap-5 rounded-[20px] px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 flex-col gap-2">
+            <div className="flex items-center gap-3">
+              <Image
+                src="/logo/spinshare-logo.png"
+                alt="SpinShare Logo"
+                width={32}
+                height={32}
+                className="h-8 w-8 shrink-0 rounded-[8px] object-contain"
+              />
+              <SpinShareWordmark />
+            </div>
+            <p className="min-w-0 text-sm leading-relaxed">
+              &copy; 2026 SpinShare. {t.home.footerCopy}
+            </p>
           </div>
-          <p>&copy; 2026 SpinShare. {t.home.footerCopy}</p>
-          <div className="flex flex-wrap items-center gap-5">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-5">
             <Link href="/signin?role=developer">
               {t.nav.userLogin}
             </Link>

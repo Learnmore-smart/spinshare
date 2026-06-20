@@ -217,6 +217,17 @@ Added `developerDashboard.support` to the dictionary contract.
 
 - `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
 
+## Planned Change 2026-06-20 Welcome Gift Event Copy
+
+Require `activityFeed.eventLabels.welcomeGift` in the dictionary contract so
+every supported locale must name the signup credit used by Recent credit.
+
+## Change History Addendum 5
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-20 | Planned typed welcome-gift activity copy. | Codex |
+
 ## Change History Addendum 4
 
 | Date | Change | Author |

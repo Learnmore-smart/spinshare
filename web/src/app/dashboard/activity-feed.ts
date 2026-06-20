@@ -18,7 +18,8 @@ export type ActivityFeedStatus =
 export type ActivityFeedType =
   | "impression_attempt"
   | "advertiser_event"
-  | "developer_event";
+  | "developer_event"
+  | "welcome_gift";
 
 export interface ActivityFeedSource {
   activityId: string;
@@ -64,6 +65,7 @@ export interface ActivityFeedCopy {
     transferFailed: string;
     notPaid: string;
     developerEvent: string;
+    welcomeGift: string;
   };
   durationSeconds: (seconds: string) => string;
   detailsSummary: string;
@@ -107,6 +109,7 @@ export const defaultActivityFeedCopy: ActivityFeedCopy = {
     transferFailed: "Transfer failed",
     notPaid: "Not paid",
     developerEvent: "Developer event",
+    welcomeGift: "Welcome gift",
   },
   durationSeconds: (seconds) => `${seconds}s`,
   detailsSummary: "Details",
@@ -143,18 +146,20 @@ export function formatActivityDuration(
 function activityCreditLabel(activity: ActivityFeedSource): string {
   if (
     activity.type === "advertiser_event" ||
-    activity.type === "developer_event"
+    activity.type === "developer_event" ||
+    activity.type === "welcome_gift"
   ) {
+    let amountLabel: string;
     if (activity.amountUsd !== undefined) {
-      return `$${activity.amountUsd}`;
+      amountLabel = `$${activity.amountUsd}`;
+    } else if (activity.amountCents !== undefined) {
+      amountLabel = `$${formatCentsAsUsd(activity.amountCents)}`;
+    } else if (activity.amountMicrocents !== undefined) {
+      amountLabel = formatMicrocentsAsUsd(activity.amountMicrocents);
+    } else {
+      amountLabel = "$0.00";
     }
-    if (activity.amountCents !== undefined) {
-      return `$${formatCentsAsUsd(activity.amountCents)}`;
-    }
-    if (activity.amountMicrocents !== undefined) {
-      return formatMicrocentsAsUsd(activity.amountMicrocents);
-    }
-    return "$0.00";
+    return activity.type === "welcome_gift" ? `+${amountLabel}` : amountLabel;
   }
   if (
     activity.status === "credited" &&
@@ -190,6 +195,9 @@ function activityDurationLabel(
   activity: ActivityFeedSource,
   copy: ActivityFeedCopy,
 ): string {
+  if (activity.type === "welcome_gift") {
+    return copy.eventLabels.welcomeGift;
+  }
   if (activity.type === "advertiser_event") {
     switch (activity.status) {
       case "checkoutStarted":
@@ -249,7 +257,8 @@ export function activityDetailItems(
     {
       label:
         activity.type === "advertiser_event" ||
-        activity.type === "developer_event"
+        activity.type === "developer_event" ||
+        activity.type === "welcome_gift"
           ? labels.event
           : labels.duration,
       value: activity.durationLabel,

@@ -198,6 +198,10 @@ export class MemoryUserRepository implements UserRepository {
     return count;
   }
 
+  async listAll(): Promise<User[]> {
+    return [...this.users.values()].map((user) => ({ ...user }));
+  }
+
   /** Test/seed helper: inserts a fully-formed user. */
   seed(user: User): void {
     this.users.set(user.id, { ...user });

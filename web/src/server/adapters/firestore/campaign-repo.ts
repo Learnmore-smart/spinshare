@@ -177,4 +177,9 @@ export class FirestoreCampaignRepo implements CampaignRepository {
       });
     });
   }
+
+  async listAll(): Promise<Campaign[]> {
+    const snap = await this.collection.get();
+    return snap.docs.map((doc) => toCampaign(doc.id, doc.data() ?? {}));
+  }
 }

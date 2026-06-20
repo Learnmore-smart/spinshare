@@ -49,3 +49,22 @@ copy to incoming rows.
 Developer/advisor activity initial loads and load-more merges now pass
 `t.activityFeed` into the shared activity row normalizer. The merge helper keeps
 an English default for tests and non-React callers.
+
+## Planned Change 2026-06-20 Pinned Welcome Gift
+
+Accept optional pinned activity sources from the server layout. Merge them with
+the first API page through the same stable-id de-duplication and locale-aware
+normalization used by later pages. Preserve pinned rows through load-more; keep
+the current error state when the API request fails rather than masking failure
+with the pinned row.
+
+## Agent Decisions / Thoughts Addendum
+
+- **2026-06-20 Codex:** Merge pinned and fetched sources before normalization so
+  both receive the active locale and duplicate deterministic ids collapse once.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-20 | Planned initial-page merge for the pinned welcome gift. | Codex |

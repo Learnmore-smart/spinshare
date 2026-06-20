@@ -30,3 +30,14 @@ without requiring a full dashboard data fixture.
 |------|--------|--------|
 | 2026-06-16 | Added helper tests for developer activity filter/export. | Codex |
 | 2026-06-16 | Created doc before adding developer activity export tests. | Codex |
+
+## Planned Coverage 2026-06-20 Localized Welcome Gift Export
+
+Normalize a Chinese welcome-gift row and prove the Recent credit search matches
+`欢迎礼金` and CSV export contains the localized event plus `+$1.00`.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-20 | Planned localized welcome-gift search and CSV coverage. | Codex |

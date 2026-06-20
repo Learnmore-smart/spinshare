@@ -64,3 +64,15 @@ English behavior stable.
 Added coverage for caller-supplied locale copy in `toActivityFeedRows()` and
 `activityDetailItems()`, including localized status/event/detail labels and the
 existing English default behavior.
+
+## Planned Coverage 2026-06-20 Welcome Gift Activity
+
+Add RED coverage for a localized `welcome_gift` activity. Assert that it keeps
+credited status, uses the caller's welcome-gift event label, renders
+`+$1.00`, and remains counted as positive credit.
+
+## Change History Addendum 2
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-20 | Planned localized welcome-gift activity formatting coverage. | Codex |

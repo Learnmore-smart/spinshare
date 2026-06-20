@@ -24,7 +24,7 @@ const en: DictionaryBase = {
     ctaCommandHint: "Paste this into your terminal — that's it.",
     ctaEarning: "Start earning",
     learnAdCopy: "LearnX · Know exactly what to study",
-    footerCopy: "Get paid during AI coding tool wait states.",
+    footerCopy: "Get paid when your AI thinks",
     navLogin: "User login",
     navAds: "Ads",
     creditedRevenue: (pct) =>

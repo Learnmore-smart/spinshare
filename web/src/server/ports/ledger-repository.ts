@@ -8,6 +8,18 @@
 
 import type { LedgerEntry } from "@spinshare/core";
 
+/** Fleet-wide ledger aggregates for internal analytics. */
+export interface FleetLedgerSummary {
+  /** Credited impressions excluding signup-bonus rows. */
+  totalCreditedImpressions: number;
+  /** Sum of developer credits from impression rows. */
+  totalDeveloperCreditCents: number;
+  /** Credited impressions recorded since UTC midnight. */
+  impressionsToday: number;
+  /** Developer credits recorded since UTC midnight. */
+  developerCreditsTodayCents: number;
+}
+
 /** Durable ledger repository. */
 export interface LedgerRepository {
   /**
@@ -38,4 +50,6 @@ export interface LedgerRepository {
    * the client.
    */
   countByCampaignIds(campaignIds: string[]): Promise<Record<string, number>>;
+  /** Aggregates fleet-wide impression metrics (internal analytics only). */
+  summarizeFleet(nowMs?: number): Promise<FleetLedgerSummary>;
 }

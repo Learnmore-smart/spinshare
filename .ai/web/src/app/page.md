@@ -501,6 +501,12 @@ Implementation:
 - Empty market: brand `SpinShare`, tagline-only `tickerNoBidsText`.
 - Fallback brand when missing: first word of `adText`.
 
+## Implemented Change (2026-06-20 — Mobile footer layout)
+
+- Group logo/wordmark + copyright tagline in one left column so they stack vertically on narrow viewports.
+- Defer horizontal footer row to `lg:` breakpoint (was `sm:`) to avoid three cramped columns overlapping on tablets.
+- Tagline paragraph: `min-w-0 text-sm leading-relaxed` for proper wrap.
+
 ## Implemented Change (2026-06-19 — Ticker centering + speed)
 
 - Wrap marquee track in `flex justify-center` so overflow clips evenly and content reads centered.

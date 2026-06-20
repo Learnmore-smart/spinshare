@@ -118,6 +118,10 @@ export class MemoryCampaignRepository implements CampaignRepository {
     campaign.reviewStatus = reviewStatus;
   }
 
+  async listAll(): Promise<Campaign[]> {
+    return [...this.campaigns.values()].map((campaign) => ({ ...campaign }));
+  }
+
   /** Test/seed helper: inserts a fully-formed campaign. */
   seed(campaign: Campaign): void {
     this.campaigns.set(campaign.id, { ...campaign });

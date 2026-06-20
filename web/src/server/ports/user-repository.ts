@@ -89,4 +89,6 @@ export interface UserRepository {
    * farm collapsing to a single real payout identity.
    */
   countAccountsByPayoutFingerprint(fingerprint: string): Promise<number>;
+  /** Lists every durable user record (internal analytics only). */
+  listAll(): Promise<User[]>;
 }

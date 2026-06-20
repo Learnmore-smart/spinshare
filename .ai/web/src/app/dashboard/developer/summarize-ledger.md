@@ -61,3 +61,23 @@ so four `$5 CPM` impressions display as `$0.012`.
 |------|--------|--------|
 | 2026-06-18 | Implemented sub-cent dashboard summary display with up to 3 decimals. | Codex |
 | 2026-06-18 | Created doc and planned sub-cent dashboard summary display. | Codex |
+
+## Planned Change 2026-06-20 Welcome Gift Row Identity
+
+Add a normalized `ledgerType` to each `LedgerActivityRow`. Detect both typed
+`signup_bonus` rows and legacy deterministic `signup_bonus:` ids so downstream
+presentation can identify the welcome gift without parsing campaign or amount
+fields. Keep the bonus in earnings totals and chart series, but continue to
+exclude it from `impressionCount`.
+
+## Agent Decisions / Thoughts Addendum
+
+- **2026-06-20 Codex:** Preserve ledger identity in the pure summary model and
+  adapt it at the activity boundary. This keeps the durable ledger as the only
+  source of truth and avoids writing a duplicate activity record.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-20 | Planned normalized signup-bonus row identity for welcome-gift presentation. | Codex |

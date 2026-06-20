@@ -102,6 +102,26 @@ places.
 |------|-----|-------|-----|
 | 2026-06-18 | `$5 CPM` credited impressions displayed as `$0.00` in recent credit. | Per-impression developer credit is stored in whole cents, so sub-cent rows round to zero before UI formatting. | Display credited non-zero sub-cent rows using derived micro-cent precision from the row revenue. |
 
+## Planned Change 2026-06-20 Welcome Gift Activity
+
+Add a presentation-only `welcome_gift` activity type. Normalize it as credited,
+use locale-provided event copy, format its non-negative amount with a leading
+plus (`+$1.00`), and treat it as an event rather than an impression duration in
+detail/export helpers. Existing impression, advertiser, and payout formatting
+must remain unchanged.
+
+## Agent Decisions / Thoughts Addendum
+
+- **2026-06-20 Codex:** Model the welcome gift as an activity type rather than a
+  new status. Its accounting state is still `credited`; the type controls its
+  localized event label and positive-sign formatting.
+
+## Change History Addendum 2
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-20 | Planned localized welcome-gift activity normalization. | Codex |
+
 ## Planned Change 2026-06-18 Localized Activity Labels
 
 Move shared activity status, event/duration, and details labels behind a typed

@@ -8,7 +8,11 @@
  */
 
 import type { LedgerEntry } from "@spinshare/core";
-import type { LedgerRepository } from "../../ports/ledger-repository";
+import type {
+  FleetLedgerSummary,
+  LedgerRepository,
+} from "../../ports/ledger-repository";
+import { summarizeFleetFromEntries } from "../../fleet-ledger-summary";
 
 export class MemoryLedgerRepository implements LedgerRepository {
   private readonly entries = new Map<string, LedgerEntry>();
@@ -59,6 +63,10 @@ export class MemoryLedgerRepository implements LedgerRepository {
     }
 
     return counts;
+  }
+
+  async summarizeFleet(nowMs = Date.now()): Promise<FleetLedgerSummary> {
+    return summarizeFleetFromEntries([...this.entries.values()], nowMs);
   }
 
   /**

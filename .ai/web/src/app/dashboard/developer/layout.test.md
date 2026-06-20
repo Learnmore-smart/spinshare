@@ -42,3 +42,15 @@ Regression tests for the developer dashboard server layout.
 |------|--------|--------|
 | 2026-06-16 | Added RED/GREEN verification notes. | Codex |
 | 2026-06-16 | Created planned layout test documentation before writing RED test. | Codex |
+
+## Planned Coverage 2026-06-20 Welcome Gift Activity Wiring
+
+Add RED coverage proving a timestamped signup-bonus ledger row is passed to the
+client activity provider as one pinned `welcome_gift` source with its stable id
+and $1 amount.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-20 | Planned layout-to-activity-provider welcome-gift coverage. | Codex |

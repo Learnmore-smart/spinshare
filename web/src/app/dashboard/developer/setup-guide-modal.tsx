@@ -9,7 +9,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { BookOpen, Check, Copy, X } from "lucide-react";
 
 import { useT } from "@/lib/i18n/locale-provider";
-import { SPINSHARE_INSTALL_COMMAND } from "@/lib/spinshare-install-command";
+import { SPINSHARE_INSTALL_COMMANDS } from "@/lib/spinshare-install-command";
 
 function CopyBlock({ code, label }: { code: string; label: string }) {
   const t = useT();
@@ -132,7 +132,13 @@ export function SetupGuideModal({ open, onClose }: SetupGuideModalProps) {
           <ol className="space-y-5">
             <Step n={1} title={t.setupGuide.extStep1Title}>
               <p>{t.setupGuide.extStep1Body}</p>
-              <CopyBlock label={t.setupGuide.labelInstall} code={SPINSHARE_INSTALL_COMMAND} />
+              {SPINSHARE_INSTALL_COMMANDS.map((variant) => (
+                <CopyBlock
+                  key={variant.os}
+                  label={variant.label}
+                  code={variant.command}
+                />
+              ))}
             </Step>
             <Step n={2} title={t.setupGuide.extStep2Title}>
               <p>{t.setupGuide.extStep2Body}</p>

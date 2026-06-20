@@ -370,6 +370,10 @@ class FaultOnceLedgerRepository implements LedgerRepository {
   async appendEntryIfAbsent(entry: LedgerEntry): Promise<boolean> {
     return this.inner.appendEntryIfAbsent(entry);
   }
+
+  async summarizeFleet(nowMs?: number) {
+    return this.inner.summarizeFleet(nowMs);
+  }
 }
 
 describe("flush-service idempotency properties", () => {

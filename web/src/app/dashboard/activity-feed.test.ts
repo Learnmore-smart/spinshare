@@ -125,6 +125,38 @@ describe("activity feed helpers", () => {
     });
   });
 
+  it("formats a localized welcome gift as positive credit", () => {
+    const copy = {
+      ...defaultActivityFeedCopy,
+      eventLabels: {
+        ...defaultActivityFeedCopy.eventLabels,
+        welcomeGift: "欢迎礼金",
+      },
+    } as ActivityFeedCopy;
+    const [row] = toActivityFeedRows(
+      [
+        {
+          activityId: "signup_bonus:dev1",
+          campaignId: "—",
+          type: "welcome_gift",
+          status: "credited",
+          amountCents: 100,
+          amountUsd: "1.00",
+          createdAtMs: 1234,
+        },
+      ],
+      copy,
+    );
+
+    expect(row).toMatchObject({
+      type: "welcome_gift",
+      statusLabel: "Credited",
+      durationLabel: "欢迎礼金",
+      creditLabel: "+$1.00",
+      counted: true,
+    });
+  });
+
   it("formats activity rows and detail labels with caller-supplied locale copy", () => {
     const [row] = toActivityFeedRows(
       [

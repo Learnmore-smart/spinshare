@@ -48,6 +48,31 @@ describe("summarizeLedger", () => {
     expect(summary.impressionCount).toBe(3);
   });
 
+  it("keeps signup-bonus metadata for chart and activity presentation", () => {
+    const createdAtMs = Date.now();
+    const summary = summarizeLedger([
+      entry({
+        entryId: "signup_bonus:dev1",
+        type: "signup_bonus",
+        campaignId: "",
+        revenueMicrocents: 0,
+        developerCreditCents: 100,
+        creditCents: 100,
+        createdAtMs,
+      }),
+    ]);
+
+    expect(summary.impressionCount).toBe(0);
+    expect(summary.rows[0]).toMatchObject({
+      entryId: "signup_bonus:dev1",
+      ledgerType: "signup_bonus",
+      developerCreditCents: 100,
+      developerCreditUsd: "1.00",
+      createdAtMs,
+    });
+    expect(summary.series[0]?.cumulativeUsd).toBe(1);
+  });
+
   it("aggregates sub-cent credited rows into dashboard display earnings", () => {
     const now = Date.now();
     const summary = summarizeLedger([

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { mergeDeveloperActivityRows } from "./developer-activity-context";
+import {
+  mergeDeveloperActivityRows,
+  mergeInitialDeveloperActivityRows,
+} from "./developer-activity-context";
 import {
   defaultActivityFeedCopy,
   type ActivityFeedCopy,
@@ -85,5 +88,33 @@ describe("mergeDeveloperActivityRows", () => {
     );
 
     expect(merged[0]?.statusLabel).toBe("Credite");
+  });
+
+  it("keeps one localized welcome gift when the stable id appears twice", () => {
+    const gift = {
+      activityId: "signup_bonus:dev1",
+      campaignId: "—",
+      type: "welcome_gift" as const,
+      status: "credited" as const,
+      amountCents: 100,
+      amountUsd: "1.00",
+      createdAtMs: 1500,
+    };
+    const copy: ActivityFeedCopy = {
+      ...defaultActivityFeedCopy,
+      eventLabels: {
+        ...defaultActivityFeedCopy.eventLabels,
+        welcomeGift: "欢迎礼金",
+      },
+    };
+
+    const merged = mergeInitialDeveloperActivityRows([gift], [gift], copy);
+
+    expect(merged).toHaveLength(1);
+    expect(merged[0]).toMatchObject({
+      activityId: "signup_bonus:dev1",
+      durationLabel: "欢迎礼金",
+      creditLabel: "+$1.00",
+    });
   });
 });

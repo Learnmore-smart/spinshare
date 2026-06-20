@@ -31,3 +31,15 @@ total, today, month, and hourly summary strings.
 |------|--------|--------|
 | 2026-06-18 | Implemented sub-cent dashboard summary coverage for 3-decimal display. | Codex |
 | 2026-06-18 | Created doc and planned sub-cent dashboard summary coverage. | Codex |
+
+## Planned Coverage 2026-06-20 Welcome Gift Metadata
+
+Add RED coverage proving a signup-bonus-only ledger keeps `impressionCount` at
+zero while exposing `ledgerType: "signup_bonus"`, the $1 activity fields, its
+timestamp, and a cumulative `$1.00` chart point.
+
+## Change History Addendum
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-20 | Planned signup-bonus metadata and chart coverage. | Codex |

@@ -312,4 +312,9 @@ export class FirestoreUserRepo implements UserRepository {
       .get();
     return snap.size;
   }
+
+  async listAll(): Promise<User[]> {
+    const snap = await this.collection.get();
+    return snap.docs.map((doc) => toUser(doc.id, doc.data() ?? {}));
+  }
 }

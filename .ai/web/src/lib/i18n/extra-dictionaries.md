@@ -264,6 +264,21 @@ Added en/zh/fr support labels for the shared dashboard settings contact:
 
 - `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.
 
+## Planned Change 2026-06-20 Welcome Gift Event Copy
+
+Add localized activity event labels used by the ledger-derived welcome-gift
+row:
+
+- English: `Welcome gift`
+- Simplified Chinese: `欢迎礼金`
+- French: `Cadeau de bienvenue`
+
+## Change History Addendum 5
+
+| Date | Change | Author |
+|------|--------|--------|
+| 2026-06-20 | Planned en/zh/fr welcome-gift activity labels. | Codex |
+
 ## Change History Addendum 4
 
 | Date | Change | Author |

@@ -70,4 +70,6 @@ export interface CampaignRepository {
   delete(id: string): Promise<void>;
   /** Updates safety review state after automated/manual review. */
   updateReviewStatus(id: string, reviewStatus: CampaignReviewStatus): Promise<void>;
+  /** Lists every durable campaign record (internal analytics only). */
+  listAll(): Promise<Campaign[]>;
 }

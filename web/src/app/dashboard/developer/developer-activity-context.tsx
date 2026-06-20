@@ -42,6 +42,7 @@ interface ActivityApiResponse {
 const DeveloperActivityContext = createContext<DeveloperActivityData | null>(
   null,
 );
+const NO_PINNED_ACTIVITIES: readonly ActivityFeedSource[] = [];
 
 export function mergeDeveloperActivityRows(
   existing: readonly ActivityFeedRow[],
@@ -60,11 +61,21 @@ export function mergeDeveloperActivityRows(
   return toActivityFeedRows([...byId.values()], copy);
 }
 
+export function mergeInitialDeveloperActivityRows(
+  pinned: readonly ActivityFeedSource[],
+  fetched: readonly ActivityFeedSource[],
+  copy: ActivityFeedCopy = defaultActivityFeedCopy,
+): ActivityFeedRow[] {
+  return mergeDeveloperActivityRows([], [...pinned, ...fetched], copy);
+}
+
 export function DeveloperActivityProviderClient({
   token,
+  pinnedActivities = NO_PINNED_ACTIVITIES,
   children,
 }: {
   token: string;
+  pinnedActivities?: readonly ActivityFeedSource[];
   children: ReactNode;
 }) {
   const t = useT();
@@ -89,7 +100,11 @@ export function DeveloperActivityProviderClient({
       const body = (await response.json()) as ActivityApiResponse;
       setActivityState({
         status: "ready",
-        activities: toActivityFeedRows(body.activities, t.activityFeed),
+        activities: mergeInitialDeveloperActivityRows(
+          pinnedActivities,
+          body.activities,
+          t.activityFeed,
+        ),
         ...(body.nextCursor !== undefined
           ? { nextCursor: body.nextCursor }
           : {}),
@@ -100,7 +115,7 @@ export function DeveloperActivityProviderClient({
         message: t.developerDashboard.activityLoadMoreError,
       });
     }
-  }, [token, t]);
+  }, [pinnedActivities, token, t]);
 
   const loadMoreActivity = useCallback(async (): Promise<void> => {
     if (
