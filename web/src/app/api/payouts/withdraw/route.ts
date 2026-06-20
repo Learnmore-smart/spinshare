@@ -9,14 +9,17 @@
  *   - Browser-session authenticated (NextAuth) → `401` when no session.
  * It then delegates the money logic to the service and maps the typed result:
  *
+ *   - `503 withdrawals_disabled` — cash-outs are turned off platform-wide
+ *     ({@link PAYOUT_WITHDRAWALS_ENABLED}) while Stripe payouts are not live yet;
+ *     developers can still connect, but no money can leave.
  *   - `403 forbidden_origin` — cross-origin / origin-less request (no payout).
  *   - `401` — no signed-in session (no payout).
  *   - `409 not_connected` — no connected account / payouts not enabled yet.
- *   - `422 below_minimum` — balance below the $5.00 minimum payout.
+ *   - `422 below_minimum` — balance below the $10.00 minimum payout.
  *   - `200` — `{ paidOutCents, paidOutUsd, payoutId }`.
  */
 
-import { formatCentsAsUsd } from "@spinshare/core";
+import { formatCentsAsUsd, PAYOUT_WITHDRAWALS_ENABLED } from "@spinshare/core";
 
 import { auth } from "@/server/adapters/auth/nextauth-config";
 import { getContainer } from "@/server/container";
@@ -89,7 +92,13 @@ export async function POST(request: Request): Promise<Response> {
     return csrf;
   }
 
-  // 2. Authenticate via the browser session.
+  // 2. Kill switch: cash-outs are disabled platform-wide until Stripe payouts go
+  // live. Developers can still connect an account, but no money can leave yet.
+  if (!PAYOUT_WITHDRAWALS_ENABLED) {
+    return Response.json({ error: "withdrawals_disabled" }, { status: 503 });
+  }
+
+  // 3. Authenticate via the browser session.
   const session = await auth();
   const developerId =
     (session?.user as { id?: string } | undefined)?.id ?? undefined;
@@ -97,7 +106,7 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  // 3. Delegate the money movement to the service and map the typed result.
+  // 4. Delegate the money movement to the service and map the typed result.
   const { users, payouts, payoutAttempts, activities } = getContainer();
   const assessRisk = buildPayoutRiskAssessor({ activities });
   let result: Awaited<ReturnType<typeof withdrawBalance>>;

@@ -11,8 +11,10 @@
  *     payout setup" → `POST /api/payouts/connect` → redirect to Stripe's hosted
  *     onboarding (in mock mode this bounces straight back with
  *     `?payouts=connected`).
- *   - Connected + payouts enabled + balance ≥ $5.00 → "Cash out $X" →
- *     `POST /api/payouts/withdraw`.
+ *   - Connected + payouts enabled + balance ≥ $10.00 → "Cash out $X" →
+ *     `POST /api/payouts/withdraw` — unless cash-outs are disabled platform-wide
+ *     ({@link PAYOUT_WITHDRAWALS_ENABLED}), in which case the button shows a
+ *     disabled "coming soon" state while developers can still connect.
  *
  * The parent renders the section heading/body; this component owns the button
  * + status caption.
@@ -20,7 +22,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { MINIMUM_PAYOUT_CENTS } from "@spinshare/core";
+import { MINIMUM_PAYOUT_CENTS, PAYOUT_WITHDRAWALS_ENABLED } from "@spinshare/core";
 
 import { useT } from "@/lib/i18n/locale-provider";
 
@@ -45,6 +47,7 @@ interface PayoutButtonCopy {
   connectPayouts: string;
   payoutFinishOnboarding: string;
   payoutVerificationPending: string;
+  payoutComingSoon: string;
   payoutLockedUntilMinimum: (minimum: string) => string;
   payoutConnecting: string;
   payoutProcessing: string;
@@ -151,6 +154,16 @@ export function getPayoutButtonState(
   }
 
   if (connectedAndEnabled) {
+    // Cash-outs are off platform-wide until Stripe payouts go live. The account
+    // is connected and eligible, but no money can leave yet — show a disabled
+    // "coming soon" state instead of an actionable cash-out button.
+    if (!PAYOUT_WITHDRAWALS_ENABLED) {
+      return {
+        action: null,
+        disabled: true,
+        label: copy.payoutComingSoon,
+      };
+    }
     return {
       action: "withdraw",
       disabled: false,
@@ -268,6 +281,7 @@ export function PayoutPanel() {
       connectPayouts: t.developerDashboard.connectPayouts,
       payoutFinishOnboarding: t.developerDashboard.payoutFinishOnboarding,
       payoutVerificationPending: t.developerDashboard.payoutVerificationPending,
+      payoutComingSoon: t.developerDashboard.payoutComingSoon,
       payoutLockedUntilMinimum: t.developerDashboard.payoutLockedUntilMinimum,
       payoutConnecting: t.developerDashboard.payoutConnecting,
       payoutProcessing: t.developerDashboard.payoutProcessing,
@@ -290,6 +304,8 @@ export function PayoutPanel() {
       );
     if (!eligible)
       return t.developerDashboard.payoutBelowMinimum(money(remainingCents));
+    if (!PAYOUT_WITHDRAWALS_ENABLED)
+      return t.developerDashboard.payoutTimingNotice;
     return t.developerDashboard.payoutAboveMinimum;
   })();
 

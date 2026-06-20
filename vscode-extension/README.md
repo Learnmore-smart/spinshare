@@ -28,6 +28,15 @@ Earn while your AI works. SpinShare wraps supported terminal AI agents and shows
 | `SpinShare: Complete Generation (dismiss ad)` | Dismiss the active notification ad |
 | `SpinShare: Rebuild Terminal Shims` | Recreate terminal shims after changing base URL or agent command settings |
 
+## Updates
+
+SpinShare is installed from a VSIX rather than the Marketplace, so the editor
+does not auto-update it. Instead the extension updates itself: it periodically
+checks your configured base URL for a newer published version and installs it in
+place, then asks you to reload the window. You can trigger a check anytime with
+`SpinShare: Check for Updates`, or turn the background check off with the
+`spinshare.autoUpdate` setting.
+
 ## Configuration
 
 | Setting | Default | Description |
@@ -35,6 +44,7 @@ Earn while your AI works. SpinShare wraps supported terminal AI agents and shows
 | `spinshare.baseUrl` | `https://www.spinshare.dev` | SpinShare web app base URL. Use `http://localhost:3000` for local dev. |
 | `spinshare.terminalAutoWrap` | `true` | Prepends SpinShare shims to new integrated terminals. |
 | `spinshare.terminalAgents` | `["claude"]` | Command names to auto-wrap in new integrated terminals. |
+| `spinshare.autoUpdate` | `true` | Periodically check the base URL for a newer VSIX and install it in place. Reload is always prompted, never automatic. |
 
 ## Standalone CLI
 

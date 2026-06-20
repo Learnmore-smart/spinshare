@@ -323,7 +323,7 @@ describe("runWrap", () => {
     expect(joined).not.toContain("|");
   });
 
-  it("uses an injected PTY so interactive status output can show ads below the loading line", async () => {
+  it("uses an injected PTY so interactive status output replaces the loading line with a blue ad", async () => {
     vi.useFakeTimers();
     const pty = new FakePty();
     const ptyCalls: Array<{ file: string; args: string[] }> = [];
@@ -370,8 +370,11 @@ describe("runWrap", () => {
     expect(reported).toEqual([{ campaignId: "cmp_1", viewDurationMs: 3000 }]);
     const joined = Buffer.concat(out).toString("utf8");
     expect(joined).toContain("Buy SpinShare Pro");
-    expect(joined).toContain("Working");
-    expect(joined).toContain("\u001b[s\u001b[1B\r");
+    // Replace mode: the ad is painted on the loading line itself, in blue, and
+    // the agent's own wait words are overwritten rather than left on screen.
+    expect(joined).toContain("[94mBuy SpinShare Pro[39m");
+    expect(joined).not.toContain("Working");
+    expect(joined).not.toContain("\u001b[s\u001b[1B\r");
     expect(joined).toContain("done\n");
   });
 

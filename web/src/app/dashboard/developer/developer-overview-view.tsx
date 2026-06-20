@@ -65,7 +65,7 @@ export function DeveloperOverviewView() {
   const payoutProgress = pct(totalEarningsCents, MINIMUM_PAYOUT_CENTS);
   // Eligibility/progress stay on whole-cent accounting, but the threshold copy
   // mirrors the sub-cent balance KPI: derive remaining/target from display
-  // micro-cents so a $0.075 balance reads "还差 $4.925，目标 $5.000".
+  // micro-cents so a $0.075 balance reads "还差 $9.925，目标 $10.000".
   const minimumPayoutMicrocents = MINIMUM_PAYOUT_CENTS * MICROCENTS_PER_CENT;
   const payoutRemainingMicrocents = Math.max(
     0,
@@ -209,6 +209,9 @@ export function DeveloperOverviewView() {
           <h2 className="dev-dash-section-title">{t.developerDashboard.getPaid}</h2>
           <p className="dev-dash-section-body">
             {t.developerDashboard.getPaidBody(money(MINIMUM_PAYOUT_CENTS))}
+          </p>
+          <p className="dev-dash-section-caption mt-2">
+            {t.developerDashboard.trafficAuditNotice}
           </p>
           <PayoutPanel />
         </div>

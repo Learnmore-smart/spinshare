@@ -7,6 +7,7 @@
  */
 
 import { spawn, type SpawnOptions } from "node:child_process";
+import * as fs from "node:fs";
 import * as os from "node:os";
 
 import type { AdResponse, TrackResponse } from "@spinshare/core";
@@ -290,6 +291,27 @@ function ptyInput(chunk: Buffer | string): string {
   return typeof chunk === "string" ? chunk : chunk.toString("utf8");
 }
 
+/**
+ * Debug-only: when `SPINSHARE_DEBUG_RAW` points at a file path, append every raw
+ * stdout chunk (exactly as received, JSON-escaped, one chunk per line) so the
+ * precise byte stream of a wrapped agent can be inspected offline. This is how
+ * we capture Antigravity's Ink redraw frames to build a flicker-free in-chunk ad
+ * transform. It is OFF unless the env var is set and never alters what is
+ * forwarded to the terminal or what is reported as an impression.
+ */
+function appendRawCapture(chunk: Buffer | string): void {
+  const target = process.env.SPINSHARE_DEBUG_RAW;
+  if (!target) {
+    return;
+  }
+  try {
+    const text = typeof chunk === "string" ? chunk : chunk.toString("utf8");
+    fs.appendFileSync(target, JSON.stringify(text) + "\n");
+  } catch {
+    // Capture is best-effort diagnostics; never disrupt the wrapped command.
+  }
+}
+
 function disposePtySubscription(
   subscription: void | DisposableSubscription | undefined,
 ): void {
@@ -407,7 +429,11 @@ export async function runWrap(options: RunWrapOptions): Promise<number> {
       adCache.current.adAvailable ? adCache.current.adText : null,
     getAdUrl: () =>
       adCache.current.adAvailable ? adCache.current.destinationUrl : null,
-    statusPlacement: "below",
+    // Replace the agent's loading/status line in place. The status line is a
+    // row the CLI owns above its input box, so the ad can never drift into the
+    // input area (the prior "below" mode painted one row down, which landed
+    // inside Antigravity's input container).
+    statusPlacement: "replace",
   });
   const tracker = new WaitStateTracker();
   let reportTimer: TimerHandle | null = null;
@@ -490,6 +516,7 @@ export async function runWrap(options: RunWrapOptions): Promise<number> {
   }
 
   function handleOutputChunk(chunk: Buffer | string): void {
+    appendRawCapture(chunk);
     const { output, spinner } = renderer.render(chunk);
     if (output.length > 0) {
       stdout.write(output);

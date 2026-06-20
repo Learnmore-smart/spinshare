@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ArrowRight, Check, Clock, Copy, PieChart, RefreshCw } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
+import { TiltCard } from "@/components/TiltCard";
 import { SegmentSlider } from "@/components/SegmentSlider";
 import AdvertiserCheckoutForm from "./advertiser-checkout-form";
 import CheckoutStatusBanner, {
@@ -272,7 +273,14 @@ function HeroInstallCommand({
   };
 
   return (
-    <div className="spinshare-btn-primary w-full max-w-3xl rounded-[24px] p-4 text-white sm:p-5">
+    <TiltCard
+      className="spinshare-btn-primary spinshare-hero-install-card w-full max-w-3xl rounded-[24px] p-4 text-white sm:p-5 cursor-pointer"
+      onClick={() => void copy()}
+      intensity={10}
+      scale={1.018}
+      glow="255, 255, 255"
+      glareRadius={280}
+    >
       <div className="flex items-center gap-3">
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/15 text-2xl">
           <MoneyIcon />
@@ -289,7 +297,7 @@ function HeroInstallCommand({
         </code>
         <button
           type="button"
-          onClick={() => void copy()}
+          onClick={(e) => { e.stopPropagation(); void copy(); }}
           aria-live="polite"
           className="inline-flex shrink-0 items-center justify-center gap-1.5 self-stretch rounded-xl bg-white px-4 py-2 text-xs font-black text-[var(--color-primary-700)] transition hover:bg-emerald-50 sm:self-start sm:text-sm"
         >
@@ -297,7 +305,7 @@ function HeroInstallCommand({
           {copied ? copiedLabel : copyLabel}
         </button>
       </div>
-    </div>
+    </TiltCard>
   );
 }
 
@@ -805,13 +813,19 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="spinshare-hero-primary-cta mt-11 flex flex-col items-center justify-center gap-3 lg:items-start lg:justify-start">
-              <p
+            <div className="spinshare-hero-primary-cta mt-6 flex flex-col items-center justify-center gap-3 lg:items-start lg:justify-start">
+              <TiltCard
                 className="spinshare-signup-bonus-banner text-center text-sm font-black leading-snug lg:text-left"
                 data-testid="signup-bonus-banner"
+                intensity={12}
+                scale={1.06}
+                glow="16, 185, 129"
+                glareRadius={200}
+                restShadow="0 10px 28px rgba(16, 185, 129, 0.18)"
+                hoverShadow="0 22px 48px -4px rgba(16, 185, 129, 0.38), 0 8px 20px -4px rgba(0, 0, 0, 0.10)"
               >
                 {t.home.signupBonusBanner}
-              </p>
+              </TiltCard>
               <HeroInstallCommand
                 command={SPINSHARE_INSTALL_COMMAND}
                 title={t.home.ctaInstall}
@@ -821,11 +835,10 @@ export default function HomePage() {
               />
             </div>
 
-            <div className="spinshare-hero-secondary-cta spinshare-home-body mx-auto mt-4 flex max-w-3xl flex-col items-center justify-center gap-2 text-sm font-bold sm:flex-row lg:mx-0 lg:justify-start">
-              <span>{t.home.creditedRevenue(DEVELOPER_SHARE_PERCENT)}</span>
+            <div className="spinshare-hero-secondary-cta spinshare-home-body mx-auto mt-4 w-full max-w-3xl lg:mx-0">
               <Link
                 href={ADVERTISER_SIGNIN_HREF}
-                className="spinshare-btn-outline inline-flex items-center gap-2 px-4 py-2 text-[var(--text-accent-strong)]"
+                className="spinshare-btn-outline flex w-full items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-[var(--text-accent-strong)]"
               >
                 {t.home.advertisersBidCta}
                 <ArrowRight className="h-4 w-4" />

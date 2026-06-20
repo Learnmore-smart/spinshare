@@ -1,3 +1,5 @@
+import * as path from "node:path";
+
 import * as vscode from "vscode";
 
 import { AdController } from "./ad-controller";
@@ -14,10 +16,16 @@ import {
   removeClaudeCodeAdapter,
 } from "./claude-code-adapter";
 import { ClaudeCodeStateBridge } from "./claude-code-state-bridge";
+import { ExtensionUpdater } from "./extension-updater";
 import {
   installTerminalAutoWrap,
   normalizeTerminalAgents,
 } from "./terminal-auto-wrap";
+
+/** How long after activation the first background update check runs. */
+const INITIAL_UPDATE_CHECK_DELAY_MS = 15_000;
+/** How often, thereafter, the extension polls for a newer published VSIX. */
+const UPDATE_CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
 /**
  * SpinShare VSCode extension entry point.
@@ -94,6 +102,58 @@ export function activate(context: vscode.ExtensionContext): void {
     openUrl: openExternal,
     onError: (error) => console.error("[spinshare] ad error", error),
   });
+
+  // Self-update: the extension is sideloaded (installed from a VSIX), so the
+  // editor never auto-updates it from a Marketplace. The updater polls the
+  // configured SpinShare host for a newer published VSIX and installs it in
+  // place. The current version comes from the running extension manifest; if it
+  // cannot be determined we skip background scheduling rather than risk treating
+  // every release as newer.
+  const extensionVersion = (
+    context.extension?.packageJSON as { version?: string } | undefined
+  )?.version;
+  const updater = new ExtensionUpdater({
+    currentVersion: extensionVersion ?? "0.0.0",
+    baseUrl,
+    downloadDir: path.join(context.globalStorageUri.fsPath, "updates"),
+    vscode,
+    openUrl: openExternal,
+    onError: (error) => console.error("[spinshare] update error", error),
+  });
+
+  let initialUpdateTimer: ReturnType<typeof setTimeout> | null = null;
+  let updateInterval: ReturnType<typeof setInterval> | null = null;
+
+  const stopAutoUpdate = (): void => {
+    if (initialUpdateTimer !== null) {
+      clearTimeout(initialUpdateTimer);
+      initialUpdateTimer = null;
+    }
+    if (updateInterval !== null) {
+      clearInterval(updateInterval);
+      updateInterval = null;
+    }
+  };
+
+  const startAutoUpdate = (): void => {
+    stopAutoUpdate();
+    const enabled =
+      vscode.workspace
+        .getConfiguration("spinshare")
+        .get<boolean>("autoUpdate") ?? true;
+    if (!enabled || extensionVersion === undefined) {
+      return;
+    }
+    initialUpdateTimer = setTimeout(() => {
+      void updater.run();
+    }, INITIAL_UPDATE_CHECK_DELAY_MS);
+    // Never let update timers keep the editor's host process alive.
+    initialUpdateTimer.unref?.();
+    updateInterval = setInterval(() => {
+      void updater.run();
+    }, UPDATE_CHECK_INTERVAL_MS);
+    updateInterval.unref?.();
+  };
 
   const stopClaudeCodeStateBridge = (): void => {
     if (claudeCodeStateBridge === null) {
@@ -314,6 +374,13 @@ export function activate(context: vscode.ExtensionContext): void {
     },
   );
 
+  const checkForUpdate = vscode.commands.registerCommand(
+    "spinshare.checkForUpdate",
+    async () => {
+      await updater.run({ manual: true });
+    },
+  );
+
   const removeClaudeAdapter = vscode.commands.registerCommand(
     "spinshare.removeClaudeCodeAdapter",
     async () => {
@@ -345,7 +412,13 @@ export function activate(context: vscode.ExtensionContext): void {
       ) {
         void refreshClaudeCodeAdapter();
       }
+      if (event.affectsConfiguration("spinshare.autoUpdate")) {
+        startAutoUpdate();
+      }
     });
+
+  // Begin background update polling (no-op when disabled or version unknown).
+  startAutoUpdate();
 
   context.subscriptions.push(
     showStatus,
@@ -354,6 +427,7 @@ export function activate(context: vscode.ExtensionContext): void {
     startGeneration,
     completeGeneration,
     rebuildTerminalShims,
+    checkForUpdate,
     removeClaudeAdapter,
     terminalAutoWrapConfigWatcher,
     signInStatus,
@@ -361,6 +435,7 @@ export function activate(context: vscode.ExtensionContext): void {
       dispose: () => {
         controller.dispose();
         stopClaudeCodeStateBridge();
+        stopAutoUpdate();
       },
     },
   );

@@ -165,6 +165,8 @@ export const extraEn: ExtraDictionary = {
       `Stripe Express connects your bank or debit card. Minimum payout is ${minimum}.`,
     payoutTimingNotice:
       "Our Stripe payout feature will be available within 1–2 weeks.",
+    trafficAuditNotice:
+      "To protect advertisers from bots, all new accounts have a standard 14-day traffic audit period before the first withdrawal is unlocked.",
     signupBonusCredited: "🎉 Your $1 sign-up bonus has been credited!",
     connectPayouts: "Connect payouts",
     payoutAboveMinimum: "You're above the minimum — connect to cash out.",
@@ -173,6 +175,7 @@ export const extraEn: ExtraDictionary = {
     payoutVerificationPending: "Stripe is verifying",
     payoutVerificationCaption: (minimum) =>
       `Stripe is reviewing your payout account. Cash-out unlocks after approval and a ${minimum} balance.`,
+    payoutComingSoon: "Cash-out coming soon",
     cashOut: (amount) => `Cash out ${amount}`,
     payoutConnecting: "Opening secure onboarding…",
     payoutProcessing: "Processing payout…",
@@ -521,6 +524,8 @@ export const extraZh: ExtraDictionary = {
     getPaidBody: (minimum) =>
       `Stripe Express 连接你的银行或借记卡。最低提现金额为 ${minimum}。`,
     payoutTimingNotice: "我们的 Stripe 提现功能将在 1–2 周内上线。",
+    trafficAuditNotice:
+      "为保护广告主免受机器人攻击，所有新账户在首次提现前须经过标准的 14 天流量审计期。",
     signupBonusCredited: "🎉 你的 $1 注册礼金已到账！",
     connectPayouts: "连接提现账户",
     payoutAboveMinimum: "你已达标 — 连接账户即可提现。",
@@ -529,6 +534,7 @@ export const extraZh: ExtraDictionary = {
     payoutVerificationPending: "Stripe 正在验证",
     payoutVerificationCaption: (minimum) =>
       `Stripe 正在审核你的提现账户。审核通过且余额达到 ${minimum} 后即可提现。`,
+    payoutComingSoon: "提现即将上线",
     cashOut: (amount) => `提现 ${amount}`,
     payoutConnecting: "正在打开安全入驻流程…",
     payoutProcessing: "正在处理提现…",
@@ -871,6 +877,8 @@ export const extraFr: ExtraDictionary = {
       `Stripe Express connecte votre compte bancaire ou carte de débit. Paiement minimum : ${minimum}.`,
     payoutTimingNotice:
       "Notre fonctionnalité de paiement Stripe sera disponible sous 1 à 2 semaines.",
+    trafficAuditNotice:
+      "Pour protéger les annonceurs contre les robots, tous les nouveaux comptes font l'objet d'une période d'audit de trafic standard de 14 jours avant que le premier retrait soit débloqué.",
     signupBonusCredited: "🎉 Votre bonus d'inscription de 1 $ a été crédité !",
     connectPayouts: "Connecter les paiements",
     payoutAboveMinimum: "Vous êtes au-dessus du minimum — connectez-vous pour encaisser.",
@@ -879,6 +887,7 @@ export const extraFr: ExtraDictionary = {
     payoutVerificationPending: "Stripe vérifie votre compte",
     payoutVerificationCaption: (minimum) =>
       `Stripe examine votre compte de paiement. L'encaissement sera débloqué après approbation et un solde de ${minimum}.`,
+    payoutComingSoon: "Encaissement bientôt disponible",
     cashOut: (amount) => `Encaisser ${amount}`,
     payoutConnecting: "Ouverture de l'onboarding sécurisé…",
     payoutProcessing: "Paiement en cours…",

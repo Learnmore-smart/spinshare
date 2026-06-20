@@ -16,7 +16,7 @@ const en: DictionaryBase = {
     heroHighlight: "You get paid",
     heroSub: "SpinShare turns idle AI waits into paid moments.",
     heroShare: (pct) =>
-      `We give you ${pct}% of ad revenue + a $1 head start to reach your first $5 payout.`,
+      `We give you ${pct}% of ad revenue + a $1 head start to reach your first $10 payout.`,
     stockClaude: "Stock Claude Code",
     withSpinShare: "With SpinShare",
     ctaInstall: "Install and start earning",
@@ -31,7 +31,7 @@ const en: DictionaryBase = {
       `${pct}% credited revenue to you + $1 sign-up bonus toward your first payout.`,
     advertisersBidCta: "Advertisers bid into the next wait",
     monthlyEstimateSuffix: "/mo",
-    signupBonusBanner: "🎁 Limited Time: Get $1 instantly when you sign up!",
+    signupBonusBanner: "New users get a $1 gift — our treat.",
   },
   market: {
     title: "Advertiser money lines up for the next wait.",
@@ -64,7 +64,7 @@ const en: DictionaryBase = {
       "Ads display only while your AI is thinking or waiting, without interrupting your flow.",
     step2Title: (pct) => `You keep ${pct}% of ad revenue`,
     step2Body: (pct) =>
-      `Advertisers pay for each impression, and we credit ${pct}% directly to you — plus a $1 sign-up bonus to jump-start your first $5 payout.`,
+      `Advertisers pay for each impression, and we credit ${pct}% directly to you — plus a $1 sign-up bonus to jump-start your first $10 payout.`,
     step3Title: "Transparent earnings",
     step3Body:
       "Real-time statistics, monthly payouts, and support for multiple cash-out methods.",
@@ -117,7 +117,7 @@ const en: DictionaryBase = {
     bulletShare: "60% developer revenue share",
     bulletMinView: "3-second minimum ad views",
     bulletNoUpload: "We don't collect your code, privacy first",
-    bulletExtension: "Supports Claude Code and Antigravity CLI — more coming soon",
+    bulletExtension: "Supports Claude Code — more coming soon",
     panelLabel: "Authentication",
     featuresSubtitle: "AI wait-state earning platform features at a glance:",
     roleDeveloper: "Developer",
@@ -187,7 +187,7 @@ const zh: DictionaryBase = {
     heroHighlight: "你拿钱",
     heroSub: "SpinShare 把 AI 的等待时间变成赚钱时刻。",
     heroShare: (pct) =>
-      `广告收入的 ${pct}% 归你，再送 $1 起步金，帮你更快达到首次 $5 提现。`,
+      `广告收入的 ${pct}% 归你，再送 $1 起步金，帮你更快达到首次 $10 提现。`,
     stockClaude: "原生 Claude Code",
     withSpinShare: "装上 SpinShare",
     ctaInstall: "立即安装，顺便赚钱",
@@ -202,7 +202,7 @@ const zh: DictionaryBase = {
       `${pct}% 广告收入计入你的账户，注册即送 $1 助力首次提现。`,
     advertisersBidCta: "广告主为下一次等待出价",
     monthlyEstimateSuffix: "/月",
-    signupBonusBanner: "🎁 限时福利：注册即送 $1！",
+    signupBonusBanner: "立即注册，新用户专享 $1 礼金 🎁",
   },
   market: {
     title: "广告主资金排队等候下一次加载。",
@@ -234,7 +234,7 @@ const zh: DictionaryBase = {
     step1Body: "仅在 AI 思考/等待期间展示广告，不打断你的使用体验。",
     step2Title: (pct) => `广告收入 ${pct}% 归你`,
     step2Body: (pct) =>
-      `广告主为每次展示付费，我们把 ${pct}% 收入自动归你，并额外赠送 $1 注册礼金，助你更快达到 $5 提现门槛。`,
+      `广告主为每次展示付费，我们把 ${pct}% 收入自动归你，并额外赠送 $1 注册礼金，助你更快达到 $10 提现门槛。`,
     step3Title: "收益透明结算",
     step3Body: "实时统计，按月结算，支持多种提现方式。",
   },
@@ -285,7 +285,7 @@ const zh: DictionaryBase = {
     bulletShare: "开发者分成 60%",
     bulletMinView: "广告至少展示 3 秒才计费",
     bulletNoUpload: "不收集任何代码，隐私安全第一",
-    bulletExtension: "支持 Claude Code 与 Antigravity CLI，更多即将推出",
+    bulletExtension: "支持 Claude Code，更多即将推出",
     panelLabel: "身份验证",
     featuresSubtitle: "AI 等待变现平台特性一览：",
     roleDeveloper: "开发者",
@@ -355,7 +355,7 @@ const fr: DictionaryBase = {
     heroHighlight: "Vous êtes payé",
     heroSub: "SpinShare transforme les temps d'attente de l'IA en moments rémunérés.",
     heroShare: (pct) =>
-      `${pct} % des revenus publicitaires vous reviennent, plus 1 $ de départ pour atteindre votre premier paiement de 5 $.`,
+      `${pct} % des revenus publicitaires vous reviennent, plus 1 $ de départ pour atteindre votre premier paiement de 10 $.`,
     stockClaude: "Claude Code par défaut",
     withSpinShare: "Avec SpinShare",
     ctaInstall: "Installer et commencer à gagner",
@@ -370,7 +370,7 @@ const fr: DictionaryBase = {
       `${pct} % des revenus crédités + 1 $ de bonus d'inscription vers votre premier paiement.`,
     advertisersBidCta: "Les annonceurs enchérissent pour la prochaine attente",
     monthlyEstimateSuffix: "/mois",
-    signupBonusBanner: "🎁 Offre limitée : recevez 1 $ instantanément à l'inscription !",
+    signupBonusBanner: "Nouveaux utilisateurs : 1 $ offert par SpinShare 🎁",
   },
   market: {
     title: "L'argent des annonceurs s'aligne pour la prochaine attente.",
@@ -406,7 +406,7 @@ const fr: DictionaryBase = {
       "Les annonces s'affichent uniquement pendant que votre IA réfléchit ou attend, sans interrompre votre flux.",
     step2Title: (pct) => `Vous gardez ${pct} % des revenus`,
     step2Body: (pct) =>
-      `Les annonceurs paient pour chaque impression, et nous vous créditons ${pct} % — plus 1 $ de bonus d'inscription pour atteindre plus vite votre premier paiement de 5 $.`,
+      `Les annonceurs paient pour chaque impression, et nous vous créditons ${pct} % — plus 1 $ de bonus d'inscription pour atteindre plus vite votre premier paiement de 10 $.`,
     step3Title: "Gains transparents",
     step3Body:
       "Statistiques en temps réel, paiements mensuels et prise en charge de plusieurs modes de retrait.",
@@ -459,7 +459,7 @@ const fr: DictionaryBase = {
     bulletShare: "60 % des revenus pour les développeurs",
     bulletMinView: "Annonces comptées après 3 secondes minimum",
     bulletNoUpload: "Aucune collecte de code, confidentialité d'abord",
-    bulletExtension: "Compatible Claude Code et Antigravity CLI — d'autres à venir",
+    bulletExtension: "Compatible Claude Code — d'autres à venir",
     panelLabel: "Authentification",
     featuresSubtitle: "Aperçu des fonctionnalités de la plateforme de gains lors des temps d'attente de l'IA :",
     roleDeveloper: "Développeur",

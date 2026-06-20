@@ -208,6 +208,7 @@ export interface Dictionary {
     getPaid: string;
     getPaidBody: (minimum: string) => string;
     payoutTimingNotice: string;
+    trafficAuditNotice: string;
     signupBonusCredited: string;
     connectPayouts: string;
     payoutAboveMinimum: string;
@@ -215,6 +216,7 @@ export interface Dictionary {
     payoutLockedUntilMinimum: (minimum: string) => string;
     payoutVerificationPending: string;
     payoutVerificationCaption: (minimum: string) => string;
+    payoutComingSoon: string;
     cashOut: (amount: string) => string;
     payoutConnecting: string;
     payoutProcessing: string;

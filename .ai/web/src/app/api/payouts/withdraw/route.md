@@ -10,6 +10,10 @@ account.
 ## What It Does
 
 - Rejects cross-origin or origin-less POSTs before money movement.
+- Returns `503 withdrawals_disabled` while the `PAYOUT_WITHDRAWALS_ENABLED` kill
+  switch is off (current state) — checked right after CSRF, before auth/service,
+  so no money can leave while Stripe payouts are pre-launch. Connect/status are
+  unaffected.
 - Requires a browser-authenticated developer session.
 - Delegates balance reservation, Stripe transfer, and typed business failures to
   `withdrawBalance()`.
@@ -55,6 +59,7 @@ account.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Added `503 withdrawals_disabled` kill switch (`PAYOUT_WITHDRAWALS_ENABLED`) before auth; minimum-payout copy is now $10.00. | Cursor |
 | 2026-06-16 | Implemented sanitized provider failure mapping. | Codex |
 | 2026-06-16 | Created mirror before adding withdraw provider failure tests. | Codex |
 

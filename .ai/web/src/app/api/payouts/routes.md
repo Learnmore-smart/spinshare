@@ -10,7 +10,7 @@ Session-authenticated (NextAuth) developer payout endpoints backing the dashboar
 |-------|--------|----------|
 | `/api/payouts/connect` | POST | Ensure/reuse Stripe Connect account, persist its id, return hosted onboarding `url`. 401 if no session. |
 | `/api/payouts/status` | GET | `{ connected, payoutsEnabled, detailsSubmitted, balanceCents }`; refreshes eligibility from Stripe. 401 if no session. |
-| `/api/payouts/withdraw` | POST | Pay out the full durable `balanceCents` if ≥ $5.00 and payouts enabled; debit balance by the amount paid. 401 / 409 not_connected / 422 below_minimum / 200. |
+| `/api/payouts/withdraw` | POST | Pay out the full durable `balanceCents` if ≥ $10.00 and payouts enabled; debit balance by the amount paid. **503 withdrawals_disabled** while the `PAYOUT_WITHDRAWALS_ENABLED` kill switch is off (current state) / 401 / 409 not_connected / 422 below_minimum / 200. |
 
 ## Dependencies
 - **Internal:** `@/server/adapters/auth/nextauth-config` (`auth()`), `@/server/container` (`users`, `payouts`), `@spinshare/core` (MINIMUM_PAYOUT_CENTS, formatCentsAsUsd).
@@ -23,6 +23,7 @@ Session-authenticated (NextAuth) developer payout endpoints backing the dashboar
 ## Change History
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Raised payout minimum to $10.00 and added the `PAYOUT_WITHDRAWALS_ENABLED` kill switch (`/withdraw` returns 503 while Stripe payouts are not live; connect/status unaffected). | Cursor |
 | 2026-06-14 | Created | Kiro |
 
 ## Security update (2026-06-14)

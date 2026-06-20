@@ -63,6 +63,7 @@ production artifact is ready for Marketplace deployment later:
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Flavor now also sets `spinshare.autoUpdate` default (prod `true`, local `false`) so dev builds never self-reinstall from localhost. | Claude |
 | 2026-06-19 | Planned Marketplace auto-update readiness guard and production publish path. | Codex |
 | 2026-06-16 | Implemented prod/local package variant script and Windows spawn fix. | Codex |
 | 2026-06-16 | Planned Windows `.cmd` spawn fix after package:all failure. | Codex |

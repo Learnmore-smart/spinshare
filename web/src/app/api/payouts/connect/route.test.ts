@@ -59,7 +59,7 @@ describe("POST /api/payouts/connect", () => {
     });
     mocks.getById.mockResolvedValueOnce({
       email: "dev@example.com",
-      balanceCents: 500,
+      balanceCents: 1000,
       payoutsEnabled: false,
     });
     mocks.ensureConnectedAccount.mockResolvedValueOnce({
@@ -97,7 +97,7 @@ describe("POST /api/payouts/connect", () => {
     });
     mocks.getById.mockResolvedValueOnce({
       email: "dev@example.com",
-      balanceCents: 500,
+      balanceCents: 1000,
       payoutsEnabled: false,
     });
     mocks.ensureConnectedAccount.mockRejectedValueOnce(providerError);
@@ -132,7 +132,7 @@ describe("POST /api/payouts/connect", () => {
     });
     mocks.getById.mockResolvedValueOnce({
       email: "dev@example.com",
-      balanceCents: 500,
+      balanceCents: 1000,
       payoutsEnabled: false,
     });
     mocks.ensureConnectedAccount.mockRejectedValueOnce(providerError);
@@ -169,7 +169,7 @@ describe("POST /api/payouts/connect", () => {
     expect(body).toEqual({
       error: "below_minimum",
       balanceCents: 499,
-      minimumCents: 500,
+      minimumCents: 1000,
     });
     expect(mocks.flushPendingForRead).toHaveBeenCalled();
     expect(mocks.ensureConnectedAccount).not.toHaveBeenCalled();

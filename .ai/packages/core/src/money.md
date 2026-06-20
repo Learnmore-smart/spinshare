@@ -20,7 +20,8 @@ Single source of truth for SpinShare integer money math.
 |------|------|-------------|
 | `MICROCENTS_PER_CENT` | constant | 1000 micro-cents per cent. |
 | `DEVELOPER_SHARE_PERCENT` | constant | Developer revenue share percentage. |
-| `MINIMUM_PAYOUT_CENTS` | constant | Minimum balance before a payout can be initiated ($5.00). |
+| `MINIMUM_PAYOUT_CENTS` | constant | Minimum balance before a payout can be initiated ($10.00). |
+| `PAYOUT_WITHDRAWALS_ENABLED` | constant | Master kill switch for developer cash-outs. `false` ⇒ connect still works but withdrawals are refused everywhere (route `503`, dashboard "coming soon"). Flip to `true` when Stripe payouts go live. |
 | `DEVELOPER_HOURLY_EARNING_LIMIT_CENTS` | constant | Rolling-hour earning cap ($20.00). **Enforced server-side** by the ledger service. |
 | `DEVELOPER_DAILY_EARNING_LIMIT_CENTS` | constant | UTC-day earning cap ($300.00). **Enforced server-side** by the ledger service. |
 | `perImpressionRevenueMicrocents` | function | Exact CPM-to-impression revenue conversion. |
@@ -57,3 +58,4 @@ Single source of truth for SpinShare integer money math.
 | 2026-06-13 | Implemented developer-credit cap in `roundHalfUpToCents`. | Codex |
 | 2026-06-14 | Documented hourly/daily earning cap constants; corrected stale "not wired yet" comments — caps are enforced server-side via `wouldExceedEarningCap` in the ledger service (RTDB + memory adapters, `earning-cap.test.ts`). | Kiro |
 | 2026-06-18 | Added `reconstructCampaignDelivery` + `IMPRESSIONS_PER_BLOCK` to fix budget-drift display of purchased views / amount paid. | Cursor |
+| 2026-06-19 | Raised `MINIMUM_PAYOUT_CENTS` 500→1000 ($10.00) and added `PAYOUT_WITHDRAWALS_ENABLED` kill switch (default off) for the pre-launch payout window. | Cursor |

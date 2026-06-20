@@ -4,7 +4,7 @@
  * Exercises the money-moving cash-out flow against the in-memory user repo and
  * the mock payout gateway:
  *   - success: transfers the full durable balance and debits it to zero;
- *   - `422 below_minimum`: balance under $5.00 → no transfer, balance untouched;
+ *   - `422 below_minimum`: balance under $10.00 → no transfer, balance untouched;
  *   - `409 not_connected`: no connected account, or Stripe reports payouts not
  *     enabled → no transfer, balance untouched.
  */
@@ -120,8 +120,8 @@ describe("withdrawBalance", () => {
     ]);
   });
 
-  it("rejects a balance below the $5.00 minimum and moves no money", async () => {
-    const users = makeUsers(developer({ balanceCents: 499 }));
+  it("rejects a balance below the $10.00 minimum and moves no money", async () => {
+    const users = makeUsers(developer({ balanceCents: 999 }));
     const payouts = new SpyPayoutGateway(new SequentialIdGenerator());
     const payoutAttempts = new MemoryPayoutAttemptRepository();
 
@@ -142,12 +142,12 @@ describe("withdrawBalance", () => {
       error: BELOW_MINIMUM_ERROR,
     });
     expect(payouts.payouts).toHaveLength(0);
-    expect((await users.getById(DEV))?.balanceCents).toBe(499);
+    expect((await users.getById(DEV))?.balanceCents).toBe(999);
     expect(await payoutAttempts.listByDeveloper(DEV)).toEqual([
       expect.objectContaining({
         attemptId: "poa_minimum",
         developerId: DEV,
-        amountCents: 499,
+        amountCents: 999,
         status: "blocked",
         providerCode: BELOW_MINIMUM_ERROR,
       }),

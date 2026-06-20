@@ -4,6 +4,8 @@ import {
   isSpinnerFrame,
   stripAnsi,
   SPINNER_CHARS,
+  AD_COLOR,
+  AD_COLOR_RESET,
 } from "./renderer.js";
 
 describe("isSpinnerFrame", () => {
@@ -27,6 +29,18 @@ describe("isSpinnerFrame", () => {
     expect(isSpinnerFrame("\r\u28c7 Generating...")).toBe(true);
     expect(isSpinnerFrame("\r\u2726 Generating...")).toBe(true);
     expect(isSpinnerFrame("\r\u28cb Working...")).toBe(true);
+  });
+
+  it("recognizes the Antigravity wait words that rotate alongside Generating", () => {
+    // Gemini-CLI cycles its wait line through these between Generating frames;
+    // missing any one made the ad flicker out while that word was on screen.
+    expect(isSpinnerFrame("\r\u28cb Running...")).toBe(true);
+    expect(isSpinnerFrame("\rRunning...")).toBe(true);
+    expect(isSpinnerFrame("\r\u2726 Executing...")).toBe(true);
+    expect(isSpinnerFrame("\rComputing\u2026")).toBe(true);
+    expect(isSpinnerFrame("\rPlanning...")).toBe(true);
+    // Multi-word real output stays pass-through (the single-word anchor holds).
+    expect(isSpinnerFrame("Running tests in web...")).toBe(false);
   });
 
   it("rejects real text output", () => {
@@ -143,7 +157,14 @@ describe("SpinnerRenderer", () => {
     const out = r
       .renderAll(["before ", "\r|", "\r/", "after"])
       .toString("utf8");
-    // real text appears in order; spinner frames replaced by \rAD
-    expect(out).toBe("before \rAD\rADafter");
+    // real text appears in order; spinner frames replaced by \r<blue>AD</blue>
+    const ad = AD_COLOR + "AD" + AD_COLOR_RESET;
+    expect(out).toBe(`before \r${ad}\r${ad}after`);
+  });
+
+  it("paints the ad text in blue", () => {
+    const r = new SpinnerRenderer({ getAdText: () => "Buy SpinShare Pro" });
+    const out = r.render("\r|").output.toString("utf8");
+    expect(out).toContain(AD_COLOR + "Buy SpinShare Pro" + AD_COLOR_RESET);
   });
 });

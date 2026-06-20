@@ -17,10 +17,17 @@ const baseManifest = {
           type: "string",
           default: "https://www.spinshare.dev",
         },
+        "spinshare.autoUpdate": {
+          type: "boolean",
+          default: true,
+        },
       },
     },
   },
 };
+
+const autoUpdateDefault = (manifest) =>
+  manifest.contributes.configuration.properties["spinshare.autoUpdate"].default;
 
 describe("package variant helpers", () => {
   it("builds a localhost extension manifest variant", () => {
@@ -32,6 +39,8 @@ describe("package variant helpers", () => {
       manifest.contributes.configuration.properties["spinshare.baseUrl"]
         .default,
     ).toBe("http://localhost:3000");
+    // A localhost dev build must not reinstall itself from localhost.
+    expect(autoUpdateDefault(manifest)).toBe(false);
   });
 
   it("builds a production extension manifest variant", () => {
@@ -42,6 +51,7 @@ describe("package variant helpers", () => {
       manifest.contributes.configuration.properties["spinshare.baseUrl"]
         .default,
     ).toBe("https://www.spinshare.dev");
+    expect(autoUpdateDefault(manifest)).toBe(true);
   });
 
   it("uses deterministic output filenames", () => {

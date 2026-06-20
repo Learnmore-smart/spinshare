@@ -93,6 +93,17 @@ Activation now starts `ClaudeCodeStateBridge` after a successful
 `spinshare.claudeCodeAdapter` is disabled, activation disposes the bridge before
 removing the adapter. The bridge is also disposed with the extension.
 
+## Implemented Change 2026-06-19 Extension Self-Update
+
+Activation now constructs an `ExtensionUpdater` (see
+[extension-updater.md](extension-updater.md)) using the running extension
+version, the normalized base URL, and an `updates` directory under global
+storage. When `spinshare.autoUpdate` is enabled (and the version is known), it
+schedules a first background check ~15s after activation and then every 6 hours;
+both timers are `unref`'d and disposed with the extension. Toggling
+`spinshare.autoUpdate` reschedules. A new `spinshare.checkForUpdate` command runs
+a manual check that reports "up to date" when there is nothing to install.
+
 ## Verification (2026-06-15)
 
 - Extension TypeScript build passed as part of `corepack pnpm@9.12.0 --filter ./vscode-extension package`.
@@ -114,6 +125,7 @@ removing the adapter. The bridge is also disposed with the extension.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Wired extension self-update (auto-update scheduler + check-for-updates command). | Claude |
 | 2026-06-19 | Implemented Claude Code state bridge activation wiring. | Codex |
 | 2026-06-19 | Planned Claude Code state bridge activation for VS Code extension sessions. | Codex |
 | 2026-06-16 | Activation now passes the normalized baseUrl into FileTokenMirror for prod/local hook credential separation. | Codex |

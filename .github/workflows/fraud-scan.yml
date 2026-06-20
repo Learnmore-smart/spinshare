@@ -1,0 +1,58 @@
+# Scheduled anti-fraud scan + clawback (long-term-stability foundation #5).
+#
+# The cross-entity collusion scan (`/api/internal/fraud-scan`) is the clawback
+# "teeth" of the Tier 2c / 3a design — but a route nothing calls does nothing.
+# This schedules it. Host-agnostic on purpose: it POSTs to the deployed app over
+# HTTP, so it works no matter where the app runs (Vercel/Cloud Run/etc.), using
+# the same Bearer-secret auth the route already enforces.
+#
+# INTERVAL INVARIANT: every 6h is STRICTLY shorter than the 3-day standard
+# earnings-hold window (EARNINGS_HOLD_WINDOW_SECONDS), so a flagged farm's
+# earnings are scanned ~12 times while still held — i.e. voidable before they
+# ever mature into a withdrawable balance. Do not stretch this past the hold.
+#
+# SETUP: configure two repo secrets to activate —
+#   PROD_BASE_URL                e.g. https://app.example.com  (no trailing slash)
+#   SPINSHARE_FRAUD_SCAN_SECRET  matches the server's fraud-scan/flush secret
+# Until both are set the job no-ops (exits 0) so it never shows a false red.
+name: fraud-scan
+
+on:
+  schedule:
+    - cron: "0 */6 * * *" # every 6 hours — must stay << the earnings-hold window
+  workflow_dispatch: {} # allow on-demand runs from the Actions tab
+
+# Never let two scans overlap.
+concurrency:
+  group: fraud-scan
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    name: collusion scan + clawback
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: POST fraud-scan (enforce)
+        env:
+          BASE_URL: ${{ secrets.PROD_BASE_URL }}
+          SECRET: ${{ secrets.SPINSHARE_FRAUD_SCAN_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BASE_URL:-}" ] || [ -z "${SECRET:-}" ]; then
+            echo "PROD_BASE_URL / SPINSHARE_FRAUD_SCAN_SECRET not configured — skipping."
+            echo "Set both repo secrets to activate the scheduled clawback."
+            exit 0
+          fi
+          code=$(curl -sS -o /tmp/fraud-scan.json -w "%{http_code}" -X POST \
+            "${BASE_URL%/}/api/internal/fraud-scan" \
+            -H "Authorization: Bearer ${SECRET}" \
+            -H "Content-Type: application/json" \
+            -d '{"enforce": true}')
+          echo "HTTP ${code}"
+          cat /tmp/fraud-scan.json || true
+          echo
+          if [ "${code}" != "200" ]; then
+            echo "::error::fraud-scan returned HTTP ${code}"
+            exit 1
+          fi

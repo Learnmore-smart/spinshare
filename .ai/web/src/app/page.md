@@ -505,3 +505,12 @@ Implementation:
 
 - Wrap marquee track in `flex justify-center` so overflow clips evenly and content reads centered.
 - Slow marquee animation from 30s to 50s per loop.
+
+## Implemented Change (2026-06-19 — Hero secondary CTA layout)
+
+- Removed the credited-revenue text card from the hero secondary CTA row.
+- Advertiser bid CTA link now spans full width (`max-w-3xl`) to align with the install command above.
+
+## Implemented Change (2026-06-19 — Hero CTA spacing)
+
+- Reduced primary CTA top margin from `mt-11` to `mt-6` to remove excess gap between hero copy and signup banner.

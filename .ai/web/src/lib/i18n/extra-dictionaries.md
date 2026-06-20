@@ -140,6 +140,7 @@ Added en/zh/fr `statusNeedsLink` strings: "Needs link", "需添加链接", and
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Added `payoutComingSoon` (en/zh/fr) for the disabled cash-out state while withdrawals are off; payout minimum is now $10.00. | Cursor |
 | 2026-06-18 | Added needs-link advertiser status copy. | Codex |
 | 2026-06-18 | Planned needs-link advertiser status copy. | Codex |
 | 2026-06-17 | Added direct checkout create-form copy. | Codex |

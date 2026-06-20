@@ -15,12 +15,16 @@ const FLAVORS = {
     baseUrl: "https://www.spinshare.dev",
     description:
       "SpinShare extension: wraps terminal AI agents and shows ads during AI generation wait states. Compatible with VSCode, Trae, and Cursor.",
+    // Released builds self-update from production.
+    autoUpdate: true,
   },
   local: {
     displayName: "SpinShare Local",
     baseUrl: "http://localhost:3000",
     description:
       "SpinShare local extension: connects to localhost for sample ads and development testing.",
+    // A dev build must never reinstall itself from a localhost VSIX.
+    autoUpdate: false,
   },
 };
 
@@ -31,8 +35,8 @@ export function applyFlavorToManifest(manifest, flavor) {
   }
 
   const next = structuredClone(manifest);
-  const baseUrlSetting =
-    next.contributes?.configuration?.properties?.["spinshare.baseUrl"];
+  const properties = next.contributes?.configuration?.properties;
+  const baseUrlSetting = properties?.["spinshare.baseUrl"];
   if (!baseUrlSetting) {
     throw new Error('Missing contributes.configuration.properties["spinshare.baseUrl"].');
   }
@@ -40,6 +44,13 @@ export function applyFlavorToManifest(manifest, flavor) {
   next.displayName = config.displayName;
   next.description = config.description;
   baseUrlSetting.default = config.baseUrl;
+
+  const autoUpdateSetting = properties?.["spinshare.autoUpdate"];
+  if (!autoUpdateSetting) {
+    throw new Error('Missing contributes.configuration.properties["spinshare.autoUpdate"].');
+  }
+  autoUpdateSetting.default = config.autoUpdate;
+
   return next;
 }
 

@@ -37,9 +37,17 @@ const ANSI_PATTERN =
 // eslint-disable-next-line no-control-regex
 const SPINNER_FILLER = /[\r ]/g;
 
-/** Single-word wait messages emitted by interactive AI CLIs. */
+/**
+ * Single-word wait messages emitted by interactive AI CLIs.
+ *
+ * Antigravity / Gemini-CLI rotate the transient wait line through several of
+ * these words within a single turn (e.g. `Generating...` → `Running...` →
+ * `Thinking...`). Every variant must be recognized; otherwise an unrecognized
+ * word is treated as real output, which momentarily clears the ad and makes it
+ * appear to flicker in and out of view between recognized frames.
+ */
 const STATUS_WORD_PATTERN =
-  /^(?:pollinating|thinking|generating|loading|processing|waiting|working|reasoning|responding|analyzing|searching)(?:[.!…]*)$/i;
+  /^(?:pollinating|thinking|generating|loading|processing|waiting|working|reasoning|responding|analyzing|searching|running|executing|computing|planning)(?:[.!…]*)$/i;
 
 /** Leading symbols commonly used before transient status lines. */
 const STATUS_PREFIX_PATTERN =
@@ -73,6 +81,21 @@ function toStr(chunk: string | Buffer): string {
  */
 function toBuffer(chunk: string | Buffer): Buffer {
   return typeof chunk === "string" ? Buffer.from(chunk, "utf8") : Buffer.from(chunk);
+}
+
+/**
+ * SGR codes that paint the ad text blue so it reads as a distinct sponsored line
+ * rather than blending in with the agent's own output. `AD_COLOR` uses bright
+ * blue (SGR 94), which stays legible on the dark backgrounds these CLIs default
+ * to; `AD_COLOR_RESET` restores the default foreground (SGR 39) so the color
+ * never bleeds into output that follows on the same line.
+ */
+export const AD_COLOR = "[94m";
+export const AD_COLOR_RESET = "[39m";
+
+/** Wrap rendered ad content (plain text or an OSC 8 link) in the blue SGR pair. */
+export function colorizeAd(content: string): string {
+  return AD_COLOR + content + AD_COLOR_RESET;
 }
 
 /** Strip ANSI escape sequences from a string. Exposed for reuse/testing. */
@@ -219,7 +242,8 @@ export class SpinnerRenderer {
       const ad = this.getAdText();
       if (ad && ad.length > 0) {
         const url = this.getAdUrl();
-        const display = url && url.length > 0 ? osc8Hyperlink(url, ad) : ad;
+        const linked = url && url.length > 0 ? osc8Hyperlink(url, ad) : ad;
+        const display = colorizeAd(linked);
         const line = "\r" + display + (this.eraseLine ? ERASE_TO_EOL : "");
         if (kind === "status" && this.statusPlacement === "below") {
           this.belowStatusAdVisible = true;

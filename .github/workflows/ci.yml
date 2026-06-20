@@ -1,0 +1,138 @@
+# Continuous-integration gate.
+#
+# Long-term-stability foundation: tests/typecheck/build only protect the
+# codebase if something *runs them on every change*. This workflow runs the same
+# gates a developer runs locally (the root `lint`, `test`, `build` scripts) on
+# every push and pull request, so concurrent edits / regressions can never land
+# silently green. The unit suite uses the in-memory adapters, so no Firestore /
+# RTDB emulator is required here (the emulator-backed integration test skips
+# itself when no emulator is present); the slow e2e suite is run separately.
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+# Cancel superseded runs on the same ref to save CI minutes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: lint · test · build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable corepack (pinned pnpm)
+        run: corepack enable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: corepack pnpm@9.12.0 install --frozen-lockfile
+
+      # Typecheck every package (the root `lint` = tsc --noEmit across packages,
+      # rebuilding @spinshare/core in between so web typechecks against fresh dts).
+      - name: Lint / typecheck
+        run: corepack pnpm@9.12.0 run lint
+
+      # Full unit + property suite across core, web, cli, extension.
+      - name: Test
+        run: corepack pnpm@9.12.0 run test
+
+      # Production build of every package — catches build-only breakage.
+      - name: Build
+        run: corepack pnpm@9.12.0 run build
+
+  # Adapter-parity gate: runs the SAME UserRepository contract (and the
+  # emulator-backed flush integration test) against the REAL Firestore adapter
+  # via the emulator. This is what actually closes the "green in memory, wrong in
+  # Firestore" gap — the fast `verify` job above skips these (no emulator), so
+  # without this job adapter drift could land silently. Kept separate so `verify`
+  # stays fast; this one pays the Java + emulator cost.
+  parity:
+    name: adapter parity (firestore emulator)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable corepack (pinned pnpm)
+        run: corepack enable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      # The Firestore emulator JAR requires a modern JDK.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install dependencies
+        run: corepack pnpm@9.12.0 install --frozen-lockfile
+
+      # web tests resolve @spinshare/core from its built dist, so build it first.
+      - name: Build core
+        run: corepack pnpm@9.12.0 --filter @spinshare/core build
+
+      # emulators:exec boots the Firestore emulator, exports FIRESTORE_EMULATOR_HOST
+      # for the child process (so the gated contract + integration tests RUN
+      # instead of skipping), runs the web suite, then tears the emulator down.
+      - name: Web suite against Firestore emulator
+        run: >-
+          corepack pnpm@9.12.0 dlx firebase-tools@13
+          emulators:exec --only firestore --project demo-spinshare
+          "corepack pnpm@9.12.0 --filter @spinshare/web test"
+
+  # Separate from `parity` so a Realtime Database emulator/config issue can never
+  # mask the (verified) Firestore parity results. Runs ONLY the RTDB adapter
+  # tests, where the CounterStore contract binding executes against the real
+  # hot-path store under the database emulator.
+  parity-rtdb:
+    name: adapter parity (rtdb emulator)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # The emulator host is exported by `emulators:exec`; the Admin app still
+      # needs a databaseURL to derive the namespace (demo-* = no real creds).
+      FIREBASE_DATABASE_URL: https://demo-spinshare-default-rtdb.firebaseio.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable corepack (pinned pnpm)
+        run: corepack enable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install dependencies
+        run: corepack pnpm@9.12.0 install --frozen-lockfile
+
+      - name: Build core
+        run: corepack pnpm@9.12.0 --filter @spinshare/core build
+
+      # emulators:exec boots the Realtime Database emulator and exports
+      # FIREBASE_DATABASE_EMULATOR_HOST so the RTDB CounterStore contract binding
+      # runs (instead of skipping). Scoped to the rtdb adapter tests.
+      - name: RTDB adapter tests against database emulator
+        run: >-
+          corepack pnpm@9.12.0 dlx firebase-tools@13
+          emulators:exec --only database --project demo-spinshare
+          "corepack pnpm@9.12.0 --filter @spinshare/web exec vitest run src/server/adapters/rtdb"

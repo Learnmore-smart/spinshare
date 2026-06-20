@@ -40,8 +40,18 @@ export const IMPRESSIONS_PER_BLOCK = 1000;
 /** Developer share of per-impression revenue, as a whole-number percentage. */
 export const DEVELOPER_SHARE_PERCENT = 60;
 
-/** Minimum balance in integer cents before a developer payout can be initiated ($5.00). */
-export const MINIMUM_PAYOUT_CENTS = 500;
+/** Minimum balance in integer cents before a developer payout can be initiated ($10.00). */
+export const MINIMUM_PAYOUT_CENTS = 1000;
+
+/**
+ * Master kill switch for developer cash-outs. While `false`, developers can
+ * still connect a Stripe account and keep accruing/tracking earnings, but
+ * withdrawals are refused everywhere: `POST /api/payouts/withdraw` returns a
+ * `503` and the dashboard renders a disabled "coming soon" button. Stripe
+ * payouts are slated to go live in ~1–2 weeks — flip this to `true` to enable
+ * real money movement.
+ */
+export const PAYOUT_WITHDRAWALS_ENABLED = false;
 
 /**
  * Max developer credits that may accrue in a rolling 60-minute window ($20.00).

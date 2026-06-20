@@ -8,8 +8,8 @@ The live "Get paid" control in the developer dashboard. Replaces the former dead
 ## What It Does
 - On mount fetches `/api/payouts/status` (connected? payouts enabled? balance?).
 - Not connected / onboarding incomplete → "Connect payouts" / "Finish payout setup" → POST `/api/payouts/connect` → redirect to onboarding url.
-- Connected + enabled + balance ≥ $5.00 → "Cash out $X" → POST `/api/payouts/withdraw`.
-- Caption shows below-minimum remaining, processing, success, or error.
+- Connected + enabled + balance ≥ $10.00 → "Cash out $X" → POST `/api/payouts/withdraw` — **unless `PAYOUT_WITHDRAWALS_ENABLED` is false** (current state), in which case the button is a disabled "Cash-out coming soon" and the caption shows the 1–2 week timing notice.
+- Caption shows below-minimum remaining, coming-soon timing, processing, success, or error.
 
 ## Public API
 | Name | Type | Description |
@@ -87,6 +87,7 @@ Verification:
 ## Change History
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Payout minimum raised to $10.00; added disabled "Cash-out coming soon" state driven by `PAYOUT_WITHDRAWALS_ENABLED` (connect stays available). | Cursor |
 | 2026-06-17 | Implemented payout minimum gate and Stripe verification UI state. | Codex |
 | 2026-06-17 | Planned payout minimum gate and Stripe verification UI state. | Codex |
 | 2026-06-17 | Implemented clearer payout provider error display. | Codex |

@@ -302,6 +302,17 @@ key to avoid signing out existing users.
 - Added default-on `spinshare.terminalAutoWrap`.
 - Added `spinshare.terminalAgents` with default `["claude"]` and a safe command-name pattern.
 
+## Implemented Change (2026-06-19 Self-Update)
+
+- Added `spinshare.checkForUpdate` command ("SpinShare: Check for Updates").
+- Added default-on `spinshare.autoUpdate` setting that lets the extension poll
+  its configured base URL for a newer published VSIX and install it in place
+  (the editor does not auto-update sideloaded extensions). The local flavor
+  defaults this to `false` via `package-variant.mjs`.
+- Added `publish:prod` script ([publish-prod.md](scripts/publish-prod.md)) that
+  packages prod, copies the VSIX into `web/public`, and bumps the advertised
+  version so the served artifact and `/api/extension/version` cannot drift.
+
 ## Verification
 
 - Extension TypeScript check passed.

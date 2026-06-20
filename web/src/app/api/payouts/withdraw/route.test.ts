@@ -4,7 +4,21 @@ const mocks = vi.hoisted(() => ({
   auth: vi.fn(),
   recordActivity: vi.fn(),
   withdrawBalance: vi.fn(),
+  withdrawalsEnabled: true,
 }));
+
+// Cash-outs are disabled platform-wide in production (PAYOUT_WITHDRAWALS_ENABLED
+// === false). Mock the flag so the result-mapping tests can exercise the enabled
+// path, while a dedicated test flips it off to assert the kill switch.
+vi.mock("@spinshare/core", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@spinshare/core")>();
+  return {
+    ...actual,
+    get PAYOUT_WITHDRAWALS_ENABLED() {
+      return mocks.withdrawalsEnabled;
+    },
+  };
+});
 
 vi.mock("@/server/adapters/auth/nextauth-config", () => ({
   auth: mocks.auth,
@@ -45,10 +59,23 @@ beforeEach(() => {
   mocks.auth.mockReset();
   mocks.recordActivity.mockReset();
   mocks.withdrawBalance.mockReset();
+  mocks.withdrawalsEnabled = true;
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
 describe("POST /api/payouts/withdraw", () => {
+  it("refuses the withdrawal while cash-outs are disabled platform-wide", async () => {
+    mocks.withdrawalsEnabled = false;
+
+    const response = await POST(sameOriginRequest());
+    const body = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(body).toEqual({ error: "withdrawals_disabled" });
+    expect(mocks.withdrawBalance).not.toHaveBeenCalled();
+    expect(mocks.recordActivity).not.toHaveBeenCalled();
+  });
+
   it("returns paid-out amount and provider id on success", async () => {
     mocks.auth.mockResolvedValueOnce({
       user: { id: "dev_123", email: "dev@example.test" },

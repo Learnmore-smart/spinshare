@@ -4,6 +4,8 @@ import {
   SpinnerRenderer,
   isSpinnerFrame,
   SPINNER_CHARS,
+  AD_COLOR,
+  AD_COLOR_RESET,
 } from "./renderer.js";
 
 /**
@@ -85,8 +87,8 @@ describe("Property 21: spinner suppression and non-spinner pass-through", () => 
 
         const out = res.output.toString("utf8");
         if (ad && ad.length > 0) {
-          // Ad present → exactly the single \r-updating line.
-          expect(out).toBe("\r" + ad + ERASE_TO_EOL);
+          // Ad present → exactly the single \r-updating line, blue-colored.
+          expect(out).toBe("\r" + AD_COLOR + ad + AD_COLOR_RESET + ERASE_TO_EOL);
         } else {
           // No ad → spinner suppressed entirely (empty output).
           expect(res.output.length).toBe(0);

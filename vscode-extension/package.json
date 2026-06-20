@@ -51,6 +51,10 @@
         "title": "SpinShare: Rebuild Terminal Shims"
       },
       {
+        "command": "spinshare.checkForUpdate",
+        "title": "SpinShare: Check for Updates"
+      },
+      {
         "command": "spinshare.removeClaudeCodeAdapter",
         "title": "SpinShare: Remove Claude Code Adapter"
       }
@@ -85,6 +89,11 @@
           "type": "boolean",
           "default": true,
           "description": "When enabled, SpinShare installs Claude Code hooks/statusLine integration into ~/.claude/settings.json with a backup."
+        },
+        "spinshare.autoUpdate": {
+          "type": "boolean",
+          "default": true,
+          "description": "When enabled, SpinShare periodically checks the configured base URL for a newer published version and installs it in place (the editor does not auto-update sideloaded extensions). You are always asked before the window reloads."
         }
       }
     }
@@ -98,7 +107,8 @@
     "package": "corepack pnpm@9.12.0 --filter @spinshare/cli build && corepack pnpm@9.12.0 build && node ./scripts/package-variant.mjs prod",
     "package:prod": "corepack pnpm@9.12.0 --filter @spinshare/cli build && corepack pnpm@9.12.0 build && node ./scripts/package-variant.mjs prod",
     "package:local": "corepack pnpm@9.12.0 --filter @spinshare/cli build && corepack pnpm@9.12.0 build && node ./scripts/package-variant.mjs local",
-    "package:all": "corepack pnpm@9.12.0 --filter @spinshare/cli build && corepack pnpm@9.12.0 build && node ./scripts/package-variant.mjs prod && node ./scripts/package-variant.mjs local"
+    "package:all": "corepack pnpm@9.12.0 --filter @spinshare/cli build && corepack pnpm@9.12.0 build && node ./scripts/package-variant.mjs prod && node ./scripts/package-variant.mjs local",
+    "publish:prod": "corepack pnpm@9.12.0 --filter @spinshare/cli build && corepack pnpm@9.12.0 build && node ./scripts/publish-prod.mjs"
   },
   "devDependencies": {
     "@spinshare/core": "workspace:*",

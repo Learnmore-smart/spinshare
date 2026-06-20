@@ -16,6 +16,7 @@ const buttonCopy = {
   connectPayouts: "Connect payouts",
   payoutFinishOnboarding: "Finish payout setup",
   payoutVerificationPending: "Stripe is verifying",
+  payoutComingSoon: "Cash-out coming soon",
   payoutLockedUntilMinimum: (minimum: string) => `Unlock payouts at ${minimum}`,
   payoutConnecting: "Opening secure onboarding...",
   payoutProcessing: "Processing payout...",
@@ -71,13 +72,13 @@ describe("getPayoutButtonState", () => {
         phase: "idle",
         eligible: false,
         balanceLabel: "$0.00",
-        minimumLabel: "$5.00",
+        minimumLabel: "$10.00",
         copy: buttonCopy,
       }),
     ).toEqual({
       action: null,
       disabled: true,
-      label: "Unlock payouts at $5.00",
+      label: "Unlock payouts at $10.00",
     });
   });
 
@@ -88,18 +89,42 @@ describe("getPayoutButtonState", () => {
           connected: true,
           payoutsEnabled: false,
           detailsSubmitted: true,
-          balanceCents: 500,
+          balanceCents: 1000,
         },
         phase: "idle",
         eligible: true,
-        balanceLabel: "$5.00",
-        minimumLabel: "$5.00",
+        balanceLabel: "$10.00",
+        minimumLabel: "$10.00",
         copy: buttonCopy,
       }),
     ).toEqual({
       action: null,
       disabled: true,
       label: "Stripe is verifying",
+    });
+  });
+
+  it("shows a disabled 'coming soon' button instead of cash-out while withdrawals are off", () => {
+    // PAYOUT_WITHDRAWALS_ENABLED is false: a fully connected, eligible developer
+    // must not be offered a working cash-out — only a disabled coming-soon state.
+    expect(
+      getPayoutButtonState({
+        status: {
+          connected: true,
+          payoutsEnabled: true,
+          detailsSubmitted: true,
+          balanceCents: 1500,
+        },
+        phase: "idle",
+        eligible: true,
+        balanceLabel: "$15.00",
+        minimumLabel: "$10.00",
+        copy: buttonCopy,
+      }),
+    ).toEqual({
+      action: null,
+      disabled: true,
+      label: "Cash-out coming soon",
     });
   });
 });

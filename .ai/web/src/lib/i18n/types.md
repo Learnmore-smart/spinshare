@@ -113,6 +113,7 @@ Added `advertiserDashboard.statusNeedsLink` to the dictionary contract.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Added `payoutComingSoon` developer-dashboard copy key for the disabled cash-out state. | Cursor |
 | 2026-06-18 | Added needs-link advertiser status copy key. | Codex |
 | 2026-06-18 | Planned needs-link advertiser status copy key. | Codex |
 | 2026-06-17 | Added create-form checkout block and redirect copy keys. | Codex |

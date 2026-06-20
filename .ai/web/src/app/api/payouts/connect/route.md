@@ -90,6 +90,7 @@ Verification:
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Onboarding minimum gate now resolves to $10.00 (`MINIMUM_PAYOUT_CENTS` raised 500→1000). Connect remains available; only cash-out is disabled. | Cursor |
 | 2026-06-17 | Implemented server-side $5 minimum gate for Stripe Connect onboarding. | Codex |
 | 2026-06-17 | Planned server-side $5 minimum gate for Stripe Connect onboarding. | Codex |
 | 2026-06-17 | Implemented known Connect-not-enabled response mapping. | Codex |

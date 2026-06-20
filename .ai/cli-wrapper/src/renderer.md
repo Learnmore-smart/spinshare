@@ -12,9 +12,11 @@ text while forwarding real command output unchanged.
 - Strips terminal control sequences for classification only.
 - Treats spinner-only animation frames as wait states.
 - Treats known agent loading/status lines, including Claude-style
-  `Pollinating...` and Antigravity-style prefixed `Generating...` / `Working...`,
-  as wait states.
-- Emits ad text for wait states when an ad is available.
+  `Pollinating...` and Antigravity-style prefixed `Generating...` / `Working...`
+  / `Running...` / `Executing...` / `Computing...` / `Planning...`, as wait
+  states.
+- Emits ad text for wait states when an ad is available, painted in bright blue
+  (SGR 94, reset with SGR 39) so the sponsored line is visually distinct.
 - Can render status-line ads below the agent's loading message using terminal
   save/restore cursor sequences, so generic PTY-wrapped CLIs keep their own
   prompt/loading line.
@@ -46,6 +48,7 @@ text while forwarding real command output unchanged.
 
 | Date | Bug | Cause | Fix |
 |------|-----|-------|-----|
+| 2026-06-19 | Antigravity shows ads only intermittently ("sometimes showing, sometimes not"), and ads were not visually distinct. | Antigravity/Gemini-CLI rotates its wait line through `Running...` (and other words) that were absent from the wait-word allowlist, so unrecognized frames were treated as real output — clearing the ad until the next recognized frame. Ads were also emitted as plain/hyperlinked text with no color. | Added `running`, `executing`, `computing`, `planning` to `STATUS_WORD_PATTERN`, and colored the rendered ad bright blue via exported `AD_COLOR` / `AD_COLOR_RESET`. The single-word `^…$` anchor keeps multi-word real output (e.g. `Running tests in web...`) as pass-through. |
 | 2026-06-19 | Antigravity ads flicker and appear inside the prompt/input area while the CLI cycles through multiple wait messages. | `Working...` was not recognized as a wait word, so the wrapper dropped out of wait mode between Antigravity spinner variants. Status wait frames were also rendered by replacing the current line, which can collide with CLIs that reserve the bottom line for input/status. | Planned: recognize `Working...`, add a status-line placement mode that leaves the loading message in place and paints the ad one line below using save/restore cursor, and have the wrapper use that mode for PTY agents. |
 | 2026-06-19 | Wrapped Antigravity CLI can still print its own `Generating...` line instead of a SpinShare ad. | Antigravity prefixes the transient `Generating...` wait text with a Braille/symbol status marker; the renderer only stripped bullets, middle dots, and `*` before matching wait words. | Planned: allow a single conservative symbol/Braille status prefix before known one-word AI wait messages, while keeping ordinary log lines such as `Loading config...` as pass-through. |
 | 2026-06-15 | Claude Code showed `Pollinating...` instead of a SpinShare ad. | The renderer only detected ASCII spinner glyph frames, while Claude emits text status frames during waits. | Recognize conservative AI-agent loading/status lines as wait-state frames and replace them with ads. |

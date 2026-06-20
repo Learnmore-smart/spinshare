@@ -26,6 +26,17 @@ export interface TiltCardProps
   glow?: string;
   /** Radius of the glare circle, in px. */
   glareRadius?: number;
+  /**
+   * Box-shadow when at rest. Required if you also supply `hoverShadow` so the
+   * browser has a starting value to interpolate from (avoids an abrupt jump).
+   */
+  restShadow?: string;
+  /**
+   * Box-shadow applied while the cursor is over the card. Both `restShadow`
+   * and `hoverShadow` are driven as inline styles so the existing
+   * `chromeTransition` actually animates the change.
+   */
+  hoverShadow?: string;
   /** Extra inline styles merged after the computed transform. */
   style?: CSSProperties;
 }
@@ -47,6 +58,8 @@ export function TiltCard({
   scale = 1.015,
   glow = "16, 185, 129",
   glareRadius = 320,
+  restShadow,
+  hoverShadow,
   style,
   ...rest
 }: TiltCardProps) {
@@ -82,12 +95,20 @@ export function TiltCard({
   const chromeTransition =
     "box-shadow 0.42s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.32s ease, background 0.32s ease, background-color 0.32s ease";
 
+  const shadowValue =
+    restShadow !== undefined || hoverShadow !== undefined
+      ? coords.isHovered
+        ? (hoverShadow ?? restShadow)
+        : restShadow
+      : undefined;
+
   const computedStyle: CSSProperties = {
     transform: `perspective(1100px) rotateX(${coords.rx}deg) rotateY(${coords.ry}deg) scale3d(${
       coords.isHovered ? scale : 1
     }, ${coords.isHovered ? scale : 1}, 1)`,
     transition: `${transformTransition}, ${chromeTransition}`,
     transformStyle: "preserve-3d",
+    ...(shadowValue !== undefined ? { boxShadow: shadowValue } : {}),
     ...style,
   };
 
