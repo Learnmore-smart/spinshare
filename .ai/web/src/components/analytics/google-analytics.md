@@ -22,14 +22,22 @@ Loads Google Analytics 4 (gtag.js) site-wide when `NEXT_PUBLIC_GA_MEASUREMENT_ID
 - **External:** `next/script` — deferred script loading.
 - **Env:** `NEXT_PUBLIC_GA_MEASUREMENT_ID` — GA4 measurement ID (e.g. `G-XXXXXXXXXX`).
 
+## Planned Change 2026-06-20 route pageviews
+
+- Add `GoogleAnalyticsPageViews` client component: fires `gtag('config', …, { page_path })` on App Router navigations via `usePathname` / `useSearchParams`.
+- Mount from `layout.tsx` `<body>` inside `<Suspense>` (required for `useSearchParams`).
+- `GoogleAnalytics` remains in `<head>` for script load + initial config only.
+
 ## Important Notes / NEVER Change
 
 - Do not hardcode measurement IDs in source; read from `NEXT_PUBLIC_GA_MEASUREMENT_ID` only.
-- Mount once from `layout.tsx` `<head>` so every page gets a single tag.
+- Mount `GoogleAnalytics` once from `layout.tsx` `<head>` so every page gets a single tag.
+- Mount `GoogleAnalyticsPageViews` once from `layout.tsx` `<body>` for SPA navigations.
 - Measurement IDs are public; still keep them in env for per-environment control.
 
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Add client-side route-change pageview tracking. | Cursor |
 | 2026-06-20 | Added GA4 component for SpinShare production analytics. | Cursor |

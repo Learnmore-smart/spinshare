@@ -49,6 +49,11 @@ export function checkStrictModes(env) {
       "AUTH_VERIFICATION_URI is localhost - set https://www.spinshare.dev/activate in Cloud Run variables for production",
     );
   }
+  if (!value(env, "NEXT_PUBLIC_GA_MEASUREMENT_ID")) {
+    warnings.push(
+      "NEXT_PUBLIC_GA_MEASUREMENT_ID is unset - GA4 will be omitted from production Docker builds unless passed as a build arg",
+    );
+  }
   return result(
     "env.production.flags",
     failures.length === 0,

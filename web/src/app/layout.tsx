@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import type { ReactNode } from "react";
+import { Suspense } from "react";
 import "./globals.css";
 import "./theme.css";
 import "./home.css";
@@ -8,6 +9,7 @@ import "@/components/segment-slider.css";
 import { LocaleProvider } from "@/lib/i18n/locale-provider";
 import { AuthSessionProvider } from "@/components/auth/session-provider";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
+import { GoogleAnalyticsPageViews } from "@/components/analytics/google-analytics-page-views";
 import { ThemeScript } from "@/components/theme/theme-script";
 import { ThemeProvider } from "@/lib/theme/theme-provider";
 import { detectLocaleFromAcceptLanguage } from "@/lib/i18n/detect-locale";
@@ -55,6 +57,9 @@ export default async function RootLayout({
         <GoogleAnalytics />
       </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
+        <Suspense fallback={null}>
+          <GoogleAnalyticsPageViews />
+        </Suspense>
         <AuthSessionProvider>
           <ThemeProvider>
             <LocaleProvider initialLocale={initialLocale}>{children}</LocaleProvider>

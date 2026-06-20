@@ -25,7 +25,9 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.base.json ./
 # Build core first (web depends on it)
 RUN pnpm --filter @spinshare/core build
 
-# Build web
+# Build web — NEXT_PUBLIC_* must be present at build time (not Cloud Run runtime).
+ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
+ENV NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm --filter @spinshare/web build
 

@@ -48,10 +48,12 @@ Defines the root HTML shell, global CSS imports, metadata, and app-wide body cla
 
 - Import `GoogleAnalytics` into `<head>` immediately after `ThemeScript`.
 - Analytics loads only when `NEXT_PUBLIC_GA_MEASUREMENT_ID` is set.
+- Mount `GoogleAnalyticsPageViews` in `<body>` inside `<Suspense>` for App Router navigations.
 
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Add `GoogleAnalyticsPageViews` for SPA route-change pageviews. | Cursor |
 | 2026-06-20 | Mount `GoogleAnalytics` in root `<head>` for site-wide GA4. | Cursor |
 | 2026-06-14 | Created documentation and recorded build-time font fetch fix. | Codex |
