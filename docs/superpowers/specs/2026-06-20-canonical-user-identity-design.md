@@ -23,8 +23,8 @@ be deleted rather than migrated.
   identity refreshes.
 - Make every newly authenticated user document identifiable in Firestore with an
   explicit `id`, `email`, `provider`, and linked-provider list.
-- Upgrade or reject legacy JWT identities so an old random UUID cannot recreate an
-  orphan user after cleanup.
+- Reject legacy JWT identities so an old random UUID cannot recreate an orphan user
+  after cleanup.
 
 ## Non-goals
 
@@ -72,9 +72,9 @@ canonical user ID becomes `token.sub`, and therefore the browser session, device
 token, ledger owner, balance owner, advertiser owner, and payout owner all share one
 identifier.
 
-Legacy JWTs whose `sub` is a random UUID are converted using the verified email
-already stored in the signed token. Tokens without a usable email fail closed and
-require a new sign-in. Local credentials accounts retain their explicit stable IDs.
+Legacy JWTs have no durable proof that their stored email passed the new verification
+boundary. They therefore fail closed and require one new sign-in. Local credentials
+accounts retain their explicit stable IDs.
 
 Google's verified-email claim is required. GitHub sign-in must use a verified email;
 the provider integration will reject a profile when no verified email can be
@@ -124,8 +124,8 @@ financial records are untouched.
   keep the original ID; financial fields survive metadata refresh.
 - Auth callback test: `token.sub` receives the repository's canonical ID, not the
   random Auth.js UUID.
-- Legacy JWT test: a signed token with email and random UUID resolves to the
-  canonical email-derived ID.
+- Legacy JWT test: a signed token with a random UUID and no identity version is
+  rejected so it cannot recreate the deleted document.
 - Firestore emulator contract covers atomic identity mapping and user upsert.
 - Run focused tests, full web tests, type checking, and the root regression suite.
 
@@ -133,7 +133,6 @@ financial records are untouched.
 
 1. Deploy the identity code.
 2. Delete the two authorized UUID test documents.
-3. Existing OAuth sessions self-canonicalize when possible; otherwise users sign in
-   again.
+3. Existing OAuth sessions are invalidated once and users sign in again.
 4. Confirm a Google sign-in and repeated sign-in use the same document.
 5. Confirm GitHub with the same verified email uses that same document.
