@@ -19,6 +19,7 @@ const ENV_KEYS = [
   "FIRESTORE_EMULATOR_HOST",
   "STRIPE_MODE",
   "AUTH_MODE",
+  "NEXTAUTH_URL",
 ] as const;
 
 let savedEnv: Record<string, string | undefined>;
@@ -30,6 +31,7 @@ beforeEach(() => {
   delete process.env.FIRESTORE_EMULATOR_HOST;
   process.env.STRIPE_MODE = "mock";
   process.env.AUTH_MODE = "mock";
+  delete process.env.NEXTAUTH_URL;
   resetContainer();
 });
 
@@ -117,6 +119,24 @@ describe("GET /api/ad telemetry", () => {
       campaignId: "cmp_top",
       accumulatedViewDurationMs: 0,
     });
+  });
+
+  it("uses the configured public origin instead of Cloud Run's internal origin", async () => {
+    process.env.NEXTAUTH_URL = "https://www.spinshare.dev";
+    const container = getContainer();
+    const token = (container.auth as MockAuthProvider).mintToken("dev_prod");
+    seedCampaign(container, { id: "cmp_prod" });
+    const request = new Request("http://0.0.0.0:8080/api/ad", {
+      headers: { authorization: `Bearer ${token}` },
+    });
+
+    const response = await GET(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.destinationUrl).toMatch(
+      /^https:\/\/www\.spinshare\.dev\/api\/click\?campaignId=cmp_prod&clickToken=.+/,
+    );
   });
 
   it("returns an authenticated developer's pending campaign before normal bidding", async () => {

@@ -8,6 +8,15 @@ const requiredEntries = [
   "extension/package.json",
 ];
 
+const ptyRoot =
+  "extension/cli-wrapper/node_modules/@homebridge/node-pty-prebuilt-multiarch";
+const runtimeEntries = [
+  `${ptyRoot}/package.json`,
+  `${ptyRoot}/lib/index.js`,
+  `${ptyRoot}/build/Release/pty.node`,
+];
+const validEntries = [...requiredEntries, ...runtimeEntries, "extension/readme.md"];
+
 const manifestWithReadme = (path) => `<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest>
   <Assets>
@@ -18,7 +27,7 @@ const manifestWithReadme = (path) => `<?xml version="1.0" encoding="utf-8"?>
 describe("VSIX structure validation", () => {
   it("accepts an exact README asset entry", () => {
     const result = validateVsixContents({
-      entryNames: [...requiredEntries, "extension/readme.md"],
+      entryNames: validEntries,
       manifestXml: manifestWithReadme("extension/readme.md"),
     });
 
@@ -28,7 +37,7 @@ describe("VSIX structure validation", () => {
   it("rejects the historical README casing mismatch", () => {
     expect(() =>
       validateVsixContents({
-        entryNames: [...requiredEntries, "extension/README.md"],
+        entryNames: [...requiredEntries, ...runtimeEntries, "extension/README.md"],
         manifestXml: manifestWithReadme("extension/readme.md"),
       }),
     ).toThrow('README asset "extension/readme.md" is missing');
@@ -37,10 +46,32 @@ describe("VSIX structure validation", () => {
   it("rejects a missing required OPC entry", () => {
     expect(() =>
       validateVsixContents({
-        entryNames: ["extension.vsixmanifest", "extension/readme.md"],
+        entryNames: [
+          "extension.vsixmanifest",
+          ...runtimeEntries,
+          "extension/readme.md",
+        ],
         manifestXml: manifestWithReadme("extension/readme.md"),
       }),
     ).toThrow('Required VSIX entry "[Content_Types].xml" is missing');
+  });
+
+  it("rejects an incomplete PTY runtime", () => {
+    for (const missingEntry of runtimeEntries.slice(0, 2)) {
+      expect(() =>
+        validateVsixContents({
+          entryNames: validEntries.filter((entry) => entry !== missingEntry),
+          manifestXml: manifestWithReadme("extension/readme.md"),
+        }),
+      ).toThrow(`Required PTY runtime entry "${missingEntry}" is missing`);
+    }
+
+    expect(() =>
+      validateVsixContents({
+        entryNames: validEntries.filter((entry) => !entry.endsWith(".node")),
+        manifestXml: manifestWithReadme("extension/readme.md"),
+      }),
+    ).toThrow("VSIX does not contain a PTY native .node runtime");
   });
 
   it("rejects native debug and source payloads", () => {
@@ -51,8 +82,7 @@ describe("VSIX structure validation", () => {
       expect(() =>
         validateVsixContents({
           entryNames: [
-            ...requiredEntries,
-            "extension/readme.md",
+            ...validEntries,
             prohibitedEntry,
           ],
           manifestXml: manifestWithReadme("extension/readme.md"),

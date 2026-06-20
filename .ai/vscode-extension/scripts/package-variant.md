@@ -1,6 +1,6 @@
 # package-variant.mjs
 
-> Last updated: 2026-06-19 | Protection: STANDARD
+> Last updated: 2026-06-20 | Protection: STANDARD
 
 ## Purpose
 
@@ -83,10 +83,42 @@ produce a manifest path that does not exist in the archive.
 packager performs no post-package mutation, then inspect a freshly generated
 VSIX to verify the manifest README asset resolves to an exact archive entry.
 
+## Bug Fix Plan 2026-06-20 Vitest collection failure
+
+**Bug:** `package-variant.test.mjs` fails during collection with
+`SyntaxError: Invalid or unexpected token` before any test runs.
+
+**Root Cause:** Vite's SSR transform emits module imports before the original
+`#!/usr/bin/env node` line, leaving the shebang in the middle of JavaScript.
+
+**Fix Strategy:** Remove the shebang. Every repository script invokes this file
+explicitly with `node`, so direct executable invocation is not required.
+
+**Test Plan:** Re-run the focused package variant test and confirm all tests are
+collected, including the injected package/verify orchestration case.
+
+## Implemented Fix 2026-06-20 Marketplace-safe packaging
+
+- Removed every VSIX mutation and README rename from the package flow.
+- The output of official `vsce package` is now treated as immutable.
+- Added injectable command/verification hooks so orchestration and manifest
+  restoration are covered without launching a real packager in unit tests.
+- Runs `verifyVsixFile()` after `vsce` and restores the source manifest even if
+  packaging or validation fails.
+- Removed the unnecessary shebang so Vite/Vitest can collect the module.
+
+Verification:
+- Focused package/validator suite passed 10 tests.
+- Full extension suite passed 94 tests; TypeScript check passed.
+- Full `package:all` build completed for prod and local artifacts.
+- Both artifacts declare and contain exact `extension/readme.md` entries.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Implemented immutable VSIX packaging, read-only validation, and testable orchestration. | Codex |
+| 2026-06-20 | Documented the Vite shebang transform failure and removal plan. | Codex |
 | 2026-06-20 | Documented the Marketplace corruption root cause and immutable-vsce-output fix plan. | Codex |
 | 2026-06-19 | Flavor now also sets `spinshare.autoUpdate` default (prod `true`, local `false`) so dev builds never self-reinstall from localhost. | Claude |
 | 2026-06-19 | Planned Marketplace auto-update readiness guard and production publish path. | Codex |

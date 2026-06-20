@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { spawnSync } from "node:child_process";

@@ -11,6 +11,8 @@ Validates a completed VSIX without modifying the archive.
 - Confirms required OPC entries exist.
 - Reads `extension.vsixmanifest` and resolves its primary README asset path.
 - Requires an exact, case-sensitive archive entry match for that path.
+- Requires the bundled PTY package manifest, JavaScript entrypoint, and at
+  least one native `.node` runtime binary.
 - Rejects debug symbols and native source/build payloads that should not ship.
 - Returns a concise validation summary for package scripts and diagnostics.
 
@@ -41,8 +43,20 @@ Validates a completed VSIX without modifying the archive.
 Add a pure validation core plus a read-only file adapter, and invoke it from
 the package variant flow immediately after `vsce` returns.
 
+## Implemented Change 2026-06-20
+
+Implemented `validateVsixContents()` and `verifyVsixFile()`. The file adapter
+uses `adm-zip` only for `getEntries()` and `getData()`; it contains no archive
+write operation. Packaging invokes the validator before reporting success.
+
+Verification:
+- Five focused validator tests pass.
+- Prod and local artifacts each validated with 101 entries and exact
+  `extension/readme.md` linkage.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Implemented and verified read-only VSIX validation. | Codex |
 | 2026-06-20 | Created validation design before implementation. | Codex |

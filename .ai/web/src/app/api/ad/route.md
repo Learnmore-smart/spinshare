@@ -1,6 +1,6 @@
 # route.ts
 
-> Last updated: 2026-06-15 | Protection: STANDARD
+> Last updated: 2026-06-20 | Protection: STANDARD
 
 ## Purpose
 
@@ -47,6 +47,63 @@ Authenticated clickable ad responses now append a signed `clickToken` to the
 same-origin `/api/click` URL. The token is minted with the served campaign id and
 authenticated developer id, so `/api/click` can count only links actually issued
 by `/api/ad`.
+
+## Planned Bug Fix 2026-06-20 Production Click Origin
+
+**Description:** Ads returned to the production extension contain click URLs
+whose origin is `0.0.0.0:8080` instead of the public SpinShare origin.
+
+**Root cause:** `withTrackedClickUrl` resolves `/api/click` against
+`request.url`. On Cloud Run, Next.js sees the service's internal request origin
+(`http://0.0.0.0:8080`), so that internal origin is serialized into the JSON
+response and passed unchanged to the extension/CLI.
+
+**Fix strategy:** Resolve tracked click URLs against the configured canonical
+web origin (`NEXTAUTH_URL`) when present, with `request.url` retained as the
+local-development fallback. This keeps production links on
+`https://www.spinshare.dev` while local extension builds continue to receive
+localhost links.
+
+**Alternatives considered:** Trust proxy forwarding headers, or return a
+relative URL and change every client to resolve it. The configured canonical
+origin is preferred because production already validates `NEXTAUTH_URL`, it is
+not controlled by request headers, and it limits the fix to the origin source.
+
+**Regression risks:** A malformed `NEXTAUTH_URL` could make ad serving fail;
+production environment validation must keep this value valid. Local tests and
+development must continue falling back to the request origin when no canonical
+origin is configured.
+
+**Test plan:** Add a route regression test using a Cloud Run-style internal
+request URL and `NEXTAUTH_URL=https://www.spinshare.dev`; assert the returned
+tracked URL uses the configured production origin and preserves campaign/token
+query parameters. Retain the existing request-origin test for local fallback.
+
+## Implemented Bug Fix 2026-06-20 Production Click Origin
+
+`withTrackedClickUrl` now resolves `/api/click` against the trimmed
+`NEXTAUTH_URL` when configured and falls back to `request.url` otherwise.
+Production responses therefore use `https://www.spinshare.dev`, while local and
+custom development requests keep their own origin without client changes.
+
+## Verification 2026-06-20 Production Click Origin
+
+- RED: the focused route test received
+  `http://0.0.0.0:8080/api/click?...` and failed its expected production-origin
+  assertion.
+- GREEN: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/ad/route.test.ts`
+  passed all 5 tests.
+- Full web regression passed with 441 tests and 38 skipped integration tests:
+  `corepack pnpm@9.12.0 --filter @spinshare/web test`.
+- Web TypeScript lint/type-check passed:
+  `corepack pnpm@9.12.0 --filter @spinshare/web lint`.
+
+## Agent Decisions / Thoughts
+
+- **2026-06-20 Codex:** Fix the origin at the API source instead of patching the
+  production VSIX. Both extension and CLI consume `destinationUrl` from this
+  endpoint, so correcting the server response fixes every client and avoids
+  shipping client-specific URL rewriting.
 
 ## Planned Change 2026-06-15 Cumulative Viewability
 
@@ -123,6 +180,8 @@ pending campaign is re-served.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Implemented and verified canonical production click URLs. | Codex |
+| 2026-06-20 | Planned production click-origin fix for Cloud Run deployments. | Codex |
 | 2026-06-16 | Implemented signed click token on served ad URLs. | Codex |
 | 2026-06-16 | Planned signed click token on served ad URLs. | Codex |
 | 2026-06-15 | Implemented server-side served marker on ad selection. | Codex |

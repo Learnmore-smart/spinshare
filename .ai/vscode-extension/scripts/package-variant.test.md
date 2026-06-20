@@ -1,6 +1,6 @@
 # package-variant.test.mjs
 
-> Last updated: 2026-06-19 | Protection: STANDARD
+> Last updated: 2026-06-20 | Protection: STANDARD
 
 ## Purpose
 
@@ -27,10 +27,15 @@ Tests the prod/local VSIX package variant helpers.
 The script helper tests cover local/prod manifest defaults, deterministic VSIX
 names, and Windows-vs-non-Windows spawn shell options.
 
+The package-flow test now also injects the command runner and artifact verifier,
+asserts package-then-verify ordering, and confirms the original manifest text
+is restored. All five package-variant tests pass.
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Added passing immutable-output orchestration and manifest restoration coverage. | Codex |
 | 2026-06-20 | Planned regression coverage for immutable VSIX output and README asset consistency. | Codex |
 | 2026-06-19 | Planned tests for Marketplace auto-update readiness and prod publish arguments. | Codex |
 | 2026-06-16 | Added package variant helper tests. | Codex |

@@ -43,7 +43,8 @@ function withTrackedClickUrl(
   if (!result.adAvailable || result.destinationUrl === undefined) {
     return result;
   }
-  const destinationUrl = new URL("/api/click", request.url);
+  const baseUrl = process.env.NEXTAUTH_URL?.trim() || request.url;
+  const destinationUrl = new URL("/api/click", baseUrl);
   destinationUrl.searchParams.set("campaignId", result.campaignId);
   destinationUrl.searchParams.set(
     "clickToken",

@@ -1,6 +1,6 @@
 # vscode-extension/package.json
 
-> Last updated: 2026-06-19 | Protection: STANDARD
+> Last updated: 2026-06-20 | Protection: STANDARD
 
 ## Purpose
 
@@ -37,6 +37,13 @@ the existing devDependency only for read-only validation of the completed VSIX:
 required OPC entries, exact manifest/README path matching, and prohibited debug
 payload checks. This avoids a package/lockfile churn while turning the library
 from a mutator into a packaging guard.
+
+## Bug Fix Implemented 2026-06-20 Marketplace malformed/corrupted VSIX
+
+Removed the custom README casing rewriter and standalone mutation script.
+Packaging now keeps official `vsce` output unchanged and performs read-only
+validation. Rebuilt prod/local 0.2.2 artifacts are 3.79 MB each, contain 101
+entries, and have exact manifest-to-README linkage.
 
 ## Important Notes / NEVER Change
 
@@ -233,6 +240,7 @@ The VSIX packaging script currently calls bare `vsce`, which fails on Windows wh
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Implemented Marketplace-safe immutable VSIX packaging and rebuilt both artifacts. | Codex |
 | 2026-06-20 | Restricted `adm-zip` to read-only VSIX verification; no archive writes are permitted. | Codex |
 | 2026-06-19 | Implemented `0.2.2` prod/local packages for Antigravity below-status rendering. | Codex |
 | 2026-06-19 | Planned `0.2.2` prod/local packages for Antigravity below-status rendering. | Codex |

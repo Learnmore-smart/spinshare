@@ -8,6 +8,13 @@ const REQUIRED_ENTRIES = [
   "extension/package.json",
 ];
 
+const PTY_ROOT =
+  "extension/cli-wrapper/node_modules/@homebridge/node-pty-prebuilt-multiarch";
+const REQUIRED_PTY_ENTRIES = [
+  `${PTY_ROOT}/package.json`,
+  `${PTY_ROOT}/lib/index.js`,
+];
+
 const PROHIBITED_PAYLOADS = [
   /\.pdb$/i,
   /\/(?:deps|src)\//i,
@@ -36,6 +43,20 @@ export function validateVsixContents({ entryNames, manifestXml }) {
     if (!entries.has(requiredEntry)) {
       throw new Error(`Required VSIX entry "${requiredEntry}" is missing`);
     }
+  }
+
+  for (const requiredEntry of REQUIRED_PTY_ENTRIES) {
+    if (!entries.has(requiredEntry)) {
+      throw new Error(`Required PTY runtime entry "${requiredEntry}" is missing`);
+    }
+  }
+  if (
+    !entryNames.some(
+      (entryName) =>
+        entryName.startsWith(`${PTY_ROOT}/`) && entryName.endsWith(".node"),
+    )
+  ) {
+    throw new Error("VSIX does not contain a PTY native .node runtime");
   }
 
   const readmePath = readmeAssetPath(manifestXml);
