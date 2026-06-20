@@ -279,6 +279,11 @@ row:
 |------|--------|--------|
 | 2026-06-20 | Planned en/zh/fr welcome-gift activity labels. | Codex |
 
+## Implemented Change 2026-06-20 Welcome Gift Event Copy
+
+Added `Welcome gift`, `欢迎礼金`, and `Cadeau de bienvenue` to the English,
+Chinese, and French activity dictionaries.
+
 ## Change History Addendum 4
 
 | Date | Change | Author |

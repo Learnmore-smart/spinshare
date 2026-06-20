@@ -24,3 +24,7 @@ Test the pure signup-bonus ledger-to-activity adapter.
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-20 | Created planned adapter coverage before implementation. | Codex |
+
+## Implemented Coverage 2026-06-20
+
+Added both timestamped adaptation and missing-timestamp regression cases.

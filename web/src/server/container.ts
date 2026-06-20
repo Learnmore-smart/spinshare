@@ -429,6 +429,14 @@ let singleton: Container | undefined;
 /** Process-wide singleton, lazily built on first access. Survives Next.js dev HMR. */
 const CONTAINER_KEY = Symbol.for("spinshare.container");
 
+function containerHasPlatformStatsSupport(container: Container): boolean {
+  return (
+    typeof container.users.listAll === "function" &&
+    typeof container.campaigns.listAll === "function" &&
+    typeof container.ledger.summarizeFleet === "function"
+  );
+}
+
 /**
  * Returns the process-wide {@link Container}, building it from `process.env` on
  * first use and reusing it thereafter. Routes and services should call this
@@ -437,12 +445,13 @@ const CONTAINER_KEY = Symbol.for("spinshare.container");
 export function getContainer(): Container {
   if (process.env.NODE_ENV === "development") {
     const g = globalThis as Record<symbol, Container | undefined>;
-    if (!g[CONTAINER_KEY]) {
+    const cached = g[CONTAINER_KEY];
+    if (!cached || !containerHasPlatformStatsSupport(cached)) {
       g[CONTAINER_KEY] = buildContainer();
     }
-    return g[CONTAINER_KEY];
+    return g[CONTAINER_KEY]!;
   }
-  if (!singleton) {
+  if (!singleton || !containerHasPlatformStatsSupport(singleton)) {
     singleton = buildContainer();
   }
   return singleton;

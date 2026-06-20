@@ -38,3 +38,8 @@ should still show the empty state.
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-20 | Created doc and planned bonus-only chart rendering. | Codex |
+
+## Implemented Change 2026-06-20 Welcome Gift Curve
+
+Chart rendering now depends on the selected `chartSeries` being non-empty, so a
+bonus-only account renders `$1.00` without incrementing impression count.

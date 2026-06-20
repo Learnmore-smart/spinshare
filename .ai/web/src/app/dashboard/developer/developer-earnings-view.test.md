@@ -22,3 +22,8 @@ series and the setup empty state does not.
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-20 | Created planned bonus-only earnings view coverage. | Codex |
+
+## Implemented Coverage 2026-06-20
+
+Added server-render coverage proving a zero-impression bonus-only account shows
+the chart at `1` and not the setup empty state.

@@ -43,3 +43,8 @@ timestamp, and a cumulative `$1.00` chart point.
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-20 | Planned signup-bonus metadata and chart coverage. | Codex |
+
+## Implemented Coverage 2026-06-20 Welcome Gift Metadata
+
+Added coverage for zero impressions, normalized signup-bonus identity, $1 row
+metadata, timestamp preservation, and a cumulative `$1.00` chart value.

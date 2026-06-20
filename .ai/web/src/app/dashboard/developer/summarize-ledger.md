@@ -81,3 +81,9 @@ exclude it from `impressionCount`.
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-20 | Planned normalized signup-bonus row identity for welcome-gift presentation. | Codex |
+
+## Implemented Change 2026-06-20 Welcome Gift Row Identity
+
+`LedgerActivityRow` now exposes normalized `ledgerType`. Both typed bonus rows
+and legacy `signup_bonus:` ids normalize to `signup_bonus`; totals, chart
+series, and zero-impression counting behavior remain unchanged.

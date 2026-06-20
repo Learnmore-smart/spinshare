@@ -42,3 +42,9 @@ shown in developer Recent credit.
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-20 | Created planned welcome-gift ledger-to-activity adapter. | Codex |
+
+## Implemented Behavior 2026-06-20
+
+`welcomeGiftActivityFromRows()` returns one timestamped, stable-id
+`welcome_gift` source from the normalized bonus row and returns `undefined`
+when the row or timestamp is absent.

@@ -24,7 +24,7 @@ const en: DictionaryBase = {
     ctaCommandHint: "Paste this into your terminal — that's it.",
     ctaEarning: "Start earning",
     learnAdCopy: "LearnX · Know exactly what to study",
-    footerCopy: "Get paid when your AI thinks",
+    footerCopy: "Get paid to wait.",
     navLogin: "User login",
     navAds: "Ads",
     creditedRevenue: (pct) =>
@@ -55,7 +55,7 @@ const en: DictionaryBase = {
     chartBidLabel: "Bid",
     chartCollectingHistory: "Bid history fills in as the live market polls.",
     tickerNoBidsBrand: "SpinShare",
-    tickerNoBidsText: "Get paid when your AI thinks",
+    tickerNoBidsText: "Get paid to wait.",
   },
   howItPaysSection: {
     title: "How it pays",

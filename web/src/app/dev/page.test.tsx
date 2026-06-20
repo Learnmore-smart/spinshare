@@ -87,18 +87,22 @@ beforeEach(() => {
     ledger: {},
   });
   mocks.loadPlatformStats.mockResolvedValue(stats);
+  mocks.headers.mockResolvedValue(new Headers({ host: "localhost:3000" }));
 });
 
 describe("/dev page", () => {
-  it("allows localhost without auth", async () => {
-    Object.assign(globalThis, { React });
-    mocks.headers.mockResolvedValue(new Headers({ host: "localhost:3000" }));
+  it("returns 404 on localhost when signed out", async () => {
+    mocks.auth.mockResolvedValue(null);
 
-    const view = await DevPage();
+    await expect(DevPage()).rejects.toThrow("NOT_FOUND");
+    expect(mocks.notFound).toHaveBeenCalled();
+  });
 
-    expect(view.props.isLocal).toBe(true);
-    expect(mocks.auth).not.toHaveBeenCalled();
-    expect(mocks.notFound).not.toHaveBeenCalled();
+  it("returns 404 on localhost for non-admin users", async () => {
+    mocks.auth.mockResolvedValue({ user: { email: "other@example.com" } });
+
+    await expect(DevPage()).rejects.toThrow("NOT_FOUND");
+    expect(mocks.notFound).toHaveBeenCalled();
   });
 
   it("returns 404 on production for unauthorized users", async () => {
@@ -107,6 +111,17 @@ describe("/dev page", () => {
 
     await expect(DevPage()).rejects.toThrow("NOT_FOUND");
     expect(mocks.notFound).toHaveBeenCalled();
+  });
+
+  it("renders for internal admin on localhost", async () => {
+    Object.assign(globalThis, { React });
+    mocks.auth.mockResolvedValue({ user: { email: "noahzh52@gmail.com" } });
+
+    const view = await DevPage();
+
+    expect(view.props.isLocal).toBe(true);
+    expect(view.props.stats.totalDevelopers).toBe(3);
+    expect(mocks.flushPendingForRead).toHaveBeenCalled();
   });
 
   it("renders for internal admin on production", async () => {

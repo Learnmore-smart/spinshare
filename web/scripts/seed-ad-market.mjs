@@ -232,7 +232,11 @@ async function main() {
   validateCampaigns();
 
   const env = await loadEnv();
-  const collection = resolveCampaignCollection(env, { forceProduction });
+  // A dry run performs no writes, so it previews the production target without
+  // tripping the namespace guard. The real write still requires --production.
+  const collection = resolveCampaignCollection(env, {
+    forceProduction: forceProduction || dryRun,
+  });
   const nowMs = Date.now();
 
   if (dryRun) {

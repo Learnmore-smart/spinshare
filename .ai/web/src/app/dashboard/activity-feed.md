@@ -122,6 +122,11 @@ must remain unchanged.
 |------|--------|--------|
 | 2026-06-20 | Planned localized welcome-gift activity normalization. | Codex |
 
+## Implemented Change 2026-06-20 Welcome Gift Activity
+
+The shared feed now supports `welcome_gift`, uses locale event copy, renders
+its positive credit as `+$1.00`, and treats it as an event in row details.
+
 ## Planned Change 2026-06-18 Localized Activity Labels
 
 Move shared activity status, event/duration, and details labels behind a typed

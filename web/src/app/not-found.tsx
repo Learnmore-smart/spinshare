@@ -6,13 +6,58 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SpinShareWordmark } from "@/components/SpinShareWordmark";
 import { useT } from "@/lib/i18n/locale-provider";
 
+const TILT_INTENSITY = 22;
+
+function useCursorTilt() {
+  const heroRef = useRef<HTMLDivElement>(null);
+  const [tilt, setTilt] = useState({ rx: 0, ry: 0, active: false });
+
+  useEffect(() => {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    if (reduced || coarse) {
+      return;
+    }
+
+    const reset = () => setTilt({ rx: 0, ry: 0, active: false });
+
+    const onMove = (event: MouseEvent) => {
+      const hero = heroRef.current;
+      if (!hero) {
+        return;
+      }
+
+      const rect = hero.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width - 0.5;
+      const y = (event.clientY - rect.top) / rect.height - 0.5;
+
+      setTilt({
+        ry: x * TILT_INTENSITY,
+        rx: -y * TILT_INTENSITY,
+        active: true,
+      });
+    };
+
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseleave", reset);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseleave", reset);
+    };
+  }, []);
+
+  return { heroRef, tilt };
+}
+
 export default function NotFound() {
   const t = useT();
+  const { heroRef, tilt } = useCursorTilt();
 
   return (
     <>
@@ -64,10 +109,23 @@ export default function NotFound() {
         <div className="pointer-events-none absolute left-[10%] top-[20%] h-[400px] w-[400px] rounded-full bg-emerald-200/30 blur-3xl" />
         <div className="pointer-events-none absolute bottom-[15%] right-[10%] h-[350px] w-[350px] rounded-full bg-emerald-300/20 blur-3xl" />
 
-        <div className="relative z-10 flex min-h-[calc(100vh-7rem)] flex-col items-center justify-center px-4 pt-12 pb-16 text-center">
-        <h1 className="spinshare-404-3d text-[8rem] font-black leading-none tracking-tighter sm:text-[12rem] lg:text-[16rem]">
-          {t.notFound.title}
-        </h1>
+        <div
+          ref={heroRef}
+          className="relative z-10 flex min-h-[calc(100vh-7rem)] flex-col items-center justify-center px-4 pt-12 pb-16 text-center [perspective:1200px]"
+        >
+          <div
+            className="spinshare-404-tilt"
+            style={{
+              transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) scale3d(${tilt.active ? 1.02 : 1}, ${tilt.active ? 1.02 : 1}, 1)`,
+              transition: tilt.active
+                ? "transform 0.12s cubic-bezier(0.25, 1, 0.5, 1)"
+                : "transform 0.55s cubic-bezier(0.25, 1, 0.5, 1)",
+            }}
+          >
+            <h1 className="spinshare-404-3d text-[8rem] font-black leading-none tracking-tighter sm:text-[12rem] lg:text-[16rem]">
+              {t.notFound.title}
+            </h1>
+          </div>
 
         <p className="mx-auto mt-6 max-w-md text-lg font-bold text-slate-700">
           {t.notFound.body}

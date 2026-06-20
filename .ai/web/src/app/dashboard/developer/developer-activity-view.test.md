@@ -41,3 +41,13 @@ Normalize a Chinese welcome-gift row and prove the Recent credit search matches
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-20 | Planned localized welcome-gift search and CSV coverage. | Codex |
+
+## Implemented Coverage 2026-06-20 Localized Welcome Gift Export
+
+Added Chinese welcome-gift search and CSV assertions, including `+$1.00`.
+
+## Verification 2026-06-20
+
+- Focused dashboard run: 29 tests passed.
+- Full web suite: 438 tests passed and 38 were skipped.
+- `corepack pnpm@9.12.0 --filter @spinshare/web lint` passed.

@@ -44,10 +44,12 @@ vi.mock("./developer-activity-context", () => ({
   DeveloperActivityProviderClient: ({
     children,
     token,
+    pinnedActivities,
   }: {
     children: React.ReactNode;
     token: string;
-  }) => <div data-token={token}>{children}</div>,
+    pinnedActivities?: readonly unknown[];
+  }) => <div data-token={token} data-pinned-count={pinnedActivities?.length ?? 0}>{children}</div>,
 }));
 
 import DeveloperDashboardLayout from "./layout";
@@ -99,5 +101,44 @@ describe("DeveloperDashboardLayout", () => {
       email: "dev@example.test",
       userId: "dev_123",
     });
+  });
+
+  it("passes the durable signup bonus to Recent credit as a pinned activity", async () => {
+    Object.assign(globalThis, { React });
+    mocks.auth.mockResolvedValue({
+      user: {
+        id: "dev_123",
+        email: "dev@example.test",
+      },
+    });
+    mocks.mintToken.mockReturnValue("tok_developer");
+    mocks.listByDeveloper.mockResolvedValue([
+      {
+        entryId: "signup_bonus:dev_123",
+        type: "signup_bonus",
+        campaignId: "",
+        developerId: "dev_123",
+        revenueMicrocents: 0,
+        developerCreditCents: 100,
+        spinshareRetentionMicrocents: 0,
+        creditCents: 100,
+        createdAtMs: 1234,
+      },
+    ]);
+
+    const element = await DeveloperDashboardLayout({ children: "content" });
+    const activityProvider = element.props.children;
+
+    expect(activityProvider.props.pinnedActivities).toEqual([
+      {
+        activityId: "signup_bonus:dev_123",
+        campaignId: "—",
+        type: "welcome_gift",
+        status: "credited",
+        amountCents: 100,
+        amountUsd: "1.00",
+        createdAtMs: 1234,
+      },
+    ]);
   });
 });

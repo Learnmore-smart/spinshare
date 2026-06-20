@@ -68,3 +68,9 @@ with the pinned row.
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-20 | Planned initial-page merge for the pinned welcome gift. | Codex |
+
+## Implemented Change 2026-06-20 Pinned Welcome Gift
+
+The provider accepts stable defaulted `pinnedActivities`, merges them with the
+first API page before locale normalization, and preserves them through the
+existing load-more merge.

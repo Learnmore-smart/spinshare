@@ -228,6 +228,10 @@ every supported locale must name the signup credit used by Recent credit.
 |------|--------|--------|
 | 2026-06-20 | Planned typed welcome-gift activity copy. | Codex |
 
+## Implemented Change 2026-06-20 Welcome Gift Event Copy
+
+`Dictionary.activityFeed.eventLabels` now requires `welcomeGift`.
+
 ## Change History Addendum 4
 
 | Date | Change | Author |

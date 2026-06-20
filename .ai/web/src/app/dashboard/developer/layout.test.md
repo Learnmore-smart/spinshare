@@ -54,3 +54,7 @@ and $1 amount.
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-20 | Planned layout-to-activity-provider welcome-gift coverage. | Codex |
+
+## Implemented Coverage 2026-06-20 Welcome Gift Activity Wiring
+
+Added a server-layout regression test for the exact pinned welcome-gift source.

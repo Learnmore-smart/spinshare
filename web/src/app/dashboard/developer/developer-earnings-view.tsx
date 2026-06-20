@@ -30,7 +30,7 @@ export function DeveloperEarningsView() {
   const chartRangeOptions = useChartRangeOptions();
   const [chartRange, setChartRange] = useState<ChartRange>("7d");
   const { summary } = useDeveloperDashboard();
-  const { impressionCount, rows } = summary;
+  const { rows } = summary;
 
   const chartSeries = useMemo(
     () => buildChartSeries(rows, chartRange, undefined, locale),
@@ -54,7 +54,7 @@ export function DeveloperEarningsView() {
         />
       </div>
       <div className="mt-4">
-        {impressionCount === 0 ? (
+        {chartSeries.length === 0 ? (
           <div className="dev-dash-empty" data-testid="empty-state">
             <span className="text-3xl" aria-hidden>
               🤑

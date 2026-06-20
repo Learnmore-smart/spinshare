@@ -1,1 +1,0 @@
-{"version":"0.0.1","configurations":[{"name":"dbg","runtimeExecutable":"python","runtimeArgs":["-m","http.server","8801","--directory","_dbg"],"port":8801}]}

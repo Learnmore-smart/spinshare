@@ -39,3 +39,8 @@ and `+$1.00` credit.
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-20 | Planned stable-id and locale coverage for the initial welcome-gift merge. | Codex |
+
+## Implemented Coverage 2026-06-20 Pinned Welcome Gift
+
+Added coverage proving duplicate welcome-gift ids collapse to one localized
+`+$1.00` row.

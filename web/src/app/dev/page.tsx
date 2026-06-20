@@ -1,8 +1,8 @@
 /**
  * Internal dev console — `/dev`.
  *
- * Localhost: tools + analytics without auth.
- * Production: stealth 404 unless the signed-in user is an internal admin.
+ * Stealth internal page: unauthorized visitors always get the standard 404,
+ * including on localhost. Only internal admin emails may view this route.
  */
 
 import { headers } from "next/headers";
@@ -25,16 +25,13 @@ function isLocalhost(host: string | null): boolean {
 }
 
 export default async function DevPage() {
-  const headersList = await headers();
-  const host = headersList.get("host");
-  const isLocal = isLocalhost(host);
-
-  if (!isLocal) {
-    const session = await auth();
-    if (!isInternalAdminEmail(session?.user?.email)) {
-      notFound();
-    }
+  const session = await auth();
+  if (!isInternalAdminEmail(session?.user?.email)) {
+    notFound();
   }
+
+  const headersList = await headers();
+  const isLocal = isLocalhost(headersList.get("host"));
 
   const container = getContainer();
   await flushPendingForRead(container, "internal-dev-analytics");

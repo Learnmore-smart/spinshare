@@ -21,6 +21,7 @@ import { DeveloperActivityProviderClient } from "./developer-activity-context";
 import { DeveloperDashboardProvider } from "./developer-dashboard-data";
 import { DeveloperDashboardError } from "./developer-dashboard-parts";
 import { summarizeLedger } from "./summarize-ledger";
+import { welcomeGiftActivityFromRows } from "./welcome-gift-activity";
 import "../dashboard-role-switcher.css";
 import "./developer-dashboard.css";
 
@@ -72,6 +73,7 @@ export default async function DeveloperDashboardLayout({
     );
     const entries = await container.ledger.listByDeveloper(developerId);
     const summary = summarizeLedger(entries);
+    const welcomeGiftActivity = welcomeGiftActivityFromRows(summary.rows);
 
     return (
       <DeveloperDashboardProvider
@@ -79,7 +81,10 @@ export default async function DeveloperDashboardLayout({
         summary={summary}
         user={user}
       >
-        <DeveloperActivityProviderClient token={token}>
+        <DeveloperActivityProviderClient
+          token={token}
+          pinnedActivities={welcomeGiftActivity ? [welcomeGiftActivity] : []}
+        >
           <div className="dev-dash">
             <DashboardShell>{children}</DashboardShell>
           </div>

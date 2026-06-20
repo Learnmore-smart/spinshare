@@ -55,3 +55,8 @@ existing error boundary.
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-20 | Planned server-layout wiring for the welcome-gift activity. | Codex |
+
+## Implemented Change 2026-06-20 Welcome Gift Activity Wiring
+
+The layout derives the optional welcome-gift source from the already-loaded
+summary rows and supplies it to the developer activity provider.

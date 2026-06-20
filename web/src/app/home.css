@@ -787,23 +787,28 @@ input[type="password"]:focus {
 }
 
 /* =====================================================================
-   404 — 3D light pastel green text effect
-   Stacked text-shadows create depth without animating the gradient.
+   404 — high-contrast 3D emerald text (cursor-tilt target in not-found.tsx)
    ===================================================================== */
 .spinshare-404-3d {
-  color: #d1fae5; /* primary-100 — the lightest pastel mint */
+  color: #059669;
+  -webkit-text-stroke: 1px rgba(6, 95, 70, 0.22);
+  paint-order: stroke fill;
   text-shadow:
-    0 1px 0 #a7f3d0,        /* primary-200 */
-    0 2px 0 #a7f3d0,
-    0 3px 0 #86efac,        /* primary-300 */
-    0 4px 0 #6ee7b7,        /* primary-300 */
-    0 5px 0 #6ee7b7,
-    0 6px 1px rgba(16, 185, 129, 0.10),
-    0 0 5px rgba(167, 243, 208, 0.40),
-    0 1px 3px rgba(255, 255, 255, 0.50),
-    0 12px 32px rgba(16, 185, 129, 0.20);
+    0 1px 0 #047857,
+    0 2px 0 #065f46,
+    0 3px 0 #064e3b,
+    0 4px 0 #064e3b,
+    0 5px 0 #022c22,
+    0 8px 0 rgba(2, 44, 34, 0.55),
+    0 14px 28px rgba(4, 120, 87, 0.42),
+    0 28px 56px rgba(16, 185, 129, 0.28);
   letter-spacing: -0.04em;
   user-select: none;
+}
+
+.spinshare-404-tilt {
+  transform-style: preserve-3d;
+  will-change: transform;
 }
 
 /* =====================================================================

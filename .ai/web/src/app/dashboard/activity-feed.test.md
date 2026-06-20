@@ -76,3 +76,8 @@ credited status, uses the caller's welcome-gift event label, renders
 | Date | Change | Author |
 |------|--------|--------|
 | 2026-06-20 | Planned localized welcome-gift activity formatting coverage. | Codex |
+
+## Implemented Coverage 2026-06-20 Welcome Gift Activity
+
+Added localized welcome-gift normalization coverage for status, event label,
+signed amount, and counted credit.
