@@ -34,4 +34,5 @@ hostname into its redirect.
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Implemented regression test; handler no longer accepts `request`, so the test asserts a relative `Location` directly. | Codex |
 | 2026-06-19 | Documented the planned `/vsix` internal-host regression test. | Codex |

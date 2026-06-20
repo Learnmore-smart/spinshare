@@ -19,13 +19,12 @@ const VSIX_ASSET_PATH = "/spinshare.vsix";
 
 export const dynamic = "force-dynamic";
 
-export function GET(request: Request): Response {
-  const target = new URL(VSIX_ASSET_PATH, request.url);
-
+export function GET(): Response {
   return new Response(null, {
     status: 308,
     headers: {
-      Location: target.toString(),
+      // Relative path so Cloud Run's internal 0.0.0.0:8080 origin never leaks.
+      Location: VSIX_ASSET_PATH,
       "Cache-Control": "public, max-age=0, must-revalidate",
     },
   });

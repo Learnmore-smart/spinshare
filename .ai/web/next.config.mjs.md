@@ -32,31 +32,17 @@ Next.js application configuration for the SpinShare web app.
 - Do not add a `redirects()` rule for `/vsix`; `web/src/app/vsix/route.ts` owns
   the stable download endpoint.
 
-## Bug Fix Plan 2026-06-19 Production VSIX redirect leaks internal host
+## Bug Fixes
 
-**Bug:** The live `https://spinshare.dev/vsix` endpoint redirects to
-`https://0.0.0.0:8080/spinshare.vsix`, so `curl -L` cannot download the
-extension.
-
-**Root Cause:** An uncommitted `next.config.mjs` redirect for `/vsix` preempts
-the dedicated route handler. In the Cloud Run standalone container, Next
-constructs the absolute redirect from its internal `0.0.0.0:8080` origin.
-
-**Fix Strategy:** Remove the redundant config redirect and keep download
-routing in the dedicated `/vsix` route, which will emit a host-independent
-relative location.
-
-**Regression Risk:** If both routing mechanisms return, the config redirect can
-silently preempt the tested route again.
-
-**Test Plan:** Add a route regression test using an internal request origin and
-assert that the response location remains `/spinshare.vsix`; then verify the
-built app endpoint with `curl -L`.
+| Date | Bug | Cause | Fix |
+|------|-----|-------|-----|
+| 2026-06-19 | Live `/vsix` redirects to `0.0.0.0:8080`. | `next.config.mjs` had a `/vsix` redirect that preempted the route handler; the handler also built an absolute `Location` from `request.url`, which is the Cloud Run internal origin. | Removed the config redirect. `web/src/app/vsix/route.ts` now sets `Location: /spinshare.vsix` (relative). Regression test in `route.test.ts`. **Requires redeploy** to fix production. |
 
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Removed `/vsix` config redirect; route handler uses relative `Location`. | Codex |
 | 2026-06-19 | Documented removal of the production `/vsix` config redirect that leaks the container hostname. | Codex |
 | 2026-06-15 | Set `turbopack.root` to monorepo root so Turbopack resolves `next` in pnpm workspace. | Cursor |
 | 2026-06-14 | Load repo-root `.env` in config; remove need for `web/.env` link. | Cursor |

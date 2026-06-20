@@ -112,10 +112,26 @@ Update the static homepage test before implementation so it requires:
 - After implementation, `vitest run src/app/page.test.tsx src/app/api/market/route.test.ts src/app/signin/page.test.ts` passed.
 - Final focused run: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/page.test.tsx src/app/signin/page.test.ts` passed.
 
+## Bug Fix: Stale Signup Bonus Banner Copy (2026-06-20)
+
+**Discovered**: CI fails on `page.test.tsx` because the static-render test still expects
+`Limited Time: Get $1 instantly when you sign up!` while `dictionaries.ts` now defines
+`home.signupBonusBanner` as `New users get a $1 gift — our treat.`
+
+**Root Cause**: Homepage copy was updated in i18n; the regression test was not synced.
+
+**Fix Strategy**: Update the test assertion to match current `signupBonusBanner` copy.
+Keep the page/i18n copy as source of truth.
+
+**Impact**: `web/src/app/page.test.tsx` only.
+
+**Test Plan**: `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/page.test.tsx`
+
 ## Bug Fixes
 
 | Date | Bug | Cause | Fix |
 |------|-----|-------|-----|
+| 2026-06-20 | Homepage test fails on signup bonus banner | Test expected retired `Limited Time: Get $1 instantly when you sign up!` copy | Assert current `New users get a $1 gift — our treat.` banner from i18n |
 | 2026-06-15 | Full web suite fails on stale homepage layout class assertions | Test still expected old reference-layout class names that current homepage no longer renders, despite the test contract saying to assert user-visible behavior | Remove implementation-class assertions and keep copy/link/visible-section assertions. |
 
 ## Planned Regression: Checkout Return Status Banner (2026-06-16)
@@ -144,6 +160,7 @@ The homepage static-render test now requires the public checkout headline, email
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-20 | Synced signup bonus banner assertion with current i18n `signupBonusBanner` copy | Agent |
 | 2026-06-16 | Documented why checkout banner behavior is covered by the component test, not static homepage copy. | Codex |
 | 2026-06-16 | Planned homepage regression for checkout return status banner copy. | Codex |
 | 2026-06-15 | Synced homepage layout regression notes with final visible-content assertions and red/green run | Codex |

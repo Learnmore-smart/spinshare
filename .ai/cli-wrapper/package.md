@@ -1,6 +1,6 @@
-# package.json
+﻿# package.json
 
-> Last updated: 2026-06-15 | Protection: STANDARD
+> Last updated: 2026-06-19 | Protection: STANDARD
 
 ## Purpose
 
@@ -21,9 +21,29 @@ Package manifest for the SpinShare CLI wrapper.
 
 ## Dependencies
 
-- Internal: `@spinshare/core`.
+- Internal: `@spinshare/core` (devDependency only; types/build-time; bundled in dist).
 - External: PTY support via `@homebridge/node-pty-prebuilt-multiarch`.
 - External: optional native keychain support via `keytar`.
+
+## npm Publish Workflow
+
+From repo root, build dependencies then publish from `cli-wrapper/`:
+
+```powershell
+corepack pnpm@9.12.0 --filter @spinshare/core build
+corepack pnpm@9.12.0 --filter @spinshare/cli build
+cd cli-wrapper
+npm whoami
+npm publish --access public
+npm view @spinshare/cli version
+```
+
+- Package name: `@spinshare/cli` (scoped; `--access public` required on first publish).
+- No `publishConfig` in manifest; public access is passed on the CLI.
+- `files`: `["dist"]` only (plus README from npm defaults).
+- Registry URL after success: https://www.npmjs.com/package/@spinshare/cli
+
+Prerequisites: npm account with permission to publish the `@spinshare` scope (`npm login` or `npm adduser`).
 
 ## Important Notes / NEVER Change
 
@@ -64,10 +84,18 @@ cannot be bundled by tsup.
 - `npm publish --dry-run` passed for `@spinshare/cli@0.1.0`; it only warns that
   real publishing requires npm login.
 
+## Publish Attempt (2026-06-19)
+
+- `@spinshare/core` and `@spinshare/cli` builds succeeded via corepack pnpm 9.12.0.
+- `npm whoami` failed with `ENEEDAUTH` (machine not logged in).
+- `npm publish --access public` from `cli-wrapper/` prepared tarball `@spinshare/cli@0.1.0` (4 files, ~47.5 kB) then failed with `ENEEDAUTH`.
+- `npm view @spinshare/cli version` returned 404 (not yet on registry).
+
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Documented npm publish workflow; recorded blocked publish (no npm login). | Cursor |
 | 2026-06-15 | Implemented npm publishability manifest fix. | Codex |
 | 2026-06-15 | Added PTY runtime dependency documentation. | Codex |
 | 2026-06-15 | Planned npm publishability manifest fix. | Codex |

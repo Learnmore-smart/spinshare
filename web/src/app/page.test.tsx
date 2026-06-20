@@ -23,7 +23,7 @@ describe("HomePage", () => {
     expect(html).toContain("🤑");
     expect(html).toContain("SpinShare turns idle AI waits into paid moments.");
     expect(html).toContain("We give you 60% of ad revenue + a $1 head start");
-    expect(html).toContain("Limited Time: Get $1 instantly when you sign up!");
+    expect(html).toContain("New users get a $1 gift — our treat.");
     expect(html).toContain("Market depth");
     expect(html).toContain("Bid live for the most-watched spinner");
     expect(html).toContain("EMAIL");

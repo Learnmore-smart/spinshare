@@ -43,10 +43,11 @@ editor extension.
 
 | Date | Bug | Cause | Fix |
 |------|-----|-------|-----|
-| 2026-06-19 | Live `/vsix` redirects to `0.0.0.0:8080`. | A config redirect preempts the route and derives its absolute location from the internal deployment origin. | Remove the config redirect and return a relative static-asset location from this handler. |
+| 2026-06-19 | Live `/vsix` redirects to `0.0.0.0:8080`. | Handler used `new URL("/spinshare.vsix", request.url)`; on Cloud Run `request.url` is the internal `0.0.0.0:8080` origin. A redundant `next.config.mjs` redirect could also preempt this route. | `GET` now sets `Location: "/spinshare.vsix"` with no `request` dependency. Config redirect removed. Covered by `route.test.ts`. |
 
 ## Change History
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-06-19 | Implemented relative `Location` redirect; removed config-level duplicate. | Codex |
 | 2026-06-19 | Created mirror and documented the production redirect fix plan. | Codex |

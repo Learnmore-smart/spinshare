@@ -16,15 +16,6 @@ const nextConfig = {
   turbopack: {
     root: repoRoot,
   },
-  async redirects() {
-    return [
-      {
-        source: "/vsix",
-        destination: "/spinshare.vsix",
-        permanent: false,
-      },
-    ];
-  },
 };
 
 export default nextConfig;
