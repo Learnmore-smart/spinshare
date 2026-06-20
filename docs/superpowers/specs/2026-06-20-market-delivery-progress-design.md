@@ -31,13 +31,15 @@ Store purchase details per payment and sum them for every leaderboard request. T
 
 ## Data model
 
-Add `Campaign.purchasedImpressions: number`:
+Add `Campaign.purchasedImpressions?: number`:
 
 - integer;
 - non-negative;
 - starts at `0` for new campaigns;
 - increases by `blockCount * 1_000` only when funding settles;
 - never decreases when budget is spent or CPM changes.
+
+The field is optional only to distinguish legacy documents that predate inventory tracking. Repositories create it for every new campaign. If a legacy document lacks the field, funding changes its budget but deliberately leaves the field absent so the market continues using the legacy reconstruction instead of presenting a partial counter as complete history.
 
 Add a dedicated campaign repository operation for funding that updates these values in one campaign-document transaction:
 
@@ -72,7 +74,7 @@ For a legacy campaign document without a valid positive counter, the market endp
 served impressions + floor(remaining budget cents * 1000 / current CPM cents)
 ```
 
-This fallback keeps existing rows meaningful without a risky budget rewrite. New funding writes the durable counter, and newly created campaigns are exact from their first purchase onward. The API never returns a purchased total below the served total.
+This fallback keeps existing rows meaningful without a risky budget rewrite. Legacy campaigns remain on the fallback until explicitly migrated; newly created and seeded campaigns are exact from their first purchase onward. The API never returns a purchased total below the served total.
 
 ## Public market API
 
