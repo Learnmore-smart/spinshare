@@ -51,7 +51,7 @@ Added tests for successful checkout creation with private leaderboard metadata a
 - Initial focused web run failed because `./route` was missing.
 - Final `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/advertiser-checkout/route.test.ts src/app/api/market/route.test.ts src/app/page.test.tsx` passed: 3 files, 5 tests.
 
-## Planned Coverage 2026-06-20 Delivery Inventory
+## Implemented Coverage 2026-06-20 Delivery Inventory
 
 Assert public checkout passes the exact purchased impression count and settled
 mock checkout persists that count on the created campaign.
@@ -60,7 +60,7 @@ mock checkout persists that count on the created campaign.
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Planned public checkout purchased-inventory coverage. | Codex |
+| 2026-06-20 | Implemented public checkout purchased-inventory coverage. | Codex |
 | 2026-06-15 | Added public checkout money activity event coverage. | Codex |
 | 2026-06-15 | Documented mock-settlement regression test plan. | Codex |
 | 2026-06-13 | Created doc before adding public checkout route tests. | Codex |

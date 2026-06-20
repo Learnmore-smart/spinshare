@@ -105,7 +105,7 @@ Stripe provider event id.
 - Green focused webhook/gateway run passed:
   `corepack pnpm@9.12.0 --filter @spinshare/web test -- src/app/api/webhooks/stripe/route.test.ts src/server/adapters/stripe/stripe-gateway.test.ts`.
 
-## Planned Change 2026-06-20 Delivery Inventory
+## Implemented Change 2026-06-20 Delivery Inventory
 
 Resolve purchased impressions from verified Checkout metadata before claiming
 and applying funding. Ignore invalid non-derivable inventory without moving
@@ -115,7 +115,7 @@ money; duplicate deliveries must not increment budget or inventory twice.
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Planned idempotent budget plus purchased-inventory webhook funding. | Codex |
+| 2026-06-20 | Implemented idempotent budget plus purchased-inventory webhook funding. | Codex |
 | 2026-06-16 | Implemented shared Checkout Session idempotency key. | Codex |
 | 2026-06-16 | Planned shared Checkout Session idempotency key. | Codex |
 | 2026-06-16 | Implemented funding event validation and checkout session traceability. | Codex |

@@ -91,7 +91,7 @@ documents without breaking legacy rows.
 Added `COLLECTIONS.userIdentities`; `toUser` now maps and de-duplicates linked
 providers with a legacy single-provider fallback.
 
-## Planned Change 2026-06-20 Market Delivery Progress
+## Implemented Change 2026-06-20 Market Delivery Progress
 
 Map `purchasedImpressions` only when Firestore contains a safe non-negative
 integer. Preserve absence for legacy campaign documents so the public market can
@@ -101,7 +101,7 @@ reconstruct their purchased total instead of treating it as zero.
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Planned legacy-aware purchased-impression campaign mapping. | Codex |
+| 2026-06-20 | Implemented legacy-aware purchased-impression campaign mapping. | Codex |
 | 2026-06-20 | Planned identity mapping collection and provider-list mapping. | Codex |
 | 2026-06-16 | Mapped campaign review status with legacy-approved default. | Codex |
 | 2026-06-16 | Added namespace-aware `payoutAttempts` collection path. | Codex |

@@ -31,7 +31,7 @@ Defines the shared behavioral contract that every campaign repository adapter mu
 - Keep assertions adapter-neutral; do not depend on Firestore ids or error message wording.
 - Money and inventory tests must use integer values.
 
-## Planned Change 2026-06-20 Market Delivery Progress
+## Implemented Change 2026-06-20 Market Delivery Progress
 
 Add a failing parity test for atomic campaign funding and cumulative purchased impressions before implementing either adapter.
 
@@ -44,4 +44,4 @@ Add a failing parity test for atomic campaign funding and cumulative purchased i
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Created before adding the campaign funding inventory contract. | Codex |
+| 2026-06-20 | Added campaign funding inventory contract coverage. | Codex |

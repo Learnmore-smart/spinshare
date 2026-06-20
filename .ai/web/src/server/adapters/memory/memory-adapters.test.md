@@ -43,7 +43,7 @@ campaigns without a link stay out of ad selection.
 Updated the biddability and review-status fixtures to include
 `https://learnx.pro/`, then reran the memory adapter suite successfully.
 
-## Planned Change 2026-06-20 Purchased Inventory Metadata
+## Implemented Change 2026-06-20 Purchased Inventory Metadata
 
 Extend mock checkout coverage to assert that exact purchased impressions survive
 session creation and provider-verified funding lookup.
@@ -57,7 +57,7 @@ session creation and provider-verified funding lookup.
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Planned mock checkout purchased-inventory round-trip coverage. | Codex |
+| 2026-06-20 | Implemented mock checkout purchased-inventory round-trip coverage. | Codex |
 | 2026-06-18 | Implemented destination-required memory biddability fixture update. | Codex |
 | 2026-06-18 | Planned destination-required memory biddability fixture update. | Codex |
 | 2026-06-17 | Added regression for mock device approval email claims. | Codex |

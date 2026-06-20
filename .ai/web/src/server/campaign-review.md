@@ -55,7 +55,7 @@ re-review. `campaign` must be the pre-credit snapshot.
 - Only `approved` + `budgetCents>0` + `cpmCents>0` campaigns bid (see
   `listBiddable`); rejected/pending must never serve.
 
-## Planned Change 2026-06-20 Funding Inventory
+## Implemented Change 2026-06-20 Funding Inventory
 
 Change the pay-then-review funding input from a raw amount to
 `{ amountCents, purchasedImpressions }` and call `CampaignRepository.applyFunding`.
@@ -66,5 +66,5 @@ only when verified amount is an exact whole-block multiple of campaign CPM.
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Planned exact purchased-inventory funding and legacy resolution. | Codex |
+| 2026-06-20 | Implemented exact purchased-inventory funding and legacy resolution. | Codex |
 | 2026-06-18 | Created — content-review seam for edit re-gating | Claude |

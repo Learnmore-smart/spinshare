@@ -70,7 +70,7 @@ existing update-style error behavior.
 The memory repository now implements `delete(id)` by removing the campaign from
 the local map and throwing when the id is unknown.
 
-## Planned Change 2026-06-20 Market Delivery Progress
+## Implemented Change 2026-06-20 Market Delivery Progress
 
 Mirror Firestore by initializing new campaigns with zero purchased impressions
 and adding `applyFunding` to increment budget plus cumulative inventory. A
@@ -81,7 +81,7 @@ funding; ordinary budget deltas never change inventory.
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Planned memory parity for campaign funding inventory. | Codex |
+| 2026-06-20 | Implemented memory parity for campaign funding inventory. | Codex |
 | 2026-06-18 | Implemented memory repository delete method for unpaid campaign removal. | Codex |
 | 2026-06-18 | Planned memory repository delete method for unpaid campaign removal. | Codex |
 | 2026-06-18 | Implemented destination-required biddability filtering. | Codex |

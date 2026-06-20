@@ -156,7 +156,7 @@ Update the static homepage test before implementation so it requires visible adv
 
 The homepage static-render test now requires the public checkout headline, email field label, destination URL label, public leaderboard toggle copy, and Stripe checkout CTA.
 
-## Planned Regression 2026-06-20: Delivery Column
+## Implemented Regression 2026-06-20: Delivery Column
 
 Require the localized Delivery heading in ordinary static homepage markup. The
 focused progress component test owns row-level counts and ARIA behavior because
@@ -166,7 +166,7 @@ the homepage has no market rows before its client fetch resolves.
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Planned public market Delivery heading regression. | Codex |
+| 2026-06-20 | Implemented public market Delivery heading regression. | Codex |
 | 2026-06-20 | Synced signup bonus banner assertion with current i18n `signupBonusBanner` copy | Agent |
 | 2026-06-16 | Documented why checkout banner behavior is covered by the component test, not static homepage copy. | Codex |
 | 2026-06-16 | Planned homepage regression for checkout return status banner copy. | Codex |

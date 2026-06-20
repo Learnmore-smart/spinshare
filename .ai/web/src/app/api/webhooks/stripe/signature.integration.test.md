@@ -6,7 +6,7 @@
 
 Tests the signed Stripe webhook path through verification and campaign funding.
 
-## Planned Change 2026-06-20 Funding Inventory
+## Implemented Change 2026-06-20 Funding Inventory
 
 Include valid purchased-impression metadata in signed completed-checkout events
 so successful funding exercises the current money-plus-inventory contract.
@@ -20,4 +20,4 @@ so successful funding exercises the current money-plus-inventory contract.
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Created before current Checkout inventory fixture update. | Codex |
+| 2026-06-20 | Updated signed Checkout fixture with purchased inventory. | Codex |

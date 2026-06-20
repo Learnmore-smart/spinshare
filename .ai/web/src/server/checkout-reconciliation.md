@@ -68,7 +68,7 @@ previous behavior. `/api/campaigns` uses the owned-campaign helper and refreshes
 campaigns after reconciliation so dashboard budget and market eligibility are
 current.
 
-## Planned Change 2026-06-20 Delivery Inventory
+## Implemented Change 2026-06-20 Delivery Inventory
 
 Resolve exact purchased impressions from provider-verified funding before the
 idempotency claim, then pass budget plus inventory through the shared
@@ -78,6 +78,6 @@ pay-then-review funding seam. Legacy sessions may use strict amount/CPM inferenc
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Planned purchased-inventory checkout reconciliation. | Codex |
+| 2026-06-20 | Implemented purchased-inventory checkout reconciliation. | Codex |
 | 2026-06-16 | Implemented shared checkout reconciliation helper. | Codex |
 | 2026-06-16 | Created plan for shared checkout reconciliation helper. | Codex |

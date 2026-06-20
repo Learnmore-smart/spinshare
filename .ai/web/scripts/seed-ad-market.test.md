@@ -18,7 +18,7 @@ Tests the deterministic six-campaign production market seed without writing Fire
 - Internal: `web/scripts/seed-ad-market.mjs` pure exports.
 - External: Vitest.
 
-## Planned Change 2026-06-20 Purchased Inventory
+## Implemented Change 2026-06-20 Purchased Inventory
 
 Assert each generated document persists `blocks * 1,000` as exact cumulative
 purchased impressions.
@@ -32,4 +32,4 @@ purchased impressions.
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Created before purchased-inventory seed coverage. | Codex |
+| 2026-06-20 | Added purchased-inventory seed coverage. | Codex |

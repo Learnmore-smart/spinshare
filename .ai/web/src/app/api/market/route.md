@@ -63,7 +63,7 @@ longer part of the public `/api/market` row payload.
 
 `GET /api/market` now filters out campaigns where `publicOnLeaderboard === false` after loading/sorting biddable campaigns. Actual ad selection still uses the repository's full biddable set.
 
-## Planned Change 2026-06-20 Public Delivery Progress
+## Implemented Change 2026-06-20 Public Delivery Progress
 
 Reintroduce only non-monetary row-level delivery counts at the user's explicit
 request: settled `servedImpressions`, cumulative `purchasedImpressions`, and a
@@ -89,7 +89,7 @@ credible public leaderboard.
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Planned non-monetary public delivery progress fields. | Codex |
+| 2026-06-20 | Implemented non-monetary public delivery progress fields. | Codex |
 | 2026-06-13 | Created documentation for market route implementation. | Codex |
 | 2026-06-13 | Documented final route response contract for live homepage polling. | Codex |
 | 2026-06-13 | Documented leaderboard privacy filtering plan. | Codex |

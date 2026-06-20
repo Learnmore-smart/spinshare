@@ -38,7 +38,7 @@ Renders one campaign's exact delivered-versus-purchased impression progress in t
 - Keep the numeric label visible and tabular.
 - Keep the component presentation-only; API semantics belong to `/api/market`.
 
-## Planned Change 2026-06-20
+## Implemented Change 2026-06-20
 
 Create the component for the new right-hand Delivery column.
 
@@ -46,4 +46,4 @@ Create the component for the new right-hand Delivery column.
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Created before component implementation. | Codex |
+| 2026-06-20 | Implemented accessible public delivery progress component. | Codex |

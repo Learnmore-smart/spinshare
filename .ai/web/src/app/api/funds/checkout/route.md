@@ -105,7 +105,7 @@ the route persists the new CPM through the campaign repository before creating
 checkout, derives the checkout amount from the effective CPM, and leaves the
 existing CPM untouched when the field is omitted.
 
-## Planned Change 2026-06-20 Delivery Inventory
+## Implemented Change 2026-06-20 Delivery Inventory
 
 Pass the validated block count as exact purchased impressions in Checkout
 metadata and credit it through the pay-then-review funding seam for settled
@@ -143,7 +143,7 @@ mock sessions. Buy-time CPM changes must not alter the selected block count.
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Planned top-up purchased-inventory settlement. | Codex |
+| 2026-06-20 | Implemented top-up purchased-inventory settlement. | Codex |
 | 2026-06-18 | Implemented optional buy-time CPM update. | Codex |
 | 2026-06-18 | Planned optional buy-time CPM update. | Codex |
 | 2026-06-16 | Implemented same-email public campaign funding authorization. | Codex |

@@ -6,7 +6,7 @@
 
 Property-tests exactly-once campaign funding across arbitrary amounts and webhook redeliveries.
 
-## Planned Change 2026-06-20 Funding Inventory
+## Implemented Change 2026-06-20 Funding Inventory
 
 Generate a positive purchased-impression count for each otherwise-valid funding
 event. Assert idempotency still applies to money and cumulative inventory.
@@ -20,4 +20,4 @@ event. Assert idempotency still applies to money and cumulative inventory.
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Created before purchased-inventory property fixture update. | Codex |
+| 2026-06-20 | Added exactly-once purchased-inventory property coverage. | Codex |

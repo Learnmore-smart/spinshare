@@ -105,7 +105,7 @@ most recently used provider for compatibility.
 Keep `provider` for compatibility and add `providers` rather than replacing the
 field across every consumer.
 
-## Planned Change 2026-06-20 Market Delivery Progress
+## Implemented Change 2026-06-20 Market Delivery Progress
 
 Add optional `Campaign.purchasedImpressions`. New and seeded campaigns will
 persist a non-negative cumulative count, while the optional shape preserves the
@@ -122,7 +122,7 @@ needed by the public market's compatibility fallback.
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Planned cumulative purchased-impression campaign metadata. | Codex |
+| 2026-06-20 | Implemented cumulative purchased-impression campaign metadata. | Codex |
 | 2026-06-20 | Planned linked-provider metadata for canonical users. | Codex |
 | 2026-06-16 | Added optional campaign review status type. | Codex |
 | 2026-06-16 | Planned campaign review status type. | Codex |

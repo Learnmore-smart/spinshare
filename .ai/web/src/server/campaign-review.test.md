@@ -17,7 +17,7 @@ Tests campaign content review and the pay-then-review funding seam.
 - Internal: campaign review service and memory campaign repository.
 - External: Vitest.
 
-## Planned Change 2026-06-20 Funding Inventory
+## Implemented Change 2026-06-20 Funding Inventory
 
 Change funding calls to pass exact purchased impressions, assert the campaign
 counter is incremented, and test valid metadata plus exact legacy inference.
@@ -35,4 +35,4 @@ counter is incremented, and test valid metadata plus exact legacy inference.
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Created before funding inventory tests. | Codex |
+| 2026-06-20 | Added funding inventory and legacy resolver tests. | Codex |

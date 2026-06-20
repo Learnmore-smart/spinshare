@@ -431,7 +431,7 @@ The homepage bid table columns are now `#`, campaign name, and CPM. `总付款`,
 已购买`, progress bars, and any LIVE status badge are removed. Hero fleet impressions use
 `summary.totalServedImpressions` from `/api/market` instead of summing per-row served counts.
 
-## Planned Change 2026-06-20: Public Delivery Column
+## Implemented Change 2026-06-20: Public Delivery Column
 
 At the user's explicit request, add a right-hand Delivery column containing
 exact settled/purchased counts and an accessible progress bar. Keep total paid,
@@ -457,7 +457,7 @@ spend to whole cents.
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Planned accessible public market delivery column. | Codex |
+| 2026-06-20 | Implemented accessible public market delivery column. | Codex |
 | 2026-06-19 | Public bid table shows rank + CPM only; removed total paid, delivery, and LIVE status. | Cursor |
 | 2026-06-18 | Bid table uses server `totalPaidCents` + block-snapped `targetImpressions`; removed drifting local total-paid reconstruction. | Cursor |
 | 2026-06-17 | Implemented market section row layout around live market, checkout form, and CTA. | Codex |

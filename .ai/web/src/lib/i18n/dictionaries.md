@@ -21,7 +21,7 @@ SpinShare web UI copy for `en`, `zh`, and `fr`. All user-visible strings must re
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Planned `market.delivery` and localized progress labels (en/zh/fr). | Codex |
+| 2026-06-20 | Implemented `market.delivery` and localized progress labels (en/zh/fr). | Codex |
 | 2026-06-20 | Added limited-time parenthetical to `home.signupBonusBanner` (en/zh/fr). | Auto |
 | 2026-06-20 | Updated `home.footerCopy` + `market.tickerNoBidsText` (en) to "Get paid to wait.". | Auto |
 | 2026-06-20 | Updated `home.footerCopy` (en) to "Get paid when your AI thinks". | Auto |

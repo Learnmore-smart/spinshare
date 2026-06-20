@@ -72,7 +72,7 @@ only after the route has performed ownership and zero-budget checks.
 The Firestore repository now implements `delete(id)` in a transaction, throwing
 for unknown ids and deleting the campaign document when present.
 
-## Planned Change 2026-06-20 Market Delivery Progress
+## Implemented Change 2026-06-20 Market Delivery Progress
 
 Initialize new campaigns with `purchasedImpressions: 0`. Implement
 `applyFunding` in one Firestore transaction that increments budget and, when the
@@ -84,7 +84,7 @@ total continues using reconstruction rather than a partial lifetime counter.
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Planned transactional funding and purchased-inventory tracking. | Codex |
+| 2026-06-20 | Implemented transactional funding and purchased-inventory tracking. | Codex |
 | 2026-06-18 | Implemented Firestore repository delete method for unpaid campaign removal. | Codex |
 | 2026-06-18 | Planned Firestore repository delete method for unpaid campaign removal. | Codex |
 | 2026-06-18 | Implemented destination-required biddability filtering. | Codex |

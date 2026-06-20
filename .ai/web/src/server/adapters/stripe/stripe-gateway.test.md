@@ -38,7 +38,7 @@ Add pure projection coverage before implementation:
 Added local pure projection tests for paid metadata mapping and unpaid
 client-reference fallback mapping. These tests do not call the Stripe network.
 
-## Planned Coverage 2026-06-20 Purchased Inventory Metadata
+## Implemented Coverage 2026-06-20 Purchased Inventory Metadata
 
 Add local projection assertions for valid `purchasedImpressions` metadata and
 malformed/missing legacy values. Extend the signed completed-session test to
@@ -53,7 +53,7 @@ prove webhook projection preserves the same exact count.
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Planned purchased-inventory Stripe metadata coverage. | Codex |
+| 2026-06-20 | Implemented purchased-inventory Stripe metadata coverage. | Codex |
 | 2026-06-16 | Implemented Checkout Session funding lookup coverage. | Codex |
 | 2026-06-16 | Planned Checkout Session funding lookup coverage. | Codex |
 | 2026-06-16 | Implemented checkout session id parse coverage. | Codex |

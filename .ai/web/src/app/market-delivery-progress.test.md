@@ -6,7 +6,7 @@
 
 Tests the public leaderboard delivery progress cell through static React markup.
 
-## Planned Coverage 2026-06-20
+## Implemented Coverage 2026-06-20
 
 - Exact `served / purchased` text.
 - Progressbar role, value bounds, current value, and localized label.
@@ -25,4 +25,4 @@ Tests the public leaderboard delivery progress cell through static React markup.
 
 | Date | Change | Author |
 |------|--------|--------|
-| 2026-06-20 | Created before RED component coverage. | Codex |
+| 2026-06-20 | Added exact count, ARIA, and clamping component coverage. | Codex |
