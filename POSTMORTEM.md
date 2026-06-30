@@ -53,11 +53,11 @@ The spinner-as-ad-surface concept only works at scale if AI tool makers either (
 
 ## What we learned
 
+- **Building 70K lines of code in 1 week is not enough.** The AI era made it trivially fast to build a full-stack marketplace — CLI interceptor, VSCode extension, web app, Stripe payments, dashboards, the works. But shipping fast doesn't mean anyone will use it. Engineering speed is no longer the bottleneck. It never was the bottleneck. We just used to pretend it was because building took months, so distribution had time to figure itself out. Now building takes days, and distribution is the only thing left that's hard.
+- **In the AI era, distribution matters more than the product.** A mediocre product with 10,000 engaged users beats a perfect product with 4 signups. We had the better product — a novel ad surface inside AI tools, built end-to-end in a week. We had zero distribution. The 52K views were curiosity, not demand. The 4 signups were tourists, not users. The product was never the problem; the absence of a distribution channel was.
 - **Viral reach is a vanity metric without conversion.** 52K views → 4 signups → 0 usage is a 0% conversion-to-usage funnel. Attention without intent is worth nothing.
 - **Two-sided marketplaces can't bootstrap on virality alone.** You need to seed one side first — either pay developers to install upfront, or give advertisers free ad credit to create initial inventory.
-- **Onboarding friction kills products that depend on recurring behavior.** If the user has to do something every time they use their AI tool, the install step needs to be one command, not five.
 - **Intercepting another product's output is fragile.** Wrappers that sit between a CLI and its terminal break the moment the CLI changes its output format. Native integration is the only durable path.
-- **Demo before marketplace.** If we had shipped just the frozen demo (the side-by-side "stock spinner vs sponsored spinner") as a concept video, we could have validated advertiser interest before building the full marketplace.
 
 ## What's left
 
@@ -68,7 +68,7 @@ The codebase is archived but not deleted. This repo contains:
 - **`vscode-extension/`** — the VSCode extension that does the same inside the editor.
 - **`packages/core/`** — shared domain logic (bidding math, schemas, velocity helpers).
 
-The experiment is over. The code is here for reference. If someone wants to revive the concept, the architecture is sound — the problem was go-to-market, not engineering.
+The experiment is over. The code is here for reference. If someone wants to revive the concept, the architecture is sound — the problem was never engineering. It was distribution.
 
 ## Metrics at a glance
 
