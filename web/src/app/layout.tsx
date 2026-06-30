@@ -1,15 +1,11 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import type { ReactNode } from "react";
-import { Suspense } from "react";
 import "./globals.css";
 import "./theme.css";
 import "./home.css";
 import "@/components/segment-slider.css";
 import { LocaleProvider } from "@/lib/i18n/locale-provider";
-import { AuthSessionProvider } from "@/components/auth/session-provider";
-import { GoogleAnalytics } from "@/components/analytics/google-analytics";
-import { GoogleAnalyticsPageViews } from "@/components/analytics/google-analytics-page-views";
 import { ThemeScript } from "@/components/theme/theme-script";
 import { ThemeProvider } from "@/lib/theme/theme-provider";
 import { detectLocaleFromAcceptLanguage } from "@/lib/i18n/detect-locale";
@@ -18,12 +14,12 @@ import { DEFAULT_LOCALE, LOCALES, type Locale } from "@/lib/i18n/types";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.SPINSHARE_BASE_URL || "http://localhost:3000"),
   title: "SpinShare",
-  description: "Your AI is thinking. You should be earning.",
+  description: "An archived experiment testing AI workflow sponsor slots.",
   openGraph: {
     images: ["/spinshare-OG.png"],
   },
   appleWebApp: {
-    title: "MyWebSite",
+    title: "SpinShare",
   },
 };
 
@@ -54,17 +50,11 @@ export default async function RootLayout({
     <html lang={initialLocale} suppressHydrationWarning>
       <head>
         <ThemeScript />
-        <GoogleAnalytics />
       </head>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
-        <Suspense fallback={null}>
-          <GoogleAnalyticsPageViews />
-        </Suspense>
-        <AuthSessionProvider>
-          <ThemeProvider>
-            <LocaleProvider initialLocale={initialLocale}>{children}</LocaleProvider>
-          </ThemeProvider>
-        </AuthSessionProvider>
+        <ThemeProvider>
+          <LocaleProvider initialLocale={initialLocale}>{children}</LocaleProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
