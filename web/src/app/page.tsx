@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Github, Terminal, MonitorPlay, BarChart3 } from "lucide-react";
+import { ArrowRight, Github, Home, Terminal, MonitorPlay, BarChart3 } from "lucide-react";
 
 import { TiltCard } from "@/components/TiltCard";
 import { SpinShareWordmark } from "@/components/SpinShareWordmark";
@@ -116,6 +116,15 @@ export default function HomePage() {
           </nav>
 
           <div className="flex items-center gap-1.5">
+            <a
+              href="https://www.rateministere.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="spinshare-btn-outline inline-flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-[var(--text-accent-strong)]"
+            >
+              <Home className="h-4 w-4" />
+              <span className="hidden sm:inline">Home</span>
+            </a>
             <a
               href={REPO_URL}
               target="_blank"
@@ -300,7 +309,7 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* Launch video */}
+          {/* Launch videos */}
           <section id="video" className="spinshare-frame-section spinshare-home-section-muted px-4 py-16 sm:px-6 lg:py-20">
             <div className="mx-auto max-w-5xl">
               <div className="mx-auto max-w-3xl text-center">
@@ -308,22 +317,43 @@ export default function HomePage() {
                   Historical artifact
                 </p>
                 <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl text-[var(--text-primary)]">
-                  Launch reel
+                  Launch reels
                 </h2>
                 <p className="spinshare-home-body mt-4 text-base font-semibold leading-7">
-                  The original launch animation. Historical context only — SpinShare is no longer
-                  operating as a live marketplace.
+                  The original launch demo and campaign walkthrough. Historical context only —
+                  SpinShare is no longer operating as a live marketplace.
                 </p>
               </div>
 
-              <div className="mt-10 overflow-hidden rounded-2xl border border-[var(--border-default)] bg-[#07090a] shadow-2xl">
-                <iframe
-                  src="/launch-video.html"
-                  title="SpinShare launch reel"
-                  className="block aspect-video w-full"
-                  loading="lazy"
-                  style={{ border: "0", minHeight: "360px" }}
-                />
+              <div className="mt-10 grid gap-6 lg:grid-cols-2">
+                <div>
+                  <p className="spinshare-home-label mb-3 text-xs font-black uppercase tracking-[0.16em]">
+                    Launch demo
+                  </p>
+                  <div className="overflow-hidden rounded-2xl border border-[var(--border-default)] bg-[#07090a] shadow-2xl">
+                    <video
+                      src="/videos/spinshare-launch-demo.mp4"
+                      controls
+                      playsInline
+                      preload="metadata"
+                      className="block aspect-video w-full"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <p className="spinshare-home-label mb-3 text-xs font-black uppercase tracking-[0.16em]">
+                    Campaign walkthrough
+                  </p>
+                  <div className="overflow-hidden rounded-2xl border border-[var(--border-default)] bg-[#07090a] shadow-2xl">
+                    <video
+                      src="/videos/spinshare-campaign.mp4"
+                      controls
+                      playsInline
+                      preload="metadata"
+                      className="block aspect-video w-full"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -365,7 +395,7 @@ export default function HomePage() {
                 <p className="spinshare-home-body mt-4 text-xs font-semibold">
                   Full write-up with lessons learned:{" "}
                   <a
-                    href={REPO_URL + "/blob/archive/public/POSTMORTEM.md"}
+                    href={REPO_URL + "/blob/prod/POSTMORTEM.md"}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[var(--text-accent-strong)] underline underline-offset-2"

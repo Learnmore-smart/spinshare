@@ -7,7 +7,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRef, useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Home } from "lucide-react";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SpinShareWordmark } from "@/components/SpinShareWordmark";
 import { useT } from "@/lib/i18n/locale-provider";
@@ -79,30 +79,35 @@ export default function NotFound() {
           </Link>
 
           <nav className="hidden items-center gap-6 text-sm font-bold text-slate-600 md:flex">
-            <Link href="/#money" className="transition hover:text-emerald-700">
-              {t.nav.money}
+            <Link href="/#demo" className="transition hover:text-emerald-700">
+              Demo
             </Link>
-            <Link href="/#bid-market" className="transition hover:text-emerald-700">
-              {t.nav.marketDepth}
+            <Link href="/#experiment" className="transition hover:text-emerald-700">
+              Experiment
             </Link>
-            <Link href="/#how-it-pays" className="transition hover:text-emerald-700">
-              {t.nav.howItPays}
-            </Link>
-            <Link
-              href="/signin?role=advertiser"
-              className="transition hover:text-emerald-700"
-            >
-              {t.nav.advertisers}
+            <Link href="/#postmortem" className="transition hover:text-emerald-700">
+              Postmortem
             </Link>
           </nav>
 
-          <Link
-            href="/"
-            className="spinshare-btn-primary inline-flex h-10 items-center gap-2 px-5 text-sm"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            {t.common.backToHome}
-          </Link>
+          <div className="flex items-center gap-1.5">
+            <a
+              href="https://www.rateministere.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="spinshare-btn-outline inline-flex h-10 items-center gap-2 px-4 text-sm"
+            >
+              <Home className="h-4 w-4" />
+              Home
+            </a>
+            <Link
+              href="/"
+              className="spinshare-btn-primary inline-flex h-10 items-center gap-2 px-5 text-sm"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              {t.common.backToHome}
+            </Link>
+          </div>
         </div>
       </header>
 
