@@ -3,7 +3,7 @@
  *
  * Powers the marketing homepage install command:
  *
- *   curl -L https://spinshare.dev/vsix -o spinshare.vsix \
+ *   curl -L https://spinshare-web-vert.vercel.app/vsix -o spinshare.vsix \
  *     && code --install-extension spinshare.vsix
  *
  * The packaged `.vsix` lives in `web/public/spinshare.vsix` so it is always

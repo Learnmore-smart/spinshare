@@ -177,7 +177,7 @@ describe("activate", () => {
     expect(mocks.statusBarItem.show).toHaveBeenCalledOnce();
     expect(mocks.authInstances[0]?.deps).toMatchObject({
       tokenSecretKey:
-        "spinshare.deviceAuthToken:https%3A%2F%2Fwww.spinshare.dev",
+        "spinshare.deviceAuthToken:https%3A%2F%2Fspinshare-web-vert.vercel.app",
       legacyTokenSecretKeys: ["spinshare.deviceAuthToken"],
     });
   });
@@ -230,7 +230,7 @@ describe("activate", () => {
 
     expect(bridge?.dispose).toHaveBeenCalledOnce();
     expect(mocks.removeClaudeCodeAdapter).toHaveBeenCalledWith({
-      baseUrl: "https://www.spinshare.dev",
+      baseUrl: "https://spinshare-web-vert.vercel.app",
       storageRoot: "C:\\spinshare-storage",
     });
   });

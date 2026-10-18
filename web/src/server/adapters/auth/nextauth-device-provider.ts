@@ -59,7 +59,7 @@ function resolveVerificationUri(env: AuthEnv): string {
   const base =
     env.AUTH_VERIFICATION_URI ??
     (env.NEXTAUTH_URL ? `${env.NEXTAUTH_URL.replace(/\/$/, "")}/activate` : null) ??
-    "https://spinshare.dev/activate";
+    "https://spinshare-web-vert.vercel.app/activate";
   return base;
 }
 

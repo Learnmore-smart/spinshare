@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ensure production ad click URLs use `https://www.spinshare.dev` instead of Cloud Run's internal `0.0.0.0:8080` origin while preserving request-origin behavior for local development.
+**Goal:** Ensure production ad click URLs use `https://spinshare-web-vert.vercel.app` instead of Cloud Run's internal `0.0.0.0:8080` origin while preserving request-origin behavior for local development.
 
 **Architecture:** Keep URL correction at the `/api/ad` response boundary, where tracked URLs are created. Select the configured canonical `NEXTAUTH_URL` when present and otherwise use `request.url`; clients continue consuming the absolute `destinationUrl` without changes.
 
@@ -21,7 +21,7 @@ Add `"NEXTAUTH_URL"` to `ENV_KEYS` so the test cannot leak canonical-origin conf
 
 - [x] **Step 2: Add the failing Cloud Run regression test**
 
-Create an authenticated request for `http://0.0.0.0:8080/api/ad`, set `process.env.NEXTAUTH_URL = "https://www.spinshare.dev"`, and assert:
+Create an authenticated request for `http://0.0.0.0:8080/api/ad`, set `process.env.NEXTAUTH_URL = "https://spinshare-web-vert.vercel.app"`, and assert:
 
 ```ts
 expect(body.destinationUrl).toMatch(

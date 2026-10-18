@@ -55,7 +55,7 @@ async function createCampaign(advertiserId: string, cpmCents = 500) {
   return getContainer().campaigns.create({
     advertiserId,
     adText: "Try SpinShare for Claude Code",
-    destinationUrl: "https://spinshare.dev/",
+    destinationUrl: "https://spinshare-web-vert.vercel.app/",
     brandName: "SpinShare",
     cpmCents,
   });

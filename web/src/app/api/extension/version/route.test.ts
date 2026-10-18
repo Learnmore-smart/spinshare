@@ -6,14 +6,14 @@ import { GET } from "./route";
 
 describe("GET /api/extension/version", () => {
   it("advertises the latest version and a same-origin VSIX download URL", async () => {
-    const res = GET(new Request("https://www.spinshare.dev/api/extension/version"));
+    const res = GET(new Request("https://spinshare-web-vert.vercel.app/api/extension/version"));
 
     expect(res.status).toBe(200);
     expect(res.headers.get("Cache-Control")).toBe("no-store");
 
     const body = (await res.json()) as { version: string; url: string };
     expect(body.version).toBe(LATEST_EXTENSION_VERSION);
-    expect(body.url).toBe("https://www.spinshare.dev/vsix");
+    expect(body.url).toBe("https://spinshare-web-vert.vercel.app/vsix");
   });
 
   it("resolves the download URL against a localhost dev origin", async () => {

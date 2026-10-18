@@ -53,7 +53,7 @@ Fix strategy:
 
 - make the current token secret key configurable;
 - derive the key from the normalized `spinshare.baseUrl`;
-- let production migrate the old legacy `spinshare.deviceAuthToken` key so
+- let production migrate the old legacy `spinshare-web-vert.vercel.appiceAuthToken` key so
   existing prod users are not signed out;
 - do not let localhost read the legacy prod key;
 - delete both primary and configured legacy keys on sign-out.

@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/Learnmore-smart/spinshare"
   },
-  "homepage": "https://www.spinshare.dev",
+  "homepage": "https://spinshare-web-vert.vercel.app",
   "bugs": {
     "url": "https://github.com/Learnmore-smart/spinshare/issues"
   },
@@ -64,7 +64,7 @@
       "properties": {
         "spinshare.baseUrl": {
           "type": "string",
-          "default": "https://www.spinshare.dev",
+          "default": "https://spinshare-web-vert.vercel.app",
           "description": "Base URL of the SpinShare web application."
         },
         "spinshare.terminalAutoWrap": {

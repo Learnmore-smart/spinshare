@@ -73,7 +73,7 @@ describe("local sample smoke helpers", () => {
     expect(
       isLocalSampleAdResponse({
         ...validAd,
-        destinationUrl: "https://www.spinshare.dev",
+        destinationUrl: "https://spinshare-web-vert.vercel.app",
       }),
     ).toBe(false);
     expect(isLocalSampleAdResponse({ adAvailable: false })).toBe(false);

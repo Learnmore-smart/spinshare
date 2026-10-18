@@ -11,7 +11,7 @@ const packageJsonPath = join(extensionRoot, "package.json");
 const FLAVORS = {
   prod: {
     displayName: "SpinShare",
-    baseUrl: "https://www.spinshare.dev",
+    baseUrl: "https://spinshare-web-vert.vercel.app",
     description:
       "SpinShare extension: wraps terminal AI agents and shows ads during AI generation wait states. Compatible with VSCode, Trae, and Cursor.",
     // Released builds self-update from production.

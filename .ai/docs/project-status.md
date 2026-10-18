@@ -27,7 +27,7 @@
   `spinshare-prod-0.2.0.vsix` and `spinshare-local-0.2.0.vsix` were rebuilt on
   2026-06-17, and the legacy `spinshare-0.2.0.vsix` filename was refreshed from
   the rebuilt prod artifact. Manifest inspection confirmed prod defaults to
-  `https://www.spinshare.dev`, local defaults to `http://localhost:3000`, both
+  `https://spinshare-web-vert.vercel.app`, local defaults to `http://localhost:3000`, both
   packaged Claude adapters enforce strict baseUrl token matching, and both
   bundled CLI builds include strict credential environment checks.
 - Local sample/runtime verifier tests passed:
@@ -40,7 +40,7 @@
   `corepack pnpm@9.12.0 --filter ./vscode-extension package:all`, then
   extracting the VSIX manifests:
   `spinshare-prod-0.2.0.vsix` defaults `spinshare.baseUrl` to
-  `https://www.spinshare.dev`, while `spinshare-local-0.2.0.vsix` defaults it
+  `https://spinshare-web-vert.vercel.app`, while `spinshare-local-0.2.0.vsix` defaults it
   to `http://localhost:3000`.
 - `corepack pnpm@9.12.0 verify:local-runtime` passed on this workstation:
   Node 22.16.0 and the `claude`, `stripe`, `firebase`, and `npx` commands were
@@ -759,7 +759,7 @@ Extension prod/local packaging update:
 - Added root `dev:sample` to start local web with mock auth/payment, memory
   storage, and seeded sample ads.
 - Added VSIX variants:
-  `spinshare-prod-0.2.0.vsix` defaults to `https://www.spinshare.dev`, and
+  `spinshare-prod-0.2.0.vsix` defaults to `https://spinshare-web-vert.vercel.app`, and
   `spinshare-local-0.2.0.vsix` uses display name `SpinShare Local` and defaults
   to `http://localhost:3000`.
 - Both artifacts intentionally keep one extension id for now; installing local
@@ -827,7 +827,7 @@ LearnX local seed removal:
   sample:
   - `brandName: "SpinShare Local"`
   - `adText: "SpinShare Local - sample ad for localhost testing"`
-  - `destinationUrl: "https://www.spinshare.dev"`
+  - `destinationUrl: "https://spinshare-web-vert.vercel.app"`
 - The sample campaign is still default-off and only appears when
   `SPINSHARE_SEED_LOCAL_DATA=1`, which `dev:sample` sets for localhost testing.
 - RED/GREEN verification passed:
@@ -888,7 +888,7 @@ Stripe checkout return reconciliation:
 Extension no-ads / prod-local diagnosis:
 
 - Current installed VS Code Claude Code hook and terminal launcher both point
-  to `https://www.spinshare.dev`, not localhost. The user is currently testing
+  to `https://spinshare-web-vert.vercel.app`, not localhost. The user is currently testing
   the production extension path, not the local sample ad path.
 - `http://localhost:3000/api/ad` was unreachable during diagnosis, so the local
   sample server was not running. Local ads require
@@ -930,7 +930,7 @@ Extension invalid-token / prod-local credential fix:
 - Packaging passed:
   `corepack pnpm@9.12.0 --filter ./vscode-extension package:all` rebuilt
   `spinshare-prod-0.2.0.vsix` and `spinshare-local-0.2.0.vsix`.
-- VSIX spot check passed: prod defaults to `https://www.spinshare.dev`, local
+- VSIX spot check passed: prod defaults to `https://spinshare-web-vert.vercel.app`, local
   defaults to `http://localhost:3000`, and both packages contain token
   validation plus baseUrl-aware hook credential filtering.
 - Full regression/typecheck passed after packaging:

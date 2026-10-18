@@ -6,7 +6,7 @@ Dashboard modal that walks developers through connecting SpinShare so impression
 ## Planned change (2026-06-19)
 - **Outdated UX:** Modal offered IDE extension vs CLI wrapper tabs; standalone CLI is not a supported user path.
 - Remove CLI path and segment toggle entirely.
-- Step 1: copy-paste the same VSIX install command shown on the marketing home page (`curl -L https://spinshare.dev/vsix …`).
+- Step 1: copy-paste the same VSIX install command shown on the marketing home page (`curl -L https://spinshare-web-vert.vercel.app/vsix …`).
 - Keep steps 2–4: sign in from editor, open new integrated terminal, confirm on dashboard.
 - Subtitle and empty-state copy should mention extension only (no CLI).
 - Share install command constant with `page.tsx` via `web/src/lib/spinshare-install-command.ts`.

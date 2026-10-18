@@ -32,7 +32,7 @@ Run after bumping `version` in `vscode-extension/package.json`:
 
 | Date | Bug | Cause | Fix |
 |------|-----|-------|-----|
-| 2026-06-19 | `web/public/spinshare.vsix` was stale `0.2.1` while prod `0.2.2` existed. | `publish:prod` was not run after packaging. | Copied `spinshare-prod-0.2.2.vsix` → `web/public/spinshare.vsix`. SHA-256 now matches prod; embedded `version` is `0.2.2`, `baseUrl` is `https://www.spinshare.dev`. **Requires redeploy** for live static asset to update. |
+| 2026-06-19 | `web/public/spinshare.vsix` was stale `0.2.1` while prod `0.2.2` existed. | `publish:prod` was not run after packaging. | Copied `spinshare-prod-0.2.2.vsix` → `web/public/spinshare.vsix`. SHA-256 now matches prod; embedded `version` is `0.2.2`, `baseUrl` is `https://spinshare-web-vert.vercel.app`. **Requires redeploy** for live static asset to update. |
 
 ## Agent Decisions / Thoughts
 

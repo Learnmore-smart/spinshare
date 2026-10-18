@@ -38,7 +38,7 @@ Monorepo with three main packages: `/web`, `/cli-wrapper`, and `/vscode-extensio
 
 ### C. Authentication Flow (Browser Auth)
 *   **For CLI/Extensions:** Do NOT use manual API keys. Implement a standard Browser Login Flow (Device Authorization Grant or local callback server).
-*   User types `spinshare login`, opens browser to `spinshare.dev/login`, authenticates, and the token is securely passed back to the local device.
+*   User types `spinshare login`, opens browser to `spinshare-web-vert.vercel.app/login`, authenticates, and the token is securely passed back to the local device.
 
 ## 4. Web Application Features
 *   **Landing Page:** "Your AI is thinking. You should be earning."

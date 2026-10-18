@@ -18,7 +18,7 @@ const baseManifest = {
       properties: {
         "spinshare.baseUrl": {
           type: "string",
-          default: "https://www.spinshare.dev",
+          default: "https://spinshare-web-vert.vercel.app",
         },
         "spinshare.autoUpdate": {
           type: "boolean",
@@ -53,7 +53,7 @@ describe("package variant helpers", () => {
     expect(
       manifest.contributes.configuration.properties["spinshare.baseUrl"]
         .default,
-    ).toBe("https://www.spinshare.dev");
+    ).toBe("https://spinshare-web-vert.vercel.app");
     expect(autoUpdateDefault(manifest)).toBe(true);
   });
 

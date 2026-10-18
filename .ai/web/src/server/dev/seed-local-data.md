@@ -46,7 +46,7 @@ The seeded campaign now uses:
 
 - `brandName: "SpinShare Local"`
 - `adText: "SpinShare Local - sample ad for localhost testing"`
-- `destinationUrl: "https://www.spinshare.dev"`
+- `destinationUrl: "https://spinshare-web-vert.vercel.app"`
 
 The campaign id, budget, CPM, and advertiser ownership remain unchanged.
 

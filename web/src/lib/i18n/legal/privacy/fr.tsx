@@ -5,8 +5,8 @@ export function PrivacyBodyFr() {
     <>
       <LegalSection title="Aperçu">
         <p>
-          spinshare.dev (« nous ») exploite l&apos;extension VS Code SpinShare, le wrapper CLI{" "}
-          <code className={codeClass}>spinshare</code> et le site spinshare.dev. SpinShare est une
+          spinshare-web-vert.vercel.app (« nous ») exploite l&apos;extension VS Code SpinShare, le wrapper CLI{" "}
+          <code className={codeClass}>spinshare</code> et le site spinshare-web-vert.vercel.app. SpinShare est une
           place de marché publicitaire orientée développeurs qui affiche de courtes annonces textuelles
           à la place des spinners de chargement et indicateurs de progression pendant que les agents
           de codage IA génèrent leur sortie. Cette politique décrit les informations que nous
@@ -89,7 +89,7 @@ export function PrivacyBodyFr() {
 
       <LegalSection title="Analytique web et cookies">
         <p>
-          Le site spinshare.dev (pas l&apos;extension ni le wrapper CLI) peut utiliser un service
+          Le site spinshare-web-vert.vercel.app (pas l&apos;extension ni le wrapper CLI) peut utiliser un service
           d&apos;analytique d&apos;usage enregistrant les interactions (clics, défilement,
           navigation) et des cookies pour distinguer les visiteurs. Nous l&apos;utilisons pour
           comprendre et améliorer le site. Voir la déclaration de confidentialité du fournisseur
@@ -159,7 +159,7 @@ export function PrivacyBodyFr() {
           Les données de compte sont conservées tant que le compte est actif, et jusqu&apos;à 7 ans
           après résiliation ou dernière activité si nécessaire pour la fraude, la réconciliation
           financière et la conformité légale. Vous pouvez demander la suppression à
-          support@spinshare.dev ; après suppression, les identifiants personnels sont retirés ou
+          support@learnx.pro ; après suppression, les identifiants personnels sont retirés ou
           anonymisés sous 30 jours, tandis que les données agrégées/anonymisées et registres
           financiers légalement requis peuvent être conservés.
         </p>
@@ -171,7 +171,7 @@ export function PrivacyBodyFr() {
           Connecticut, l&apos;Utah et d&apos;autres États américains, ainsi que l&apos;UE/Royaume-Uni
           sous le RGPD et le Canada sous PIPEDA), vous pouvez avoir le droit d&apos;accéder, corriger
           ou supprimer vos informations personnelles, et de refuser toute vente ou partage (que nous ne
-          faisons pas). Pour exercer ces droits, écrivez à support@spinshare.dev.
+          faisons pas). Pour exercer ces droits, écrivez à support@learnx.pro.
         </p>
       </LegalSection>
 
@@ -195,10 +195,10 @@ export function PrivacyBodyFr() {
         <p>
           Des questions sur cette politique ? Écrivez à{" "}
           <a
-            href="mailto:support@spinshare.dev"
+            href="mailto:support@learnx.pro"
             className="font-bold text-emerald-700 underline-offset-2 hover:underline"
           >
-            support@spinshare.dev
+            support@learnx.pro
           </a>
           .
         </p>

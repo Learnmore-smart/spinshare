@@ -85,8 +85,8 @@ function makeVscode(choice: string | undefined = SIGN_IN_ACTION): MockVsCode {
 const START: DeviceFlowStart = {
   deviceCode: "dc_1",
   userCode: "WXYZ-1234",
-  verificationUri: "https://spinshare.dev/activate",
-  verificationUriComplete: "https://spinshare.dev/activate?user_code=WXYZ-1234",
+  verificationUri: "https://spinshare-web-vert.vercel.app/activate",
+  verificationUriComplete: "https://spinshare-web-vert.vercel.app/activate?user_code=WXYZ-1234",
   intervalSec: 1,
   expiresInSec: 300,
 };
@@ -130,7 +130,7 @@ describe("AuthManager", () => {
 
   it("keeps localhost and production tokens in separate secret keys", async () => {
     const localKey = tokenSecretKeyForBaseUrl("http://localhost:3000/");
-    const prodKey = tokenSecretKeyForBaseUrl("https://www.spinshare.dev");
+    const prodKey = tokenSecretKeyForBaseUrl("https://spinshare-web-vert.vercel.app");
 
     expect(localKey).not.toBe(prodKey);
     expect(localKey).not.toBe(TOKEN_SECRET_KEY);
@@ -152,7 +152,7 @@ describe("AuthManager", () => {
   });
 
   it("migrates the legacy token into the production base-url key", async () => {
-    const prodKey = tokenSecretKeyForBaseUrl("https://www.spinshare.dev");
+    const prodKey = tokenSecretKeyForBaseUrl("https://spinshare-web-vert.vercel.app");
     const { secrets, store } = makeSecrets({ [TOKEN_SECRET_KEY]: "tok_prod" });
     const auth = new AuthManager({
       vscode: makeVscode().vscode,
@@ -194,7 +194,7 @@ describe("AuthManager", () => {
   });
 
   it("clears invalid stored tokens and the shared token mirror during initialize", async () => {
-    const prodKey = tokenSecretKeyForBaseUrl("https://www.spinshare.dev");
+    const prodKey = tokenSecretKeyForBaseUrl("https://spinshare-web-vert.vercel.app");
     const { secrets, store } = makeSecrets({
       [prodKey]: "tok_bad",
       [TOKEN_SECRET_KEY]: "tok_bad_legacy",

@@ -7,7 +7,7 @@ SECTIONS_FR: dict[int, str] = {
         """\
 <LegalSection id={1} title={titles[1] ?? ""}>
             <p>
-              Les présentes Conditions d&apos;utilisation (l&apos;« Accord ») constituent un accord juridiquement contraignant entre vous (« vous », « votre » ou « Utilisateur ») et spinshare.dev (« SpinShare », « nous » ou « notre »), régissant votre accès au Service SpinShare, à l&apos;extension Visual Studio Code (VS Code), au plugin IDE, au wrapper en ligne de commande (CLI) et aux services connexes (collectivement, le « Service »).
+              Les présentes Conditions d&apos;utilisation (l&apos;« Accord ») constituent un accord juridiquement contraignant entre vous (« vous », « votre » ou « Utilisateur ») et spinshare-web-vert.vercel.app (« SpinShare », « nous » ou « notre »), régissant votre accès au Service SpinShare, à l&apos;extension Visual Studio Code (VS Code), au plugin IDE, au wrapper en ligne de commande (CLI) et aux services connexes (collectivement, le « Service »).
             </p>
             <p>
               EN INSTALLANT SPINSHARE, EN CRÉANT UN COMPTE, EN ACCÉDANT À NOTRE SITE WEB OU EN UTILISANT LE SERVICE DE QUELQUE MANIÈRE QUE CE SOIT, VOUS RECONNAISSEZ AVOIR LU, COMPRIS ET ACCEPTÉ D&apos;ÊTRE LIÉ PAR LE PRÉSENT ACCORD. SI VOUS N&apos;ACCEPTEZ PAS L&apos;ENSEMBLE DES TERMES ET CONDITIONS, VOUS DEVEZ IMMÉDIATEMENT CESSER D&apos;UTILISER LE SERVICE ET DÉSINSTALLER L&apos;EXTENSION ET LE WRAPPER CLI.
@@ -202,7 +202,7 @@ SECTIONS_FR: dict[int, str] = {
               Sans limitation, le Contenu publicitaire ne peut pas : promouvoir les jeux d&apos;argent (là où c&apos;est interdit) ; promouvoir l&apos;alcool, le tabac ou les substances contrôlées en violation de la loi ; contenir du contenu pour adultes, des propos haineux ou du matériel discriminatoire ; faire des allégations de santé ou financières non étayées ; usurper l&apos;identité de SpinShare ou d&apos;un tiers ; ou violer les droits de propriété intellectuelle, de confidentialité ou de publicité de toute personne ou entité.
             </LegalSubsection>
             <LegalSubsection title="7.5 Droit de refuser ou de retirer">
-              SpinShare se réserve le droit, à sa seule discrétion et sans responsabilité, de refuser, retirer ou suspendre tout Contenu publicitaire ou campagne pour quelque raison que ce soit ou sans raison, y compris, sans limitation, les violations du présent Accord, les plaintes d&apos;utilisateurs ou les préoccupations relatives à la sécurité de la marque. Aucun remboursement ni crédit ne sera accordé pour les campagnes retirées, sauf si SpinShare détermine, à sa seule discrétion, que le retrait était erroné. Les Annonceurs peuvent contester un retrait ou une suspension dans les trente (30) jours en contactant support@spinshare.dev. SpinShare examinera le recours et, s&apos;il détermine que l&apos;action était erronée, rétablira la campagne et/ou émettra un crédit. Toutes les décisions de recours sont définitives.
+              SpinShare se réserve le droit, à sa seule discrétion et sans responsabilité, de refuser, retirer ou suspendre tout Contenu publicitaire ou campagne pour quelque raison que ce soit ou sans raison, y compris, sans limitation, les violations du présent Accord, les plaintes d&apos;utilisateurs ou les préoccupations relatives à la sécurité de la marque. Aucun remboursement ni crédit ne sera accordé pour les campagnes retirées, sauf si SpinShare détermine, à sa seule discrétion, que le retrait était erroné. Les Annonceurs peuvent contester un retrait ou une suspension dans les trente (30) jours en contactant support@learnx.pro. SpinShare examinera le recours et, s&apos;il détermine que l&apos;action était erronée, rétablira la campagne et/ou émettra un crédit. Toutes les décisions de recours sont définitives.
             </LegalSubsection>
             <LegalSubsection title="7.6 Indemnisation de l&apos;annonceur pour le contenu">
               Les Annonceurs indemnisent expressément et tiennent SpinShare indemne de toute réclamation, dommage, perte et dépense (y compris les honoraires d&apos;avocat raisonnables) découlant de ou liés à : (i) le contenu, l&apos;exactitude ou la légalité du Contenu publicitaire ; (ii) les produits ou services promus ; (iii) les sites web de destination ou pages d&apos;atterrissage liés depuis les publicités ; et (iv) toute fausse déclaration ou violation de garantie par l&apos;Annonceur.
@@ -228,7 +228,7 @@ SECTIONS_FR: dict[int, str] = {
               Les Annonceurs doivent notifier SpinShare par écrit de tout litige de facturation dans les trente (30) jours suivant la date de prélèvement. Les parties non contestées seront payées rapidement. L&apos;initiation d&apos;une rétrofacturation ou d&apos;un litige de paiement sans avoir d&apos;abord tenté de résoudre le problème avec SpinShare constitue une violation substantielle du présent Accord et peut entraîner une suspension ou une résiliation immédiate du compte.
             </LegalSubsection>
             <LegalSubsection title="8.5 Conditions de paiement des utilisateurs">
-              Les Utilisateurs rémunérés peuvent demander la suppression du compte et le paiement des revenus accumulés (sous réserve du Seuil de paiement) en contactant support@spinshare.dev, ou via l&apos;interface des paramètres du compte lorsque disponible. Les demandes de paiement sont traitées dans les trente (30) jours ouvrables. Nous nous réservons le droit de retarder les paiements en attente de l&apos;achèvement de l&apos;examen anti-fraude ou de la vérification des informations de paiement.
+              Les Utilisateurs rémunérés peuvent demander la suppression du compte et le paiement des revenus accumulés (sous réserve du Seuil de paiement) en contactant support@learnx.pro, ou via l&apos;interface des paramètres du compte lorsque disponible. Les demandes de paiement sont traitées dans les trente (30) jours ouvrables. Nous nous réservons le droit de retarder les paiements en attente de l&apos;achèvement de l&apos;examen anti-fraude ou de la vérification des informations de paiement.
             </LegalSubsection>
           </LegalSection>
         """),
@@ -302,7 +302,7 @@ SECTIONS_FR: dict[int, str] = {
               Les données de compte individuelles sont conservées pendant 7 ans suivant la résiliation du compte ou 7 ans à compter de la dernière activité du compte, selon la période la plus longue, à des fins de prévention de la fraude, de rapprochement financier et de conformité légale. Les données agrégées peuvent être conservées indéfiniment pour l&apos;analyse et l&apos;amélioration du service, et anonymisées dans la mesure du possible ou si requis.
             </LegalSubsection>
             <LegalSubsection title="10.5 Demandes de suppression de données">
-              Les utilisateurs peuvent demander la suppression de leur compte et des données personnelles associées en contactant support@spinshare.dev. Lors de la suppression : (i) les identifiants personnels seront supprimés ou anonymisés dans les 30 jours ; (ii) les données agrégées et anonymisées dérivées du compte peuvent être conservées ; (iii) les registres financiers exigés par la loi seront conservés conformément aux obligations légales ; et (iv) les données d&apos;impressions et de clics anonymisées nécessaires au rapprochement de facturation des annonceurs seront conservées sous une forme non identifiable.
+              Les utilisateurs peuvent demander la suppression de leur compte et des données personnelles associées en contactant support@learnx.pro. Lors de la suppression : (i) les identifiants personnels seront supprimés ou anonymisés dans les 30 jours ; (ii) les données agrégées et anonymisées dérivées du compte peuvent être conservées ; (iii) les registres financiers exigés par la loi seront conservés conformément aux obligations légales ; et (iv) les données d&apos;impressions et de clics anonymisées nécessaires au rapprochement de facturation des annonceurs seront conservées sous une forme non identifiable.
             </LegalSubsection>
             <LegalSubsection title="10.6 Sous-traitants tiers">
               SpinShare utilise des prestataires de services tiers pour le traitement des paiements, l&apos;analyse, l&apos;hébergement et le support client. Ceux-ci incluent actuellement Stripe (traitement des paiements et versements), Google Cloud / Firebase (hébergement, authentification et stockage de données), Twilio SendGrid (courriel transactionnel) et un fournisseur d&apos;analyse d&apos;utilisation du site web, bien que les prestataires puissent changer. En utilisant le Service, vous consentez à l&apos;engagement de ces sous-traitants sous réserve d&apos;accords de protection des données appropriés.
@@ -336,7 +336,7 @@ SECTIONS_FR: dict[int, str] = {
         """\
 <LegalSection id={12} title={titles[12] ?? ""}>
             <LegalSubsection title="12.1 Résiliation par l&apos;utilisateur">
-              Vous pouvez résilier votre compte à tout moment en contactant support@spinshare.dev et en demandant la suppression. La résiliation ne vous libère pas des obligations contractées avant la résiliation et n&apos;affecte pas les dispositions qui, par leur nature, survivent à la résiliation.
+              Vous pouvez résilier votre compte à tout moment en contactant support@learnx.pro et en demandant la suppression. La résiliation ne vous libère pas des obligations contractées avant la résiliation et n&apos;affecte pas les dispositions qui, par leur nature, survivent à la résiliation.
             </LegalSubsection>
             <LegalSubsection title="12.2 Résiliation par SpinShare">
               SpinShare se réserve le droit, à sa seule discrétion et sans préavis, de suspendre ou résilier tout compte, restreindre l&apos;accès au Service ou cesser de fournir le service à tout utilisateur ou annonceur pour quelque raison que ce soit ou sans raison, y compris, sans limitation : violation du présent Accord ; fraude ou abus suspectés ; demande d&apos;une autorité d&apos;application de la loi ou réglementaire ; période prolongée d&apos;inactivité ; ou cessation d&apos;activité.
@@ -453,10 +453,10 @@ SECTIONS_FR: dict[int, str] = {
               Si vous êtes dans l&apos;UE ou au Royaume-Uni, nos bases juridiques de traitement sont : l&apos;exécution d&apos;un contrat (fourniture du Service et crédit des revenus), nos intérêts légitimes (exploitation, sécurisation et amélioration du Service, prévention de la fraude) et l&apos;obligation légale (fiscalité, comptabilité et conformité). Vous avez le droit d&apos;accéder, de rectifier, d&apos;effacer, de restreindre ou de vous opposer au traitement de vos données personnelles, ainsi que le droit à la portabilité des données. Vous avez également le droit de déposer une plainte auprès d&apos;une autorité de contrôle dans votre juridiction.
             </LegalSubsection>
             <LegalSubsection title="18.4 Canada (PIPEDA)">
-              Si vous êtes au Canada, vous pouvez demander l&apos;accès à vos informations personnelles et leur correction en vertu de la Loi sur la protection des renseignements personnels et les documents électroniques (« PIPEDA ») et des lois provinciales sur la confidentialité applicables. Pour exercer ces droits, contactez-nous à support@spinshare.dev. Si vous n&apos;êtes pas satisfait de notre réponse, vous pouvez contacter le Commissariat à la protection de la vie privée du Canada.
+              Si vous êtes au Canada, vous pouvez demander l&apos;accès à vos informations personnelles et leur correction en vertu de la Loi sur la protection des renseignements personnels et les documents électroniques (« PIPEDA ») et des lois provinciales sur la confidentialité applicables. Pour exercer ces droits, contactez-nous à support@learnx.pro. Si vous n&apos;êtes pas satisfait de notre réponse, vous pouvez contacter le Commissariat à la protection de la vie privée du Canada.
             </LegalSubsection>
             <LegalSubsection title="18.5 Autres lois sur la confidentialité des États américains">
-              Les résidents de Virginie (VCDPA), du Colorado (CPA), du Connecticut (CTDPA), de l&apos;Utah (UCPA) et d&apos;autres États américains disposant de lois comparables sur la confidentialité peuvent bénéficier de droits supplémentaires, y compris le droit de confirmer si nous traitons vos informations personnelles, d&apos;y accéder et de les corriger, d&apos;obtenir une copie portable, et de vous opposer à la publicité ciblée ou à la vente d&apos;informations personnelles (que nous ne pratiquons pas). Pour exercer vos droits en vertu de ces lois, contactez-nous à support@spinshare.dev.
+              Les résidents de Virginie (VCDPA), du Colorado (CPA), du Connecticut (CTDPA), de l&apos;Utah (UCPA) et d&apos;autres États américains disposant de lois comparables sur la confidentialité peuvent bénéficier de droits supplémentaires, y compris le droit de confirmer si nous traitons vos informations personnelles, d&apos;y accéder et de les corriger, d&apos;obtenir une copie portable, et de vous opposer à la publicité ciblée ou à la vente d&apos;informations personnelles (que nous ne pratiquons pas). Pour exercer vos droits en vertu de ces lois, contactez-nous à support@learnx.pro.
             </LegalSubsection>
           </LegalSection>
         """),
@@ -466,10 +466,10 @@ SECTIONS_FR: dict[int, str] = {
             <LegalSubsection title="19.1 Agent désigné">
               SpinShare respecte les droits de propriété intellectuelle et se conforme au DMCA. Si vous estimez qu&apos;un matériel disponible via le Service porte atteinte à votre droit d&apos;auteur, vous pouvez soumettre une notification à notre Agent des droits d&apos;auteur désigné :{" "}
               <a
-                href="mailto:support@spinshare.dev"
+                href="mailto:support@learnx.pro"
                 className="font-bold text-emerald-700 underline-offset-2 hover:underline"
               >
-                support@spinshare.dev
+                support@learnx.pro
               </a>
               .
             </LegalSubsection>
@@ -543,19 +543,19 @@ SECTIONS_FR: dict[int, str] = {
               <li>
                 <strong className="text-slate-900">Courriel :</strong>{" "}
                 <a
-                  href="mailto:support@spinshare.dev"
+                  href="mailto:support@learnx.pro"
                   className="font-bold text-emerald-700 underline-offset-2 hover:underline"
                 >
-                  support@spinshare.dev
+                  support@learnx.pro
                 </a>
               </li>
               <li>
                 <strong className="text-slate-900">Site web :</strong>{" "}
-                spinshare.dev
+                spinshare-web-vert.vercel.app
               </li>
             </ul>
             <p className="mt-4 text-xs font-bold uppercase tracking-wider text-slate-500">
-              © 2026 spinshare.dev. Tous droits réservés.
+              © 2026 spinshare-web-vert.vercel.app. Tous droits réservés.
             </p>
           </LegalSection>
         """),

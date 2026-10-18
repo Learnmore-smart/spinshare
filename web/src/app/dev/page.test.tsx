@@ -106,7 +106,7 @@ describe("/dev page", () => {
   });
 
   it("returns 404 on production for unauthorized users", async () => {
-    mocks.headers.mockResolvedValue(new Headers({ host: "spinshare.dev" }));
+    mocks.headers.mockResolvedValue(new Headers({ host: "spinshare-web-vert.vercel.app" }));
     mocks.auth.mockResolvedValue({ user: { email: "other@example.com" } });
 
     await expect(DevPage()).rejects.toThrow("NOT_FOUND");
@@ -126,7 +126,7 @@ describe("/dev page", () => {
 
   it("renders for internal admin on production", async () => {
     Object.assign(globalThis, { React });
-    mocks.headers.mockResolvedValue(new Headers({ host: "spinshare.dev" }));
+    mocks.headers.mockResolvedValue(new Headers({ host: "spinshare-web-vert.vercel.app" }));
     mocks.auth.mockResolvedValue({ user: { email: "noahzh52@gmail.com" } });
 
     const view = await DevPage();

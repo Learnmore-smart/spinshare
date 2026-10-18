@@ -98,7 +98,7 @@ export const SEED_CAMPAIGNS = [
     advertiserId: "seed-spinshare-advertiser",
     brandName: "SpinShare",
     adText: "SpinShare — Get paid when your AI thinks",
-    destinationUrl: "https://spinshare.dev/",
+    destinationUrl: "https://spinshare-web-vert.vercel.app/",
     cpmCents: 600,
     blocks: 10,
     budgetCents: 6000,

@@ -15,7 +15,7 @@ const POLL_INTERVAL_MS = 1_000;
 
 const PURCHASED_AD_TEXT = "SpinShare Checkout Smoke - funded local purchase";
 const PURCHASED_BRAND_NAME = "Checkout Smoke";
-const PURCHASED_DESTINATION_URL = "https://www.spinshare.dev/checkout-smoke";
+const PURCHASED_DESTINATION_URL = "https://spinshare-web-vert.vercel.app/checkout-smoke";
 const PURCHASED_ADVERTISER_EMAIL = "advertiser@spinshare.test";
 const PURCHASED_ADVERTISER_PASSWORD = "spinshare";
 const PURCHASED_CPM_CENTS = 5_000;

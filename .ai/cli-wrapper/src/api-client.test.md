@@ -50,7 +50,7 @@ exists`, using an injected fetch stub and `tokenProvider: () => undefined`.
 ## Planned Change (2026-06-15)
 
 Add a failing regression test proving explicit and environment-provided
-`https://spinshare.dev/` values resolve to `https://www.spinshare.dev`.
+`https://spinshare-web-vert.vercel.app/` values resolve to `https://spinshare-web-vert.vercel.app`.
 
 ## Implemented Test (2026-06-15)
 

@@ -3,10 +3,10 @@
             <LegalSubsection title="19.1 Agent désigné">
               SpinShare respecte les droits de propriété intellectuelle et se conforme au DMCA. Si vous pensez que du matériel disponible via le Service porte atteinte à votre droit d&apos;auteur, vous pouvez soumettre une notification à notre Agent désigné pour le droit d&apos;auteur :{" "}
               <a
-                href="mailto:support@spinshare.dev"
+                href="mailto:support@learnx.pro"
                 className="font-bold text-emerald-700 underline-offset-2 hover:underline"
               >
-                support@spinshare.dev
+                support@learnx.pro
               </a>
               .
             </LegalSubsection>
@@ -74,19 +74,19 @@
               <li>
                 <strong className="text-slate-900">Courriel :</strong>{" "}
                 <a
-                  href="mailto:support@spinshare.dev"
+                  href="mailto:support@learnx.pro"
                   className="font-bold text-emerald-700 underline-offset-2 hover:underline"
                 >
-                  support@spinshare.dev
+                  support@learnx.pro
                 </a>
               </li>
               <li>
                 <strong className="text-slate-900">Site web :</strong>{" "}
-                spinshare.dev
+                spinshare-web-vert.vercel.app
               </li>
             </ul>
             <p className="mt-4 text-xs font-bold uppercase tracking-wider text-slate-500">
-              © 2026 spinshare.dev. Tous droits réservés.
+              © 2026 spinshare-web-vert.vercel.app. Tous droits réservés.
             </p>
           </LegalSection>
 

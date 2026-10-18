@@ -11,12 +11,12 @@ describe("checkStrictModes", () => {
       STRIPE_MODE: "test",
       SPINSHARE_FLUSH_SECRET: "flush_secret",
       NEXTAUTH_URL: "http://localhost:3000",
-      AUTH_VERIFICATION_URI: "https://www.spinshare.dev/activate",
+      AUTH_VERIFICATION_URI: "https://spinshare-web-vert.vercel.app/activate",
     });
 
     expect(result.ok).toBe(true);
     expect(result.warnings).toContain(
-      "NEXTAUTH_URL is localhost - set https://www.spinshare.dev in Cloud Run variables for production",
+      "NEXTAUTH_URL is localhost - set https://spinshare-web-vert.vercel.app in Cloud Run variables for production",
     );
   });
 
@@ -27,13 +27,13 @@ describe("checkStrictModes", () => {
       AUTH_MODE: "oauth",
       STRIPE_MODE: "test",
       SPINSHARE_FLUSH_SECRET: "flush_secret",
-      NEXTAUTH_URL: "https://www.spinshare.dev",
+      NEXTAUTH_URL: "https://spinshare-web-vert.vercel.app",
       AUTH_VERIFICATION_URI: "http://localhost:3000/activate",
     });
 
     expect(result.ok).toBe(true);
     expect(result.warnings).toContain(
-      "AUTH_VERIFICATION_URI is localhost - set https://www.spinshare.dev/activate in Cloud Run variables for production",
+      "AUTH_VERIFICATION_URI is localhost - set https://spinshare-web-vert.vercel.app/activate in Cloud Run variables for production",
     );
   });
 
@@ -44,8 +44,8 @@ describe("checkStrictModes", () => {
       AUTH_MODE: "oauth",
       STRIPE_MODE: "test",
       SPINSHARE_FLUSH_SECRET: "flush_secret",
-      NEXTAUTH_URL: "https://www.spinshare.dev",
-      AUTH_VERIFICATION_URI: "https://www.spinshare.dev/activate",
+      NEXTAUTH_URL: "https://spinshare-web-vert.vercel.app",
+      AUTH_VERIFICATION_URI: "https://spinshare-web-vert.vercel.app/activate",
       NEXT_PUBLIC_GA_MEASUREMENT_ID: "G-XXXXXXXXXX",
     });
 
@@ -60,8 +60,8 @@ describe("checkStrictModes", () => {
       AUTH_MODE: "oauth",
       STRIPE_MODE: "test",
       SPINSHARE_FLUSH_SECRET: "flush_secret",
-      NEXTAUTH_URL: "https://www.spinshare.dev",
-      AUTH_VERIFICATION_URI: "https://www.spinshare.dev/activate",
+      NEXTAUTH_URL: "https://spinshare-web-vert.vercel.app",
+      AUTH_VERIFICATION_URI: "https://spinshare-web-vert.vercel.app/activate",
     });
 
     expect(result.ok).toBe(true);
@@ -76,8 +76,8 @@ describe("checkStrictModes", () => {
       SPINSHARE_COUNTER: "rtdb",
       AUTH_MODE: "oauth",
       STRIPE_MODE: "test",
-      NEXTAUTH_URL: "https://www.spinshare.dev",
-      AUTH_VERIFICATION_URI: "https://www.spinshare.dev/activate",
+      NEXTAUTH_URL: "https://spinshare-web-vert.vercel.app",
+      AUTH_VERIFICATION_URI: "https://spinshare-web-vert.vercel.app/activate",
     });
 
     expect(result.ok).toBe(false);

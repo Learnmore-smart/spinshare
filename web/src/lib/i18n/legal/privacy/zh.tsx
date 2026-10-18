@@ -5,8 +5,8 @@ export function PrivacyBodyZh() {
     <>
       <LegalSection title="概述">
         <p>
-          spinshare.dev（「我们」）运营 SpinShare VS Code 插件、<code className={codeClass}>spinshare</code>{" "}
-          CLI 包装器以及 spinshare.dev 网站。SpinShare 是一个面向开发者的广告交易平台，在 AI
+          spinshare-web-vert.vercel.app（「我们」）运营 SpinShare VS Code 插件、<code className={codeClass}>spinshare</code>{" "}
+          CLI 包装器以及 spinshare-web-vert.vercel.app 网站。SpinShare 是一个面向开发者的广告交易平台，在 AI
           编程助手生成输出时，用短文本广告替换加载 spinner 和进度指示器。本政策说明我们收集哪些信息、如何使用以及您有哪些选择。
         </p>
       </LegalSection>
@@ -67,7 +67,7 @@ export function PrivacyBodyZh() {
 
       <LegalSection title="网站分析与 Cookie">
         <p>
-          spinshare.dev 网站（不含插件或 CLI 包装器）可能使用访问分析服务，记录访客如何与页面交互（点击、滚动、导航）并设置
+          spinshare-web-vert.vercel.app 网站（不含插件或 CLI 包装器）可能使用访问分析服务，记录访客如何与页面交互（点击、滚动、导航）并设置
           Cookie 以区分访客。我们据此了解并改进网站。详见第三方提供商的隐私声明。页面还可能从第三方字体服务加载字体，获取字体文件时该服务会收到您的
           IP 地址。
         </p>
@@ -124,7 +124,7 @@ export function PrivacyBodyZh() {
       <LegalSection title="数据保留与删除">
         <p>
           账户数据在账户活跃期间保留；终止或最后活动后，为反欺诈、财务对账及法律合规所需，最长可保留
-          7 年。您可联系 support@spinshare.dev
+          7 年。您可联系 support@learnx.pro
           请求删除；删除后，个人标识符将在 30
           天内移除或匿名化，依法需保留的汇总/匿名数据及财务记录仍可保留。
         </p>
@@ -134,7 +134,7 @@ export function PrivacyBodyZh() {
         <p>
           根据您所在地区（包括美国加州、弗吉尼亚、科罗拉多、康涅狄格、犹他等拥有隐私法的州，以及欧盟/英国 GDPR、加拿大
           PIPEDA），您可能有权请求访问、更正或删除个人信息，并选择退出个人信息的出售或共享（我们不出售）。行使上述权利请发送邮件至
-          support@spinshare.dev。
+          support@learnx.pro。
         </p>
       </LegalSection>
 
@@ -152,10 +152,10 @@ export function PrivacyBodyZh() {
         <p>
           对本政策有疑问？请发送邮件至{" "}
           <a
-            href="mailto:support@spinshare.dev"
+            href="mailto:support@learnx.pro"
             className="font-bold text-emerald-700 underline-offset-2 hover:underline"
           >
-            support@spinshare.dev
+            support@learnx.pro
           </a>
           。
         </p>

@@ -109,7 +109,7 @@ earnings ever reconcile** to the durable ledger, so every dashboard shows $0.
 `vscode-extension/src/claude-code-adapter.ts`) reads the shared
 `%APPDATA%/spinshare/credentials.json` and its `credentialMatchesBaseUrl`
 treated a **missing `baseUrl` as matching production**
-(`https://www.spinshare.dev`). Combined with one shared, un-scoped credential
+(`https://spinshare-web-vert.vercel.app`). Combined with one shared, un-scoped credential
 file, a token from one environment (or an untagged one) could be used by a hook
 baked for another — so a local setup's ad activity was reported to production.
 
@@ -158,7 +158,7 @@ baked for another — so a local setup's ad activity was reported to production.
   `spinshare-prod-0.2.0.vsix` and `spinshare-local-0.2.0.vsix` were rebuilt on
   2026-06-17, and the legacy `spinshare-0.2.0.vsix` filename was refreshed from
   the rebuilt prod artifact. Manifest inspection confirmed prod defaults to
-  `https://www.spinshare.dev`, local defaults to `http://localhost:3000`, both
+  `https://spinshare-web-vert.vercel.app`, local defaults to `http://localhost:3000`, both
   packaged Claude adapters enforce strict baseUrl token matching, and both
   bundled CLI builds include strict credential environment checks.
 
@@ -189,7 +189,7 @@ and no activity.
 
 **Root cause (proven, not a code bug).** The CLI was authenticated against the
 **production** deployment, so every `GET /api/ad` and `POST /api/track` call went
-to `https://www.spinshare.dev`, not to the local server. The watched-ad events
+to `https://spinshare-web-vert.vercel.app`, not to the local server. The watched-ad events
 were therefore recorded in **production** Firestore, while the localhost
 dashboard reads the **local `test` namespace** — two different data stores that
 never intersect.
@@ -198,7 +198,7 @@ Two facts combine here, both of which were on the suspect list:
 
 - **CLI base-URL / backend mismatch.** The stored CLI credential
   (`%APPDATA%/spinshare/credentials.json`) carries
-  `baseUrl: "https://www.spinshare.dev"`. `pnpm cli:login` defaults to
+  `baseUrl: "https://spinshare-web-vert.vercel.app"`. `pnpm cli:login` defaults to
   production (`DEFAULT_BASE_URL` in `cli-wrapper/src/api-client.ts:67`); only
   `pnpm cli:login:local` points at `http://localhost:3000`
   (`cli-wrapper/scripts/run-local.mjs`). The ad-watching path (`runWrap` in
@@ -284,7 +284,7 @@ Local development status:
   regenerated both VSIX variants.
 - The generated VSIX manifests were inspected after extraction:
   - `spinshare-prod-0.2.0.vsix` -> `SpinShare` ->
-    `https://www.spinshare.dev`;
+    `https://spinshare-web-vert.vercel.app`;
   - `spinshare-local-0.2.0.vsix` -> `SpinShare Local` ->
     `http://localhost:3000`.
 - `corepack pnpm@9.12.0 verify:local-runtime` passed locally:
@@ -1656,7 +1656,7 @@ Still blocked externally:
 - Added VSIX package variants:
   - `corepack pnpm@9.12.0 --filter ./vscode-extension package:prod` produces
     `vscode-extension/spinshare-prod-0.2.0.vsix`, defaulting to
-    `https://www.spinshare.dev`.
+    `https://spinshare-web-vert.vercel.app`.
   - `corepack pnpm@9.12.0 --filter ./vscode-extension package:local` produces
     `vscode-extension/spinshare-local-0.2.0.vsix`, display name
     `SpinShare Local`, defaulting to `http://localhost:3000`.
@@ -1675,7 +1675,7 @@ Still blocked externally:
   - `corepack pnpm@9.12.0 package:all` passed from `vscode-extension/` and
     generated both VSIX files.
   - VSIX manifest inspection passed: prod package has display name `SpinShare`
-    and base URL `https://www.spinshare.dev`; local package has display name
+    and base URL `https://spinshare-web-vert.vercel.app`; local package has display name
     `SpinShare Local` and base URL `http://localhost:3000`.
   - VSIX compiled artifact inspection passed: local package includes
     `tokenSecretKeyForBaseUrl` and activation passes scoped token keys.
@@ -1878,7 +1878,7 @@ Remaining caveat:
   sample:
   - `brandName: "SpinShare Local"`
   - `adText: "SpinShare Local - sample ad for localhost testing"`
-  - `destinationUrl: "https://www.spinshare.dev"`
+  - `destinationUrl: "https://spinshare-web-vert.vercel.app"`
 - The sample campaign is still default-off and only appears when
   `SPINSHARE_SEED_LOCAL_DATA=1`, which `dev:sample` sets for localhost testing.
 - RED/GREEN verification passed:
@@ -1959,13 +1959,13 @@ Remaining caveat:
 - Reproduced the current "no ads" symptom as an auth/environment problem, not
   as missing ad inventory:
   - The installed Claude Code hook in VS Code global storage points to
-    `https://www.spinshare.dev`, not `http://localhost:3000`.
-  - The installed terminal launcher also points to `https://www.spinshare.dev`
+    `https://spinshare-web-vert.vercel.app`, not `http://localhost:3000`.
+  - The installed terminal launcher also points to `https://spinshare-web-vert.vercel.app`
     and direct-launches `claude` through the native Claude Code adapter path.
   - `http://localhost:3000/api/ad` was unreachable during diagnosis, so the
     local sample server was not running. Local sample ads only exist when
     `corepack pnpm@9.12.0 dev:sample` is running.
-  - Production `GET https://www.spinshare.dev/api/ad` with the locally mirrored
+  - Production `GET https://spinshare-web-vert.vercel.app/api/ad` with the locally mirrored
     SpinShare token returned `401`.
 - Immediate conclusion: the current machine has a persisted token string, so
   the extension treats the user as signed in, but production rejects that token.
@@ -1978,7 +1978,7 @@ Remaining caveat:
   clean local/prod test loop.
 - Existing prod/local packaging is real:
   - `vscode-extension/spinshare-prod-0.2.0.vsix` defaults to
-    `https://www.spinshare.dev`.
+    `https://spinshare-web-vert.vercel.app`.
   - `vscode-extension/spinshare-local-0.2.0.vsix` defaults to
     `http://localhost:3000`.
   - They intentionally share one extension id for now, so installing local
@@ -2054,7 +2054,7 @@ Remaining caveat:
     `vscode-extension/spinshare-local-0.2.0.vsix`.
   - VSIX spot check passed by extracting both packages:
     - prod package: display name `SpinShare`, base URL
-      `https://www.spinshare.dev`;
+      `https://spinshare-web-vert.vercel.app`;
     - local package: display name `SpinShare Local`, base URL
       `http://localhost:3000`;
     - both packages contain `/api/auth/device/validate`,

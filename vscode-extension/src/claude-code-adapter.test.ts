@@ -122,7 +122,7 @@ async function withAdServer<T>(
 describe("buildClaudeCodeAdapterPlan", () => {
   it("generates Claude settings paths, scripts, and Windows-safe commands", () => {
     const plan = buildClaudeCodeAdapterPlan({
-      baseUrl: "https://www.spinshare.dev/",
+      baseUrl: "https://spinshare-web-vert.vercel.app/",
       homeDir: "C:\\Users\\Noah",
       storageRoot: "C:\\Users\\Noah\\AppData\\Roaming\\Code\\User\\globalStorage\\spinshare",
     });
@@ -143,7 +143,7 @@ describe("buildClaudeCodeAdapterPlan", () => {
 
   it("generates hook/statusLine scripts for cumulative Claude Code ads", () => {
     const plan = buildClaudeCodeAdapterPlan({
-      baseUrl: "https://www.spinshare.dev/",
+      baseUrl: "https://spinshare-web-vert.vercel.app/",
       homeDir: "/home/noah",
       storageRoot: "/tmp/spinshare",
     });
@@ -166,7 +166,7 @@ describe("buildClaudeCodeAdapterPlan", () => {
     // untagged/mismatched credential (Bug B — local/prod must not mix).
     expect(hook?.content).toContain("credentialBaseUrl.length > 0 &&");
     expect(hook?.content).not.toContain(
-      'return normalizeCredentialBaseUrl(baseUrl) === "https://www.spinshare.dev"',
+      'return normalizeCredentialBaseUrl(baseUrl) === "https://spinshare-web-vert.vercel.app"',
     );
     expect(hook?.content).toContain("const sessionId = readSessionId();");
     expect(hook?.content).toContain("sessionId");
@@ -354,7 +354,7 @@ describe("buildClaudeCodeAdapterPlan", () => {
 describe("mergeClaudeCodeSettings", () => {
   it("preserves existing settings and appends SpinShare statusLine/hooks", () => {
     const plan = buildClaudeCodeAdapterPlan({
-      baseUrl: "https://www.spinshare.dev",
+      baseUrl: "https://spinshare-web-vert.vercel.app",
       homeDir: "/home/noah",
       storageRoot: "/tmp/spinshare",
     });
@@ -410,7 +410,7 @@ describe("mergeClaudeCodeSettings", () => {
 
   it("does not duplicate existing SpinShare hook handlers", () => {
     const plan = buildClaudeCodeAdapterPlan({
-      baseUrl: "https://www.spinshare.dev",
+      baseUrl: "https://spinshare-web-vert.vercel.app",
       homeDir: "/home/noah",
       storageRoot: "/tmp/spinshare",
     });
@@ -428,7 +428,7 @@ describe("mergeClaudeCodeSettings", () => {
 
   it("sets FORCE_HYPERLINK=1 in env so OSC 8 ad links are clickable on Windows Terminal", () => {
     const plan = buildClaudeCodeAdapterPlan({
-      baseUrl: "https://www.spinshare.dev",
+      baseUrl: "https://spinshare-web-vert.vercel.app",
       homeDir: "/home/noah",
       storageRoot: "/tmp/spinshare",
     });
@@ -446,7 +446,7 @@ describe("mergeClaudeCodeSettings", () => {
 
   it("does not overwrite FORCE_HYPERLINK when the user already set it", () => {
     const plan = buildClaudeCodeAdapterPlan({
-      baseUrl: "https://www.spinshare.dev",
+      baseUrl: "https://spinshare-web-vert.vercel.app",
       homeDir: "/home/noah",
       storageRoot: "/tmp/spinshare",
     });
@@ -461,7 +461,7 @@ describe("mergeClaudeCodeSettings", () => {
 
   it("replaces SpinShare hooks from another installer path", () => {
     const plan = buildClaudeCodeAdapterPlan({
-      baseUrl: "https://www.spinshare.dev",
+      baseUrl: "https://spinshare-web-vert.vercel.app",
       homeDir: "/home/noah",
       storageRoot: "/tmp/spinshare-extension",
     });
@@ -509,7 +509,7 @@ describe("mergeClaudeCodeSettings", () => {
 describe("removeClaudeCodeSettings", () => {
   it("removes only SpinShare statusLine/hooks and preserves user settings", () => {
     const plan = buildClaudeCodeAdapterPlan({
-      baseUrl: "https://www.spinshare.dev",
+      baseUrl: "https://spinshare-web-vert.vercel.app",
       homeDir: "/home/noah",
       storageRoot: "/tmp/spinshare",
     });
@@ -561,7 +561,7 @@ describe("removeClaudeCodeSettings", () => {
 
   it("removes SpinShare hooks from another installer path", () => {
     const plan = buildClaudeCodeAdapterPlan({
-      baseUrl: "https://www.spinshare.dev",
+      baseUrl: "https://spinshare-web-vert.vercel.app",
       homeDir: "/home/noah",
       storageRoot: "/tmp/spinshare-extension",
     });
@@ -622,7 +622,7 @@ describe("removeClaudeCodeAdapter", () => {
     );
 
     const installPlan = await installClaudeCodeAdapter({
-      baseUrl: "https://www.spinshare.dev",
+      baseUrl: "https://spinshare-web-vert.vercel.app",
       homeDir,
       storageRoot,
     });
@@ -630,7 +630,7 @@ describe("removeClaudeCodeAdapter", () => {
     await fs.writeFile(installPlan!.stateFilePath, "{}", "utf8");
 
     const removed = await removeClaudeCodeAdapter({
-      baseUrl: "https://www.spinshare.dev",
+      baseUrl: "https://spinshare-web-vert.vercel.app",
       homeDir,
       storageRoot,
     });

@@ -33,7 +33,7 @@ describe("CampaignBuilder", () => {
     const storage = new Map<string, string>();
     const draft = {
       adText: "Try SpinShare for Claude Code",
-      destinationUrl: "https://spinshare.dev/",
+      destinationUrl: "https://spinshare-web-vert.vercel.app/",
       brandName: "SpinShare",
       brandIconDataUrl: null,
       publicOnLeaderboard: false,

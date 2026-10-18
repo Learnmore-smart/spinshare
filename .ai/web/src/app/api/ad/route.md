@@ -61,7 +61,7 @@ response and passed unchanged to the extension/CLI.
 **Fix strategy:** Resolve tracked click URLs against the configured canonical
 web origin (`NEXTAUTH_URL`) when present, with `request.url` retained as the
 local-development fallback. This keeps production links on
-`https://www.spinshare.dev` while local extension builds continue to receive
+`https://spinshare-web-vert.vercel.app` while local extension builds continue to receive
 localhost links.
 
 **Alternatives considered:** Trust proxy forwarding headers, or return a
@@ -75,7 +75,7 @@ development must continue falling back to the request origin when no canonical
 origin is configured.
 
 **Test plan:** Add a route regression test using a Cloud Run-style internal
-request URL and `NEXTAUTH_URL=https://www.spinshare.dev`; assert the returned
+request URL and `NEXTAUTH_URL=https://spinshare-web-vert.vercel.app`; assert the returned
 tracked URL uses the configured production origin and preserves campaign/token
 query parameters. Retain the existing request-origin test for local fallback.
 
@@ -83,7 +83,7 @@ query parameters. Retain the existing request-origin test for local fallback.
 
 `withTrackedClickUrl` now resolves `/api/click` against the trimmed
 `NEXTAUTH_URL` when configured and falls back to `request.url` otherwise.
-Production responses therefore use `https://www.spinshare.dev`, while local and
+Production responses therefore use `https://spinshare-web-vert.vercel.app`, while local and
 custom development requests keep their own origin without client changes.
 
 ## Verification 2026-06-20 Production Click Origin

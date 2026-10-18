@@ -25,7 +25,7 @@ writing, so a typo in the table fails fast instead of seeding bad money.
 | `cmp-seed-trae` | Trae | Trae — The Real AI Engineer | https://www.trae.ai/ | 1000 | 4 | 4000 |
 | `cmp-seed-antigravity` | Antigravity | Antigravity — Experience Liftoff | https://antigravity.google/ | 850 | 5 | 4250 |
 | `cmp-seed-glm` | GLM | GLM — Built for Long-Horizon Tasks | https://z.ai/ | 880 | 6 | 5280 |
-| `cmp-seed-spinshare` | SpinShare | SpinShare — Get paid when your AI thinks | https://spinshare.dev/ | 600 | 10 | 6000 |
+| `cmp-seed-spinshare` | SpinShare | SpinShare — Get paid when your AI thinks | https://spinshare-web-vert.vercel.app/ | 600 | 10 | 6000 |
 
 Every campaign is written with `status: "active"`, `reviewStatus: "approved"`,
 and `publicOnLeaderboard: true` so it is immediately biddable and shown on the

@@ -220,7 +220,7 @@ passed 10 tests.
 ## Bug Fix Implemented 2026-06-17 Strict Hook Credential Matching (no prod fallback)
 
 Generated hook `credentialMatchesBaseUrl()` previously treated a **missing**
-credential `baseUrl` as matching production (`https://www.spinshare.dev`). Combined
+credential `baseUrl` as matching production (`https://spinshare-web-vert.vercel.app`). Combined
 with the single shared `credentials.json`, a local setup's token (or an untagged
 one) could be used by a production-baked hook, so local ad activity was reported
 to production. The hook now uses the stored token **only** when its `baseUrl`

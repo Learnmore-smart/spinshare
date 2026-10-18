@@ -87,7 +87,7 @@ describe("buildTerminalAutoWrapPlan", () => {
 
   it("prefers the CLI bundled inside the installed extension", () => {
     const plan = buildTerminalAutoWrapPlan({
-      baseUrl: "https://spinshare.dev",
+      baseUrl: "https://spinshare-web-vert.vercel.app",
       extensionRoot: "/installed/spinshare",
       storageRoot: "/tmp/spinshare",
     });
@@ -110,7 +110,7 @@ describe("buildTerminalAutoWrapPlan", () => {
   it("direct-launches Claude Code while preserving wrapper fallback for other agents", () => {
     const plan = buildTerminalAutoWrapPlan({
       agents: ["claude", "codex"],
-      baseUrl: "https://www.spinshare.dev",
+      baseUrl: "https://spinshare-web-vert.vercel.app",
       extensionRoot: "/installed/spinshare",
       storageRoot: "/tmp/spinshare",
     });
@@ -128,7 +128,7 @@ describe("buildTerminalAutoWrapPlan", () => {
   it("uses the configured agent list for shim filenames", () => {
     const plan = buildTerminalAutoWrapPlan({
       agents: ["claude", "codex"],
-      baseUrl: "https://spinshare.dev",
+      baseUrl: "https://spinshare-web-vert.vercel.app",
       extensionRoot: "/repo/vscode-extension",
       storageRoot: "/tmp/spinshare",
     });

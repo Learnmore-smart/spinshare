@@ -12,7 +12,7 @@ const REPLACEMENTS = {
   zh: [
     [
       "These Terms of Service (&ldquo;Agreement&rdquo;) constitute a legally binding",
-      "本服务条款（「协议」）构成您（「您」或「用户」）与 spinshare.dev（「SpinShare」、「我们」）之间具有法律约束力的协议，规范您对 SpinShare 平台、Visual Studio Code（VS Code）插件、IDE 插件、命令行（CLI）包装器及相关服务（统称「服务」）的访问与使用。",
+      "本服务条款（「协议」）构成您（「您」或「用户」）与 spinshare-web-vert.vercel.app（「SpinShare」、「我们」）之间具有法律约束力的协议，规范您对 SpinShare 平台、Visual Studio Code（VS Code）插件、IDE 插件、命令行（CLI）包装器及相关服务（统称「服务」）的访问与使用。",
     ],
     [
       "BY INSTALLING SPINSHARE, CREATING AN ACCOUNT, ACCESSING OUR WEBSITE, OR",
@@ -47,7 +47,7 @@ const REPLACEMENTS = {
   fr: [
     [
       "These Terms of Service (&ldquo;Agreement&rdquo;) constitute a legally binding",
-      "Les présentes conditions d&apos;utilisation (« Accord ») constituent un contrat juridiquement contraignant entre vous (« vous » ou « Utilisateur ») et spinshare.dev (« SpinShare », « nous »), régissant votre accès et votre utilisation de la plateforme SpinShare, de l&apos;extension VS Code, du plugin IDE, du wrapper CLI et des services associés (collectivement, le « Service »).",
+      "Les présentes conditions d&apos;utilisation (« Accord ») constituent un contrat juridiquement contraignant entre vous (« vous » ou « Utilisateur ») et spinshare-web-vert.vercel.app (« SpinShare », « nous »), régissant votre accès et votre utilisation de la plateforme SpinShare, de l&apos;extension VS Code, du plugin IDE, du wrapper CLI et des services associés (collectivement, le « Service »).",
     ],
     [
       "BY INSTALLING SPINSHARE, CREATING AN ACCOUNT, ACCESSING OUR WEBSITE, OR",

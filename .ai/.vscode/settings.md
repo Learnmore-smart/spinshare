@@ -25,7 +25,7 @@ Workspace-local VS Code settings used while developing and testing the SpinShare
 
 ## Important Notes / NEVER Change
 
-- Production settings should use the canonical `https://www.spinshare.dev` host to avoid redirects on POST device-flow requests.
+- Production settings should use the canonical `https://spinshare-web-vert.vercel.app` host to avoid redirects on POST device-flow requests.
 - Local development can use `http://localhost:3000`, but do not leave that in shared workspace settings.
 - Do not commit `spinshare.baseUrl` here. The packaged local/prod VSIX defaults
   are the source of truth for extension target selection.
@@ -34,8 +34,8 @@ Workspace-local VS Code settings used while developing and testing the SpinShare
 
 | Date | Bug | Cause | Fix |
 |------|-----|-------|-----|
-| 2026-06-18 | Local VSIX still installed Claude hooks pointing at production, so localhost dashboards stayed at zero after seeing ads. | The committed workspace setting `spinshare.baseUrl=https://www.spinshare.dev` overrides both local and prod VSIX manifest defaults. | Planned: remove the committed workspace override and let the installed VSIX flavor default choose `http://localhost:3000` for local or `https://www.spinshare.dev` for prod. |
-| 2026-06-15 | Device sign-in showed `device/start failed (405): Server returned a non-JSON response.` | Workspace setting used `https://spinshare.dev`; Cloudflare redirects it to `https://www.spinshare.dev`, and POST redirect handling can arrive as a GET at the Next.js route, yielding 405 HTML. | Change the shared workspace setting to the canonical `https://www.spinshare.dev`. |
+| 2026-06-18 | Local VSIX still installed Claude hooks pointing at production, so localhost dashboards stayed at zero after seeing ads. | The committed workspace setting `spinshare.baseUrl=https://spinshare-web-vert.vercel.app` overrides both local and prod VSIX manifest defaults. | Planned: remove the committed workspace override and let the installed VSIX flavor default choose `http://localhost:3000` for local or `https://spinshare-web-vert.vercel.app` for prod. |
+| 2026-06-15 | Device sign-in showed `device/start failed (405): Server returned a non-JSON response.` | Workspace setting used `https://spinshare-web-vert.vercel.app`; Cloudflare redirects it to `https://spinshare-web-vert.vercel.app`, and POST redirect handling can arrive as a GET at the Next.js route, yielding 405 HTML. | Change the shared workspace setting to the canonical `https://spinshare-web-vert.vercel.app`. |
 
 ## Planned Change 2026-06-18 Local/Prod VSIX Linkage
 
@@ -54,20 +54,20 @@ at the newly resolved base URL.
 `.vscode/settings.json` now contains an empty settings object. It no longer
 sets `spinshare.baseUrl`, so installing the local VSIX can resolve
 `http://localhost:3000` from its manifest default and installing the prod VSIX
-can resolve `https://www.spinshare.dev` from its manifest default.
+can resolve `https://spinshare-web-vert.vercel.app` from its manifest default.
 
 ## Planned Change
 
-Update `spinshare.baseUrl` from `https://spinshare.dev` to `https://www.spinshare.dev`.
+Update `spinshare.baseUrl` from `https://spinshare-web-vert.vercel.app` to `https://spinshare-web-vert.vercel.app`.
 
 ## Implemented Change
 
-`spinshare.baseUrl` now uses `https://www.spinshare.dev` in the shared workspace settings.
+`spinshare.baseUrl` now uses `https://spinshare-web-vert.vercel.app` in the shared workspace settings.
 
 ## Verification
 
-- Production `POST https://www.spinshare.dev/api/auth/device/start` returned `200` JSON.
-- Production `POST https://spinshare.dev/api/auth/device/start` returned a `301` HTML redirect to the canonical `www` host.
+- Production `POST https://spinshare-web-vert.vercel.app/api/auth/device/start` returned `200` JSON.
+- Production `POST https://spinshare-web-vert.vercel.app/api/auth/device/start` returned a `301` HTML redirect to the canonical `www` host.
 - Extension and CLI regression tests covering the old apex host now pass.
 
 ## Change History
@@ -76,5 +76,5 @@ Update `spinshare.baseUrl` from `https://spinshare.dev` to `https://www.spinshar
 |------|--------|--------|
 | 2026-06-18 | Removed committed `spinshare.baseUrl` override from workspace settings. | Codex |
 | 2026-06-18 | Planned removal of committed `spinshare.baseUrl` override so VSIX local/prod defaults work. | Codex |
-| 2026-06-15 | Canonicalized workspace `spinshare.baseUrl` to `https://www.spinshare.dev`. | Codex |
+| 2026-06-15 | Canonicalized workspace `spinshare.baseUrl` to `https://spinshare-web-vert.vercel.app`. | Codex |
 | 2026-06-15 | Created doc before canonicalizing the workspace SpinShare base URL. | Codex |

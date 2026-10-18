@@ -138,7 +138,7 @@ export function DevAnalyticsPanel({ stats }: { stats: PlatformStats }) {
           </div>
 
           <p className="dev-poster-title">Developers get paid to wait.</p>
-          <p className="dev-poster-sub">Live platform metrics from spinshare.dev</p>
+          <p className="dev-poster-sub">Live platform metrics from spinshare-web-vert.vercel.app</p>
 
           <div className="dev-poster-hero">
             <div className="dev-poster-stat">
@@ -169,7 +169,7 @@ export function DevAnalyticsPanel({ stats }: { stats: PlatformStats }) {
           </div>
 
           <div className="dev-poster-foot">
-            <span>spinshare.dev</span>
+            <span>spinshare-web-vert.vercel.app</span>
             <span>{formatAsOf(stats.updatedAtMs)}</span>
           </div>
         </div>

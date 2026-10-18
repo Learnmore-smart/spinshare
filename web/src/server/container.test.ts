@@ -65,7 +65,7 @@ describe("buildContainer local seed data", () => {
         expect.objectContaining({
           id: "cmp-local-demo",
           brandName: "SpinShare Local",
-          destinationUrl: "https://www.spinshare.dev",
+          destinationUrl: "https://spinshare-web-vert.vercel.app",
         }),
       ]),
     );

@@ -8,7 +8,7 @@ export function TermsBodyEn({ titles }: { titles: Dictionary["terms"]["sectionTi
             <p>
               These Terms of Service (&ldquo;Agreement&rdquo;) constitute a legally binding
               agreement between you (&ldquo;you,&rdquo; &ldquo;your,&rdquo; or &ldquo;User&rdquo;) and
-              spinshare.dev (&ldquo;SpinShare,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or
+              spinshare-web-vert.vercel.app (&ldquo;SpinShare,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or
               &ldquo;our&rdquo;), governing your access to and use of the SpinShare platform,
               Visual Studio Code (VS Code) extension, IDE plugin, command-line (CLI)
               wrapper, and related services (collectively, the &ldquo;Service&rdquo;).
@@ -473,7 +473,7 @@ export function TermsBodyEn({ titles }: { titles: Dictionary["terms"]["sectionTi
               removed campaigns unless SpinShare determines, in its sole
               discretion, that removal was erroneous. Advertisers may appeal a
               removal or suspension within thirty (30) days by contacting
-              support@spinshare.dev. SpinShare will review the appeal and, if it
+              support@learnx.pro. SpinShare will review the appeal and, if it
               determines the action was erroneous, reinstate the campaign and/or
               issue a credit. All appeal decisions are final.
             </LegalSubsection>
@@ -535,7 +535,7 @@ export function TermsBodyEn({ titles }: { titles: Dictionary["terms"]["sectionTi
             <LegalSubsection title="8.5 User Payout Terms">
               Earning Users may request account deletion and payout of accrued
               earnings (subject to the Payment Threshold) by contacting
-              support@spinshare.dev, or through the account settings interface
+              support@learnx.pro, or through the account settings interface
               where available. Payout requests are processed within thirty (30)
               business days. We reserve the right to delay payouts pending
               completion of fraud review or verification of payment information.
@@ -693,7 +693,7 @@ export function TermsBodyEn({ titles }: { titles: Dictionary["terms"]["sectionTi
             </LegalSubsection>
             <LegalSubsection title="10.5 Data Deletion Requests">
               Users may request deletion of their account and associated
-              personal data by contacting support@spinshare.dev. Upon deletion:
+              personal data by contacting support@learnx.pro. Upon deletion:
               (i) personal identifiers will be removed or anonymized within 30
               days; (ii) aggregated, anonymized data derived from the account
               may be retained; (iii) financial records required by law will be
@@ -782,7 +782,7 @@ export function TermsBodyEn({ titles }: { titles: Dictionary["terms"]["sectionTi
           <LegalSection id={12} title={titles[12] ?? ""}>
             <LegalSubsection title="12.1 Termination by User">
               You may terminate your account at any time by contacting
-              support@spinshare.dev and requesting deletion. Termination does
+              support@learnx.pro and requesting deletion. Termination does
               not relieve you of obligations incurred prior to termination and
               does not affect provisions that by their nature survive
               termination.
@@ -1044,7 +1044,7 @@ export function TermsBodyEn({ titles }: { titles: Dictionary["terms"]["sectionTi
               of, your personal information under the Personal Information
               Protection and Electronic Documents Act (&ldquo;PIPEDA&rdquo;)
               and applicable provincial privacy laws. To exercise these
-              rights, contact us at support@spinshare.dev. If you are not
+              rights, contact us at support@learnx.pro. If you are not
               satisfied with our response, you may contact the Office of the
               Privacy Commissioner of Canada.
             </LegalSubsection>
@@ -1056,7 +1056,7 @@ export function TermsBodyEn({ titles }: { titles: Dictionary["terms"]["sectionTi
               to access and correct that information, to obtain a portable
               copy, and to opt out of targeted advertising or the sale of
               personal information (neither of which we do). To exercise
-              rights under these laws, contact us at support@spinshare.dev.
+              rights under these laws, contact us at support@learnx.pro.
             </LegalSubsection>
           </LegalSection>
 
@@ -1067,10 +1067,10 @@ export function TermsBodyEn({ titles }: { titles: Dictionary["terms"]["sectionTi
               the Service infringes your copyright, you may submit a
               notification to our Designated Copyright Agent:{" "}
               <a
-                href="mailto:support@spinshare.dev"
+                href="mailto:support@learnx.pro"
                 className="font-bold text-emerald-700 underline-offset-2 hover:underline"
               >
-                support@spinshare.dev
+                support@learnx.pro
               </a>
               .
             </LegalSubsection>
@@ -1190,19 +1190,19 @@ export function TermsBodyEn({ titles }: { titles: Dictionary["terms"]["sectionTi
               <li>
                 <strong className="text-slate-900">Email:</strong>{" "}
                 <a
-                  href="mailto:support@spinshare.dev"
+                  href="mailto:support@learnx.pro"
                   className="font-bold text-emerald-700 underline-offset-2 hover:underline"
                 >
-                  support@spinshare.dev
+                  support@learnx.pro
                 </a>
               </li>
               <li>
                 <strong className="text-slate-900">Website:</strong>{" "}
-                spinshare.dev
+                spinshare-web-vert.vercel.app
               </li>
             </ul>
             <p className="mt-4 text-xs font-bold uppercase tracking-wider text-slate-500">
-              © 2026 spinshare.dev. All rights reserved.
+              © 2026 spinshare-web-vert.vercel.app. All rights reserved.
             </p>
           </LegalSection>
     </>

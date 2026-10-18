@@ -17,13 +17,13 @@ export const SPINSHARE_INSTALL_COMMANDS: InstallCommandVariant[] = [
     // -L/-o) and PowerShell 5.x rejects `&&`. Force the real curl.exe and only
     // install if the download succeeded.
     command:
-      "curl.exe -L https://spinshare.dev/vsix -o spinshare.vsix; if ($?) { code --install-extension spinshare.vsix }",
+      "curl.exe -L https://spinshare-web-vert.vercel.app/vsix -o spinshare.vsix; if ($?) { code --install-extension spinshare.vsix }",
   },
   {
     os: "unix",
     label: "macOS · Linux",
     command:
-      "curl -L https://spinshare.dev/vsix -o spinshare.vsix && code --install-extension spinshare.vsix",
+      "curl -L https://spinshare-web-vert.vercel.app/vsix -o spinshare.vsix && code --install-extension spinshare.vsix",
   },
 ];
 

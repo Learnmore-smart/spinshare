@@ -25,7 +25,7 @@ const checkout = {
   campaign: {
     id: campaignId,
     adText: "SpinShare Checkout Smoke - funded local purchase",
-    destinationUrl: "https://www.spinshare.dev/checkout-smoke",
+    destinationUrl: "https://spinshare-web-vert.vercel.app/checkout-smoke",
     brandName: "Checkout Smoke",
     cpmCents: 5000,
     budgetCents: 5000,
@@ -163,7 +163,7 @@ describe("local checkout smoke helpers", () => {
     expect(isPurchasedCampaignAdResponse(ad, campaignId)).toBe(true);
     expect(
       isPurchasedCampaignAdResponse(
-        { ...ad, destinationUrl: "https://www.spinshare.dev/checkout-smoke" },
+        { ...ad, destinationUrl: "https://spinshare-web-vert.vercel.app/checkout-smoke" },
         campaignId,
       ),
     ).toBe(false);

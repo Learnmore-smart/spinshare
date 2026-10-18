@@ -103,7 +103,7 @@ export function seedLocalTestData(repos: SeedableRepos): void {
       id: DEMO_CAMPAIGN_ID,
       advertiserId: advertiser.id,
       adText: "SpinShare Local - sample ad for localhost testing",
-      destinationUrl: "https://www.spinshare.dev",
+      destinationUrl: "https://spinshare-web-vert.vercel.app",
       brandName: "SpinShare Local",
       cpmCents: CAMPAIGN_CPM_CENTS,
       budgetCents: CAMPAIGN_BUDGET_CENTS,

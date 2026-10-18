@@ -28,11 +28,11 @@
 
 | 设置 | 默认值 | 说明 |
 |------|--------|------|
-| `spinshare.baseUrl` | `https://spinshare.dev` | SpinShare 网站根地址 |
+| `spinshare.baseUrl` | `https://spinshare-web-vert.vercel.app` | SpinShare 网站根地址 |
 
 ## 隐私
 
-使用设备码流程登录。仅在广告实际展示时上报展示。详见 [spinshare.dev/privacy](https://spinshare.dev/privacy)。
+使用设备码流程登录。仅在广告实际展示时上报展示。详见 [spinshare-web-vert.vercel.app/privacy](https://spinshare-web-vert.vercel.app/privacy)。
 
 ## 相关产品
 
@@ -40,4 +40,4 @@ SpinShare 还提供面向终端 AI 工具的 **CLI 封装**（`@spinshare/cli`�
 
 ## 支持
 
-问题与反馈：[support@spinshare.dev](mailto:support@spinshare.dev)
+问题与反馈：[support@learnx.pro](mailto:support@learnx.pro)

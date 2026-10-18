@@ -242,7 +242,7 @@ describe("GET /api/campaigns telemetry", () => {
       publicCheckoutRequest({
         email: "ads@example.com",
         adText: "Hire faster with SpinShare Ads",
-        destinationUrl: "https://spinshare.dev/",
+        destinationUrl: "https://spinshare-web-vert.vercel.app/",
         brandName: "SpinShare",
         publicOnLeaderboard: true,
         cpmCents: 500,
@@ -276,7 +276,7 @@ describe("GET /api/campaigns telemetry", () => {
       advertiserId,
       contactEmail: "ads@example.com",
       adText: "Paid checkout campaign",
-      destinationUrl: "https://spinshare.dev/",
+      destinationUrl: "https://spinshare-web-vert.vercel.app/",
       brandName: "SpinShare",
       publicOnLeaderboard: true,
       cpmCents: 500,
@@ -357,7 +357,7 @@ describe("POST /api/campaigns safety", () => {
       authenticatedPostRequest(token, {
         adText: "Try SpinShare for Claude Code",
         cpmCents: 500,
-        destinationUrl: "https://spinshare.dev/",
+        destinationUrl: "https://spinshare-web-vert.vercel.app/",
         brandName: "SpinShare",
         publicOnLeaderboard: true,
         blockCount: 3,
@@ -378,7 +378,7 @@ describe("POST /api/campaigns safety", () => {
       cpmCents: 500,
       budgetCents: 1500,
       purchasedImpressions: 3_000,
-      destinationUrl: "https://spinshare.dev/",
+      destinationUrl: "https://spinshare-web-vert.vercel.app/",
       brandName: "SpinShare",
       publicOnLeaderboard: true,
     });

@@ -5,9 +5,9 @@ export function PrivacyBodyEn() {
     <>
       <LegalSection title="Overview">
         <p>
-          spinshare.dev (&ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;) operates the SpinShare VS
+          spinshare-web-vert.vercel.app (&ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;) operates the SpinShare VS
           Code extension, the <code className={codeClass}>spinshare</code> CLI wrapper, and the
-          spinshare.dev website. SpinShare is a developer-first ad exchange that displays short text
+          spinshare-web-vert.vercel.app website. SpinShare is a developer-first ad exchange that displays short text
           advertisements in place of the loading spinners and progress indicators that appear while
           AI coding agents are generating output. This policy describes what information we collect,
           how we use it, and the choices you have.
@@ -83,7 +83,7 @@ export function PrivacyBodyEn() {
 
       <LegalSection title="Website Analytics &amp; Cookies">
         <p>
-          The spinshare.dev website (not the extension or CLI wrapper) may use a usage-analytics
+          The spinshare-web-vert.vercel.app website (not the extension or CLI wrapper) may use a usage-analytics
           service that records how visitors interact with our pages (clicks, scrolling, and page
           navigation) and sets cookies to distinguish visitors. We use this to understand and improve
           the website. See the third-party provider&rsquo;s privacy statement for details. Our pages
@@ -150,7 +150,7 @@ export function PrivacyBodyEn() {
           Account data is retained while your account is active, and may be retained for up to 7
           years after termination or last activity where needed for fraud prevention, financial
           reconciliation, and legal compliance. You may request deletion by contacting us at
-          support@spinshare.dev; upon deletion, personal identifiers are removed or anonymized within
+          support@learnx.pro; upon deletion, personal identifiers are removed or anonymized within
           30 days, while aggregated or anonymized data and financial records required by law may be
           retained.
         </p>
@@ -162,7 +162,7 @@ export function PrivacyBodyEn() {
           and other U.S. states with privacy laws, as well as the EU/UK under the GDPR and Canada
           under PIPEDA), you may have the right to request access to, correction of, or deletion of
           your personal information, and to opt out of any sale or sharing of personal information
-          (which we do not do). To exercise any of these rights, email support@spinshare.dev.
+          (which we do not do). To exercise any of these rights, email support@learnx.pro.
         </p>
       </LegalSection>
 
@@ -186,10 +186,10 @@ export function PrivacyBodyEn() {
         <p>
           Questions about this policy? Email{" "}
           <a
-            href="mailto:support@spinshare.dev"
+            href="mailto:support@learnx.pro"
             className="font-bold text-emerald-700 underline-offset-2 hover:underline"
           >
-            support@spinshare.dev
+            support@learnx.pro
           </a>
           .
         </p>

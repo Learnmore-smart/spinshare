@@ -29,14 +29,14 @@ Typed HTTP client used by the VS Code extension.
 
 - The extension must remain compatible with injected test fetch implementations.
 - Track failures should resolve to `null`.
-- Production API calls should use `https://www.spinshare.dev`; the bare apex host redirects and can break POST device-flow requests.
+- Production API calls should use `https://spinshare-web-vert.vercel.app`; the bare apex host redirects and can break POST device-flow requests.
 
 ## Bug Fixes
 
 | Date | Bug | Cause | Fix |
 |------|-----|-------|-----|
 | 2026-06-15 | Extension API client could request `/api/ad` without a token, producing unauthenticated 401 noise after the backend auth boundary. | `getAd()` treated auth as optional, matching the old public bidding endpoint. | Planned: return `{ adAvailable:false }` without fetching when no token is present. |
-| 2026-06-15 | Device sign-in could fail with `device/start failed (405): Server returned a non-JSON response.` | A persisted `spinshare.baseUrl` of `https://spinshare.dev` redirects to `https://www.spinshare.dev`; POST redirect handling can turn the request into a GET and Next.js returns 405 HTML. | Add base URL normalization so the extension uses the canonical `www` host for SpinShare production APIs. |
+| 2026-06-15 | Device sign-in could fail with `device/start failed (405): Server returned a non-JSON response.` | A persisted `spinshare.baseUrl` of `https://spinshare-web-vert.vercel.app` redirects to `https://spinshare-web-vert.vercel.app`; POST redirect handling can turn the request into a GET and Next.js returns 405 HTML. | Add base URL normalization so the extension uses the canonical `www` host for SpinShare production APIs. |
 
 ## Planned Change 2026-06-15 Authenticated Ad Fetch
 
@@ -71,14 +71,14 @@ Add a pure base URL normalizer and use it in `AdApiClient` construction so both 
 
 ## Implemented Change (2026-06-15)
 
-Added `normalizeBaseUrl`, mapping `https://spinshare.dev` and
-`http://spinshare.dev` to `https://www.spinshare.dev` while preserving localhost
+Added `normalizeBaseUrl`, mapping `https://spinshare-web-vert.vercel.app` and
+`http://spinshare-web-vert.vercel.app` to `https://spinshare-web-vert.vercel.app` while preserving localhost
 and custom URLs. `AdApiClient` now applies it during construction before
 building API request URLs.
 
 ## Verification (2026-06-15)
 
-- Red: `corepack pnpm@9.12.0 --filter ./vscode-extension test -- src/api-client.test.ts` failed because `startDeviceFlow` posted to `https://spinshare.dev/api/auth/device/start`.
+- Red: `corepack pnpm@9.12.0 --filter ./vscode-extension test -- src/api-client.test.ts` failed because `startDeviceFlow` posted to `https://spinshare-web-vert.vercel.app/api/auth/device/start`.
 - Green: same focused test passed after normalization.
 - Full extension suite passed with `corepack pnpm@9.12.0 test` from `vscode-extension`.
 - Package build passed with `corepack pnpm@9.12.0 --filter ./vscode-extension package`.

@@ -47,14 +47,14 @@ an authenticated client token.
 
 ## Planned Change (2026-06-15)
 
-Add a failing regression test proving `https://spinshare.dev/` is normalized to
-`https://www.spinshare.dev` before device-flow requests are built.
+Add a failing regression test proving `https://spinshare-web-vert.vercel.app/` is normalized to
+`https://spinshare-web-vert.vercel.app` before device-flow requests are built.
 
 ## Implemented Test (2026-06-15)
 
 Added a `startDeviceFlow` regression test asserting that a client constructed
-with `https://spinshare.dev/` posts to
-`https://www.spinshare.dev/api/auth/device/start`.
+with `https://spinshare-web-vert.vercel.app/` posts to
+`https://spinshare-web-vert.vercel.app/api/auth/device/start`.
 
 ## Verification (2026-06-15)
 

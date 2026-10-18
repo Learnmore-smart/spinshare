@@ -50,8 +50,8 @@ The authenticated show/click rewrite test now also asserts
 
 Add a failing regression case that calls `GET /api/ad` with an authenticated
 request whose internal URL is `http://0.0.0.0:8080/api/ad` while
-`NEXTAUTH_URL=https://www.spinshare.dev`. The returned `destinationUrl` must
-start with `https://www.spinshare.dev/api/click`, retain the selected
+`NEXTAUTH_URL=https://spinshare-web-vert.vercel.app`. The returned `destinationUrl` must
+start with `https://spinshare-web-vert.vercel.app/api/click`, retain the selected
 `campaignId`, and include a signed `clickToken`.
 
 Keep the existing `https://spinshare.test` assertion to prove requests still
@@ -62,7 +62,7 @@ behavior).
 
 The test environment now restores and clears `NEXTAUTH_URL` between cases. A
 new authenticated Cloud Run regression case sets the canonical production URL
-and proves the response uses `https://www.spinshare.dev/api/click` with the
+and proves the response uses `https://spinshare-web-vert.vercel.app/api/click` with the
 campaign id and signed click token intact.
 
 ## Verification 2026-06-20 Production Click Origin

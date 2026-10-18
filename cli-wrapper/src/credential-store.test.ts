@@ -160,7 +160,7 @@ describe("environment scoping (no local/prod credential mixing)", () => {
     const fs = memoryFs();
     fs.files.set(
       "/cfg/credentials.json",
-      JSON.stringify({ token: "prod-tok", baseUrl: "https://www.spinshare.dev" }),
+      JSON.stringify({ token: "prod-tok", baseUrl: "https://spinshare-web-vert.vercel.app" }),
     );
     const localStore = new FileCredentialStore({
       filePath: "/cfg/credentials.json",
@@ -183,7 +183,7 @@ describe("environment scoping (no local/prod credential mixing)", () => {
     const prod = new FileCredentialStore({
       filePath: "/cfg/credentials.json",
       fs,
-      baseUrl: "https://www.spinshare.dev",
+      baseUrl: "https://spinshare-web-vert.vercel.app",
     });
     expect(await prod.load()).toBeNull();
   });
@@ -223,7 +223,7 @@ describe("environment scoping (no local/prod credential mixing)", () => {
       kt,
       KEYTAR_SERVICE,
       KEYTAR_ACCOUNT,
-      "https://www.spinshare.dev",
+      "https://spinshare-web-vert.vercel.app",
     );
     expect(await prod.load()).toBeNull();
   });

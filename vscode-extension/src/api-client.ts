@@ -44,7 +44,7 @@ export type FetchLike = (
 
 /** Construction options for {@link AdApiClient}. */
 export interface AdApiClientOptions {
-  /** Base URL of the SpinShare web app, e.g. `https://spinshare.dev`. */
+  /** Base URL of the SpinShare web app, e.g. `https://spinshare-web-vert.vercel.app`. */
   baseUrl: string;
   /** Optional default bearer token (the Device_Auth_Token). */
   token?: string;
@@ -56,14 +56,18 @@ export interface AdApiClientOptions {
 }
 
 /** Default SpinShare web base URL; overridable via extension settings. */
-export const DEFAULT_BASE_URL = "https://www.spinshare.dev";
+export const DEFAULT_BASE_URL = "https://spinshare-web-vert.vercel.app";
 
 /** Normalize known production aliases while preserving localhost/custom URLs. */
 export function normalizeBaseUrl(baseUrl: string): string {
   const trimmed = baseUrl.trim().replace(/\/+$/, "");
   if (
     trimmed === "https://spinshare.dev" ||
-    trimmed === "http://spinshare.dev"
+    trimmed === "http://spinshare.dev" ||
+    trimmed === "https://www.spinshare.dev" ||
+    trimmed === "http://www.spinshare.dev" ||
+    trimmed === "https://spinshare-web-vert.vercel.app" ||
+    trimmed === "http://spinshare-web-vert.vercel.app"
   ) {
     return DEFAULT_BASE_URL;
   }

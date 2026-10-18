@@ -41,7 +41,7 @@ place, then asks you to reload the window. You can trigger a check anytime with
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `spinshare.baseUrl` | `https://www.spinshare.dev` | SpinShare web app base URL. Use `http://localhost:3000` for local dev. |
+| `spinshare.baseUrl` | `https://spinshare-web-vert.vercel.app` | SpinShare web app base URL. Use `http://localhost:3000` for local dev. |
 | `spinshare.terminalAutoWrap` | `true` | Prepends SpinShare shims to new integrated terminals. |
 | `spinshare.terminalAgents` | `["claude"]` | Command names to auto-wrap in new integrated terminals. |
 | `spinshare.autoUpdate` | `true` | Periodically check the base URL for a newer VSIX and install it in place. Reload is always prompted, never automatic. |
@@ -52,8 +52,8 @@ The extension bundles the CLI wrapper for new integrated terminals. For external
 
 ## Privacy
 
-Authentication uses a device code flow. Impressions are reported only when an ad is actually displayed for the required duration. See [spinshare.dev/privacy](https://spinshare.dev/privacy).
+Authentication uses a device code flow. Impressions are reported only when an ad is actually displayed for the required duration. See [spinshare-web-vert.vercel.app/privacy](https://spinshare-web-vert.vercel.app/privacy).
 
 ## Support
 
-Questions or feedback: [support@spinshare.dev](mailto:support@spinshare.dev)
+Questions or feedback: [support@learnx.pro](mailto:support@learnx.pro)

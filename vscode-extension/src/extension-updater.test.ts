@@ -38,8 +38,8 @@ describe("isUpdateAvailable", () => {
 describe("parseReleaseInfo", () => {
   it("accepts a well-formed manifest", () => {
     expect(
-      parseReleaseInfo({ version: "0.2.3", url: "https://www.spinshare.dev/vsix" }),
-    ).toEqual({ version: "0.2.3", url: "https://www.spinshare.dev/vsix" });
+      parseReleaseInfo({ version: "0.2.3", url: "https://spinshare-web-vert.vercel.app/vsix" }),
+    ).toEqual({ version: "0.2.3", url: "https://spinshare-web-vert.vercel.app/vsix" });
   });
 
   it("rejects malformed or non-http payloads", () => {
@@ -93,7 +93,7 @@ function makeHarness(
 
   const updater = new ExtensionUpdater({
     currentVersion: "0.2.2",
-    baseUrl: "https://www.spinshare.dev",
+    baseUrl: "https://spinshare-web-vert.vercel.app",
     downloadDir: "/storage/updates",
     fetchImpl: fetchSpy as unknown as UpdaterFetch,
     fs: {
@@ -127,22 +127,22 @@ function makeHarness(
 describe("ExtensionUpdater.checkForUpdate", () => {
   it("returns the release when the server advertises a newer version", async () => {
     const { updater, fetchImpl } = makeHarness(async () =>
-      jsonResponse({ version: "0.2.3", url: "https://www.spinshare.dev/vsix" }),
+      jsonResponse({ version: "0.2.3", url: "https://spinshare-web-vert.vercel.app/vsix" }),
     );
 
     await expect(updater.checkForUpdate()).resolves.toEqual({
       version: "0.2.3",
-      url: "https://www.spinshare.dev/vsix",
+      url: "https://spinshare-web-vert.vercel.app/vsix",
     });
     expect(fetchImpl).toHaveBeenCalledWith(
-      "https://www.spinshare.dev/api/extension/version",
+      "https://spinshare-web-vert.vercel.app/api/extension/version",
       expect.objectContaining({ method: "GET" }),
     );
   });
 
   it("returns null when already on the latest version", async () => {
     const { updater } = makeHarness(async () =>
-      jsonResponse({ version: "0.2.2", url: "https://www.spinshare.dev/vsix" }),
+      jsonResponse({ version: "0.2.2", url: "https://spinshare-web-vert.vercel.app/vsix" }),
     );
     await expect(updater.checkForUpdate()).resolves.toBeNull();
   });
@@ -170,7 +170,7 @@ describe("ExtensionUpdater.run", () => {
     const { updater, writes, executeCommand, showInformationMessage } = makeHarness(
       async (input) =>
         input.endsWith("/api/extension/version")
-          ? jsonResponse({ version: "0.3.0", url: "https://www.spinshare.dev/vsix" })
+          ? jsonResponse({ version: "0.3.0", url: "https://spinshare-web-vert.vercel.app/vsix" })
           : binaryResponse(payload),
     );
     // User accepts the reload prompt.
@@ -193,7 +193,7 @@ describe("ExtensionUpdater.run", () => {
     const { updater, executeCommand, showInformationMessage } = makeHarness(
       async (input) =>
         input.endsWith("/api/extension/version")
-          ? jsonResponse({ version: "0.3.0", url: "https://www.spinshare.dev/vsix" })
+          ? jsonResponse({ version: "0.3.0", url: "https://spinshare-web-vert.vercel.app/vsix" })
           : binaryResponse(new Uint8Array([1])),
     );
     showInformationMessage.mockResolvedValueOnce("Later");
@@ -211,7 +211,7 @@ describe("ExtensionUpdater.run", () => {
     const { updater, executeCommand, showErrorMessage, openUrl, onError } =
       makeHarness(async (input) =>
         input.endsWith("/api/extension/version")
-          ? jsonResponse({ version: "0.3.0", url: "https://www.spinshare.dev/vsix" })
+          ? jsonResponse({ version: "0.3.0", url: "https://spinshare-web-vert.vercel.app/vsix" })
           : binaryResponse(new Uint8Array([1])),
       );
     executeCommand.mockRejectedValueOnce(new Error("command not found"));
@@ -220,12 +220,12 @@ describe("ExtensionUpdater.run", () => {
     await updater.run();
 
     expect(onError).toHaveBeenCalledOnce();
-    expect(openUrl).toHaveBeenCalledWith("https://www.spinshare.dev/vsix");
+    expect(openUrl).toHaveBeenCalledWith("https://spinshare-web-vert.vercel.app/vsix");
   });
 
   it("tells the user when a manual check finds no update", async () => {
     const { updater, showInformationMessage } = makeHarness(async () =>
-      jsonResponse({ version: "0.2.2", url: "https://www.spinshare.dev/vsix" }),
+      jsonResponse({ version: "0.2.2", url: "https://spinshare-web-vert.vercel.app/vsix" }),
     );
 
     await updater.run({ manual: true });
@@ -237,7 +237,7 @@ describe("ExtensionUpdater.run", () => {
 
   it("stays silent on an automatic check with no update", async () => {
     const { updater, showInformationMessage } = makeHarness(async () =>
-      jsonResponse({ version: "0.2.2", url: "https://www.spinshare.dev/vsix" }),
+      jsonResponse({ version: "0.2.2", url: "https://spinshare-web-vert.vercel.app/vsix" }),
     );
 
     await updater.run();

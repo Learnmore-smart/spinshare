@@ -518,8 +518,8 @@ Response `200`:
 {
   "deviceCode": "dc_...",
   "userCode": "WXYZ-1234",
-  "verificationUri": "https://spinshare.dev/activate",
-  "verificationUriComplete": "https://spinshare.dev/activate?user_code=WXYZ-1234",
+  "verificationUri": "https://spinshare-web-vert.vercel.app/activate",
+  "verificationUriComplete": "https://spinshare-web-vert.vercel.app/activate?user_code=WXYZ-1234",
   "intervalSec": 5,
   "expiresInSec": 300
 }

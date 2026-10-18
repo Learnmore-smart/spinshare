@@ -202,9 +202,9 @@ describe("AdApiClient.startDeviceFlow", () => {
       jsonResponse({
         deviceCode: "dc_1",
         userCode: "WXYZ-1234",
-        verificationUri: "https://www.spinshare.dev/activate",
+        verificationUri: "https://spinshare-web-vert.vercel.app/activate",
         verificationUriComplete:
-          "https://www.spinshare.dev/activate?user_code=WXYZ-1234",
+          "https://spinshare-web-vert.vercel.app/activate?user_code=WXYZ-1234",
         intervalSec: 5,
         expiresInSec: 300,
       }),
@@ -217,7 +217,7 @@ describe("AdApiClient.startDeviceFlow", () => {
     await client.startDeviceFlow();
 
     expect(calls[0].url).toBe(
-      "https://www.spinshare.dev/api/auth/device/start",
+      "https://spinshare-web-vert.vercel.app/api/auth/device/start",
     );
     expect(calls[0].method).toBe("POST");
   });

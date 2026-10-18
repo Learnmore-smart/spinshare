@@ -4,7 +4,7 @@ Last updated: June 13, 2026
 
 ## Overview
 
-spinshare.dev ("we", "us", "our") operates the SpinShare VS Code extension, the `spinshare` CLI wrapper, and the spinshare.dev website. SpinShare is a developer-first ad exchange that displays short text advertisements in place of the loading spinners and progress indicators that appear while AI coding agents are generating output. This policy describes what information we collect, how we use it, and the choices you have.
+spinshare-web-vert.vercel.app ("we", "us", "our") operates the SpinShare VS Code extension, the `spinshare` CLI wrapper, and the spinshare-web-vert.vercel.app website. SpinShare is a developer-first ad exchange that displays short text advertisements in place of the loading spinners and progress indicators that appear while AI coding agents are generating output. This policy describes what information we collect, how we use it, and the choices you have.
 
 ## Information We Collect
 
@@ -29,7 +29,7 @@ This processing happens entirely on your device. No transcript content — no pr
 
 ## Website Analytics & Cookies
 
-The spinshare.dev website (not the extension or CLI wrapper) may use a usage-analytics service that records how visitors interact with our pages (clicks, scrolling, and page navigation) and sets cookies to distinguish visitors. We use this to understand and improve the website. See the third-party provider's privacy statement for details. Our pages may also load fonts from a third-party font service, which receives your IP address when the font files are fetched.
+The spinshare-web-vert.vercel.app website (not the extension or CLI wrapper) may use a usage-analytics service that records how visitors interact with our pages (clicks, scrolling, and page navigation) and sets cookies to distinguish visitors. We use this to understand and improve the website. See the third-party provider's privacy statement for details. Our pages may also load fonts from a third-party font service, which receives your IP address when the font files are fetched.
 
 ## How We Use Information
 
@@ -59,11 +59,11 @@ We do not sell your personal information. We may share data with:
 
 ## Data Retention & Deletion
 
-Account data is retained while your account is active, and may be retained for up to 7 years after termination or last activity where needed for fraud prevention, financial reconciliation, and legal compliance. You may request deletion by contacting us at support@spinshare.dev; upon deletion, personal identifiers are removed or anonymized within 30 days, while aggregated or anonymized data and financial records required by law may be retained.
+Account data is retained while your account is active, and may be retained for up to 7 years after termination or last activity where needed for fraud prevention, financial reconciliation, and legal compliance. You may request deletion by contacting us at support@learnx.pro; upon deletion, personal identifiers are removed or anonymized within 30 days, while aggregated or anonymized data and financial records required by law may be retained.
 
 ## Your Privacy Rights
 
-Depending on where you live (including California, Virginia, Colorado, Connecticut, Utah, and other U.S. states with privacy laws, as well as the EU/UK under the GDPR and Canada under PIPEDA), you may have the right to request access to, correction of, or deletion of your personal information, and to opt out of any sale or sharing of personal information (which we do not do). To exercise any of these rights, email support@spinshare.dev.
+Depending on where you live (including California, Virginia, Colorado, Connecticut, Utah, and other U.S. states with privacy laws, as well as the EU/UK under the GDPR and Canada under PIPEDA), you may have the right to request access to, correction of, or deletion of your personal information, and to opt out of any sale or sharing of personal information (which we do not do). To exercise any of these rights, email support@learnx.pro.
 
 ## Security
 
@@ -75,7 +75,7 @@ We may update this policy from time to time. Material changes will be communicat
 
 ## Contact
 
-Questions about this policy? Email support@spinshare.dev.
+Questions about this policy? Email support@learnx.pro.
 
 ---
 
@@ -114,7 +114,7 @@ By installing SpinShare, creating an account, accessing our website, or otherwis
 
 ## 1. Acceptance of Terms
 
-These Terms of Service ("Agreement") constitute a legally binding agreement between you ("you," "your," or "User") and spinshare.dev ("SpinShare," "we," "us," or "our"), governing your access to and use of the SpinShare platform, Visual Studio Code (VS Code) extension, IDE plugin, command-line (CLI) wrapper, and related services (collectively, the "Service").
+These Terms of Service ("Agreement") constitute a legally binding agreement between you ("you," "your," or "User") and spinshare-web-vert.vercel.app ("SpinShare," "we," "us," or "our"), governing your access to and use of the SpinShare platform, Visual Studio Code (VS Code) extension, IDE plugin, command-line (CLI) wrapper, and related services (collectively, the "Service").
 
 BY INSTALLING SPINSHARE, CREATING AN ACCOUNT, ACCESSING OUR WEBSITE, OR OTHERWISE USING THE SERVICE IN ANY MANNER, YOU ACKNOWLEDGE THAT YOU HAVE READ, UNDERSTOOD, AND AGREE TO BE BOUND BY THIS AGREEMENT. IF YOU DO NOT AGREE TO ALL TERMS AND CONDITIONS, YOU MUST IMMEDIATELY DISCONTINUE USE OF THE SERVICE AND UNINSTALL THE EXTENSION AND CLI WRAPPER.
 
@@ -284,7 +284,7 @@ Without limitation, Ad Content may not: promote gambling (where prohibited); pro
 
 ### 7.5 Right to Reject or Remove
 
-SpinShare reserves the right, in its sole discretion and without liability, to reject, remove, or suspend any Ad Content or campaign for any reason or no reason, including but not limited to violations of this Agreement, complaints from users, or concerns about brand safety. No refund or credit will be provided for removed campaigns unless SpinShare determines, in its sole discretion, that removal was erroneous. Advertisers may appeal a removal or suspension within thirty (30) days by contacting support@spinshare.dev. SpinShare will review the appeal and, if it determines the action was erroneous, reinstate the campaign and/or issue a credit. All appeal decisions are final.
+SpinShare reserves the right, in its sole discretion and without liability, to reject, remove, or suspend any Ad Content or campaign for any reason or no reason, including but not limited to violations of this Agreement, complaints from users, or concerns about brand safety. No refund or credit will be provided for removed campaigns unless SpinShare determines, in its sole discretion, that removal was erroneous. Advertisers may appeal a removal or suspension within thirty (30) days by contacting support@learnx.pro. SpinShare will review the appeal and, if it determines the action was erroneous, reinstate the campaign and/or issue a credit. All appeal decisions are final.
 
 ### 7.6 Advertiser Indemnification for Content
 
@@ -314,7 +314,7 @@ Advertisers must notify SpinShare of any billing disputes in writing, within thi
 
 ### 8.5 User Payout Terms
 
-Earning Users may request account deletion and payout of accrued earnings (subject to the Payment Threshold) by contacting support@spinshare.dev, or through the account settings interface where available. Payout requests are processed within thirty (30) business days. We reserve the right to delay payouts pending completion of fraud review or verification of payment information.
+Earning Users may request account deletion and payout of accrued earnings (subject to the Payment Threshold) by contacting support@learnx.pro, or through the account settings interface where available. Payout requests are processed within thirty (30) business days. We reserve the right to delay payouts pending completion of fraud review or verification of payment information.
 
 ## 9. Fraud Prevention, Abuse & Enforcement
 
@@ -374,7 +374,7 @@ Individual account data is retained for 7 years following account termination or
 
 ### 10.5 Data Deletion Requests
 
-Users may request deletion of their account and associated personal data by contacting support@spinshare.dev. Upon deletion: (i) personal identifiers will be removed or anonymized within 30 days; (ii) aggregated, anonymized data derived from the account may be retained; (iii) financial records required by law will be retained as mandated; and (iv) anonymized impression and click data necessary for advertiser billing reconciliation will be retained in non-identifiable form.
+Users may request deletion of their account and associated personal data by contacting support@learnx.pro. Upon deletion: (i) personal identifiers will be removed or anonymized within 30 days; (ii) aggregated, anonymized data derived from the account may be retained; (iii) financial records required by law will be retained as mandated; and (iv) anonymized impression and click data necessary for advertiser billing reconciliation will be retained in non-identifiable form.
 
 ### 10.6 Third-Party Processors
 
@@ -414,7 +414,7 @@ BY INSTALLING AND USING THE EXTENSION OR CLI WRAPPER, YOU EXPRESSLY ASSUME ALL R
 
 ### 12.1 Termination by User
 
-You may terminate your account at any time by contacting support@spinshare.dev and requesting deletion. Termination does not relieve you of obligations incurred prior to termination and does not affect provisions that by their nature survive termination.
+You may terminate your account at any time by contacting support@learnx.pro and requesting deletion. Termination does not relieve you of obligations incurred prior to termination and does not affect provisions that by their nature survive termination.
 
 ### 12.2 Termination by SpinShare
 
@@ -542,11 +542,11 @@ If you are in the EU or UK, our legal bases for processing are: performance of a
 
 ### 18.4 Canada (PIPEDA)
 
-If you are in Canada, you may request access to, and correction of, your personal information under the Personal Information Protection and Electronic Documents Act ("PIPEDA") and applicable provincial privacy laws. To exercise these rights, contact us at support@spinshare.dev. If you are not satisfied with our response, you may contact the Office of the Privacy Commissioner of Canada.
+If you are in Canada, you may request access to, and correction of, your personal information under the Personal Information Protection and Electronic Documents Act ("PIPEDA") and applicable provincial privacy laws. To exercise these rights, contact us at support@learnx.pro. If you are not satisfied with our response, you may contact the Office of the Privacy Commissioner of Canada.
 
 ### 18.5 Other U.S. State Privacy Laws
 
-Residents of Virginia (VCDPA), Colorado (CPA), Connecticut (CTDPA), Utah (UCPA), and other U.S. states with comparable privacy laws may have additional rights, including the right to confirm whether we are processing your personal information, to access and correct that information, to obtain a portable copy, and to opt out of targeted advertising or the sale of personal information (neither of which we do). To exercise rights under these laws, contact us at support@spinshare.dev.
+Residents of Virginia (VCDPA), Colorado (CPA), Connecticut (CTDPA), Utah (UCPA), and other U.S. states with comparable privacy laws may have additional rights, including the right to confirm whether we are processing your personal information, to access and correct that information, to obtain a portable copy, and to opt out of targeted advertising or the sale of personal information (neither of which we do). To exercise rights under these laws, contact us at support@learnx.pro.
 
 ## 19. Digital Millennium Copyright Act (DMCA)
 
@@ -554,7 +554,7 @@ Residents of Virginia (VCDPA), Colorado (CPA), Connecticut (CTDPA), Utah (UCPA),
 
 SpinShare respects intellectual property rights and complies with the DMCA. If you believe that material available through the Service infringes your copyright, you may submit a notification to our Designated Copyright Agent:
 
-- **Email:** support@spinshare.dev
+- **Email:** support@learnx.pro
 
 ### 19.2 DMCA Notice Requirements
 
@@ -628,7 +628,7 @@ No agency, partnership, joint venture, or employment relationship is created by 
 
 If you have any questions, concerns, or requests regarding this Agreement or the Service, please contact us:
 
-- **Email:** support@spinshare.dev
-- **Website:** spinshare.dev
+- **Email:** support@learnx.pro
+- **Website:** spinshare-web-vert.vercel.app
 
-© 2026 spinshare.dev. All rights reserved.
+© 2026 spinshare-web-vert.vercel.app. All rights reserved.

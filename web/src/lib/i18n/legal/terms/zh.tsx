@@ -6,7 +6,7 @@ export function TermsBodyZh({ titles }: { titles: Dictionary["terms"]["sectionTi
     <>
           <LegalSection id={1} title={titles[1] ?? ""}>
             <p>
-              本服务条款（「协议」）构成您（「您」「您的」或「用户」）与 spinshare.dev（「SpinShare」「我们」或「我方」）之间具有法律约束力的协议，规范您对 SpinShare 平台、Visual Studio Code（VS Code）插件、IDE 插件、命令行（CLI）包装器及相关服务（统称「服务」）的访问与使用。
+              本服务条款（「协议」）构成您（「您」「您的」或「用户」）与 spinshare-web-vert.vercel.app（「SpinShare」「我们」或「我方」）之间具有法律约束力的协议，规范您对 SpinShare 平台、Visual Studio Code（VS Code）插件、IDE 插件、命令行（CLI）包装器及相关服务（统称「服务」）的访问与使用。
             </p>
             <p>
               通过安装 SPINSHARE、创建账户、访问我们的网站或以任何方式使用服务，您确认已阅读、理解并同意受本协议约束。若您不同意全部条款与条件，必须立即停止使用服务并卸载插件与 CLI 包装器。
@@ -195,7 +195,7 @@ export function TermsBodyZh({ titles }: { titles: Dictionary["terms"]["sectionTi
               不限于下列情形，广告内容不得：在禁止地区推广赌博；违反法律推广酒精、烟草或管制物质；包含成人内容、仇恨言论或歧视性材料；作出未经证实的健康或财务主张；冒充 SpinShare 或任何第三方；或侵犯任何个人或实体的知识产权、隐私或公开权。
             </LegalSubsection>
             <LegalSubsection title="7.5 拒绝或移除的权利">
-              SpinShare 保留自行决定且不承担责任的权利，以任何理由或无理由拒绝、移除或暂停任何广告内容或活动，包括但不限于违反本协议、用户投诉或品牌安全顾虑。除非 SpinShare 自行认定移除有误，否则不对已移除活动退款或积分。广告主可在三十（30）日内联系 support@spinshare.dev 对移除或暂停提出申诉。SpinShare 将审查申诉，若认定行为有误，将恢复活动及/或发放积分。所有申诉决定均为最终。
+              SpinShare 保留自行决定且不承担责任的权利，以任何理由或无理由拒绝、移除或暂停任何广告内容或活动，包括但不限于违反本协议、用户投诉或品牌安全顾虑。除非 SpinShare 自行认定移除有误，否则不对已移除活动退款或积分。广告主可在三十（30）日内联系 support@learnx.pro 对移除或暂停提出申诉。SpinShare 将审查申诉，若认定行为有误，将恢复活动及/或发放积分。所有申诉决定均为最终。
             </LegalSubsection>
             <LegalSubsection title="7.6 广告主就内容之赔偿">
               广告主明确向 SpinShare 赔偿并使其免受因以下事项产生或与之相关的任何及全部索赔、损害、损失与费用（包括合理律师费）：（i）广告内容的内容、准确性或合法性；（ii）所推广的产品或服务；（iii）广告所链接的目标网站或落地页；及（iv）广告主的任何虚假陈述或违反保证。
@@ -220,7 +220,7 @@ export function TermsBodyZh({ titles }: { titles: Dictionary["terms"]["sectionTi
               广告主须在扣款日起三十（30）日内书面通知 SpinShare 任何计费争议。无争议部分须及时支付。在未先尝试与 SpinShare 解决问题的情况下发起退单或付款争议，构成对本协议的重大违约，可能导致账户立即冻结或终止。
             </LegalSubsection>
             <LegalSubsection title="8.5 用户付款条款">
-              收益用户可通过联系 support@spinshare.dev，或在可用时通过账户设置界面，请求删除账户并拨付累计收益（须满足付款门槛）。付款请求在三十（30）个工作日内处理。我们保留在欺诈审查或付款信息验证完成前延迟付款的权利。
+              收益用户可通过联系 support@learnx.pro，或在可用时通过账户设置界面，请求删除账户并拨付累计收益（须满足付款门槛）。付款请求在三十（30）个工作日内处理。我们保留在欺诈审查或付款信息验证完成前延迟付款的权利。
             </LegalSubsection>
           </LegalSection>
         
@@ -292,7 +292,7 @@ export function TermsBodyZh({ titles }: { titles: Dictionary["terms"]["sectionTi
               个人账户数据在账户终止后保留 7 年，或自最后账户活动起保留 7 年，以较长者为准，用于防欺诈、财务对账与法律合规。聚合数据可无限期保留用于分析与服务改进，并在可行或法律要求范围内进行匿名化。
             </LegalSubsection>
             <LegalSubsection title="10.5 数据删除请求">
-              用户可通过联系 support@spinshare.dev 请求删除其账户及相关个人数据。删除后：（i）个人标识符将在 30 日内移除或匿名化；（ii）源自该账户的聚合匿名数据可予保留；（iii）法律要求的财务记录将按强制规定保留；及（iv）广告主计费对账所需匿名化的展示与点击数据将以不可识别形式保留。
+              用户可通过联系 support@learnx.pro 请求删除其账户及相关个人数据。删除后：（i）个人标识符将在 30 日内移除或匿名化；（ii）源自该账户的聚合匿名数据可予保留；（iii）法律要求的财务记录将按强制规定保留；及（iv）广告主计费对账所需匿名化的展示与点击数据将以不可识别形式保留。
             </LegalSubsection>
             <LegalSubsection title="10.6 第三方处理方">
               SpinShare 使用第三方服务提供商处理付款、分析、托管与客户支持。目前包括 Stripe（付款处理与拨付）、Google Cloud / Firebase（托管、认证与数据存储）、Twilio SendGrid（事务性邮件）及网站使用分析提供商，但提供商可能变更。使用服务即表示您同意在适当数据保护协议下聘用这些子处理方。
@@ -324,7 +324,7 @@ export function TermsBodyZh({ titles }: { titles: Dictionary["terms"]["sectionTi
 
           <LegalSection id={12} title={titles[12] ?? ""}>
             <LegalSubsection title="12.1 用户终止">
-              您可随时联系 support@spinshare.dev 请求删除以终止账户。终止不免除您在终止前已产生的义务，也不影响依其性质应在终止后继续有效的条款。
+              您可随时联系 support@learnx.pro 请求删除以终止账户。终止不免除您在终止前已产生的义务，也不影响依其性质应在终止后继续有效的条款。
             </LegalSubsection>
             <LegalSubsection title="12.2 SpinShare 终止">
               SpinShare 保留自行决定且无需事先通知而暂停或终止任何账户、限制服务访问或向任何用户或广告主停止提供服务的权利，理由包括但不限于：违反本协议；疑似欺诈或滥用；执法或监管机构要求；长期不活跃；或业务终止。
@@ -435,10 +435,10 @@ export function TermsBodyZh({ titles }: { titles: Dictionary["terms"]["sectionTi
               若您在欧盟或英国，我们处理的法律依据包括：履行合同（提供服务并计入收益）、我们的合法利益（运营、保障与改进服务、防止欺诈）及法律义务（税务、会计与合规）。您有权访问、更正、删除、限制或反对处理您的个人数据，以及数据可携带权。您还有权向您所在司法管辖区的监管机构投诉。
             </LegalSubsection>
             <LegalSubsection title="18.4 加拿大（PIPEDA）">
-              若您在加拿大，您可根据《个人信息保护与电子文件法》（「PIPEDA」）及适用的省级隐私法要求访问并更正您的个人信息。要行使这些权利，请通过 support@spinshare.dev 联系我们。若您对我们的答复不满意，可联系加拿大隐私专员办公室。
+              若您在加拿大，您可根据《个人信息保护与电子文件法》（「PIPEDA」）及适用的省级隐私法要求访问并更正您的个人信息。要行使这些权利，请通过 support@learnx.pro 联系我们。若您对我们的答复不满意，可联系加拿大隐私专员办公室。
             </LegalSubsection>
             <LegalSubsection title="18.5 美国其他州隐私法">
-              弗吉尼亚州（VCDPA）、科罗拉多州（CPA）、康涅狄格州（CTDPA）、犹他州（UCPA）及其他具有可比隐私法的美国州居民可能享有额外权利，包括确认我们是否正在处理您的个人信息、访问并更正该信息、获取可携带副本，以及选择退出定向广告或出售个人信息（我们均不进行）。要行使这些法律下的权利，请通过 support@spinshare.dev 联系我们。
+              弗吉尼亚州（VCDPA）、科罗拉多州（CPA）、康涅狄格州（CTDPA）、犹他州（UCPA）及其他具有可比隐私法的美国州居民可能享有额外权利，包括确认我们是否正在处理您的个人信息、访问并更正该信息、获取可携带副本，以及选择退出定向广告或出售个人信息（我们均不进行）。要行使这些法律下的权利，请通过 support@learnx.pro 联系我们。
             </LegalSubsection>
           </LegalSection>
         
@@ -447,10 +447,10 @@ export function TermsBodyZh({ titles }: { titles: Dictionary["terms"]["sectionTi
             <LegalSubsection title="19.1 指定代理人">
               SpinShare 尊重知识产权并遵守 DMCA。若您认为通过服务提供的材料侵犯您的版权，可向我们的指定版权代理人提交通知：{" "}
               <a
-                href="mailto:support@spinshare.dev"
+                href="mailto:support@learnx.pro"
                 className="font-bold text-emerald-700 underline-offset-2 hover:underline"
               >
-                support@spinshare.dev
+                support@learnx.pro
               </a>
               。
             </LegalSubsection>
@@ -521,19 +521,19 @@ export function TermsBodyZh({ titles }: { titles: Dictionary["terms"]["sectionTi
               <li>
                 <strong className="text-slate-900">电子邮件：</strong>{" "}
                 <a
-                  href="mailto:support@spinshare.dev"
+                  href="mailto:support@learnx.pro"
                   className="font-bold text-emerald-700 underline-offset-2 hover:underline"
                 >
-                  support@spinshare.dev
+                  support@learnx.pro
                 </a>
               </li>
               <li>
                 <strong className="text-slate-900">网站：</strong>{" "}
-                spinshare.dev
+                spinshare-web-vert.vercel.app
               </li>
             </ul>
             <p className="mt-4 text-xs font-bold uppercase tracking-wider text-slate-500">
-              © 2026 spinshare.dev. 保留所有权利。
+              © 2026 spinshare-web-vert.vercel.app. 保留所有权利。
             </p>
           </LegalSection>
         

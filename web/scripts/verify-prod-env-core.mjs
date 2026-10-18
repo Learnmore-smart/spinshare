@@ -38,7 +38,7 @@ export function checkStrictModes(env) {
   }
   if (isLocalHttpUrl(value(env, "NEXTAUTH_URL"))) {
     warnings.push(
-      "NEXTAUTH_URL is localhost - set https://www.spinshare.dev in Cloud Run variables for production",
+      "NEXTAUTH_URL is localhost - set https://spinshare-web-vert.vercel.app in Cloud Run variables for production",
     );
   }
   if (
@@ -46,7 +46,7 @@ export function checkStrictModes(env) {
     isLocalHttpUrl(value(env, "AUTH_VERIFICATION_URI"))
   ) {
     warnings.push(
-      "AUTH_VERIFICATION_URI is localhost - set https://www.spinshare.dev/activate in Cloud Run variables for production",
+      "AUTH_VERIFICATION_URI is localhost - set https://spinshare-web-vert.vercel.app/activate in Cloud Run variables for production",
     );
   }
   if (!value(env, "NEXT_PUBLIC_GA_MEASUREMENT_ID")) {

@@ -10,7 +10,7 @@ Tests the prod/local VSIX package variant helpers.
 
 - The local variant defaults `spinshare.baseUrl` to `http://localhost:3000` and
   labels the display name as local.
-- The prod variant defaults `spinshare.baseUrl` to `https://www.spinshare.dev`.
+- The prod variant defaults `spinshare.baseUrl` to `https://spinshare-web-vert.vercel.app`.
 - Output filenames are deterministic per flavor and version.
 - Windows command wrappers are spawned through a shell so `corepack.cmd` can run.
 - Marketplace auto-update readiness validates the stable extension id,

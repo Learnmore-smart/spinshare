@@ -47,7 +47,7 @@ export type TokenProvider = () => string | null | undefined;
 
 /** Construction options for {@link CliApiClient}. */
 export interface CliApiClientOptions {
-  /** Base URL of the SpinShare web app, e.g. `https://spinshare.dev`. */
+  /** Base URL of the SpinShare web app, e.g. `https://spinshare-web-vert.vercel.app`. */
   baseUrl?: string;
   /**
    * Token getter (preferred). Evaluated lazily per request so a token stored
@@ -64,14 +64,18 @@ export interface CliApiClientOptions {
 }
 
 /** Default SpinShare web base URL; overridable via env/config. */
-export const DEFAULT_BASE_URL = "https://www.spinshare.dev";
+export const DEFAULT_BASE_URL = "https://spinshare-web-vert.vercel.app";
 
 /** Normalize known production aliases while preserving localhost/custom URLs. */
 export function normalizeBaseUrl(baseUrl: string): string {
   const trimmed = baseUrl.trim().replace(/\/+$/, "");
   if (
     trimmed === "https://spinshare.dev" ||
-    trimmed === "http://spinshare.dev"
+    trimmed === "http://spinshare.dev" ||
+    trimmed === "https://www.spinshare.dev" ||
+    trimmed === "http://www.spinshare.dev" ||
+    trimmed === "https://spinshare-web-vert.vercel.app" ||
+    trimmed === "http://spinshare-web-vert.vercel.app"
   ) {
     return DEFAULT_BASE_URL;
   }

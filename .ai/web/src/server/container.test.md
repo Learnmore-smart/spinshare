@@ -30,7 +30,7 @@ reject any seeded campaign whose brand/ad text still contains `LearnX`.
 
 The explicit local seed test now requires the sample campaign to use
 `brandName: "SpinShare Local"` and `destinationUrl:
-"https://www.spinshare.dev"`, and asserts no biddable seeded campaign contains
+"https://spinshare-web-vert.vercel.app"`, and asserts no biddable seeded campaign contains
 `LearnX` in brand or ad text.
 
 ## Planned Regression 2026-06-16 Local Real Stripe Durability

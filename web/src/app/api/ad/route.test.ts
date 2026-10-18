@@ -122,7 +122,7 @@ describe("GET /api/ad telemetry", () => {
   });
 
   it("uses the configured public origin instead of Cloud Run's internal origin", async () => {
-    process.env.NEXTAUTH_URL = "https://www.spinshare.dev";
+    process.env.NEXTAUTH_URL = "https://spinshare-web-vert.vercel.app";
     const container = getContainer();
     const token = (container.auth as MockAuthProvider).mintToken("dev_prod");
     seedCampaign(container, { id: "cmp_prod" });
@@ -135,7 +135,7 @@ describe("GET /api/ad telemetry", () => {
 
     expect(response.status).toBe(200);
     expect(body.destinationUrl).toMatch(
-      /^https:\/\/www\.spinshare\.dev\/api\/click\?campaignId=cmp_prod&clickToken=.+/,
+      /^https:\/\/spinshare-web-vert\.vercel\.app\/api\/click\?campaignId=cmp_prod&clickToken=.+/,
     );
   });
 

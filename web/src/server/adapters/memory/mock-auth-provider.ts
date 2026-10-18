@@ -39,7 +39,7 @@ const DEVICE_EXPIRES_IN_SEC = 300;
 /** Minimum seconds between token polls before `slow_down` is returned. */
 const DEVICE_POLL_INTERVAL_SEC = 5;
 /** Fallback activation URL when no host is configured in the environment. */
-const FALLBACK_VERIFICATION_URI = "https://spinshare.dev/activate";
+const FALLBACK_VERIFICATION_URI = "https://spinshare-web-vert.vercel.app/activate";
 
 /**
  * Resolves the browser activation URL the CLI/extension should open. Prefers an

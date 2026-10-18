@@ -28,11 +28,11 @@ Gagnez pendant que votre IA travaille. SpinShare affiche des publicités discrè
 
 | Paramètre | Défaut | Description |
 |-----------|--------|-------------|
-| `spinshare.baseUrl` | `https://spinshare.dev` | URL de base de l'application web SpinShare |
+| `spinshare.baseUrl` | `https://spinshare-web-vert.vercel.app` | URL de base de l'application web SpinShare |
 
 ## Confidentialité
 
-L'authentification utilise un flux de code d'appareil. Les impressions ne sont signalées que lorsqu'une annonce est réellement affichée. Voir [spinshare.dev/privacy](https://spinshare.dev/privacy).
+L'authentification utilise un flux de code d'appareil. Les impressions ne sont signalées que lorsqu'une annonce est réellement affichée. Voir [spinshare-web-vert.vercel.app/privacy](https://spinshare-web-vert.vercel.app/privacy).
 
 ## Produits associés
 
@@ -40,4 +40,4 @@ SpinShare propose aussi un **wrapper CLI** (`@spinshare/cli`) pour les outils IA
 
 ## Support
 
-Questions ou retours : [support@spinshare.dev](mailto:support@spinshare.dev)
+Questions ou retours : [support@learnx.pro](mailto:support@learnx.pro)
